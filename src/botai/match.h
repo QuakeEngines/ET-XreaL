@@ -28,11 +28,11 @@ If you have questions concerning this license or the applicable additional terms
 
 //===========================================================================
 //
-// Name:			match.h
-// Function:		match template defines
-// Programmer:		Mr Elusive (MrElusive@idsoftware.com)
-// Last update:		1999-10-01
-// Tab Size:		4 (real tabs)
+// Name:            match.h
+// Function:        match template defines
+// Programmer:      Mr Elusive (MrElusive@idsoftware.com)
+// Last update:     1999-10-01
+// Tab Size:        4 (real tabs)
 //
 //===========================================================================
 
@@ -47,34 +47,34 @@ If you have questions concerning this license or the applicable additional terms
 #define MTCONTEXT_CTF                   256
 
 //message types
-#define MSG_ENTERGAME                   2       //enter game message
-#define MSG_HELP                        3       //help someone
-#define MSG_ACCOMPANY                   4       //accompany someone
-#define MSG_DEFENDKEYAREA               5       //defend a key area
-#define MSG_RUSHBASE                    6       //everyone rush to base
-#define MSG_GETFLAG                     7       //get the enemy flag
-#define MSG_STARTTEAMLEADERSHIP         8       //someone wants to become the team leader
-#define MSG_STOPTEAMLEADERSHIP          9       //someone wants to stop being the team leader
-#define MSG_WHOISTEAMLAEDER             10      //who is the team leader
-#define MSG_WAIT                        11      //wait for someone
-#define MSG_WHATAREYOUDOING             12      //what are you doing?
-#define MSG_JOINSUBTEAM                 13      //join a sub-team
-#define MSG_LEAVESUBTEAM                14      //leave a sub-team
-#define MSG_CREATENEWFORMATION          15      //create a new formation
-#define MSG_FORMATIONPOSITION           16      //tell someone his/her position in a formation
-#define MSG_FORMATIONSPACE              17      //set the formation intervening space
-#define MSG_DOFORMATION                 18      //form a known formation
-#define MSG_DISMISS                     19      //dismiss commanded team mates
-#define MSG_CAMP                        20      //camp somewhere
-#define MSG_CHECKPOINT                  21      //remember a check point
-#define MSG_PATROL                      22      //patrol between certain keypoints
-#define MSG_LEADTHEWAY                  23      //lead the way
-#define MSG_GETITEM                     24      //get an item
-#define MSG_KILL                        25      //kill someone
-#define MSG_WHEREAREYOU                 26      //where is someone
-#define MSG_RETURNFLAG                  27      //return the flag
-#define MSG_WHATISMYCOMMAND             28      //ask the team leader what to do
-#define MSG_WHICHTEAM                   29      //ask which team a bot is in
+#define MSG_ENTERGAME                   2	//enter game message
+#define MSG_HELP                        3	//help someone
+#define MSG_ACCOMPANY                   4	//accompany someone
+#define MSG_DEFENDKEYAREA               5	//defend a key area
+#define MSG_RUSHBASE                    6	//everyone rush to base
+#define MSG_GETFLAG                     7	//get the enemy flag
+#define MSG_STARTTEAMLEADERSHIP         8	//someone wants to become the team leader
+#define MSG_STOPTEAMLEADERSHIP          9	//someone wants to stop being the team leader
+#define MSG_WHOISTEAMLAEDER             10	//who is the team leader
+#define MSG_WAIT                        11	//wait for someone
+#define MSG_WHATAREYOUDOING             12	//what are you doing?
+#define MSG_JOINSUBTEAM                 13	//join a sub-team
+#define MSG_LEAVESUBTEAM                14	//leave a sub-team
+#define MSG_CREATENEWFORMATION          15	//create a new formation
+#define MSG_FORMATIONPOSITION           16	//tell someone his/her position in a formation
+#define MSG_FORMATIONSPACE              17	//set the formation intervening space
+#define MSG_DOFORMATION                 18	//form a known formation
+#define MSG_DISMISS                     19	//dismiss commanded team mates
+#define MSG_CAMP                        20	//camp somewhere
+#define MSG_CHECKPOINT                  21	//remember a check point
+#define MSG_PATROL                      22	//patrol between certain keypoints
+#define MSG_LEADTHEWAY                  23	//lead the way
+#define MSG_GETITEM                     24	//get an item
+#define MSG_KILL                        25	//kill someone
+#define MSG_WHEREAREYOU                 26	//where is someone
+#define MSG_RETURNFLAG                  27	//return the flag
+#define MSG_WHATISMYCOMMAND             28	//ask the team leader what to do
+#define MSG_WHICHTEAM                   29	//ask which team a bot is in
 //
 #define MSG_ME                          100
 #define MSG_EVERYONE                    101
@@ -88,7 +88,7 @@ If you have questions concerning this license or the applicable additional terms
 #define MSG_CHATALL                     200
 #define MSG_CHATTEAM                    201
 //
-#define MSG_CTF                         300     //ctf message
+#define MSG_CTF                         300	//ctf message
 
 //command sub types
 #define ST_SOMEWHERE                    0
@@ -130,5 +130,3 @@ If you have questions concerning this license or the applicable additional terms
 #define TIME                            6
 #define NAME                            6
 #define MORE                            6
-
-

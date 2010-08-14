@@ -39,7 +39,7 @@ If you have questions concerning this license or the applicable additional terms
 #define kBOT_FOLLOW_DIST 100
 
 // When is a bot close enough to it's goal?
-//		For when the goal is another bot
+//      For when the goal is another bot
 #define kBOT_CLOSE_ENOUGH 72
 
 // For when we have a location goal
@@ -72,11 +72,11 @@ If you have questions concerning this license or the applicable additional terms
 
 // If our best enemy is this close to us, and we're on an mg42, drop
 // the gun...
-#define kBOT_DROP_MG42_DISTANCE 240 // 20 feet roughly
+#define kBOT_DROP_MG42_DISTANCE 240	// 20 feet roughly
 
 // If our best enemy is this close, and out of our gun arc, drop
 // the mg42
-#define kBOT_DROP_MG42_DISTANCE_OUT_OF_ARC 480 // 40 feet roughly
+#define kBOT_DROP_MG42_DISTANCE_OUT_OF_ARC 480	// 40 feet roughly
 
 // Really way too far for an mg42 to shoot
 #define kBOT_MAX_MG42_TARGET_RANGE 2400
@@ -151,7 +151,7 @@ If you have questions concerning this license or the applicable additional terms
 #define kBOT_JUST_SHOT_TIME 1000
 
 // Max travel time a bot will spend travelling to heal/give ammo on a give team health/ammo command
-//		NOTE: also checks autonomy range, so this is just an additional check
+//      NOTE: also checks autonomy range, so this is just an additional check
 #define kBOT_MAX_RESUPPLY_TRAVEL_TIME 3000
 
 
@@ -170,7 +170,7 @@ If you have questions concerning this license or the applicable additional terms
 
 // Time to stay at a cover spot if we're switching between it and an exposed spot
 #define kBOT_MIN_COVERSPOT_TIME_WITH_EXPOSED 12000
-//		and random addition
+//      and random addition
 #define kBOT_RANDOM_COVERSPOT_TIME_WITH_EXPOSED 4000
 
 // How long minimum to stay crouched down?

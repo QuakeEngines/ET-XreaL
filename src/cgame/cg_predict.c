@@ -37,12 +37,12 @@ If you have questions concerning this license or the applicable additional terms
 
 /*static*/ pmove_t cg_pmove;
 
-static int cg_numSolidEntities;
-static centity_t   *cg_solidEntities[MAX_ENTITIES_IN_SNAPSHOT];
-static int cg_numSolidFTEntities;
-static centity_t   *cg_solidFTEntities[MAX_ENTITIES_IN_SNAPSHOT];
-static int cg_numTriggerEntities;
-static centity_t   *cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
+static int      cg_numSolidEntities;
+static centity_t *cg_solidEntities[MAX_ENTITIES_IN_SNAPSHOT];
+static int      cg_numSolidFTEntities;
+static centity_t *cg_solidFTEntities[MAX_ENTITIES_IN_SNAPSHOT];
+static int      cg_numTriggerEntities;
+static centity_t *cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
 
 /*
 ====================
@@ -53,56 +53,60 @@ of the entities that are actually solid, to make for more
 efficient collision detection
 ====================
 */
-void CG_BuildSolidList( void ) {
-	int i;
-	centity_t   *cent;
-	snapshot_t  *snap;
-	entityState_t   *ent;
+void CG_BuildSolidList(void)
+{
+	int             i;
+	centity_t      *cent;
+	snapshot_t     *snap;
+	entityState_t  *ent;
 
 	cg_numSolidEntities = 0;
 	cg_numSolidFTEntities = 0;
 	cg_numTriggerEntities = 0;
 
-	if ( cg.nextSnap && !cg.nextFrameTeleport && !cg.thisFrameTeleport ) {
+	if(cg.nextSnap && !cg.nextFrameTeleport && !cg.thisFrameTeleport)
+	{
 		snap = cg.nextSnap;
-	} else {
+	}
+	else
+	{
 		snap = cg.snap;
 	}
 
-	for ( i = 0 ; i < snap->numEntities ; i++ ) {
-		cent = &cg_entities[ snap->entities[ i ].number ];
+	for(i = 0; i < snap->numEntities; i++)
+	{
+		cent = &cg_entities[snap->entities[i].number];
 		ent = &cent->currentState;
 
 		// rain - don't clip against temporarily non-solid SOLID_BMODELS
 		// (e.g. constructibles); use current state so prediction isn't fubar
-		if ( cent->currentState.solid == SOLID_BMODEL &&
-			 ( cent->currentState.eFlags & EF_NONSOLID_BMODEL ) ) {
+		if(cent->currentState.solid == SOLID_BMODEL && (cent->currentState.eFlags & EF_NONSOLID_BMODEL))
+		{
 			continue;
 		}
 
-		if ( ent->eType == ET_ITEM ||
-			 ent->eType == ET_PUSH_TRIGGER ||
-			 ent->eType == ET_TELEPORT_TRIGGER ||
-			 ent->eType == ET_CONCUSSIVE_TRIGGER ||
-			 ent->eType == ET_OID_TRIGGER
+		if(ent->eType == ET_ITEM ||
+		   ent->eType == ET_PUSH_TRIGGER ||
+		   ent->eType == ET_TELEPORT_TRIGGER || ent->eType == ET_CONCUSSIVE_TRIGGER || ent->eType == ET_OID_TRIGGER
 #ifdef VISIBLE_TRIGGERS
-			 || ent->eType == ET_TRIGGER_MULTIPLE
-			 || ent->eType == ET_TRIGGER_FLAGONLY
-			 || ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE
-#endif // VISIBLE_TRIGGERS
-			 ) {
+		   || ent->eType == ET_TRIGGER_MULTIPLE || ent->eType == ET_TRIGGER_FLAGONLY || ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE
+#endif							// VISIBLE_TRIGGERS
+			)
+		{
 
 			cg_triggerEntities[cg_numTriggerEntities] = cent;
 			cg_numTriggerEntities++;
 			continue;
 		}
 
-		if ( ent->eType == ET_CONSTRUCTIBLE ) {
+		if(ent->eType == ET_CONSTRUCTIBLE)
+		{
 			cg_triggerEntities[cg_numTriggerEntities] = cent;
 			cg_numTriggerEntities++;
 		}
 
-		if ( cent->nextState.solid ) {
+		if(cent->nextState.solid)
+		{
 /*			if(cg_fastSolids.integer) { // Gordon: "optimization" (disabling until i fix it)
 				vec3_t vec;
 				float len;
@@ -122,7 +126,8 @@ void CG_BuildSolidList( void ) {
 					cg_numSolidEntities++;
 					continue;
 				}
-			} else*/{
+			} else*/
+			{
 				cg_solidEntities[cg_numSolidEntities] = cent;
 				cg_numSolidEntities++;
 
@@ -140,36 +145,42 @@ CG_ClipMoveToEntities
 
 ====================
 */
-static void CG_ClipMoveToEntities( const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-								   int skipNumber, int mask, int capsule, trace_t *tr ) {
-	int i, x, zd, zu;
-	trace_t trace;
-	entityState_t   *ent;
-	clipHandle_t cmodel;
-	vec3_t bmins, bmaxs;
-	vec3_t origin, angles;
-	centity_t   *cent;
+static void CG_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+								  int skipNumber, int mask, int capsule, trace_t * tr)
+{
+	int             i, x, zd, zu;
+	trace_t         trace;
+	entityState_t  *ent;
+	clipHandle_t    cmodel;
+	vec3_t          bmins, bmaxs;
+	vec3_t          origin, angles;
+	centity_t      *cent;
 
-	for ( i = 0 ; i < cg_numSolidEntities ; i++ ) {
-		cent = cg_solidEntities[ i ];
+	for(i = 0; i < cg_numSolidEntities; i++)
+	{
+		cent = cg_solidEntities[i];
 		ent = &cent->currentState;
 
-		if ( ent->number == skipNumber ) {
+		if(ent->number == skipNumber)
+		{
 			continue;
 		}
 
-		if ( ent->solid == SOLID_BMODEL ) {
+		if(ent->solid == SOLID_BMODEL)
+		{
 			// special value for bmodel
-			cmodel = trap_CM_InlineModel( ent->modelindex );
-//			VectorCopy( cent->lerpAngles, angles );
-//			VectorCopy( cent->lerpOrigin, origin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.physicsTime, angles, qtrue, cent->currentState.effect2Time );
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.physicsTime, origin, qfalse, cent->currentState.effect2Time );
-		} else {
+			cmodel = trap_CM_InlineModel(ent->modelindex);
+//          VectorCopy( cent->lerpAngles, angles );
+//          VectorCopy( cent->lerpOrigin, origin );
+			BG_EvaluateTrajectory(&cent->currentState.apos, cg.physicsTime, angles, qtrue, cent->currentState.effect2Time);
+			BG_EvaluateTrajectory(&cent->currentState.pos, cg.physicsTime, origin, qfalse, cent->currentState.effect2Time);
+		}
+		else
+		{
 			// encoded bbox
-			x = ( ent->solid & 255 );
-			zd = ( ( ent->solid >> 8 ) & 255 );
-			zu = ( ( ent->solid >> 16 ) & 255 ) - 32;
+			x = (ent->solid & 255);
+			zd = ((ent->solid >> 8) & 255);
+			zu = ((ent->solid >> 16) & 255) - 32;
 
 			bmins[0] = bmins[1] = -x;
 			bmaxs[0] = bmaxs[1] = x;
@@ -177,88 +188,105 @@ static void CG_ClipMoveToEntities( const vec3_t start, const vec3_t mins, const 
 			bmaxs[2] = zu;
 
 			//cmodel = trap_CM_TempCapsuleModel( bmins, bmaxs );
-			cmodel = trap_CM_TempBoxModel( bmins, bmaxs );
+			cmodel = trap_CM_TempBoxModel(bmins, bmaxs);
 
-			VectorCopy( vec3_origin, angles );
-			VectorCopy( cent->lerpOrigin, origin );
+			VectorCopy(vec3_origin, angles);
+			VectorCopy(cent->lerpOrigin, origin);
 		}
 		// MrE: use bbox of capsule
-		if ( capsule ) {
-			trap_CM_TransformedCapsuleTrace( &trace, start, end,
-											 mins, maxs, cmodel,  mask, origin, angles );
-		} else {
-			trap_CM_TransformedBoxTrace( &trace, start, end,
-										 mins, maxs, cmodel,  mask, origin, angles );
+		if(capsule)
+		{
+			trap_CM_TransformedCapsuleTrace(&trace, start, end, mins, maxs, cmodel, mask, origin, angles);
+		}
+		else
+		{
+			trap_CM_TransformedBoxTrace(&trace, start, end, mins, maxs, cmodel, mask, origin, angles);
 		}
 
-		if ( trace.allsolid || trace.fraction < tr->fraction ) {
+		if(trace.allsolid || trace.fraction < tr->fraction)
+		{
 			trace.entityNum = ent->number;
 			*tr = trace;
-		} else if ( trace.startsolid ) {
+		}
+		else if(trace.startsolid)
+		{
 			tr->startsolid = qtrue;
 		}
-		if ( tr->allsolid ) {
+		if(tr->allsolid)
+		{
 			return;
 		}
 	}
 }
 
-static void CG_ClipMoveToEntities_FT( const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask, int capsule, trace_t *tr ) {
-	int i, x, zd, zu;
-	trace_t trace;
-	entityState_t   *ent;
-	clipHandle_t cmodel;
-	vec3_t bmins, bmaxs;
-	vec3_t origin, angles;
-	centity_t   *cent;
+static void CG_ClipMoveToEntities_FT(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber,
+									 int mask, int capsule, trace_t * tr)
+{
+	int             i, x, zd, zu;
+	trace_t         trace;
+	entityState_t  *ent;
+	clipHandle_t    cmodel;
+	vec3_t          bmins, bmaxs;
+	vec3_t          origin, angles;
+	centity_t      *cent;
 
-	for ( i = 0 ; i < cg_numSolidFTEntities ; i++ ) {
-		cent = cg_solidFTEntities[ i ];
+	for(i = 0; i < cg_numSolidFTEntities; i++)
+	{
+		cent = cg_solidFTEntities[i];
 		ent = &cent->currentState;
 
-		if ( ent->number == skipNumber ) {
+		if(ent->number == skipNumber)
+		{
 			continue;
 		}
 
-		if ( ent->solid == SOLID_BMODEL ) {
+		if(ent->solid == SOLID_BMODEL)
+		{
 			// special value for bmodel
-			cmodel = trap_CM_InlineModel( ent->modelindex );
-//			VectorCopy( cent->lerpAngles, angles );
-//			VectorCopy( cent->lerpOrigin, origin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.physicsTime, angles, qtrue, cent->currentState.effect2Time );
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.physicsTime, origin, qfalse, cent->currentState.effect2Time );
-		} else {
+			cmodel = trap_CM_InlineModel(ent->modelindex);
+//          VectorCopy( cent->lerpAngles, angles );
+//          VectorCopy( cent->lerpOrigin, origin );
+			BG_EvaluateTrajectory(&cent->currentState.apos, cg.physicsTime, angles, qtrue, cent->currentState.effect2Time);
+			BG_EvaluateTrajectory(&cent->currentState.pos, cg.physicsTime, origin, qfalse, cent->currentState.effect2Time);
+		}
+		else
+		{
 			// encoded bbox
-			x = ( ent->solid & 255 );
-			zd = ( ( ent->solid >> 8 ) & 255 );
-			zu = ( ( ent->solid >> 16 ) & 255 ) - 32;
+			x = (ent->solid & 255);
+			zd = ((ent->solid >> 8) & 255);
+			zu = ((ent->solid >> 16) & 255) - 32;
 
 			bmins[0] = bmins[1] = -x;
 			bmaxs[0] = bmaxs[1] = x;
 			bmins[2] = -zd;
 			bmaxs[2] = zu;
 
-			cmodel = trap_CM_TempCapsuleModel( bmins, bmaxs );
+			cmodel = trap_CM_TempCapsuleModel(bmins, bmaxs);
 
-			VectorCopy( vec3_origin, angles );
-			VectorCopy( cent->lerpOrigin, origin );
+			VectorCopy(vec3_origin, angles);
+			VectorCopy(cent->lerpOrigin, origin);
 		}
 		// MrE: use bbox of capsule
-		if ( capsule ) {
-			trap_CM_TransformedCapsuleTrace( &trace, start, end,
-											 mins, maxs, cmodel,  mask, origin, angles );
-		} else {
-			trap_CM_TransformedBoxTrace( &trace, start, end,
-										 mins, maxs, cmodel,  mask, origin, angles );
+		if(capsule)
+		{
+			trap_CM_TransformedCapsuleTrace(&trace, start, end, mins, maxs, cmodel, mask, origin, angles);
+		}
+		else
+		{
+			trap_CM_TransformedBoxTrace(&trace, start, end, mins, maxs, cmodel, mask, origin, angles);
 		}
 
-		if ( trace.allsolid || trace.fraction < tr->fraction ) {
+		if(trace.allsolid || trace.fraction < tr->fraction)
+		{
 			trace.entityNum = ent->number;
 			*tr = trace;
-		} else if ( trace.startsolid ) {
+		}
+		else if(trace.startsolid)
+		{
 			tr->startsolid = qtrue;
 		}
-		if ( tr->allsolid ) {
+		if(tr->allsolid)
+		{
 			return;
 		}
 	}
@@ -269,37 +297,41 @@ static void CG_ClipMoveToEntities_FT( const vec3_t start, const vec3_t mins, con
 CG_Trace
 ================
 */
-void    CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-				  int skipNumber, int mask ) {
-	trace_t t;
+void CG_Trace(trace_t * result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+			  int skipNumber, int mask)
+{
+	trace_t         t;
 
-	trap_CM_BoxTrace( &t, start, end, mins, maxs, 0, mask );
+	trap_CM_BoxTrace(&t, start, end, mins, maxs, 0, mask);
 	t.entityNum = t.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	// check all other solid models
-	CG_ClipMoveToEntities( start, mins, maxs, end, skipNumber, mask, qfalse, &t );
+	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qfalse, &t);
 
 	*result = t;
 }
 
-void    CG_Trace_World( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-						int skipNumber, int mask ) {
-	trace_t t;
+void CG_Trace_World(trace_t * result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+					int skipNumber, int mask)
+{
+	trace_t         t;
 
-	trap_CM_BoxTrace( &t, start, end, mins, maxs, 0, mask );
+	trap_CM_BoxTrace(&t, start, end, mins, maxs, 0, mask);
 	t.entityNum = t.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 
 	*result = t;
 }
 
-void    CG_FTTrace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask ) {
-	trace_t t;
+void CG_FTTrace(trace_t * result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber,
+				int mask)
+{
+	trace_t         t;
 
 
-	trap_CM_BoxTrace( &t, start, end, mins, maxs, 0, mask );
+	trap_CM_BoxTrace(&t, start, end, mins, maxs, 0, mask);
 	t.entityNum = t.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	// check all other solid models
 
-	CG_ClipMoveToEntities_FT( start, mins, maxs, end, skipNumber, mask, qfalse, &t );
+	CG_ClipMoveToEntities_FT(start, mins, maxs, end, skipNumber, mask, qfalse, &t);
 
 	*result = t;
 }
@@ -310,59 +342,70 @@ void    CG_FTTrace( trace_t *result, const vec3_t start, const vec3_t mins, cons
 CG_TraceCapsule
 ================
 */
-void CG_TraceCapsule( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask ) {
-	trace_t t;
+void CG_TraceCapsule(trace_t * result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber,
+					 int mask)
+{
+	trace_t         t;
 
-	trap_CM_CapsuleTrace( &t, start, end, mins, maxs, 0, mask );
+	trap_CM_CapsuleTrace(&t, start, end, mins, maxs, 0, mask);
 	t.entityNum = t.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	// check all other solid models
-	CG_ClipMoveToEntities( start, mins, maxs, end, skipNumber, mask, qtrue, &t );
+	CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qtrue, &t);
 
 	*result = t;
 }
 
-void CG_TraceCapsule_World( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask ) {
-	trace_t t;
-	trap_CM_CapsuleTrace( &t, start, end, mins, maxs, 0, mask );
+void CG_TraceCapsule_World(trace_t * result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+						   int skipNumber, int mask)
+{
+	trace_t         t;
+
+	trap_CM_CapsuleTrace(&t, start, end, mins, maxs, 0, mask);
 
 	t.entityNum = t.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 	*result = t;
 }
+
 /*
 ================
 CG_PointContents
 ================
 */
-int     CG_PointContents( const vec3_t point, int passEntityNum ) {
-	int i;
-	entityState_t   *ent;
-	centity_t   *cent;
-	clipHandle_t cmodel;
-	int contents;
+int CG_PointContents(const vec3_t point, int passEntityNum)
+{
+	int             i;
+	entityState_t  *ent;
+	centity_t      *cent;
+	clipHandle_t    cmodel;
+	int             contents;
 
-	contents = trap_CM_PointContents( point, 0 );
+	contents = trap_CM_PointContents(point, 0);
 
-	for ( i = 0 ; i < cg_numSolidEntities ; i++ ) {
-		cent = cg_solidEntities[ i ];
+	for(i = 0; i < cg_numSolidEntities; i++)
+	{
+		cent = cg_solidEntities[i];
 
 		ent = &cent->currentState;
 
-		if ( ent->number == passEntityNum ) {
+		if(ent->number == passEntityNum)
+		{
 			continue;
 		}
 
-		if ( ent->solid != SOLID_BMODEL ) { // special value for bmodel
+		if(ent->solid != SOLID_BMODEL)
+		{						// special value for bmodel
 			continue;
 		}
 
-		cmodel = trap_CM_InlineModel( ent->modelindex );
-		if ( !cmodel ) {
+		cmodel = trap_CM_InlineModel(ent->modelindex);
+		if(!cmodel)
+		{
 			continue;
 		}
 
-		contents |= trap_CM_TransformedPointContents( point, cmodel, cent->lerpOrigin, cent->lerpAngles );
+		contents |= trap_CM_TransformedPointContents(point, cmodel, cent->lerpOrigin, cent->lerpAngles);
 		// Gordon: again, need to use the projected water position to allow for moving entity based water.
-//		contents |= trap_CM_TransformedPointContents( point, cmodel, ent->origin, ent->angles );
+//      contents |= trap_CM_TransformedPointContents( point, cmodel, ent->origin, ent->angles );
 	}
 
 	return contents;
@@ -377,11 +420,12 @@ Generates cg.predictedPlayerState by interpolating between
 cg.snap->player_state and cg.nextFrame->player_state
 ========================
 */
-static void CG_InterpolatePlayerState( qboolean grabAngles ) {
-	float f;
-	int i;
-	playerState_t   *out;
-	snapshot_t      *prev, *next;
+static void CG_InterpolatePlayerState(qboolean grabAngles)
+{
+	float           f;
+	int             i;
+	playerState_t  *out;
+	snapshot_t     *prev, *next;
 
 	out = &cg.predictedPlayerState;
 	prev = cg.snap;
@@ -389,47 +433,52 @@ static void CG_InterpolatePlayerState( qboolean grabAngles ) {
 
 	*out = cg.snap->ps;
 
-	if ( cg.showGameView ) {
+	if(cg.showGameView)
+	{
 		return;
 	}
 
 	// if we are still allowing local input, short circuit the view angles
-	if ( grabAngles ) {
-		usercmd_t cmd;
-		int cmdNum;
+	if(grabAngles)
+	{
+		usercmd_t       cmd;
+		int             cmdNum;
 
 		cmdNum = trap_GetCurrentCmdNumber();
-		trap_GetUserCmd( cmdNum, &cmd );
+		trap_GetUserCmd(cmdNum, &cmd);
 
 		// rain - added tracemask
-		PM_UpdateViewAngles( out, &cg.pmext, &cmd, CG_Trace, MASK_PLAYERSOLID );
+		PM_UpdateViewAngles(out, &cg.pmext, &cmd, CG_Trace, MASK_PLAYERSOLID);
 	}
 
 	// if the next frame is a teleport, we can't lerp to it
-	if ( cg.nextFrameTeleport ) {
+	if(cg.nextFrameTeleport)
+	{
 		return;
 	}
 
-	if ( !next || next->serverTime <= prev->serverTime ) {
+	if(!next || next->serverTime <= prev->serverTime)
+	{
 		return;
 	}
 
-	f = (float)( cg.time - prev->serverTime ) / ( next->serverTime - prev->serverTime );
+	f = (float)(cg.time - prev->serverTime) / (next->serverTime - prev->serverTime);
 
 	i = next->ps.bobCycle;
-	if ( i < prev->ps.bobCycle ) {
-		i += 256;       // handle wraparound
+	if(i < prev->ps.bobCycle)
+	{
+		i += 256;				// handle wraparound
 	}
-	out->bobCycle = prev->ps.bobCycle + f * ( i - prev->ps.bobCycle );
+	out->bobCycle = prev->ps.bobCycle + f * (i - prev->ps.bobCycle);
 
-	for ( i = 0 ; i < 3 ; i++ ) {
-		out->origin[i] = prev->ps.origin[i] + f * ( next->ps.origin[i] - prev->ps.origin[i] );
-		if ( !grabAngles ) {
-			out->viewangles[i] = LerpAngle(
-				prev->ps.viewangles[i], next->ps.viewangles[i], f );
+	for(i = 0; i < 3; i++)
+	{
+		out->origin[i] = prev->ps.origin[i] + f * (next->ps.origin[i] - prev->ps.origin[i]);
+		if(!grabAngles)
+		{
+			out->viewangles[i] = LerpAngle(prev->ps.viewangles[i], next->ps.viewangles[i], f);
 		}
-		out->velocity[i] = prev->ps.velocity[i] +
-						   f * ( next->ps.velocity[i] - prev->ps.velocity[i] );
+		out->velocity[i] = prev->ps.velocity[i] + f * (next->ps.velocity[i] - prev->ps.velocity[i]);
 	}
 
 }
@@ -439,84 +488,97 @@ static void CG_InterpolatePlayerState( qboolean grabAngles ) {
 CG_TouchItem
 ===================
 */
-static void CG_TouchItem( centity_t *cent ) {
-	gitem_t     *item;
+static void CG_TouchItem(centity_t * cent)
+{
+	gitem_t        *item;
 
 	return;
 
-	if ( !cg_predictItems.integer ) {
+	if(!cg_predictItems.integer)
+	{
 		return;
 	}
 
-	if ( !cg_autoactivate.integer ) {
+	if(!cg_autoactivate.integer)
+	{
 		return;
 	}
 
-	if ( !BG_PlayerTouchesItem( &cg.predictedPlayerState, &cent->currentState, cg.time ) ) {
+	if(!BG_PlayerTouchesItem(&cg.predictedPlayerState, &cent->currentState, cg.time))
+	{
 		return;
 	}
 
 	// never pick an item up twice in a prediction
-	if ( cent->miscTime == cg.time ) {
+	if(cent->miscTime == cg.time)
+	{
 		return;
 	}
 
-	if ( !BG_CanItemBeGrabbed( &cent->currentState, &cg.predictedPlayerState, cgs.clientinfo[cg.snap->ps.clientNum].skill, cgs.clientinfo[cg.snap->ps.clientNum].team ) ) {
-		return;     // can't hold it
+	if(!BG_CanItemBeGrabbed
+	   (&cent->currentState, &cg.predictedPlayerState, cgs.clientinfo[cg.snap->ps.clientNum].skill,
+		cgs.clientinfo[cg.snap->ps.clientNum].team))
+	{
+		return;					// can't hold it
 	}
 
-	item = &bg_itemlist[ cent->currentState.modelindex ];
+	item = &bg_itemlist[cent->currentState.modelindex];
 
 	// force activate only for weapons you don't have
-	if ( item->giType == IT_WEAPON ) {
-		if ( item->giTag != WP_AMMO ) {
-			if ( !COM_BitCheck( cg.predictedPlayerState.weapons, item->giTag ) ) {
-				return; // force activate only
+	if(item->giType == IT_WEAPON)
+	{
+		if(item->giTag != WP_AMMO)
+		{
+			if(!COM_BitCheck(cg.predictedPlayerState.weapons, item->giTag))
+			{
+				return;			// force activate only
 			}
 		}
 	}
 
 	// OSP - Do it here rather than forcing gamestate into BG_CanItemBeGrabbed
-	if ( cgs.gamestate != GS_PLAYING &&
-		 item->giType != IT_WEAPON &&
-		 item->giType != IT_AMMO &&
-		 item->giType != IT_HEALTH ) {
+	if(cgs.gamestate != GS_PLAYING && item->giType != IT_WEAPON && item->giType != IT_AMMO && item->giType != IT_HEALTH)
+	{
 		return;
 	}
 
 	// OSP - special case for panzers, as server may not allow us to pick them up
 	//       let the server tell us for sure that we got it
-	if ( item->giType == IT_WEAPON && item->giTag == WP_PANZERFAUST ) {
+	if(item->giType == IT_WEAPON && item->giTag == WP_PANZERFAUST)
+	{
 		return;
 	}
 
 
 	// (SA) no prediction of books/clipboards
-	if ( item->giType == IT_HOLDABLE ) {
-		if ( item->giTag >= HI_BOOK1 && item->giTag <= HI_BOOK3 ) {
+	if(item->giType == IT_HOLDABLE)
+	{
+		if(item->giTag >= HI_BOOK1 && item->giTag <= HI_BOOK3)
+		{
 			return;
 		}
 	}
 
 	// (SA) treasure needs to be activeated, no touch
-	if ( item->giType == IT_TREASURE ) {
+	if(item->giType == IT_TREASURE)
+	{
 		return;
 	}
 
 	// Special case for flags.
 	// We don't predict touching our own flag
-	if ( cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_AXIS &&
-		 item->giTag == PW_REDFLAG ) {
+	if(cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_AXIS && item->giTag == PW_REDFLAG)
+	{
 		return;
 	}
-	if ( cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_ALLIES &&
-		 item->giTag == PW_BLUEFLAG ) {
+	if(cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_ALLIES && item->giTag == PW_BLUEFLAG)
+	{
 		return;
 	}
 
 
 	// grab it
-	BG_AddPredictableEventToPlayerstate( EV_ITEM_PICKUP, cent->currentState.modelindex, &cg.predictedPlayerState );
+	BG_AddPredictableEventToPlayerstate(EV_ITEM_PICKUP, cent->currentState.modelindex, &cg.predictedPlayerState);
 
 	// remove it from the frame so it won't be drawn
 	cent->currentState.eFlags |= EF_NODRAW;
@@ -525,16 +587,19 @@ static void CG_TouchItem( centity_t *cent ) {
 	cent->miscTime = cg.time;
 
 	// if its a weapon, give them some predicted ammo so the autoswitch will work
-	if ( item->giType == IT_WEAPON ) {
-		COM_BitSet( cg.predictedPlayerState.weapons, item->giTag );
+	if(item->giType == IT_WEAPON)
+	{
+		COM_BitSet(cg.predictedPlayerState.weapons, item->giTag);
 
-		if ( !cg.predictedPlayerState.ammo[ BG_FindAmmoForWeapon( item->giTag )] ) {
-			cg.predictedPlayerState.ammo[ BG_FindAmmoForWeapon( item->giTag )] = 1;
+		if(!cg.predictedPlayerState.ammo[BG_FindAmmoForWeapon(item->giTag)])
+		{
+			cg.predictedPlayerState.ammo[BG_FindAmmoForWeapon(item->giTag)] = 1;
 		}
 	}
 }
 
-void CG_AddDirtBulletParticles( vec3_t origin, vec3_t dir, int speed, int duration, int count, float randScale, float width, float height, float alpha, qhandle_t shader );
+void            CG_AddDirtBulletParticles(vec3_t origin, vec3_t dir, int speed, int duration, int count, float randScale,
+										  float width, float height, float alpha, qhandle_t shader);
 
 
 /*
@@ -544,96 +609,112 @@ CG_TouchTriggerPrediction
 Predict push triggers and items
 =========================
 */
-static void CG_TouchTriggerPrediction( void ) {
-	int i;
-//	trace_t			trace;
-	entityState_t   *ent;
-	clipHandle_t cmodel;
-	centity_t       *cent;
-	qboolean spectator;
-//	vec3_t			mins, maxs; // TTimo: unused
-	const char      *cs;
+static void CG_TouchTriggerPrediction(void)
+{
+	int             i;
+
+//  trace_t         trace;
+	entityState_t  *ent;
+	clipHandle_t    cmodel;
+	centity_t      *cent;
+	qboolean        spectator;
+
+//  vec3_t          mins, maxs; // TTimo: unused
+	const char     *cs;
 
 	// dead clients don't activate triggers
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+	if(cg.predictedPlayerState.stats[STAT_HEALTH] <= 0)
+	{
 		return;
 	}
 
-	spectator = ( ( cg.predictedPlayerState.pm_type == PM_SPECTATOR ) || ( cg.predictedPlayerState.pm_flags & PMF_LIMBO ) ); // JPW NERVE
+	spectator = ((cg.predictedPlayerState.pm_type == PM_SPECTATOR) || (cg.predictedPlayerState.pm_flags & PMF_LIMBO));	// JPW NERVE
 
-	if ( cg.predictedPlayerState.pm_type != PM_NORMAL && !spectator ) {
+	if(cg.predictedPlayerState.pm_type != PM_NORMAL && !spectator)
+	{
 		return;
 	}
 
-	for ( i = 0 ; i < cg_numTriggerEntities ; i++ ) {
-		cent = cg_triggerEntities[ i ];
+	for(i = 0; i < cg_numTriggerEntities; i++)
+	{
+		cent = cg_triggerEntities[i];
 		ent = &cent->currentState;
 
-		if ( ent->eType == ET_ITEM && !spectator && ( cg.predictedPlayerState.groundEntityNum == ENTITYNUM_WORLD ) ) {
-			CG_TouchItem( cent );
+		if(ent->eType == ET_ITEM && !spectator && (cg.predictedPlayerState.groundEntityNum == ENTITYNUM_WORLD))
+		{
+			CG_TouchItem(cent);
 			continue;
 		}
 
-		if ( ent->solid != SOLID_BMODEL ) {
+		if(ent->solid != SOLID_BMODEL)
+		{
 			continue;
 		}
 
 		// Gordon: er, this lookup was wrong...
-		cmodel = cgs.inlineDrawModel[ ent->modelindex ];
-//		cmodel = trap_CM_InlineModel( ent->modelindex );
-		if ( !cmodel ) {
+		cmodel = cgs.inlineDrawModel[ent->modelindex];
+//      cmodel = trap_CM_InlineModel( ent->modelindex );
+		if(!cmodel)
+		{
 			continue;
 		}
 
-		if ( ent->eType == ET_CONSTRUCTIBLE ||
-			 ent->eType == ET_OID_TRIGGER
+		if(ent->eType == ET_CONSTRUCTIBLE || ent->eType == ET_OID_TRIGGER
 #ifdef VISIBLE_TRIGGERS
-			 || ent->eType == ET_TRIGGER_MULTIPLE
-			 || ent->eType == ET_TRIGGER_FLAGONLY
-			 || ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE
-#endif // VISIBLE_TRIGGERS
-			 ) {
-			vec3_t mins, maxs, pmins, pmaxs;
+		   || ent->eType == ET_TRIGGER_MULTIPLE || ent->eType == ET_TRIGGER_FLAGONLY || ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE
+#endif							// VISIBLE_TRIGGERS
+			)
+		{
+			vec3_t          mins, maxs, pmins, pmaxs;
 
-			if ( ent->eType == ET_CONSTRUCTIBLE && ent->aiState ) {
+			if(ent->eType == ET_CONSTRUCTIBLE && ent->aiState)
+			{
 				continue;
 			}
 
-			trap_R_ModelBounds( cmodel, mins, maxs );
+			trap_R_ModelBounds(cmodel, mins, maxs);
 
-			VectorAdd( cent->lerpOrigin, mins, mins );
-			VectorAdd( cent->lerpOrigin, maxs, maxs );
+			VectorAdd(cent->lerpOrigin, mins, mins);
+			VectorAdd(cent->lerpOrigin, maxs, maxs);
 
 #ifdef VISIBLE_TRIGGERS
-			if ( ent->eType == ET_TRIGGER_MULTIPLE || ent->eType == ET_TRIGGER_FLAGONLY || ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE ) {
-			} else
-#endif // VISIBLE_TRIGGERS
+			if(ent->eType == ET_TRIGGER_MULTIPLE || ent->eType == ET_TRIGGER_FLAGONLY ||
+			   ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE)
+			{
+			}
+			else
+#endif							// VISIBLE_TRIGGERS
 			{
 				// expand the bbox a bit
-				VectorSet( mins, mins[0] - 48, mins[1] - 48, mins[2] - 48 );
-				VectorSet( maxs, maxs[0] + 48, maxs[1] + 48, maxs[2] + 48 );
+				VectorSet(mins, mins[0] - 48, mins[1] - 48, mins[2] - 48);
+				VectorSet(maxs, maxs[0] + 48, maxs[1] + 48, maxs[2] + 48);
 			}
 
-			VectorAdd( cg.predictedPlayerState.origin, cg_pmove.mins, pmins );
-			VectorAdd( cg.predictedPlayerState.origin, cg_pmove.maxs, pmaxs );
+			VectorAdd(cg.predictedPlayerState.origin, cg_pmove.mins, pmins);
+			VectorAdd(cg.predictedPlayerState.origin, cg_pmove.maxs, pmaxs);
 
 #ifdef VISIBLE_TRIGGERS
-			CG_RailTrail( NULL, mins, maxs, 1 );
-#endif // VISIBLE_TRIGGERS
+			CG_RailTrail(NULL, mins, maxs, 1);
+#endif							// VISIBLE_TRIGGERS
 
-			if ( !BG_BBoxCollision( pmins, pmaxs, mins, maxs ) ) {
+			if(!BG_BBoxCollision(pmins, pmaxs, mins, maxs))
+			{
 				continue;
 			}
 
 			cs = NULL;
-			if ( ent->eType == ET_OID_TRIGGER ) {
-				cs = CG_ConfigString( CS_OID_TRIGGERS + ent->teamNum );
-			} else if ( ent->eType == ET_CONSTRUCTIBLE ) {
-				cs = CG_ConfigString( CS_OID_TRIGGERS + ent->otherEntityNum2 );
+			if(ent->eType == ET_OID_TRIGGER)
+			{
+				cs = CG_ConfigString(CS_OID_TRIGGERS + ent->teamNum);
+			}
+			else if(ent->eType == ET_CONSTRUCTIBLE)
+			{
+				cs = CG_ConfigString(CS_OID_TRIGGERS + ent->otherEntityNum2);
 			}
 
-			if ( cs ) {
-				CG_ObjectivePrint( va( "You are near %s\n", cs ), SMALLCHAR_WIDTH );
+			if(cs)
+			{
+				CG_ObjectivePrint(va("You are near %s\n", cs), SMALLCHAR_WIDTH);
 			}
 
 			continue;
@@ -646,46 +727,58 @@ static void CG_TouchTriggerPrediction( void ) {
 #define MAX_PREDICT_VELOCITY_DELTA      0.1f
 #define MAX_PREDICT_VIEWANGLES_DELTA    1.0f
 
-qboolean CG_PredictionOk( playerState_t *ps1, playerState_t *ps2 ) {
-	vec3_t vec;
-	int i;
+qboolean CG_PredictionOk(playerState_t * ps1, playerState_t * ps2)
+{
+	vec3_t          vec;
+	int             i;
 
-	if ( ps2->pm_type != ps1->pm_type || ps2->pm_flags != ps1->pm_flags || ps2->pm_time != ps1->pm_time ) {
+	if(ps2->pm_type != ps1->pm_type || ps2->pm_flags != ps1->pm_flags || ps2->pm_time != ps1->pm_time)
+	{
 		return qfalse;
 	}
 
-	VectorSubtract( ps2->origin, ps1->origin, vec );
-	if ( DotProduct( vec, vec ) > Square( MAX_PREDICT_ORIGIN_DELTA ) ) {
+	VectorSubtract(ps2->origin, ps1->origin, vec);
+	if(DotProduct(vec, vec) > Square(MAX_PREDICT_ORIGIN_DELTA))
+	{
 		return qfalse;
 	}
 
-	VectorSubtract( ps2->velocity, ps1->velocity, vec );
-	if ( DotProduct( vec, vec ) > Square( MAX_PREDICT_VELOCITY_DELTA ) ) {
+	VectorSubtract(ps2->velocity, ps1->velocity, vec);
+	if(DotProduct(vec, vec) > Square(MAX_PREDICT_VELOCITY_DELTA))
+	{
 		return qfalse;
 	}
 
-	if ( ps2->eFlags != ps1->eFlags ) {
+	if(ps2->eFlags != ps1->eFlags)
+	{
 		return qfalse;
 	}
 
-	if ( ps2->weaponTime != ps1->weaponTime ) {
+	if(ps2->weaponTime != ps1->weaponTime)
+	{
 		return qfalse;
 	}
 
-	if ( ps2->groundEntityNum != ps1->groundEntityNum ) {
+	if(ps2->groundEntityNum != ps1->groundEntityNum)
+	{
 		return qfalse;
 	}
 
-	if ( ps1->groundEntityNum != ENTITYNUM_WORLD || ps1->groundEntityNum != ENTITYNUM_NONE || ps2->groundEntityNum != ENTITYNUM_WORLD || ps2->groundEntityNum != ENTITYNUM_NONE ) {
+	if(ps1->groundEntityNum != ENTITYNUM_WORLD || ps1->groundEntityNum != ENTITYNUM_NONE ||
+	   ps2->groundEntityNum != ENTITYNUM_WORLD || ps2->groundEntityNum != ENTITYNUM_NONE)
+	{
 		return qfalse;
 	}
 
-	if ( ps2->speed != ps1->speed || ps2->delta_angles[0] != ps1->delta_angles[0] || ps2->delta_angles[1] != ps1->delta_angles[1] || ps2->delta_angles[2] != ps1->delta_angles[2] ) {
+	if(ps2->speed != ps1->speed || ps2->delta_angles[0] != ps1->delta_angles[0] || ps2->delta_angles[1] != ps1->delta_angles[1] ||
+	   ps2->delta_angles[2] != ps1->delta_angles[2])
+	{
 		return qfalse;
 	}
 
-	if ( ps2->legsTimer != ps1->legsTimer || ps2->legsAnim != ps1->legsAnim ||
-		 ps2->torsoTimer != ps1->torsoTimer || ps2->torsoAnim != ps1->torsoAnim ) {
+	if(ps2->legsTimer != ps1->legsTimer || ps2->legsAnim != ps1->legsAnim ||
+	   ps2->torsoTimer != ps1->torsoTimer || ps2->torsoAnim != ps1->torsoAnim)
+	{
 		return qfalse;
 	}
 
@@ -693,71 +786,93 @@ qboolean CG_PredictionOk( playerState_t *ps1, playerState_t *ps2 ) {
 		return qfalse;
 	}*/
 
-	if ( ps2->eventSequence != ps1->eventSequence ) {
+	if(ps2->eventSequence != ps1->eventSequence)
+	{
 		return qfalse;
 	}
 
-	for ( i = 0; i < MAX_EVENTS; i++ ) {
-		if ( ps2->events[i] != ps1->events[i] || ps2->eventParms[i] != ps1->eventParms[i] ) {
+	for(i = 0; i < MAX_EVENTS; i++)
+	{
+		if(ps2->events[i] != ps1->events[i] || ps2->eventParms[i] != ps1->eventParms[i])
+		{
 			return qfalse;
 		}
 	}
 
-	if ( ps2->externalEvent != ps1->externalEvent || ps2->externalEventParm != ps1->externalEventParm || ps2->externalEventTime != ps1->externalEventTime ) {
+	if(ps2->externalEvent != ps1->externalEvent || ps2->externalEventParm != ps1->externalEventParm ||
+	   ps2->externalEventTime != ps1->externalEventTime)
+	{
 		return qfalse;
 	}
 
-	if ( ps2->clientNum != ps1->clientNum ) {
+	if(ps2->clientNum != ps1->clientNum)
+	{
 		return qfalse;
 	}
 
-	if ( ps2->weapon != ps1->weapon || ps2->weaponstate != ps1->weaponstate ) {
+	if(ps2->weapon != ps1->weapon || ps2->weaponstate != ps1->weaponstate)
+	{
 		return qfalse;
 	}
 
-	for ( i = 0; i < 3; i++ ) {
-		if ( abs( ps2->viewangles[i] - ps1->viewangles[i] ) > MAX_PREDICT_VIEWANGLES_DELTA ) {
+	for(i = 0; i < 3; i++)
+	{
+		if(abs(ps2->viewangles[i] - ps1->viewangles[i]) > MAX_PREDICT_VIEWANGLES_DELTA)
+		{
 			return qfalse;
 		}
 	}
 
-	if ( ps2->viewheight != ps1->viewheight ) {
+	if(ps2->viewheight != ps1->viewheight)
+	{
 		return qfalse;
 	}
 
-	if ( ps2->damageEvent != ps1->damageEvent || ps2->damageYaw != ps1->damageYaw || ps2->damagePitch != ps1->damagePitch || ps2->damageCount != ps1->damageCount ) {
+	if(ps2->damageEvent != ps1->damageEvent || ps2->damageYaw != ps1->damageYaw || ps2->damagePitch != ps1->damagePitch ||
+	   ps2->damageCount != ps1->damageCount)
+	{
 		return qfalse;
 	}
 
-	for ( i = 0; i < MAX_STATS; i++ ) {
-		if ( ps2->stats[i] != ps1->stats[i] ) {
+	for(i = 0; i < MAX_STATS; i++)
+	{
+		if(ps2->stats[i] != ps1->stats[i])
+		{
 			return qfalse;
 		}
 	}
 
-	for ( i = 0; i < MAX_PERSISTANT; i++ ) {
-		if ( ps2->persistant[i] != ps1->persistant[i] ) {
+	for(i = 0; i < MAX_PERSISTANT; i++)
+	{
+		if(ps2->persistant[i] != ps1->persistant[i])
+		{
 			return qfalse;
 		}
 	}
 
-	for ( i = 0; i < MAX_POWERUPS; i++ ) {
-		if ( ps2->powerups[i] != ps1->powerups[i] ) {
+	for(i = 0; i < MAX_POWERUPS; i++)
+	{
+		if(ps2->powerups[i] != ps1->powerups[i])
+		{
 			return qfalse;
 		}
 	}
 
-	for ( i = 0; i < MAX_WEAPONS; i++ ) {
-		if ( ps2->ammo[i] != ps1->ammo[i] || ps2->ammoclip[i] != ps1->ammoclip[i] ) {
+	for(i = 0; i < MAX_WEAPONS; i++)
+	{
+		if(ps2->ammo[i] != ps1->ammo[i] || ps2->ammoclip[i] != ps1->ammoclip[i])
+		{
 			return qfalse;
 		}
 	}
 
-	if ( ps1->viewlocked != ps2->viewlocked || ps1->viewlocked_entNum !=  ps2->viewlocked_entNum ) {
+	if(ps1->viewlocked != ps2->viewlocked || ps1->viewlocked_entNum != ps2->viewlocked_entNum)
+	{
 		return qfalse;
 	}
 
-	if ( ps1->onFireStart != ps2->onFireStart ) {
+	if(ps1->onFireStart != ps2->onFireStart)
+	{
 		return qfalse;
 	}
 
@@ -805,6 +920,7 @@ to ease the jerk.
 // appear to be set for prediction runs where they previously weren't
 // is a Bad Thing.  This is my bugfix for #166.
 
+// *INDENT-OFF*
 pmoveExt_t oldpmext[CMD_BACKUP];
 
 void CG_PredictPlayerState( void ) {

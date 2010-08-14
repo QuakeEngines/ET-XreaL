@@ -28,12 +28,12 @@ If you have questions concerning this license or the applicable additional terms
 
 //===========================================================================
 //
-// Name:			syn.h
-// Function:		synonyms
-// Programmer:		Mr Elusive (MrElusive@idsoftware.com)
-// Last update:		1999-09-08
-// Tab Size:		4 (real tabs)
-// Notes:			-
+// Name:            syn.h
+// Function:        synonyms
+// Programmer:      Mr Elusive (MrElusive@idsoftware.com)
+// Last update:     1999-09-08
+// Tab Size:        4 (real tabs)
+// Notes:           -
 //===========================================================================
 
 #define CONTEXT_ALL                     0xFFFFFFFF

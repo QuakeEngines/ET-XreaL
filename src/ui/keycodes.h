@@ -35,7 +35,8 @@ If you have questions concerning this license or the applicable additional terms
 
 // normal keys should be passed as lowercased ascii
 
-typedef enum {
+typedef enum
+{
 	K_TAB = 9,
 	K_ENTER = 13,
 	K_ESCAPE = 27,
@@ -157,7 +158,7 @@ typedef enum {
 	K_AUX15,
 	K_AUX16,
 
-	K_LAST_KEY      // this had better be <256!
+	K_LAST_KEY					// this had better be <256!
 } keyNum_t;
 
 

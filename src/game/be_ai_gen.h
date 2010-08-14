@@ -35,4 +35,4 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
-int GeneticParentsAndChildSelection( int numranks, float *ranks, int *parent1, int *parent2, int *child );
+int             GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);

@@ -32,5 +32,3 @@ If you have questions concerning this license or the applicable additional terms
 // new ui support stuff
 //
 // memory, string alloc
-
-

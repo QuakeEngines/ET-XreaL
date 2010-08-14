@@ -31,6 +31,7 @@ If you have questions concerning this license or the applicable additional terms
  *
  */
 
+// *INDENT-OFF*
 #ifdef SAVEGAME_SUPPORT
 
 #include "../game/g_local.h"

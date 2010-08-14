@@ -39,8 +39,8 @@ If you have questions concerning this license or the applicable additional terms
 // MULTIPLAYER GOAL AI
 //
 
-qboolean BotMP_CheckEmergencyGoals( bot_state_t *bs );
-qboolean BotMP_FindGoal( bot_state_t *bs );
-// Gordon: new version
-qboolean BotMP_FindGoal_New( bot_state_t *bs );
+qboolean        BotMP_CheckEmergencyGoals(bot_state_t * bs);
+qboolean        BotMP_FindGoal(bot_state_t * bs);
 
+// Gordon: new version
+qboolean        BotMP_FindGoal_New(bot_state_t * bs);
