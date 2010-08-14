@@ -1548,7 +1548,7 @@ void RB_SurfaceAnim(mdsSurface_t * surface)
 		v = (mdsVertex_t *) & v->weights[v->numWeights];
 	}
 
-	DBG_SHOWTIME if(r_bonesDebug->integer)
+	DBG_SHOWTIME if (r_bonesDebug->integer)
 	{
 		if(r_bonesDebug->integer < 3)
 		{

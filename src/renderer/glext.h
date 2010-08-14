@@ -29,6 +29,8 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __glext_h_
 #define __glext_h_
 
+// *INDENT-OFF*
+
 #ifdef __cplusplus
 extern "C" {
 #endif

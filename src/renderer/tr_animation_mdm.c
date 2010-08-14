@@ -1753,7 +1753,7 @@ void RB_MDM_SurfaceAnim(mdmSurface_t * surface)
 		v = (mdmVertex_t *) & v->weights[v->numWeights];
 	}
 
-	DBG_SHOWTIME if(r_bonesDebug->integer)
+	DBG_SHOWTIME if (r_bonesDebug->integer)
 	{
 		GL_State(GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE);
 		if(r_bonesDebug->integer < 3 || r_bonesDebug->integer == 5 || r_bonesDebug->integer == 8 || r_bonesDebug->integer == 9)
