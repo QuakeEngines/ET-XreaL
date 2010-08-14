@@ -361,4 +361,3 @@ If you have questions concerning this license or the applicable additional terms
 #define qglVertex4sv glVertex4sv
 #define qglVertexPointer glVertexPointer
 #define qglViewport glViewport
-
