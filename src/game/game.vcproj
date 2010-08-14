@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="game"
 	ProjectGUID="{4F8332D7-5687-4875-813A-A1B7AA479C2D}"
+	RootNamespace="game"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -73,7 +74,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="winmm.lib"
-				OutputFile="..\Debug/qagame_mp_x86.dll"
+				OutputFile="../../etmain/qagame_mp_x86.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=".\game.def"
@@ -171,7 +172,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="winmm.lib"
-				OutputFile="..\Release/qagame_mp_x86.dll"
+				OutputFile="../../etmain/qagame_mp_x86.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=".\game.def"
