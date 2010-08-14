@@ -35,6 +35,6 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
-void AAS_Optimize( void );
-void AAS_RemoveNonReachability( void );
-void AAS_RemoveNonGrounded( void );
+void            AAS_Optimize(void);
+void            AAS_RemoveNonReachability(void);
+void            AAS_RemoveNonGrounded(void);

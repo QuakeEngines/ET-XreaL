@@ -29,23 +29,25 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef _DL_PUBLIC_H_
 #define _DL_PUBLIC_H_
 
-typedef enum {
+typedef enum
+{
 	DL_CONTINUE,
 	DL_DONE,
 	DL_FAILED
 } dlStatus_t;
 
-int DL_BeginDownload( const char *localName, const char *remoteName, int debug );
-dlStatus_t DL_DownloadLoop();
+int             DL_BeginDownload(const char *localName, const char *remoteName, int debug);
+dlStatus_t      DL_DownloadLoop();
 
-void DL_Shutdown();
+void            DL_Shutdown();
 
 // bitmask
-typedef enum {
+typedef enum
+{
 	DL_FLAG_DISCON = 0,
 	DL_FLAG_URL
 } dlFlags_t;
 
-int FS_CreatePath( const char *OSPath );
+int             FS_CreatePath(const char *OSPath);
 
 #endif

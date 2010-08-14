@@ -37,6 +37,5 @@ If you have questions concerning this license or the applicable additional terms
 
 #ifdef AASINTERN
 //initialize the AAS clustering
-void AAS_InitClustering( void );
-#endif //AASINTERN
-
+void            AAS_InitClustering(void);
+#endif							//AASINTERN

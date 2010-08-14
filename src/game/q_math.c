@@ -592,6 +592,8 @@ float Q_fabs( float f ) {
 	return *(float*)&tmp;
 }
 
+
+// *INDENT-OFF*
 #if id386 && !( ( defined __linux__ || defined __FreeBSD__ || defined __GNUC__ ) && ( defined __i386__ ) ) // rb010123
 long myftol( float f ) {
 	static int tmp;
@@ -600,6 +602,7 @@ long myftol( float f ) {
 	__asm mov eax, tmp
 }
 #endif
+// *INDENT-ON*
 
 //============================================================
 
@@ -778,6 +781,8 @@ int BoxOnPlaneSide2 (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 
 ==================
 */
+
+// *INDENT-OFF*
 #if !( defined __linux__ && defined __i386__ && !defined C_ONLY )
 
 #if defined __LCC__ || defined C_ONLY || !id386 || __GNUC__
@@ -1079,6 +1084,7 @@ initialized:
 		int 3
 	}
 }
+// *INDENT-ON*
 
 int BoxOnPlaneSide( vec3_t emins, vec3_t emaxs, struct cplane_s *p ) {
 	// fast axial cases

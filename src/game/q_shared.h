@@ -195,6 +195,7 @@ If you have questions concerning this license or the applicable additional terms
 // This is about 12.4 times faster than sqrt() and according to my testing (not exhaustive)
 // it returns fairly accurate results (error below 1.0e-5 up to 100000.0 in 0.1 increments).
 
+// *INDENT-OFF*
 static inline float idSqrt( float x ) {
 	const float half = 0.5;
 	const float one = 1.0;
@@ -223,6 +224,8 @@ static inline float idSqrt( float x ) {
 	/* Get sqrt(x) from x * 1/sqrt(x) */
 	return x * y1;
 }
+// *INDENT-ON*
+
 #define sqrt idSqrt
 
 

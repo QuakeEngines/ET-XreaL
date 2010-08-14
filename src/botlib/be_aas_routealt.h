@@ -36,11 +36,10 @@ If you have questions concerning this license or the applicable additional terms
  *****************************************************************************/
 
 #ifdef AASINTERN
-void AAS_InitAlternativeRouting( void );
-void AAS_ShutdownAlternativeRouting( void );
-#endif //AASINTERN
+void            AAS_InitAlternativeRouting(void);
+void            AAS_ShutdownAlternativeRouting(void);
+#endif							//AASINTERN
 
 
-int AAS_AlternativeRouteGoals( vec3_t start, vec3_t goal, int travelflags,
-							   aas_altroutegoal_t *altroutegoals, int maxaltroutegoals,
-							   int color );
+int             AAS_AlternativeRouteGoals(vec3_t start, vec3_t goal, int travelflags,
+										  aas_altroutegoal_t * altroutegoals, int maxaltroutegoals, int color);

@@ -46,12 +46,14 @@ If you have questions concerning this license or the applicable additional terms
 Sys_Milliseconds
 ================
 */
-int sys_timeBase;
-int Sys_Milliseconds( void ) {
-	int sys_curtime;
+int             sys_timeBase;
+int Sys_Milliseconds(void)
+{
+	int             sys_curtime;
 	static qboolean initialized = qfalse;
 
-	if ( !initialized ) {
+	if(!initialized)
+	{
 		sys_timeBase = timeGetTime();
 		initialized = qtrue;
 	}
@@ -65,6 +67,7 @@ int Sys_Milliseconds( void ) {
 Sys_SnapVector
 ================
 */
+// *INDENT-OFF*
 long fastftol( float f ) {
 #ifndef __GNUC__
 	static int tmp;
@@ -205,14 +208,16 @@ good:
 	return qtrue;
 #endif
 }
+// *INDENT-ON*
 
-static int Is3DNOW( void ) {
-	unsigned regs[4];
-	char pstring[16];
-	char processorString[13];
+static int Is3DNOW(void)
+{
+	unsigned        regs[4];
+	char            pstring[16];
+	char            processorString[13];
 
 	// get name of processor
-	CPUID( 0, ( unsigned int * ) pstring );
+	CPUID(0, (unsigned int *)pstring);
 	processorString[0] = pstring[4];
 	processorString[1] = pstring[5];
 	processorString[2] = pstring[6];
@@ -228,86 +233,99 @@ static int Is3DNOW( void ) {
 	processorString[12] = 0;
 
 //  REMOVED because you can have 3DNow! on non-AMD systems
-//	if ( strcmp( processorString, "AuthenticAMD" ) )
-//		return qfalse;
+//  if ( strcmp( processorString, "AuthenticAMD" ) )
+//      return qfalse;
 
 	// check AMD-specific functions
-	CPUID( 0x80000000, regs );
-	if ( regs[0] < 0x80000000 ) {
+	CPUID(0x80000000, regs);
+	if(regs[0] < 0x80000000)
+	{
 		return qfalse;
 	}
 
 	// bit 31 of EDX denotes 3DNOW! support
-	CPUID( 0x80000001, regs );
-	if ( regs[3] & ( 1 << 31 ) ) {
+	CPUID(0x80000001, regs);
+	if(regs[3] & (1 << 31))
+	{
 		return qtrue;
 	}
 
 	return qfalse;
 }
 
-static int IsKNI( void ) {
-	unsigned regs[4];
+static int IsKNI(void)
+{
+	unsigned        regs[4];
 
 	// get CPU feature bits
-	CPUID( 1, regs );
+	CPUID(1, regs);
 
 	// bit 25 of EDX denotes KNI existence
-	if ( regs[3] & ( 1 << 25 ) ) {
+	if(regs[3] & (1 << 25))
+	{
 		return qtrue;
 	}
 
 	return qfalse;
 }
 
-static int IsMMX( void ) {
-	unsigned regs[4];
+static int IsMMX(void)
+{
+	unsigned        regs[4];
 
 	// get CPU feature bits
-	CPUID( 1, regs );
+	CPUID(1, regs);
 
 	// bit 23 of EDX denotes MMX existence
-	if ( regs[3] & ( 1 << 23 ) ) {
+	if(regs[3] & (1 << 23))
+	{
 		return qtrue;
 	}
 	return qfalse;
 }
 
-static int IsP3() {
-	unsigned regs[4];
+static int IsP3()
+{
+	unsigned        regs[4];
 
 	// get CPU feature bits
-	CPUID( 1, regs );
-	if ( regs[0] < 6 ) {
+	CPUID(1, regs);
+	if(regs[0] < 6)
+	{
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x1 ) ) {
-		return qfalse;    // fp
+	if(!(regs[3] & 0x1))
+	{
+		return qfalse;			// fp
 	}
 
-	if ( !( regs[3] & 0x8000 ) ) { // cmov
+	if(!(regs[3] & 0x8000))
+	{							// cmov
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x800000 ) ) { // mmx
+	if(!(regs[3] & 0x800000))
+	{							// mmx
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x2000000 ) ) { // simd
+	if(!(regs[3] & 0x2000000))
+	{							// simd
 		return qfalse;
 	}
 
 	return qtrue;
 }
 
-static int IsAthlon() {
-	unsigned regs[4];
-	char pstring[16];
-	char processorString[13];
+static int IsAthlon()
+{
+	unsigned        regs[4];
+	char            pstring[16];
+	char            processorString[13];
 
 	// get name of processor
-	CPUID( 0, ( unsigned int * ) pstring );
+	CPUID(0, (unsigned int *)pstring);
 	processorString[0] = pstring[4];
 	processorString[1] = pstring[5];
 	processorString[2] = pstring[6];
@@ -322,52 +340,62 @@ static int IsAthlon() {
 	processorString[11] = pstring[11];
 	processorString[12] = 0;
 
-	if ( strcmp( processorString, "AuthenticAMD" ) ) {
+	if(strcmp(processorString, "AuthenticAMD"))
+	{
 		return qfalse;
 	}
 
-	CPUID( 0x80000000, regs );
+	CPUID(0x80000000, regs);
 
-	if ( regs[0] < 0x80000001 ) {
+	if(regs[0] < 0x80000001)
+	{
 		return qfalse;
 	}
 
 	// get CPU feature bits
-	CPUID( 1, regs );
-	if ( regs[0] < 6 ) {
+	CPUID(1, regs);
+	if(regs[0] < 6)
+	{
 		return qfalse;
 	}
 
-	CPUID( 0x80000001, regs );
+	CPUID(0x80000001, regs);
 
-	if ( !( regs[3] & 0x1 ) ) {
-		return qfalse;    // fp
+	if(!(regs[3] & 0x1))
+	{
+		return qfalse;			// fp
 	}
 
-	if ( !( regs[3] & 0x8000 ) ) { // cmov
+	if(!(regs[3] & 0x8000))
+	{							// cmov
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x800000 ) ) { // mmx
+	if(!(regs[3] & 0x800000))
+	{							// mmx
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x400000 ) ) { // k7 mmx
+	if(!(regs[3] & 0x400000))
+	{							// k7 mmx
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x80000000 ) ) { // 3dnow
+	if(!(regs[3] & 0x80000000))
+	{							// 3dnow
 		return qfalse;
 	}
 
-	if ( !( regs[3] & 0x40000000 ) ) { // advanced 3dnow
+	if(!(regs[3] & 0x40000000))
+	{							// advanced 3dnow
 		return qfalse;
 	}
 
 	return qtrue;
 }
 
-int Sys_GetProcessorId( void ) {
+int Sys_GetProcessorId(void)
+{
 #if defined _M_ALPHA
 	return CPUID_AXP;
 #elif !defined _M_IX86
@@ -375,23 +403,27 @@ int Sys_GetProcessorId( void ) {
 #else
 
 	// verify we're at least a Pentium or 486 w/ CPUID support
-	if ( !IsPentium() ) {
+	if(!IsPentium())
+	{
 		return CPUID_INTEL_UNSUPPORTED;
 	}
 
 	// check for MMX
-	if ( !IsMMX() ) {
+	if(!IsMMX())
+	{
 		// Pentium or PPro
 		return CPUID_INTEL_PENTIUM;
 	}
 
 	// see if we're an AMD 3DNOW! processor
-	if ( Is3DNOW() ) {
+	if(Is3DNOW())
+	{
 		return CPUID_AMD_3DNOW;
 	}
 
 	// see if we're an Intel Katmai
-	if ( IsKNI() ) {
+	if(IsKNI())
+	{
 		return CPUID_INTEL_KATMAI;
 	}
 
@@ -401,6 +433,7 @@ int Sys_GetProcessorId( void ) {
 #endif
 }
 
+// *INDENT-OFF*
 int Sys_GetHighQualityCPU() {
 	return ( !IsP3() && !IsAthlon() ) ? 0 : 1;
 }
@@ -557,29 +590,33 @@ float Sys_GetCPUSpeed( void ) {
 
 	return cpuSpeed;
 }
+// *INDENT-ON*
 
 /*
 **
 ** Re-enable optimizations back to what they were
 **
 */
-#ifdef MSVC // rain - MSVC pragma
+#ifdef MSVC						// rain - MSVC pragma
 #pragma optimize( "", on )
 #endif
 
 //============================================
 
-char *Sys_GetCurrentUser( void ) {
-	static char s_userName[1024];
-	unsigned long size = sizeof( s_userName );
+char           *Sys_GetCurrentUser(void)
+{
+	static char     s_userName[1024];
+	unsigned long   size = sizeof(s_userName);
 
 
-	if ( !GetUserName( s_userName, &size ) ) {
-		strcpy( s_userName, "player" );
+	if(!GetUserName(s_userName, &size))
+	{
+		strcpy(s_userName, "player");
 	}
 
-	if ( !s_userName[0] ) {
-		strcpy( s_userName, "player" );
+	if(!s_userName[0])
+	{
+		strcpy(s_userName, "player");
 	}
 
 	return s_userName;

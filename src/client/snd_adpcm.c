@@ -28,12 +28,14 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "snd_local.h"
 
-void S_AdpcmEncode( short indata[], char outdata[], int len, struct adpcm_state *state ) {
+void S_AdpcmEncode(short indata[], char outdata[], int len, struct adpcm_state *state)
+{
 	// LordHavoc: removed 4-clause BSD code for Intel ADPCM codec
 }
 
 
-void S_AdpcmDecode( const char indata[], short *outdata, int len, struct adpcm_state *state ) {
+void S_AdpcmDecode(const char indata[], short *outdata, int len, struct adpcm_state *state)
+{
 	// LordHavoc: removed 4-clause BSD code for Intel ADPCM codec
 }
 
@@ -45,12 +47,13 @@ S_AdpcmMemoryNeeded
 Returns the amount of memory (in bytes) needed to store the samples in out internal adpcm format
 ====================
 */
-int S_AdpcmMemoryNeeded( const wavinfo_t *info ) {
-	float scale;
-	int scaledSampleCount;
-	int sampleMemory;
-	int blockCount;
-	int headerMemory;
+int S_AdpcmMemoryNeeded(const wavinfo_t * info)
+{
+	float           scale;
+	int             scaledSampleCount;
+	int             sampleMemory;
+	int             blockCount;
+	int             headerMemory;
 
 	// determine scale to convert from input sampling rate to desired sampling rate
 	scale = (float)info->rate / dma.speed;
@@ -63,12 +66,13 @@ int S_AdpcmMemoryNeeded( const wavinfo_t *info ) {
 
 	// calc number of sample blocks needed of PAINTBUFFER_SIZE
 	blockCount = scaledSampleCount / PAINTBUFFER_SIZE;
-	if ( scaledSampleCount % PAINTBUFFER_SIZE ) {
+	if(scaledSampleCount % PAINTBUFFER_SIZE)
+	{
 		blockCount++;
 	}
 
 	// calc memory needed to store the block headers
-	headerMemory = blockCount * sizeof( adpcm_state_t );
+	headerMemory = blockCount * sizeof(adpcm_state_t);
 
 	return sampleMemory + headerMemory;
 }
@@ -79,17 +83,18 @@ int S_AdpcmMemoryNeeded( const wavinfo_t *info ) {
 S_AdpcmGetSamples
 ====================
 */
-void S_AdpcmGetSamples( sndBuffer *chunk, short *to ) {
-	adpcm_state_t state;
-	byte            *out;
+void S_AdpcmGetSamples(sndBuffer * chunk, short *to)
+{
+	adpcm_state_t   state;
+	byte           *out;
 
 	// get the starting state from the block header
 	state.index = chunk->adpcm.index;
 	state.sample = chunk->adpcm.sample;
 
-	out = (byte *)chunk->sndChunk;
+	out = (byte *) chunk->sndChunk;
 	// get samples
-	S_AdpcmDecode( (const char*)out, to, SND_CHUNK_SIZE_BYTE * 2, &state );
+	S_AdpcmDecode((const char *)out, to, SND_CHUNK_SIZE_BYTE * 2, &state);
 }
 
 
@@ -98,13 +103,14 @@ void S_AdpcmGetSamples( sndBuffer *chunk, short *to ) {
 S_AdpcmEncodeSound
 ====================
 */
-void S_AdpcmEncodeSound( sfx_t *sfx, short *samples ) {
-	adpcm_state_t state;
-	int inOffset;
-	int count;
-	int n;
-	sndBuffer       *newchunk, *chunk;
-	byte            *out;
+void S_AdpcmEncodeSound(sfx_t * sfx, short *samples)
+{
+	adpcm_state_t   state;
+	int             inOffset;
+	int             count;
+	int             n;
+	sndBuffer      *newchunk, *chunk;
+	byte           *out;
 
 	inOffset = 0;
 	count = sfx->soundLength;
@@ -112,28 +118,33 @@ void S_AdpcmEncodeSound( sfx_t *sfx, short *samples ) {
 	state.sample = samples[0];
 
 	chunk = NULL;
-	while ( count ) {
+	while(count)
+	{
 		n = count;
-		if ( n > SND_CHUNK_SIZE_BYTE * 2 ) {
+		if(n > SND_CHUNK_SIZE_BYTE * 2)
+		{
 			n = SND_CHUNK_SIZE_BYTE * 2;
 		}
 
 		newchunk = SND_malloc();
-		if ( sfx->soundData == NULL ) {
+		if(sfx->soundData == NULL)
+		{
 			sfx->soundData = newchunk;
-		} else {
+		}
+		else
+		{
 			chunk->next = newchunk;
 		}
 		chunk = newchunk;
 
 		// output the header
-		chunk->adpcm.index  = state.index;
+		chunk->adpcm.index = state.index;
 		chunk->adpcm.sample = state.sample;
 
-		out = (byte *)chunk->sndChunk;
+		out = (byte *) chunk->sndChunk;
 
 		// encode the samples
-		S_AdpcmEncode( samples + inOffset, (char *)out, n, &state );
+		S_AdpcmEncode(samples + inOffset, (char *)out, n, &state);
 
 		inOffset += n;
 		count -= n;

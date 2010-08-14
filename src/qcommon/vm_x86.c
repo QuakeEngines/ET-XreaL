@@ -28,6 +28,8 @@ If you have questions concerning this license or the applicable additional terms
 
 // vm_x86.c -- load time compiler and execution environment for x86
 
+// *INDENT-OFF*
+
 #include "vm_local.h"
 
 #ifndef _WIN32

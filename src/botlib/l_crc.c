@@ -41,7 +41,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../game/q_shared.h"
 #include "../game/botlib.h"
-#include "be_interface.h"            //for botimport.Print
+#include "be_interface.h"		//for botimport.Print
 
 
 // FIXME: byte swap?
@@ -53,8 +53,7 @@ If you have questions concerning this license or the applicable additional terms
 #define CRC_INIT_VALUE  0xffff
 #define CRC_XOR_VALUE   0x0000
 
-unsigned short crctable[257] =
-{
+unsigned short  crctable[257] = {
 	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
 	0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
 	0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
@@ -87,69 +86,79 @@ unsigned short crctable[257] =
 	0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
 	0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
 	0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
-	0x0000                                              // code reaches element 256
+	0x0000						// code reaches element 256
 };
 
 //===========================================================================
 //
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
+// Parameter:               -
+// Returns:                 -
+// Changes Globals:     -
 //===========================================================================
-void CRC_Init( unsigned short *crcvalue ) {
+void CRC_Init(unsigned short *crcvalue)
+{
 	*crcvalue = CRC_INIT_VALUE;
-} //end of the function CRC_Init
+}								//end of the function CRC_Init
+
 //===========================================================================
 //
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
+// Parameter:               -
+// Returns:                 -
+// Changes Globals:     -
 //===========================================================================
-void CRC_ProcessByte( unsigned short *crcvalue, byte data ) {
-	*crcvalue = ( *crcvalue << 8 ) ^ crctable[( *crcvalue >> 8 ) ^ data];
-} //end of the function CRC_ProcessByte
+void CRC_ProcessByte(unsigned short *crcvalue, byte data)
+{
+	*crcvalue = (*crcvalue << 8) ^ crctable[(*crcvalue >> 8) ^ data];
+}								//end of the function CRC_ProcessByte
+
 //===========================================================================
 //
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
+// Parameter:               -
+// Returns:                 -
+// Changes Globals:     -
 //===========================================================================
-unsigned short CRC_Value( unsigned short crcvalue ) {
+unsigned short CRC_Value(unsigned short crcvalue)
+{
 	return crcvalue ^ CRC_XOR_VALUE;
-} //end of the function CRC_Value
+}								//end of the function CRC_Value
+
 //===========================================================================
 //
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
+// Parameter:               -
+// Returns:                 -
+// Changes Globals:     -
 //===========================================================================
-unsigned short CRC_ProcessString( unsigned char *data, int length ) {
-	unsigned short crcvalue;
-	int i, ind;
+unsigned short CRC_ProcessString(unsigned char *data, int length)
+{
+	unsigned short  crcvalue;
+	int             i, ind;
 
-	CRC_Init( &crcvalue );
+	CRC_Init(&crcvalue);
 
-	for ( i = 0; i < length; i++ )
+	for(i = 0; i < length; i++)
 	{
-		ind = ( crcvalue >> 8 ) ^ data[i];
-		if ( ind < 0 || ind > 256 ) {
+		ind = (crcvalue >> 8) ^ data[i];
+		if(ind < 0 || ind > 256)
+		{
 			ind = 0;
 		}
-		crcvalue = ( crcvalue << 8 ) ^ crctable[ind];
-	} //end for
-	return CRC_Value( crcvalue );
-} //end of the function CRC_ProcessString
+		crcvalue = (crcvalue << 8) ^ crctable[ind];
+	}							//end for
+	return CRC_Value(crcvalue);
+}								//end of the function CRC_ProcessString
+
 //===========================================================================
 //
-// Parameter:				-
-// Returns:					-
-// Changes Globals:		-
+// Parameter:               -
+// Returns:                 -
+// Changes Globals:     -
 //===========================================================================
-void CRC_ContinueProcessString( unsigned short *crc, char *data, int length ) {
-	int i;
+void CRC_ContinueProcessString(unsigned short *crc, char *data, int length)
+{
+	int             i;
 
-	for ( i = 0; i < length; i++ )
+	for(i = 0; i < length; i++)
 	{
-		*crc = ( *crc << 8 ) ^ crctable[( *crc >> 8 ) ^ data[i]];
-	} //end for
-} //end of the function CRC_ProcessString
+		*crc = (*crc << 8) ^ crctable[(*crc >> 8) ^ data[i]];
+	}							//end for
+}								//end of the function CRC_ProcessString

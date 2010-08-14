@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 #pragma warning( pop )
 #endif
 
-#ifdef DOOMSOUND    ///// (SA) DOOMSOUND
+#ifdef DOOMSOUND				///// (SA) DOOMSOUND
 #include "../mssdk/include/dinput.h"
 #include "../mssdk/include/dsound.h"
 #else
@@ -47,82 +47,79 @@ If you have questions concerning this license or the applicable additional terms
 #else
 #include <directx.h>
 #endif
-#endif  ///// (SA) DOOMSOUND
+#endif							///// (SA) DOOMSOUND
 
 #include <winsock.h>
 #include <wsipx.h>
 
-#ifdef DOOMSOUND    ///// (SA)DOOMSOUND
+#ifdef DOOMSOUND				///// (SA)DOOMSOUND
 #ifdef __cplusplus
-extern "C" {
+extern          "C"
+{
 #endif
-#endif  ///// (SA) DOOMSOUND
+#endif							///// (SA) DOOMSOUND
 
-void    IN_MouseEvent( int mstate );
+	void            IN_MouseEvent(int mstate);
 
-void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
+	void            Sys_QueEvent(int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr);
 
-void    Sys_CreateConsole( void );
-void    Sys_DestroyConsole( void );
+	void            Sys_CreateConsole(void);
+	void            Sys_DestroyConsole(void);
 
-char    *Sys_ConsoleInput( void );
+	char           *Sys_ConsoleInput(void);
 
-qboolean    Sys_GetPacket( netadr_t *net_from, msg_t *net_message );
+	qboolean        Sys_GetPacket(netadr_t * net_from, msg_t * net_message);
 
 // Input subsystem
 
-void    IN_Init( void );
-void    IN_Shutdown( void );
-void    IN_JoystickCommands( void );
+	void            IN_Init(void);
+	void            IN_Shutdown(void);
+	void            IN_JoystickCommands(void);
 
-void    IN_Move( usercmd_t *cmd );
+	void            IN_Move(usercmd_t * cmd);
 // add additional non keyboard / non mouse movement on top of the keyboard move cmd
 
-void    IN_DeactivateWin32Mouse( void );
+	void            IN_DeactivateWin32Mouse(void);
 
-void    IN_Activate( qboolean active );
-void    IN_Frame( void );
+	void            IN_Activate(qboolean active);
+	void            IN_Frame(void);
 
 // window procedure
-LONG WINAPI MainWndProc(
-	HWND hWnd,
-	UINT uMsg,
-	WPARAM wParam,
-	LPARAM lParam );
+	LONG WINAPI     MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void Conbuf_AppendText( const char *msg );
+	void            Conbuf_AppendText(const char *msg);
 
-void SNDDMA_Activate( void );
-int  SNDDMA_InitDS();
+	void            SNDDMA_Activate(void);
+	int             SNDDMA_InitDS();
 
-typedef struct
-{
+	typedef struct
+	{
 
-	HINSTANCE reflib_library;           // Handle to refresh DLL
-	qboolean reflib_active;
+		HINSTANCE       reflib_library;	// Handle to refresh DLL
+		qboolean        reflib_active;
 
-	HWND hWnd;
-	HINSTANCE hInstance;
-	qboolean activeApp;
-	qboolean isMinimized;
-	OSVERSIONINFO osversion;
+		HWND            hWnd;
+		HINSTANCE       hInstance;
+		qboolean        activeApp;
+		qboolean        isMinimized;
+		OSVERSIONINFO   osversion;
 
-	// when we get a windows message, we store the time off so keyboard processing
-	// can know the exact time of an event
-	unsigned sysMsgTime;
-} WinVars_t;
+		// when we get a windows message, we store the time off so keyboard processing
+		// can know the exact time of an event
+		unsigned        sysMsgTime;
+	} WinVars_t;
 
-extern WinVars_t g_wv;
+	extern WinVars_t g_wv;
 
-#ifdef DOOMSOUND    ///// (SA) DOOMSOUND
+#ifdef DOOMSOUND				///// (SA) DOOMSOUND
 #ifdef __cplusplus
 }
 #endif
-#endif  ///// (SA) DOOMSOUND
+#endif							///// (SA) DOOMSOUND
 
 // ydnar: mousewheel stuff
 #ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL       ( WM_MOUSELAST + 1 )  // message that will be supported by the OS
+#define WM_MOUSEWHEEL       ( WM_MOUSELAST + 1 )	// message that will be supported by the OS
 #endif
 
 #ifndef WM_XBUTTONDOWN
@@ -133,6 +130,6 @@ extern WinVars_t g_wv;
 #endif
 
 // Gordon: exception handling
-void WinSetExceptionWnd( HWND wnd );
-void WinSetExceptionVersion( const char* version );
-void Com_FrameExt( void );
+void            WinSetExceptionWnd(HWND wnd);
+void            WinSetExceptionVersion(const char *version);
+void            Com_FrameExt(void);
