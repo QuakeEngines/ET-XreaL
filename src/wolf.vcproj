@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="wolf"
 	ProjectGUID="{B604B554-38D6-4BC8-9F7F-D6BC8719A653}"
+	RootNamespace="wolf"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -76,7 +77,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="dinput8.lib winmm.lib wsock32.lib Iphlpapi.lib curl-7.12.2\lib\libcurld.lib"
-				OutputFile=".\Debug/ET.exe"
+				OutputFile="../ET-XreaL.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				IgnoreDefaultLibraryNames="libcd"
@@ -172,7 +173,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="winmm.lib wsock32.lib .\botlib\Debug\botlib.lib Iphlpapi.lib"
-				OutputFile=".\Debug_Dedicated/WolfDED.exe"
+				OutputFile="../WolfDED-XreaL.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
@@ -270,7 +271,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="dinput8.lib winmm.lib wsock32.lib Iphlpapi.lib curl-7.12.2\lib\libcurl.lib"
-				OutputFile=".\Release/ET.exe"
+				OutputFile="../ET-XreaL.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				IgnoreDefaultLibraryNames="libc"
@@ -364,7 +365,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="winmm.lib wsock32.lib .\botlib\Release\botlib.lib Iphlpapi.lib"
-				OutputFile=".\Release_Dedicated/WolfDED.exe"
+				OutputFile="../WolfDED-XreaL.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				IgnoreDefaultLibraryNames="libc"
