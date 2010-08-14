@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="renderer"
 	ProjectGUID="{7906CC4F-E230-4049-A3EF-EA7F64E73DDE}"
+	RootNamespace="renderer"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -299,6 +300,10 @@
 			</File>
 			<File
 				RelativePath="..\qcommon\cm_public.h"
+				>
+			</File>
+			<File
+				RelativePath=".\glext.h"
 				>
 			</File>
 			<File
