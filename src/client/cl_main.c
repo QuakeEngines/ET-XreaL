@@ -3543,7 +3543,7 @@ void CL_InitRef(void)
 
 	Com_Printf("----- Initializing Renderer ----\n");
 
-	cl_renderer = Cvar_Get("cl_renderer", "GL", CVAR_ARCHIVE | CVAR_LATCH);
+	cl_renderer = Cvar_Get("cl_renderer", "GL", CVAR_LATCH);
 
 #ifdef _WIN32
 	Com_sprintf(dllName, sizeof(dllName), "renderer%s" DLL_EXT, cl_renderer->string);
