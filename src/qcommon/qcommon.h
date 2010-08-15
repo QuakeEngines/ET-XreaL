@@ -892,86 +892,88 @@ void            Info_Print(const char *s);
 
 void            Com_BeginRedirect(char *buffer, int buffersize, void (*flush) (char *));
 void            Com_EndRedirect(void);
+// *INDENT-OFF*
 int QDECL Com_VPrintf(const char *fmt, va_list argptr) _attribute((format(printf, 1, 0)));	// conforms to vprintf prototype for print callback passing
 	 void QDECL Com_Printf(const char *fmt, ...) _attribute((format(printf, 1, 2)));	// this one calls to Com_VPrintf now
 	 void QDECL Com_DPrintf(const char *fmt, ...) _attribute((format(printf, 1, 2)));
 	 void QDECL Com_Error(int code, const char *fmt, ...) _attribute((format(printf, 2, 3)));
-	 void Com_Quit_f(void);
-	 int Com_EventLoop(void);
-	 int Com_Milliseconds(void);	// will be journaled properly
-	 unsigned int Com_BlockChecksum(const void *buffer, int length);
-	 unsigned int Com_BlockChecksumKey(void *buffer, int length, int key);
-	 int Com_HashKey(char *string, int maxlen);
-	 int Com_Filter(char *filter, char *name, int casesensitive);
-	 int Com_FilterPath(char *filter, char *name, int casesensitive);
-	 int Com_RealTime(qtime_t * qtime);
-	 qboolean Com_SafeMode(void);
+// *INDENT-ON*
+void            Com_Quit_f(void);
+int             Com_EventLoop(void);
+int             Com_Milliseconds(void);	// will be journaled properly
+unsigned int    Com_BlockChecksum(const void *buffer, int length);
+unsigned int    Com_BlockChecksumKey(void *buffer, int length, int key);
+int             Com_HashKey(char *string, int maxlen);
+int             Com_Filter(char *filter, char *name, int casesensitive);
+int             Com_FilterPath(char *filter, char *name, int casesensitive);
+int             Com_RealTime(qtime_t * qtime);
+qboolean        Com_SafeMode(void);
 
-	 void Com_StartupVariable(const char *match);
-	 void Com_SetRecommended();
+void            Com_StartupVariable(const char *match);
+void            Com_SetRecommended();
 
 // checks for and removes command line "+set var arg" constructs
 // if match is NULL, all set commands will be executed, otherwise
 // only a set with the exact name.  Only used during startup.
 
 //bani - profile functions
-	 void Com_TrackProfile(char *profile_path);
-	 qboolean Com_CheckProfile(char *profile_path);
-	 qboolean Com_WriteProfile(char *profile_path);
+void            Com_TrackProfile(char *profile_path);
+qboolean        Com_CheckProfile(char *profile_path);
+qboolean        Com_WriteProfile(char *profile_path);
 
-	 extern cvar_t  *com_crashed;
+extern cvar_t  *com_crashed;
 
-	 extern cvar_t  *com_ignorecrash;	//bani
+extern cvar_t  *com_ignorecrash;	//bani
 
-	 extern cvar_t  *com_pid;	//bani
+extern cvar_t  *com_pid;		//bani
 
-	 extern cvar_t  *com_developer;
-	 extern cvar_t  *com_dedicated;
-	 extern cvar_t  *com_speeds;
-	 extern cvar_t  *com_timescale;
-	 extern cvar_t  *com_sv_running;
-	 extern cvar_t  *com_cl_running;
-	 extern cvar_t  *com_viewlog;	// 0 = hidden, 1 = visible, 2 = minimized
-	 extern cvar_t  *com_version;
+extern cvar_t  *com_developer;
+extern cvar_t  *com_dedicated;
+extern cvar_t  *com_speeds;
+extern cvar_t  *com_timescale;
+extern cvar_t  *com_sv_running;
+extern cvar_t  *com_cl_running;
+extern cvar_t  *com_viewlog;	// 0 = hidden, 1 = visible, 2 = minimized
+extern cvar_t  *com_version;
 
 //extern    cvar_t  *com_blood;
-	 extern cvar_t  *com_buildScript;	// for building release pak files
-	 extern cvar_t  *com_journal;
-	 extern cvar_t  *com_cameraMode;
-	 extern cvar_t  *com_logosPlaying;
+extern cvar_t  *com_buildScript;	// for building release pak files
+extern cvar_t  *com_journal;
+extern cvar_t  *com_cameraMode;
+extern cvar_t  *com_logosPlaying;
 
 // watchdog
-	 extern cvar_t  *com_watchdog;
-	 extern cvar_t  *com_watchdog_cmd;
+extern cvar_t  *com_watchdog;
+extern cvar_t  *com_watchdog_cmd;
 
 // both client and server must agree to pause
-	 extern cvar_t  *cl_paused;
-	 extern cvar_t  *sv_paused;
+extern cvar_t  *cl_paused;
+extern cvar_t  *sv_paused;
 
 // com_speeds times
-	 extern int time_game;
-	 extern int time_frontend;
-	 extern int time_backend;	// renderer backend time
+extern int      time_game;
+extern int      time_frontend;
+extern int      time_backend;	// renderer backend time
 
-	 extern int com_frameTime;
-	 extern int com_frameMsec;
-	 extern int com_expectedhunkusage;
-	 extern int com_hunkusedvalue;
+extern int      com_frameTime;
+extern int      com_frameMsec;
+extern int      com_expectedhunkusage;
+extern int      com_hunkusedvalue;
 
-	 extern qboolean com_errorEntered;
+extern qboolean com_errorEntered;
 
-	 extern fileHandle_t com_journalFile;
-	 extern fileHandle_t com_journalDataFile;
+extern fileHandle_t com_journalFile;
+extern fileHandle_t com_journalDataFile;
 
-	 typedef enum
-	 {
-		 TAG_FREE,
-		 TAG_GENERAL,
-		 TAG_BOTLIB,
-		 TAG_RENDERER,
-		 TAG_SMALL,
-		 TAG_STATIC
-	 } memtag_t;
+typedef enum
+{
+	TAG_FREE,
+	TAG_GENERAL,
+	TAG_BOTLIB,
+	TAG_RENDERER,
+	TAG_SMALL,
+	TAG_STATIC
+} memtag_t;
 
 /*
 
@@ -1000,38 +1002,38 @@ temp file loading
 #define Z_TagMalloc( size, tag )          Z_TagMallocDebug( size, tag, # size, __FILE__, __LINE__ )
 #define Z_Malloc( size )                  Z_MallocDebug( size, # size, __FILE__, __LINE__ )
 #define S_Malloc( size )                  S_MallocDebug( size, # size, __FILE__, __LINE__ )
-	 void           *Z_TagMallocDebug(int size, int tag, char *label, char *file, int line);	// NOT 0 filled memory
-	 void           *Z_MallocDebug(int size, char *label, char *file, int line);	// returns 0 filled memory
-	 void           *S_MallocDebug(int size, char *label, char *file, int line);	// returns 0 filled memory
+void           *Z_TagMallocDebug(int size, int tag, char *label, char *file, int line);	// NOT 0 filled memory
+void           *Z_MallocDebug(int size, char *label, char *file, int line);	// returns 0 filled memory
+void           *S_MallocDebug(int size, char *label, char *file, int line);	// returns 0 filled memory
 #else
-	 void           *Z_TagMalloc(int size, int tag);	// NOT 0 filled memory
-	 void           *Z_Malloc(int size);	// returns 0 filled memory
-	 void           *S_Malloc(int size);	// NOT 0 filled memory only for small allocations
+void           *Z_TagMalloc(int size, int tag);	// NOT 0 filled memory
+void           *Z_Malloc(int size);	// returns 0 filled memory
+void           *S_Malloc(int size);	// NOT 0 filled memory only for small allocations
 #endif
-	 void Z_Free(void *ptr);
-	 void Z_FreeTags(int tag);
-	 void Z_LogHeap(void);
+void            Z_Free(void *ptr);
+void            Z_FreeTags(int tag);
+void            Z_LogHeap(void);
 
-	 void Hunk_Clear(void);
-	 void Hunk_ClearToMark(void);
-	 void Hunk_SetMark(void);
-	 qboolean Hunk_CheckMark(void);
+void            Hunk_Clear(void);
+void            Hunk_ClearToMark(void);
+void            Hunk_SetMark(void);
+qboolean        Hunk_CheckMark(void);
 
 //void *Hunk_Alloc( int size );
 // void *Hunk_Alloc( int size, ha_pref preference );
-	 void Hunk_ClearTempMemory(void);
-	 void           *Hunk_AllocateTempMemory(int size);
-	 void Hunk_FreeTempMemory(void *buf);
-	 int Hunk_MemoryRemaining(void);
-	 void Hunk_SmallLog(void);
-	 void Hunk_Log(void);
+void            Hunk_ClearTempMemory(void);
+void           *Hunk_AllocateTempMemory(int size);
+void            Hunk_FreeTempMemory(void *buf);
+int             Hunk_MemoryRemaining(void);
+void            Hunk_SmallLog(void);
+void            Hunk_Log(void);
 
-	 void Com_TouchMemory(void);
+void            Com_TouchMemory(void);
 
 // commandLine should not include the executable name (argv[0])
-	 void Com_Init(char *commandLine);
-	 void Com_Frame(void);
-	 void Com_Shutdown(qboolean badProfile);
+void            Com_Init(char *commandLine);
+void            Com_Frame(void);
+void            Com_Shutdown(qboolean badProfile);
 
 
 /*
@@ -1045,90 +1047,90 @@ CLIENT / SERVER SYSTEMS
 //
 // client interface
 //
-	 void CL_InitKeyCommands(void);
+void            CL_InitKeyCommands(void);
 
 // the keyboard binding interface must be setup before execing
 // config files, but the rest of client startup will happen later
 
-	 void CL_Init(void);
-	 void CL_ClearStaticDownload(void);
-	 void CL_Disconnect(qboolean showMainMenu);
-	 void CL_Shutdown(void);
-	 void CL_Frame(int msec);
-	 qboolean CL_GameCommand(void);
-	 void CL_KeyEvent(int key, qboolean down, unsigned time);
+void            CL_Init(void);
+void            CL_ClearStaticDownload(void);
+void            CL_Disconnect(qboolean showMainMenu);
+void            CL_Shutdown(void);
+void            CL_Frame(int msec);
+qboolean        CL_GameCommand(void);
+void            CL_KeyEvent(int key, qboolean down, unsigned time);
 
-	 void CL_CharEvent(int key);
+void            CL_CharEvent(int key);
 
 // char events are for field typing, not game control
 
-	 void CL_MouseEvent(int dx, int dy, int time);
+void            CL_MouseEvent(int dx, int dy, int time);
 
-	 void CL_JoystickEvent(int axis, int value, int time);
+void            CL_JoystickEvent(int axis, int value, int time);
 
-	 void CL_PacketEvent(netadr_t from, msg_t * msg);
+void            CL_PacketEvent(netadr_t from, msg_t * msg);
 
-	 void CL_ConsolePrint(char *text);
+void            CL_ConsolePrint(char *text);
 
-	 void CL_MapLoading(void);
+void            CL_MapLoading(void);
 
 // do a screen update before starting to load a map
 // when the server is going to load a new map, the entire hunk
 // will be cleared, so the client must shutdown cgame, ui, and
 // the renderer
 
-	 void CL_ForwardCommandToServer(const char *string);
+void            CL_ForwardCommandToServer(const char *string);
 
 // adds the current command line as a clc_clientCommand to the client message.
 // things like godmode, noclip, etc, are commands directed to the server,
 // so when they are typed in at the console, they will need to be forwarded.
 
-	 void CL_CDDialog(void);
+void            CL_CDDialog(void);
 
 // bring up the "need a cd to play" dialog
 
-	 void CL_ShutdownAll(void);
+void            CL_ShutdownAll(void);
 
 // shutdown all the client stuff
 
-	 void CL_FlushMemory(void);
+void            CL_FlushMemory(void);
 
 // dump all memory on an error
 
-	 void CL_StartHunkUsers(void);
+void            CL_StartHunkUsers(void);
 
 // start all the client stuff using the hunk
 
-	 void CL_CheckAutoUpdate(void);
-	 qboolean CL_NextUpdateServer(void);
-	 void CL_GetAutoUpdate(void);
+void            CL_CheckAutoUpdate(void);
+qboolean        CL_NextUpdateServer(void);
+void            CL_GetAutoUpdate(void);
 
-	 void Key_WriteBindings(fileHandle_t f);
+void            Key_WriteBindings(fileHandle_t f);
 
 // for writing the config files
 
-	 void S_ClearSoundBuffer(qboolean killStreaming);	//----(SA)  modified
+void            S_ClearSoundBuffer(qboolean killStreaming);	//----(SA)  modified
 
 // call before filesystem access
 
-	 void SCR_DebugGraph(float value, int color);	// FIXME: move logging to common?
+void            SCR_DebugGraph(float value, int color);	// FIXME: move logging to common?
 
 
 //
 // server interface
 //
-	 void SV_Init(void);
-	 void SV_Shutdown(char *finalmsg);
-	 void SV_Frame(int msec);
-	 void SV_PacketEvent(netadr_t from, msg_t * msg);
-	 qboolean SV_GameCommand(void);
+void            SV_Init(void);
+void            SV_Shutdown(char *finalmsg);
+void            SV_Frame(int msec);
+void            SV_PacketEvent(netadr_t from, msg_t * msg);
+qboolean        SV_GameCommand(void);
 
 
 //
 // UI interface
 //
-	 qboolean UI_GameCommand(void);
-	 qboolean UI_usesUniqueCDKey();
+qboolean        UI_GameCommand(void);
+qboolean        UI_usesUniqueCDKey();
 
 /*
 ==============================================================
@@ -1138,132 +1140,132 @@ NON-PORTABLE SYSTEM SERVICES
 ==============================================================
 */
 
-	 typedef enum
-	 {
-		 AXIS_SIDE,
-		 AXIS_FORWARD,
-		 AXIS_UP,
-		 AXIS_ROLL,
-		 AXIS_YAW,
-		 AXIS_PITCH,
-		 MAX_JOYSTICK_AXIS
-	 } joystickAxis_t;
+typedef enum
+{
+	AXIS_SIDE,
+	AXIS_FORWARD,
+	AXIS_UP,
+	AXIS_ROLL,
+	AXIS_YAW,
+	AXIS_PITCH,
+	MAX_JOYSTICK_AXIS
+} joystickAxis_t;
 
-	 typedef enum
-	 {
-		 // bk001129 - make sure SE_NONE is zero
-		 SE_NONE = 0,			// evTime is still valid
-		 SE_KEY,				// evValue is a key code, evValue2 is the down flag
-		 SE_CHAR,				// evValue is an ascii char
-		 SE_MOUSE,				// evValue and evValue2 are reletive signed x / y moves
-		 SE_JOYSTICK_AXIS,		// evValue is an axis number and evValue2 is the current state (-127 to 127)
-		 SE_CONSOLE,			// evPtr is a char*
-		 SE_PACKET				// evPtr is a netadr_t followed by data bytes to evPtrLength
-	 } sysEventType_t;
+typedef enum
+{
+	// bk001129 - make sure SE_NONE is zero
+	SE_NONE = 0,				// evTime is still valid
+	SE_KEY,						// evValue is a key code, evValue2 is the down flag
+	SE_CHAR,					// evValue is an ascii char
+	SE_MOUSE,					// evValue and evValue2 are reletive signed x / y moves
+	SE_JOYSTICK_AXIS,			// evValue is an axis number and evValue2 is the current state (-127 to 127)
+	SE_CONSOLE,					// evPtr is a char*
+	SE_PACKET					// evPtr is a netadr_t followed by data bytes to evPtrLength
+} sysEventType_t;
 
-	 typedef struct
-	 {
-		 int evTime;
-		 sysEventType_t evType;
-		 int evValue, evValue2;
-		 int evPtrLength;		// bytes of data pointed to by evPtr, for journaling
-		 void           *evPtr;	// this must be manually freed if not NULL
-	 } sysEvent_t;
+typedef struct
+{
+	int             evTime;
+	sysEventType_t  evType;
+	int             evValue, evValue2;
+	int             evPtrLength;	// bytes of data pointed to by evPtr, for journaling
+	void           *evPtr;		// this must be manually freed if not NULL
+} sysEvent_t;
 
-	 sysEvent_t Sys_GetEvent(void);
+sysEvent_t      Sys_GetEvent(void);
 
-	 void Sys_Init(void);
-	 qboolean Sys_IsNumLockDown(void);
+void            Sys_Init(void);
+qboolean        Sys_IsNumLockDown(void);
 
-	 void           *Sys_InitializeCriticalSection();
-	 void Sys_EnterCriticalSection(void *ptr);
-	 void Sys_LeaveCriticalSection(void *ptr);
+void           *Sys_InitializeCriticalSection();
+void            Sys_EnterCriticalSection(void *ptr);
+void            Sys_LeaveCriticalSection(void *ptr);
 
-	 char           *Sys_GetDLLName(const char *name);
+char           *Sys_GetDLLName(const char *name);
 
 // fqpath param added 2/15/02 by T.Ray - Sys_LoadDll is only called in vm.c at this time
-	 void           *QDECL Sys_LoadDll(const char *name, char *fqpath, int (QDECL * *entryPoint) (int, ...),
-									   int (QDECL * systemcalls) (int, ...));
-	 void Sys_UnloadDll(void *dllHandle);
+void           *QDECL Sys_LoadDll(const char *name, char *fqpath, int (QDECL * *entryPoint) (int, ...),
+								  int (QDECL * systemcalls) (int, ...));
+void            Sys_UnloadDll(void *dllHandle);
 
-	 void Sys_UnloadGame(void);
-	 void           *Sys_GetGameAPI(void *parms);
+void            Sys_UnloadGame(void);
+void           *Sys_GetGameAPI(void *parms);
 
-	 void Sys_UnloadCGame(void);
-	 void           *Sys_GetCGameAPI(void);
+void            Sys_UnloadCGame(void);
+void           *Sys_GetCGameAPI(void);
 
-	 void Sys_UnloadUI(void);
-	 void           *Sys_GetUIAPI(void);
+void            Sys_UnloadUI(void);
+void           *Sys_GetUIAPI(void);
 
 //bot libraries
-	 void Sys_UnloadBotLib(void);
-	 void           *Sys_GetBotLibAPI(void *parms);
+void            Sys_UnloadBotLib(void);
+void           *Sys_GetBotLibAPI(void *parms);
 
-	 char           *Sys_GetCurrentUser(void);
+char           *Sys_GetCurrentUser(void);
 
-	 void QDECL Sys_Error(const char *error, ...);
-	 void Sys_Quit(void);
-	 char           *Sys_GetClipboardData(void);	// note that this isn't journaled...
+void QDECL      Sys_Error(const char *error, ...);
+void            Sys_Quit(void);
+char           *Sys_GetClipboardData(void);	// note that this isn't journaled...
 
-	 void Sys_Print(const char *msg);
+void            Sys_Print(const char *msg);
 
 
 // Sys_Milliseconds should only be used for profiling purposes,
 // any game related timing information should come from event timestamps
-	 int Sys_Milliseconds(void);
+int             Sys_Milliseconds(void);
 
-	 void Sys_SnapVector(float *v);
+void            Sys_SnapVector(float *v);
 
 // the system console is shown when a dedicated server is running
-	 void Sys_DisplaySystemConsole(qboolean show);
+void            Sys_DisplaySystemConsole(qboolean show);
 
-	 int Sys_GetProcessorId(void);
+int             Sys_GetProcessorId(void);
 
-	 void Sys_BeginStreamedFile(fileHandle_t f, int readahead);
-	 void Sys_EndStreamedFile(fileHandle_t f);
-	 int Sys_StreamedRead(void *buffer, int size, int count, fileHandle_t f);
-	 void Sys_StreamSeek(fileHandle_t f, int offset, int origin);
+void            Sys_BeginStreamedFile(fileHandle_t f, int readahead);
+void            Sys_EndStreamedFile(fileHandle_t f);
+int             Sys_StreamedRead(void *buffer, int size, int count, fileHandle_t f);
+void            Sys_StreamSeek(fileHandle_t f, int offset, int origin);
 
-	 void Sys_ShowConsole(int level, qboolean quitOnClose);
-	 void Sys_SetErrorText(const char *text);
+void            Sys_ShowConsole(int level, qboolean quitOnClose);
+void            Sys_SetErrorText(const char *text);
 
-	 void Sys_SendPacket(int length, const void *data, netadr_t to);
+void            Sys_SendPacket(int length, const void *data, netadr_t to);
 
-	 qboolean Sys_StringToAdr(const char *s, netadr_t * a);
+qboolean        Sys_StringToAdr(const char *s, netadr_t * a);
 
 //Does NOT parse port numbers, only base addresses.
 
-	 qboolean Sys_IsLANAddress(netadr_t adr);
-	 void Sys_ShowIP(void);
+qboolean        Sys_IsLANAddress(netadr_t adr);
+void            Sys_ShowIP(void);
 
-	 qboolean Sys_CheckCD(void);
+qboolean        Sys_CheckCD(void);
 
-	 void Sys_Mkdir(const char *path);
-	 char           *Sys_Cwd(void);
-	 char           *Sys_DefaultCDPath(void);
-	 char           *Sys_DefaultBasePath(void);
-	 char           *Sys_DefaultInstallPath(void);
-	 char           *Sys_DefaultHomePath(void);
+void            Sys_Mkdir(const char *path);
+char           *Sys_Cwd(void);
+char           *Sys_DefaultCDPath(void);
+char           *Sys_DefaultBasePath(void);
+char           *Sys_DefaultInstallPath(void);
+char           *Sys_DefaultHomePath(void);
 
-	 char          **Sys_ListFiles(const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs);
-	 void Sys_FreeFileList(char **list);
+char          **Sys_ListFiles(const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs);
+void            Sys_FreeFileList(char **list);
 
-	 void Sys_BeginProfiling(void);
-	 void Sys_EndProfiling(void);
+void            Sys_BeginProfiling(void);
+void            Sys_EndProfiling(void);
 
-	 qboolean Sys_LowPhysicalMemory();
-	 unsigned int Sys_ProcessorCount();
+qboolean        Sys_LowPhysicalMemory();
+unsigned int    Sys_ProcessorCount();
 
 // NOTE TTimo - on win32 the cwd is prepended .. non portable behaviour
-	 void Sys_StartProcess(char *exeName, qboolean doexit);	// NERVE - SMF
-	 void Sys_OpenURL(const char *url, qboolean doexit);	// NERVE - SMF
-	 int Sys_GetHighQualityCPU();
-	 float Sys_GetCPUSpeed(void);
+void            Sys_StartProcess(char *exeName, qboolean doexit);	// NERVE - SMF
+void            Sys_OpenURL(const char *url, qboolean doexit);	// NERVE - SMF
+int             Sys_GetHighQualityCPU();
+float           Sys_GetCPUSpeed(void);
 
 #ifdef __linux__
 // TTimo only on linux .. maybe on Mac too?
 // will OR with the existing mode (chmod ..+..)
-	 void Sys_Chmod(char *file, int mode);
+void            Sys_Chmod(char *file, int mode);
 #endif
 
 /* This is based on the Adaptive Huffman algorithm described in Sayood's Data
@@ -1273,57 +1275,57 @@ NON-PORTABLE SYSTEM SERVICES
 #define NYT HMAX				/* NYT = Not Yet Transmitted */
 #define INTERNAL_NODE ( HMAX + 1 )
 
-	 typedef struct nodetype
-	 {
-		 struct nodetype *left, *right, *parent;	/* tree structure */
-		 struct nodetype *next, *prev;	/* doubly-linked list */
-		 struct nodetype **head;	/* highest ranked node in block */
-		 int weight;
-		 int symbol;
-	 } node_t;
+typedef struct nodetype
+{
+	struct nodetype *left, *right, *parent;	/* tree structure */
+	struct nodetype *next, *prev;	/* doubly-linked list */
+	struct nodetype **head;		/* highest ranked node in block */
+	int             weight;
+	int             symbol;
+} node_t;
 
 #define HMAX 256				/* Maximum symbol */
 
-	 typedef struct
-	 {
-		 int blocNode;
-		 int blocPtrs;
+typedef struct
+{
+	int             blocNode;
+	int             blocPtrs;
 
-		 node_t         *tree;
-		 node_t         *lhead;
-		 node_t         *ltail;
-		 node_t         *loc[HMAX + 1];
-		 node_t        **freelist;
+	node_t         *tree;
+	node_t         *lhead;
+	node_t         *ltail;
+	node_t         *loc[HMAX + 1];
+	node_t        **freelist;
 
-		 node_t nodeList[768];
-		 node_t         *nodePtrs[768];
-	 } huff_t;
+	node_t          nodeList[768];
+	node_t         *nodePtrs[768];
+} huff_t;
 
-	 typedef struct
-	 {
-		 huff_t compressor;
-		 huff_t decompressor;
-	 } huffman_t;
+typedef struct
+{
+	huff_t          compressor;
+	huff_t          decompressor;
+} huffman_t;
 
-	 void Huff_Compress(msg_t * buf, int offset);
-	 void Huff_Decompress(msg_t * buf, int offset);
-	 void Huff_Init(huffman_t * huff);
-	 void Huff_addRef(huff_t * huff, byte ch);
-	 int Huff_Receive(node_t * node, int *ch, byte * fin);
-	 void Huff_transmit(huff_t * huff, int ch, byte * fout);
-	 void Huff_offsetReceive(node_t * node, int *ch, byte * fin, int *offset);
-	 void Huff_offsetTransmit(huff_t * huff, int ch, byte * fout, int *offset);
-	 void Huff_putBit(int bit, byte * fout, int *offset);
-	 int Huff_getBit(byte * fout, int *offset);
+void            Huff_Compress(msg_t * buf, int offset);
+void            Huff_Decompress(msg_t * buf, int offset);
+void            Huff_Init(huffman_t * huff);
+void            Huff_addRef(huff_t * huff, byte ch);
+int             Huff_Receive(node_t * node, int *ch, byte * fin);
+void            Huff_transmit(huff_t * huff, int ch, byte * fout);
+void            Huff_offsetReceive(node_t * node, int *ch, byte * fin, int *offset);
+void            Huff_offsetTransmit(huff_t * huff, int ch, byte * fout, int *offset);
+void            Huff_putBit(int bit, byte * fout, int *offset);
+int             Huff_getBit(byte * fout, int *offset);
 
-	 extern huffman_t clientHuffTables;
+extern huffman_t clientHuffTables;
 
 #define SV_ENCODE_START     4
 #define SV_DECODE_START     12
 #define CL_ENCODE_START     12
 #define CL_DECODE_START     4
 
-	 void Com_GetHunkInfo(int *hunkused, int *hunkexpected);
+void            Com_GetHunkInfo(int *hunkused, int *hunkexpected);
 
 // TTimo
 // dll checksuming stuff, centralizing OS-dependent parts
