@@ -3245,20 +3245,7 @@ void QDECL CL_RefPrintf(int print_level, const char *fmt, ...)
 
 
 
-/*
-============
-CL_ShutdownRef
-============
-*/
-void CL_ShutdownRef(void)
-{
-	if(!re.Shutdown)
-	{
-		return;
-	}
-	re.Shutdown(qtrue);
-	memset(&re, 0, sizeof(re));
-}
+
 
 /*
 ============
@@ -3535,17 +3522,62 @@ int CL_ScaledMilliseconds(void)
 	return Sys_Milliseconds() * com_timescale->value;
 }
 
+
+
+static cvar_t  *cl_renderer = NULL;
+static void    *rendererLib = NULL;
+
 /*
 ============
 CL_InitRef
+
+RB: changed to load the renderer from a .dll
 ============
 */
 void CL_InitRef(void)
 {
 	refimport_t     ri;
 	refexport_t    *ret;
+	GetRefAPI_t		GetRefAPI;
+	char            dllName[MAX_OSPATH];
 
 	Com_Printf("----- Initializing Renderer ----\n");
+
+	cl_renderer = Cvar_Get("cl_renderer", "GL", CVAR_ARCHIVE | CVAR_LATCH);
+
+#ifdef _WIN32
+	Com_sprintf(dllName, sizeof(dllName), "renderer%s" DLL_EXT, cl_renderer->string);
+#else
+	Com_sprintf(dllName, sizeof(dllName), "renderer%s" ARCH_STRING DLL_EXT, cl_renderer->string);
+#endif
+
+	Com_Printf("Loading \"%s\"...", dllName);
+	if((rendererLib = Sys_LoadDLLSimple(dllName)) == 0)
+	{
+#if 0//def _WIN32
+		Com_Printf("failed:\n\"%s\"\n", Sys_DLLError());
+#else
+		char            fn[1024];
+
+		Q_strncpyz(fn, Sys_Cwd(), sizeof(fn));
+		strncat(fn, "/", sizeof(fn) - strlen(fn) - 1);
+		strncat(fn, dllName, sizeof(fn) - strlen(fn) - 1);
+
+		Com_Printf("Loading \"%s\"...", fn);
+		if((rendererLib = Sys_LoadDLLSimple(fn)) == 0)
+		{
+			Com_Error(ERR_FATAL, "failed:\n\"%s\"", Sys_DLLError());
+		}
+#endif	/* _WIN32 */
+	}
+
+	Com_Printf("done\n");
+
+	GetRefAPI = Sys_LoadFunction(rendererLib, "GetRefAPI");
+	if(!GetRefAPI)
+	{
+		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: '%s'",  Sys_DLLError());
+	}
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
@@ -3587,6 +3619,9 @@ void CL_InitRef(void)
 	ri.CIN_PlayCinematic = CIN_PlayCinematic;
 	ri.CIN_RunCinematic = CIN_RunCinematic;
 
+	ri.Sys_GetSystemHandles = Sys_GetSystemHandles;
+
+	Com_Printf("Calling GetRefAPI...\n");
 	ret = GetRefAPI(REF_API_VERSION, &ri);
 
 	Com_Printf("-------------------------------\n");
@@ -3601,6 +3636,29 @@ void CL_InitRef(void)
 	// unpause so the cgame definately gets a snapshot and renders a frame
 	Cvar_Set("cl_paused", "0");
 }
+
+/*
+============
+CL_ShutdownRef
+============
+*/
+void CL_ShutdownRef(void)
+{
+	if(!re.Shutdown)
+	{
+		return;
+	}
+	re.Shutdown(qtrue);
+	memset(&re, 0, sizeof(re));
+
+	if(rendererLib)
+	{
+		Sys_UnloadDll(rendererLib);
+		rendererLib = NULL;
+	}
+}
+
+
 
 // RF, trap manual client damage commands so users can't issue them manually
 void CL_ClientDamageCommand(void)

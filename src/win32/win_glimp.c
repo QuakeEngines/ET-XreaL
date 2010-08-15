@@ -48,8 +48,22 @@ If you have questions concerning this license or the applicable additional terms
 #include "glw_win.h"
 #include "win_local.h"
 
+
+
 extern void     WG_CheckHardwareGamma(void);
 extern void     WG_RestoreGamma(void);
+
+static char	   *WinGetLastErrorLocal()
+{
+	static char buf[MAXPRINTMSG];
+	
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+			buf, 
+			MAXPRINTMSG, NULL);
+	
+	return buf;
+}
 
 typedef enum
 {
@@ -71,7 +85,7 @@ typedef enum
 static void     GLW_InitExtensions(void);
 static rserr_t  GLW_SetMode(const char *drivername, int mode, int colorbits, qboolean cdsFullscreen);
 
-static qboolean s_classRegistered = qfalse;
+static WinVars_t* g_wvPtr = NULL;
 
 //
 // function declaration
@@ -502,7 +516,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 	{
 		ri.Printf(PRINT_ALL, "...getting DC: ");
 
-		if((glw_state.hDC = GetDC(g_wv.hWnd)) == NULL)
+		if((glw_state.hDC = GetDC(g_wvPtr->hWnd)) == NULL)
 		{
 			ri.Printf(PRINT_ALL, "failed\n");
 			return qfalse;
@@ -566,7 +580,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 			//
 			if((r_colorbits->integer == glw_state.desktopBitsPixel) && (stencilbits == 0))
 			{
-				ReleaseDC(g_wv.hWnd, glw_state.hDC);
+				ReleaseDC(g_wvPtr->hWnd, glw_state.hDC);
 				glw_state.hDC = NULL;
 
 				ri.Printf(PRINT_ALL, "...failed to find an appropriate PIXELFORMAT\n");
@@ -586,7 +600,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 			{
 				if(glw_state.hDC)
 				{
-					ReleaseDC(g_wv.hWnd, glw_state.hDC);
+					ReleaseDC(g_wvPtr->hWnd, glw_state.hDC);
 					glw_state.hDC = NULL;
 				}
 
@@ -633,7 +647,7 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 	//
 	// register the window class if necessary
 	//
-	if(!s_classRegistered)
+	if(!g_wvPtr->classRegistered)
 	{
 		WNDCLASS        wc;
 
@@ -643,8 +657,8 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 		wc.lpfnWndProc = (WNDPROC) glw_state.wndproc;
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
-		wc.hInstance = g_wv.hInstance;
-		wc.hIcon = LoadIcon(g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
+		wc.hInstance = g_wvPtr->hInstance;
+		wc.hIcon = LoadIcon(g_wvPtr->hInstance, MAKEINTRESOURCE(IDI_ICON1));
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wc.hbrBackground = (void *)COLOR_GRAYTEXT;
 		wc.lpszMenuName = 0;
@@ -652,16 +666,19 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 
 		if(!RegisterClass(&wc))
 		{
-			ri.Error(ERR_VID_FATAL, "GLW_CreateWindow: could not register window class");
+			char			*error;
+
+			error = WinGetLastErrorLocal();
+			ri.Error(ERR_VID_FATAL, "GLW_CreateWindow: could not register window class: '%s'", error);
 		}
-		s_classRegistered = qtrue;
+		g_wvPtr->classRegistered = qtrue;
 		ri.Printf(PRINT_ALL, "...registered window class\n");
 	}
 
 	//
 	// create the HWND if one does not already exist
 	//
-	if(!g_wv.hWnd)
+	if(!g_wvPtr->hWnd)
 	{
 		//
 		// compute width and height
@@ -722,17 +739,17 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 			}
 		}
 
-		g_wv.hWnd = CreateWindowEx(exstyle, WINDOW_CLASS_NAME,
+		g_wvPtr->hWnd = CreateWindowEx(exstyle, WINDOW_CLASS_NAME,
 								   //"Wolfenstein",
-								   "Enemy Territory", stylebits, x, y, w, h, NULL, NULL, g_wv.hInstance, NULL);
+								   "Enemy Territory", stylebits, x, y, w, h, NULL, NULL, g_wvPtr->hInstance, NULL);
 
-		if(!g_wv.hWnd)
+		if(!g_wvPtr->hWnd)
 		{
 			ri.Error(ERR_VID_FATAL, "GLW_CreateWindow() - Couldn't create window");
 		}
 
-		ShowWindow(g_wv.hWnd, SW_SHOW);
-		UpdateWindow(g_wv.hWnd);
+		ShowWindow(g_wvPtr->hWnd, SW_SHOW);
+		UpdateWindow(g_wvPtr->hWnd);
 		ri.Printf(PRINT_ALL, "...created window@%d,%d (%dx%d)\n", x, y, w, h);
 	}
 	else
@@ -742,15 +759,15 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 
 	if(!GLW_InitDriver(drivername, colorbits))
 	{
-		ShowWindow(g_wv.hWnd, SW_HIDE);
-		DestroyWindow(g_wv.hWnd);
-		g_wv.hWnd = NULL;
+		ShowWindow(g_wvPtr->hWnd, SW_HIDE);
+		DestroyWindow(g_wvPtr->hWnd);
+		g_wvPtr->hWnd = NULL;
 
 		return qfalse;
 	}
 
-	SetForegroundWindow(g_wv.hWnd);
-	SetFocus(g_wv.hWnd);
+	SetForegroundWindow(g_wvPtr->hWnd);
+	SetFocus(g_wvPtr->hWnd);
 
 	return qtrue;
 }
@@ -1490,14 +1507,14 @@ static void GLW_StartOpenGL(void)
 
 		if(handle)
 		{
-			Cvar_Set("r_glDriver", vid);
+			ri.Cvar_Set("r_glDriver", vid);
 			FreeLibrary(handle);
 		}
 	}
 
 	if(r_glIgnoreWicked3D->integer)
 	{
-		Cvar_Set("r_glDriver", OPENGL_DRIVER_NAME);
+		ri.Cvar_Set("r_glDriver", OPENGL_DRIVER_NAME);
 	}
 
 	//
@@ -1581,9 +1598,16 @@ void GLimp_Init(void)
 		ri.Error(ERR_VID_FATAL, "GLimp_Init() - incorrect operating system\n");
 	}
 
+	// RB: added
+	g_wvPtr = ri.Sys_GetSystemHandles();
+	if(!g_wvPtr)
+	{
+		ri.Error(ERR_VID_FATAL, "GLimp_Init() - could not receive WinVars_t g_wv\n");
+	}
+
 	// save off hInstance and wndproc
 	cv = ri.Cvar_Get("win_hinstance", "", 0);
-	sscanf(cv->string, "%i", (int *)&g_wv.hInstance);
+	sscanf(cv->string, "%i", (int *)&g_wvPtr->hInstance);
 
 	cv = ri.Cvar_Get("win_wndproc", "", 0);
 	sscanf(cv->string, "%i", (int *)&glw_state.wndproc);
@@ -1759,18 +1783,18 @@ void GLimp_Shutdown(void)
 	// release DC
 	if(glw_state.hDC)
 	{
-		retVal = ReleaseDC(g_wv.hWnd, glw_state.hDC) != 0;
+		retVal = ReleaseDC(g_wvPtr->hWnd, glw_state.hDC) != 0;
 		ri.Printf(PRINT_ALL, "...releasing DC: %s\n", success[retVal]);
 		glw_state.hDC = NULL;
 	}
 
 	// destroy window
-	if(g_wv.hWnd)
+	if(g_wvPtr->hWnd)
 	{
 		ri.Printf(PRINT_ALL, "...destroying window\n");
-		ShowWindow(g_wv.hWnd, SW_HIDE);
-		DestroyWindow(g_wv.hWnd);
-		g_wv.hWnd = NULL;
+		ShowWindow(g_wvPtr->hWnd, SW_HIDE);
+		DestroyWindow(g_wvPtr->hWnd);
+		g_wvPtr->hWnd = NULL;
 		glw_state.pixelFormatSet = qfalse;
 	}
 
@@ -1794,6 +1818,8 @@ void GLimp_Shutdown(void)
 
 	memset(&glConfig, 0, sizeof(glConfig));
 	memset(&glState, 0, sizeof(glState));
+
+	g_wvPtr = NULL;
 }
 
 /*

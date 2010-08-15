@@ -3002,7 +3002,7 @@ void RE_LoadWorldMap(const char *name)
 	VectorNormalize(tr.sunDirection);
 
 	tr.worldMapLoaded = qtrue;
-	tr.worldDir = NULL;
+	tr.worldDir[0] = '\0';
 
 	// load it
 	ri.FS_ReadFile(name, (void **)&buffer);
@@ -3012,7 +3012,7 @@ void RE_LoadWorldMap(const char *name)
 	}
 
 	// ydnar: set map meta dir
-	tr.worldDir = CopyString(name);
+	Q_strncpyz(tr.worldDir, name, sizeof(tr.worldDir));
 	COM_StripExtension(tr.worldDir, tr.worldDir);
 
 	// clear tr.world so if the level fails to load, the next

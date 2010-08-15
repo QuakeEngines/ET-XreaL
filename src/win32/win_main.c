@@ -48,6 +48,20 @@ If you have questions concerning this license or the applicable additional terms
 
 static char     sys_cmdline[MAX_STRING_CHARS];
 
+
+char		   *WinGetLastError()
+{
+	static char buf[MAXPRINTMSG];
+	
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+			buf, 
+			MAXPRINTMSG, NULL);
+	
+	return buf;
+}
+
+
 /*
 ==================
 Sys_LowPhysicalMemory()
@@ -610,7 +624,6 @@ LOAD/UNLOAD DLL
 /*
 =================
 Sys_UnloadDll
-
 =================
 */
 void Sys_UnloadDll(void *dllHandle)
@@ -717,6 +730,29 @@ void           *QDECL Sys_LoadDll(const char *name, char *fqpath, int (QDECL ** 
 	dllEntry(systemcalls);
 
 	return libHandle;
+}
+
+// RB: added generic DLL loading routines
+void           *Sys_LoadDLLSimple(const char *name)
+{
+	return (void*) LoadLibrary(name);
+}
+
+void		   *Sys_LoadFunction(void *dllHandle, const char *functionName)
+{
+	return (void*) GetProcAddress((HMODULE) dllHandle, functionName);
+}
+
+char		   *Sys_DLLError()
+{
+	static char buf[MAXPRINTMSG];
+	
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+			buf, 
+			MAXPRINTMSG, NULL);
+	
+	return buf;
 }
 
 
@@ -1395,6 +1431,12 @@ void Sys_Init(void)
 }
 
 
+void* Sys_GetSystemHandles(void)
+{
+	return &g_wv;
+}
+
+
 //=======================================================================
 
 int             totalMsec, countMsec;
@@ -1420,6 +1462,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #ifdef EXCEPTION_HANDLER
 	WinSetExceptionVersion(Q3_VERSION);
 #endif
+
+	// RB: the window class should be registered only one time
+	g_wv.classRegistered = qfalse;
 
 	g_wv.hInstance = hInstance;
 	Q_strncpyz(sys_cmdline, lpCmdLine, sizeof(sys_cmdline));

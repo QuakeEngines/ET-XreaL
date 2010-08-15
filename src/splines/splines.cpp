@@ -108,6 +108,9 @@ idCameraDef *g_splineList = &splineList;
 idVec3 idSplineList::zero( 0,0,0 );
 
 void glLabeledPoint( idVec3 &color, idVec3 &point, float size, const char *label ) {
+	/*
+	RB: removed OpenGL code from the engine
+
 	qglColor3fv( color );
 	qglPointSize( size );
 	qglBegin( GL_POINTS );
@@ -119,10 +122,14 @@ void glLabeledPoint( idVec3 &color, idVec3 &point, float size, const char *label
 	v.z += 1;
 	qglRasterPos3fv( v );
 	qglCallLists( strlen( label ), GL_UNSIGNED_BYTE, label );
+	*/
 }
 
 
 void glBox( idVec3 &color, idVec3 &point, float size ) {
+	/*
+	RB: removed OpenGL code from the engine
+
 	idVec3 mins( point );
 	idVec3 maxs( point );
 	mins[0] -= size;
@@ -155,7 +162,7 @@ void glBox( idVec3 &color, idVec3 &point, float size ) {
 	qglVertex3f( maxs[0],maxs[1],maxs[2] );
 	qglVertex3f( maxs[0],maxs[1],mins[2] );
 	qglEnd();
-
+	*/
 }
 
 void splineTest() {
@@ -267,6 +274,9 @@ void idSplineList::draw( bool editMode ) {
 	}
 
 
+	/*
+	RB: removed OpenGL code from the engine
+
 	qglColor3fv( controlColor );
 	qglPointSize( 5 );
 
@@ -307,7 +317,7 @@ void idSplineList::draw( bool editMode ) {
 			glBox( yellow, *splinePoints[activeSegment], 8 );
 		}
 	}
-
+	*/
 }
 
 float idSplineList::totalDistance() {

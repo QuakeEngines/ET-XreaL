@@ -1951,13 +1951,18 @@ static qboolean ParseShader(char **text)
 		}
 		else if(!Q_stricmp(token, "sunshader"))
 		{
+			int				tokenLen;
+
 			token = COM_ParseExt(text, qfalse);
 			if(!token[0])
 			{
 				ri.Printf(PRINT_WARNING, "WARNING: missing shader name for 'sunshader'\n");
 				continue;
 			}
-			tr.sunShaderName = CopyString(token);
+
+			tokenLen = strlen(token) + 1;
+			tr.sunShaderName = ri.Hunk_Alloc(sizeof(char) * tokenLen, h_low);
+			Q_strncpyz(tr.sunShaderName, token, tokenLen);
 		}
 //----(SA)  added
 		else if(!Q_stricmp(token, "lightgridmulamb"))
@@ -3192,8 +3197,8 @@ qboolean RE_LoadDynamicShader(const char *shadername, const char *shadertext)
 		while(dptr)
 		{
 			lastdptr = dptr->next;
-			Z_Free(dptr->shadertext);
-			Z_Free(dptr);
+			ri.Free(dptr->shadertext);
+			ri.Free(dptr);
 			dptr = lastdptr;
 		}
 		dshader = NULL;
@@ -3222,8 +3227,8 @@ qboolean RE_LoadDynamicShader(const char *shadername, const char *shadertext)
 				{
 					lastdptr->next = dptr->next;
 				}
-				Z_Free(dptr->shadertext);
-				Z_Free(dptr);
+				ri.Free(dptr->shadertext);
+				ri.Free(dptr);
 				return qtrue;
 			}
 			ri.Printf(PRINT_WARNING, "%s shader %s already exists!\n", func_err, shadername);
@@ -3241,7 +3246,7 @@ qboolean RE_LoadDynamicShader(const char *shadername, const char *shadertext)
 	}
 
 	//create a new shader
-	dptr = (dynamicshader_t *) Z_Malloc(sizeof(*dptr));
+	dptr = (dynamicshader_t *) ri.Z_Malloc(sizeof(*dptr));
 	if(!dptr)
 	{
 		Com_Error(ERR_FATAL, "Couldn't allocate struct for dynamic shader %s\n", shadername);
@@ -3250,7 +3255,7 @@ qboolean RE_LoadDynamicShader(const char *shadername, const char *shadertext)
 	{
 		lastdptr->next = dptr;
 	}
-	dptr->shadertext = Z_Malloc(strlen(shadertext) + 1);
+	dptr->shadertext = ri.Z_Malloc(strlen(shadertext) + 1);
 	if(!dptr->shadertext)
 	{
 		Com_Error(ERR_FATAL, "Couldn't allocate buffer for dynamic shader %s\n", shadername);

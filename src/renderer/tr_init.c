@@ -1069,7 +1069,7 @@ void R_Register(void)
 #elif defined WIN32
 	// ydnar: r_smp is nonfunctional on windows
 	r_smp = ri.Cvar_Get("r_smp", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_UNSAFE | CVAR_ROM);
-	Cvar_Set("r_smp", "0");
+	ri.Cvar_Set("r_smp", "0");
 #else
 	r_smp = ri.Cvar_Get("r_smp", "0", CVAR_ARCHIVE | CVAR_LATCH | CVAR_UNSAFE);
 #endif
@@ -1426,20 +1426,26 @@ Touch all images to make sure they are resident
 void RE_EndRegistration(void)
 {
 	R_SyncRenderThread();
+
+	/*
+	RB: disabled unneeded reference to Sys_LowPhysicalMemory
 	if(!Sys_LowPhysicalMemory())
 	{
 //      RB_ShowImages();
 	}
+	*/
 }
 
 void            R_DebugPolygon(int color, int numPoints, float *points);
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 GetRefAPI
-
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
+#if defined(__cplusplus)
+extern "C" {
+#endif
 refexport_t    *GetRefAPI(int apiVersion, refimport_t * rimp)
 {
 	static refexport_t re;
@@ -1528,3 +1534,49 @@ refexport_t    *GetRefAPI(int apiVersion, refimport_t * rimp)
 
 	return &re;
 }
+#if defined(__cplusplus)
+} // extern "C"
+#endif
+
+
+
+#ifndef REF_HARD_LINKED
+// this is only here so the functions in q_shared.c and bg_*.c can link
+
+void QDECL Com_Printf(const char *msg, ...)
+{
+	va_list         argptr;
+	char            text[1024];
+
+	va_start(argptr, msg);
+	Q_vsnprintf(text, sizeof(text), msg, argptr);
+	va_end(argptr);
+
+	ri.Printf(PRINT_ALL, "%s", text);
+}
+
+void QDECL Com_DPrintf(const char *msg, ...)
+{
+	va_list         argptr;
+	char            text[1024];
+
+	va_start(argptr, msg);
+	Q_vsnprintf(text, sizeof(text), msg, argptr);
+	va_end(argptr);
+
+	ri.Printf(PRINT_DEVELOPER, "%s", text);
+}
+
+void QDECL Com_Error(int level, const char *error, ...)
+{
+	va_list         argptr;
+	char            text[1024];
+
+	va_start(argptr, error);
+	Q_vsnprintf(text, sizeof(text), error, argptr);
+	va_end(argptr);
+
+	ri.Error(level, "%s", text);
+}
+
+#endif

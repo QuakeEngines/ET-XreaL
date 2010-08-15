@@ -1211,7 +1211,7 @@ typedef struct
 
 	qboolean        worldMapLoaded;
 	world_t        *world;
-	char           *worldDir;	// ydnar: for referencing external lightmaps
+	char            worldDir[MAX_OSPATH];	// ydnar: for referencing external lightmaps
 
 	const byte     *externalVisData;	// from RE_SetWorldVisData, shared with CM_Load
 

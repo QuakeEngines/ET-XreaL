@@ -149,7 +149,7 @@ If you have questions concerning this license or the applicable additional terms
 
 //======================= WIN32 DEFINES =================================
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(__WIN32__)
 
 #define MAC_STATIC
 
@@ -174,6 +174,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #define PATH_SEP '\\'
 
+#define DLL_EXT ".dll"
+
 #endif
 
 //======================= MAC OS X SERVER DEFINES =====================
@@ -187,6 +189,8 @@ If you have questions concerning this license or the applicable additional terms
 #define CPUSTRING   "MacOS_X"
 
 #define PATH_SEP    '/'
+
+#define DLL_EXT ".dylib"
 
 // Vanilla PPC code, but since PPC has a reciprocal square root estimate instruction,
 // runs *much* faster than calling sqrt(). We'll use two Newton-Raphson
@@ -262,6 +266,8 @@ void            Sys_PumpEvents(void);
 #endif
 
 #define PATH_SEP '/'
+
+#define DLL_EXT ".so"
 
 #endif
 
@@ -791,6 +797,9 @@ int             Com_ParseInfos(char *buf, int max, char infos[][MAX_INFO_STRING]
 qboolean        COM_BitCheck(const int array[], int bitNum);
 void            COM_BitSet(int array[], int bitNum);
 void            COM_BitClear(int array[], int bitNum);
+
+
+int             Com_HashKey(char *string, int maxlen);
 
 #define MAX_TOKENLENGTH     1024
 

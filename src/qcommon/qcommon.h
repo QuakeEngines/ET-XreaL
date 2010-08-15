@@ -903,7 +903,6 @@ int             Com_EventLoop(void);
 int             Com_Milliseconds(void);	// will be journaled properly
 unsigned int    Com_BlockChecksum(const void *buffer, int length);
 unsigned int    Com_BlockChecksumKey(void *buffer, int length, int key);
-int             Com_HashKey(char *string, int maxlen);
 int             Com_Filter(char *filter, char *name, int casesensitive);
 int             Com_FilterPath(char *filter, char *name, int casesensitive);
 int             Com_RealTime(qtime_t * qtime);
@@ -1197,9 +1196,13 @@ void           *Sys_GetCGameAPI(void);
 void            Sys_UnloadUI(void);
 void           *Sys_GetUIAPI(void);
 
-//bot libraries
-void            Sys_UnloadBotLib(void);
-void           *Sys_GetBotLibAPI(void *parms);
+// RB: added generic DLL loading routines
+void           *Sys_LoadDLLSimple(const char *name);
+void		   *Sys_LoadFunction(void *dllHandle, const char *functionName);
+char		   *Sys_DLLError();
+
+// RB: added to link OS specific pointers to the renderer.dll space
+void           *Sys_GetSystemHandles(void);
 
 char           *Sys_GetCurrentUser(void);
 

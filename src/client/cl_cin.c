@@ -64,7 +64,6 @@ If you have questions concerning this license or the applicable additional terms
 
 #define MAX_VIDEO_HANDLES   16
 
-extern glconfig_t glConfig;
 extern int      s_soundtime;
 
 static void     RoQ_init(void);
@@ -1323,6 +1322,9 @@ static void readQuadInfo(byte * qData)
 	cinTable[currentHandle].drawY = cinTable[currentHandle].CIN_HEIGHT;
 
 	// rage pro is very slow at 512 wide textures, voodoo can't do it at all
+	/*
+	RB: we don't need this in 2010
+
 	if(glConfig.hardwareType == GLHW_RAGEPRO || glConfig.maxTextureSize <= 256)
 	{
 		if(cinTable[currentHandle].drawX > 256)
@@ -1338,6 +1340,7 @@ static void readQuadInfo(byte * qData)
 			Com_Printf("HACK: approxmimating cinematic for Rage Pro or Voodoo\n");
 		}
 	}
+	*/
 //#ifdef __MACOS__
 //  cinTable[currentHandle].drawX = 256;
 //  cinTable[currentHandle].drawX = 256;

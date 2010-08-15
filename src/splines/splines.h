@@ -614,12 +614,16 @@ virtual void addPoint( const idVec3 &v ) {
 }
 
 virtual void draw( bool editMode ) {
+	/*
+	RB: removed OpenGL code from the engine
+
 	glLabeledPoint( blue, startPos, ( editMode ) ? 5 : 3, "Start interpolated" );
 	glLabeledPoint( blue, endPos, ( editMode ) ? 5 : 3, "End interpolated" );
 	qglBegin( GL_LINES );
 	qglVertex3fv( startPos );
 	qglVertex3fv( endPos );
 	qglEnd();
+	*/
 }
 
 virtual void start( long t ) {
