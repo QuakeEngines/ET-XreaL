@@ -151,6 +151,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="../../rendererGL.dll"
+				ModuleDefinitionFile="rendererGL.def"
 			/>
 			<Tool
 				Name="VCALinkTool"
