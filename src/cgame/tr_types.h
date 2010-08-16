@@ -3,6 +3,7 @@
 
 Wolfenstein: Enemy Territory GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 2010 Robert Beckebans
 
 This file is part of the Wolfenstein: Enemy Territory GPL Source Code (Wolf ET Source Code).  
 
@@ -30,9 +31,14 @@ If you have questions concerning this license or the applicable additional terms
 #define __TR_TYPES_H
 
 
-#define MAX_CORONAS     32		//----(SA)  not really a reason to limit this other than trying to keep a reasonable count
-#define MAX_DLIGHTS     32		// can't be increased, because bit flags are used on surfaces
-#define MAX_ENTITIES    1023	// can't be increased without changing drawsurf bit packing
+#define	MAX_REF_LIGHTS		1024
+#define	MAX_REF_ENTITIES	1023		// can't be increased without changing drawsurf bit packing
+#define MAX_BONES      	 	128			// RB: same as MDX_MAX_BONES
+#define MAX_WEIGHTS			4			// GPU vertex skinning limit, never change this without rewriting many GLSL shaders
+
+#define MAX_CORONAS     	32			//----(SA)  not really a reason to limit this other than trying to keep a reasonable count
+#define MAX_DLIGHTS     	32			// can't be increased, because bit flags are used on surfaces
+#define MAX_ENTITIES    	MAX_REF_ENTITIES	// RB: for compatibility
 
 // renderfx flags
 #define RF_MINLIGHT         0x000001	// allways have some light (viewmodel, some items)
@@ -53,16 +59,19 @@ If you have questions concerning this license or the applicable additional terms
 #define RF_FORCENOLOD       0x000400
 
 // refdef flags
-#define RDF_NOWORLDMODEL    1	// used for player configuration screen
-#define RDF_HYPERSPACE      4	// teleportation effect
+#define RDF_NOWORLDMODEL   	( 1 << 0 )	// used for player configuration screen
+#define RDF_NOSHADOWS		( 1 << 1 )	// force renderer to use faster lighting only path
+#define RDF_HYPERSPACE      ( 1 << 2 )	// teleportation effect
 
 // Rafael
-#define RDF_SKYBOXPORTAL    8
+#define RDF_SKYBOXPORTAL    ( 1 << 3 )
 
 //----(SA)
 #define RDF_UNDERWATER      ( 1 << 4 )	// so the renderer knows to use underwater fog when the player is underwater
 #define RDF_DRAWINGSKY      ( 1 << 5 )
 #define RDF_SNOOPERVIEW     ( 1 << 6 )	//----(SA)  added
+#define RDF_NOCUBEMAP       ( 1 << 7 )	// RB: don't use cubemaps
+#define RDF_NOBLOOM			( 1 << 8 )	// RB: disable bloom. useful for hud models
 
 
 typedef struct
@@ -102,6 +111,49 @@ typedef enum
 #define REFLAG_ORIENT_LOD   16	// on LOD switch, align the model to the player's camera
 #define REFLAG_DEAD_LOD     32	// allow the LOD to go lower than recommended
 
+
+
+// RB: defining any of the following macros would break the compatibility to old ET mods
+//#define USE_REFENTITY_ANIMATIONSYSTEM 1
+//#define USE_REFENTITY_NOSHADOWID 1
+
+
+// RB: having bone names for each refEntity_t takes several MiBs
+// in backEndData_t so only use it for debugging and development
+// enabling this will show the bone names with r_showSkeleton 1
+
+#define REFBONE_NAMES 1
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
+typedef struct
+{
+#if defined(REFBONE_NAMES)
+	char			name[64];
+#endif
+	short			parentIndex;	// parent index (-1 if root)
+	vec3_t          origin;
+	quat_t          rotation;
+} refBone_t;
+
+typedef enum
+{
+	SK_INVALID,
+	SK_RELATIVE,
+	SK_ABSOLUTE
+} refSkeletonType_t;
+
+typedef struct
+{
+	refSkeletonType_t type;		// skeleton has been reset
+
+	short           numBones;
+	refBone_t       bones[MAX_BONES];
+
+	vec3_t          bounds[2];	// bounds of all applied animations
+	vec3_t          scale;
+} refSkeleton_t;
+#endif
+
 typedef struct
 {
 	refEntityType_t reType;
@@ -116,14 +168,14 @@ typedef struct
 	vec3_t          axis[3];	// rotation vectors
 	vec3_t          torsoAxis[3];	// rotation vectors for torso section of skeletal animation
 	qboolean        nonNormalizedAxes;	// axis are not normalized, i.e. they have scale
-	float           origin[3];	// also used as MODEL_BEAM's "from"
+	vec3_t          origin;		// also used as MODEL_BEAM's "from"
 	int             frame;		// also used as MODEL_BEAM's diameter
 	qhandle_t       frameModel;
 	int             torsoFrame;	// skeletal torso can have frame independant of legs frame
 	qhandle_t       torsoFrameModel;
 
 	// previous data for frame interpolation
-	float           oldorigin[3];	// also used as MODEL_BEAM's "to"
+	vec3_t          oldorigin;	// also used as MODEL_BEAM's "to"
 	int             oldframe;
 	qhandle_t       oldframeModel;
 	int             oldTorsoFrame;
@@ -157,7 +209,63 @@ typedef struct
 
 	int             entityNum;	// currentState.number, so we can attach rendering effects to specific entities (Zombie)
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
+	// extra animation information
+	refSkeleton_t   skeleton;
+#endif
+
+#if defined(USE_REFENTITY_NOSHADOWID)
+	// extra light interaction information
+	short           noShadowID;
+#endif
+
 } refEntity_t;
+
+
+// ================================================================================================
+
+
+typedef enum
+{
+	RL_OMNI,			// point light
+	RL_PROJ,			// spot light
+	RL_DIRECTIONAL,		// sun light
+
+	RL_MAX_REF_LIGHT_TYPE
+} refLightType_t;
+
+typedef struct
+{
+	refLightType_t  rlType;
+//  int             lightfx;
+
+	qhandle_t       attenuationShader;
+
+	vec3_t          origin;
+	quat_t          rotation;
+	vec3_t          center;
+	vec3_t          color;		// range from 0.0 to 1.0, should be color normalized
+
+	float			scale;		// r_lightScale if not set
+
+	// omni-directional light specific
+	vec3_t          radius;
+
+	// projective light specific
+	vec3_t			projTarget;
+	vec3_t			projRight;
+	vec3_t			projUp;
+	vec3_t			projStart;
+	vec3_t			projEnd;
+
+	qboolean        noShadows;
+	short           noShadowID;	// don't cast shadows of all entities with this id
+
+	qboolean        inverseShadows;	// don't cast light and draw shadows by darken the scene
+	// this is useful for drawing player shadows with shadow mapping
+} refLight_t;
+
+// ================================================================================================
 
 //----(SA)
 
@@ -267,7 +375,11 @@ typedef enum
 	// should always be the lowest value in this
 	// enum set
 	GLDRV_STANDALONE,			// driver is a non-3Dfx standalone driver
-	GLDRV_VOODOO				// driver is a 3Dfx standalone driver
+	GLDRV_VOODOO,				// driver is a 3Dfx standalone driver
+	
+	// RB: added from XreaL
+	GLDRV_OPENGL3,				// new driver system
+	GLDRV_MESA,					// crap
 } glDriverType_t;
 
 typedef enum
@@ -278,7 +390,12 @@ typedef enum
 	// display adapter
 	GLHW_RIVA128,				// where you can't interpolate alpha
 	GLHW_RAGEPRO,				// where you can't modulate alpha on alpha textures
-	GLHW_PERMEDIA2				// where you don't have src*dst
+	GLHW_PERMEDIA2,				// where you don't have src*dst
+
+	// RB: added from XreaL
+	GLHW_ATI,					// where you don't have proper GLSL support
+	GLHW_ATI_DX10,				// ATI Radeon HD series DX10 hardware
+	GLHW_NV_DX10				// Geforce 8/9 class DX10 hardware
 } glHardwareType_t;
 
 typedef struct
@@ -326,6 +443,49 @@ typedef struct
 	qboolean        stereoEnabled;
 	qboolean        smpActive;	// dual processor
 } glconfig_t;
+
+
+typedef struct
+{
+	qboolean		ARBTextureCompressionAvailable;
+
+	int             maxCubeMapTextureSize;
+
+	qboolean        occlusionQueryAvailable;
+	int             occlusionQueryBits;
+
+	char            shadingLanguageVersion[MAX_STRING_CHARS];
+
+	int             maxVertexUniforms;
+	int             maxVaryingFloats;
+	int             maxVertexAttribs;
+	qboolean        vboVertexSkinningAvailable;
+	int				maxVertexSkinningBones;
+
+	qboolean		texture3DAvailable;
+	qboolean        textureNPOTAvailable;
+
+	qboolean        drawBuffersAvailable;
+	qboolean		textureHalfFloatAvailable;
+	qboolean        textureFloatAvailable;
+	int             maxDrawBuffers;
+
+	qboolean        vertexArrayObjectAvailable;
+
+	qboolean        stencilWrapAvailable;
+
+	float           maxTextureAnisotropy;
+	qboolean        textureAnisotropyAvailable;
+
+	qboolean        framebufferObjectAvailable;
+	int             maxRenderbufferSize;
+	int             maxColorAttachments;
+	qboolean        framebufferPackedDepthStencilAvailable;
+	qboolean        framebufferBlitAvailable;
+	qboolean        framebufferMixedFormatsAvailable;
+
+	qboolean        generateMipmapAvailable;
+} glconfig2_t;
 
 
 #if !defined _WIN32
