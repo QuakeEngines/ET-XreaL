@@ -1300,6 +1300,7 @@ typedef struct
 extern backEndState_t backEnd;
 extern trGlobals_t tr;
 extern glconfig_t glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
+extern glconfig2_t glConfig2;
 extern glstate_t glState;		// outside of TR since it shouldn't be cleared during ref re-init
 
 
@@ -1573,6 +1574,14 @@ qhandle_t       RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withli
 model_t        *R_AllocModel(void);
 
 void            R_Init(void);
+
+// XreaL
+#define IMAGE_FILE_HASH_SIZE      4096
+extern image_t *r_imageHashTable[IMAGE_FILE_HASH_SIZE];
+
+extern long		GenerateImageHashValue(const char *fname);
+// XreaL end
+
 image_t        *R_FindImageFile(const char *name, qboolean mipmap, qboolean allowPicmip, int glWrapClampMode, qboolean lightmap);
 
 image_t        *R_CreateImage(const char *name, const byte * pic, int width, int height, qboolean mipmap, qboolean allowPicmip,

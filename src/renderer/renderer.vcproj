@@ -192,10 +192,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ref_trin.def"
-				>
-			</File>
-			<File
 				RelativePath=".\tr_animation_mdm.c"
 				>
 			</File>
@@ -288,6 +284,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tr_skin.c"
+				>
+			</File>
+			<File
 				RelativePath=".\tr_sky.c"
 				>
 			</File>
@@ -318,10 +318,6 @@
 			>
 			<File
 				RelativePath=".\anorms256.h"
-				>
-			</File>
-			<File
-				RelativePath="..\qcommon\cm_public.h"
 				>
 			</File>
 			<File
@@ -577,7 +573,7 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="FreeType2"
+				Name="freetype"
 				>
 				<Filter
 					Name="Source Files"
