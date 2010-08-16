@@ -67,7 +67,7 @@ void CG_PositionEntityOnTag(refEntity_t * entity, const refEntity_t * parent, co
 	}
 
 	// had to cast away the const to avoid compiler problems...
-	MatrixMultiply(lerped.axis, ((refEntity_t *) parent)->axis, entity->axis);
+	AxisMultiply(lerped.axis, ((refEntity_t *) parent)->axis, entity->axis);
 }
 
 
@@ -97,8 +97,8 @@ void CG_PositionRotatedEntityOnTag(refEntity_t * entity, const refEntity_t * par
 	}
 
 	// had to cast away the const to avoid compiler problems...
-	MatrixMultiply(entity->axis, lerped.axis, tempAxis);
-	MatrixMultiply(tempAxis, ((refEntity_t *) parent)->axis, entity->axis);
+	AxisMultiply(entity->axis, lerped.axis, tempAxis);
+	AxisMultiply(tempAxis, ((refEntity_t *) parent)->axis, entity->axis);
 }
 
 
@@ -3032,7 +3032,7 @@ qboolean CG_AddEntityToTag(centity_t * cent)
 
 			memcpy(mat2, ent.axis, sizeof(mat2));
 			BG_CreateRotationMatrix(cent->lerpAngles, mat);
-			MatrixMultiply(mat, mat2, ent.axis);
+			AxisMultiply(mat, mat2, ent.axis);
 			AxisToAngles(ent.axis, cent->lerpAngles);
 		}
 		else

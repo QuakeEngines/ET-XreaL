@@ -886,10 +886,6 @@ BRUSH MODELS
 // in memory representation
 //
 
-#define SIDE_FRONT  0
-#define SIDE_BACK   1
-#define SIDE_ON     2
-
 typedef struct msurface_s
 {
 	int             viewCount;	// if == tr.viewCount, already added

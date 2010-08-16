@@ -1573,6 +1573,9 @@ void R_Init(void)
 	byte           *ptr;
 
 	ri.Printf(PRINT_ALL, "----- R_Init -----\n");
+	
+	// RB: Wolf's q_shared.c requires this
+	Swap_Init();
 
 	// clear all our internal state
 	Com_Memset(&tr, 0, sizeof(tr));

@@ -43,6 +43,201 @@ int qmin(int x, int y)
 }
 #endif
 
+/*
+============================================================================
+
+GROWLISTS
+
+============================================================================
+*/
+
+// malloc / free all in one place for debugging
+//extern          "C" void *Com_Allocate(int bytes);
+//extern          "C" void Com_Dealloc(void *ptr);
+
+void Com_InitGrowList(growList_t * list, int maxElements)
+{
+	list->maxElements = maxElements;
+	list->currentElements = 0;
+	list->elements = (void **)Com_Allocate(list->maxElements * sizeof(void *));
+}
+
+void Com_DestroyGrowList(growList_t * list)
+{
+	Com_Dealloc(list->elements);
+	memset(list, 0, sizeof(*list));
+}
+
+int Com_AddToGrowList(growList_t * list, void *data)
+{
+	void          **old;
+
+	if(list->currentElements != list->maxElements)
+	{
+		list->elements[list->currentElements] = data;
+		return list->currentElements++;
+	}
+
+	// grow, reallocate and move
+	old = list->elements;
+
+	if(list->maxElements < 0)
+	{
+		Com_Error(ERR_FATAL, "Com_AddToGrowList: maxElements = %i", list->maxElements);
+	}
+
+	if(list->maxElements == 0)
+	{
+		// initialize the list to hold 100 elements
+		Com_InitGrowList(list, 100);
+		return Com_AddToGrowList(list, data);
+	}
+
+	list->maxElements *= 2;
+
+//  Com_DPrintf("Resizing growlist to %i maxElements\n", list->maxElements);
+
+	list->elements = (void **)Com_Allocate(list->maxElements * sizeof(void *));
+
+	if(!list->elements)
+	{
+		Com_Error(ERR_DROP, "Growlist alloc failed");
+	}
+
+	Com_Memcpy(list->elements, old, list->currentElements * sizeof(void *));
+
+	Com_Dealloc(old);
+
+	return Com_AddToGrowList(list, data);
+}
+
+void           *Com_GrowListElement(const growList_t * list, int index)
+{
+	if(index < 0 || index >= list->currentElements)
+	{
+		Com_Error(ERR_DROP, "Com_GrowListElement: %i out of range of %i", index, list->currentElements);
+	}
+	return list->elements[index];
+}
+
+int Com_IndexForGrowListElement(const growList_t * list, const void *element)
+{
+	int             i;
+
+	for(i = 0; i < list->currentElements; i++)
+	{
+		if(list->elements[i] == element)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+//=============================================================================
+
+memStream_t *AllocMemStream(byte *buffer, int bufSize)
+{
+	memStream_t		*s;
+
+	if(buffer == NULL || bufSize <= 0)
+		return NULL;
+
+	s = Com_Allocate(sizeof(memStream_t));
+	if(s == NULL)
+		return NULL;
+
+	Com_Memset(s, 0, sizeof(memStream_t));
+
+	s->buffer 	= buffer;
+	s->curPos 	= buffer;
+	s->bufSize	= bufSize;
+	s->flags	= 0;
+
+	return s;
+}
+
+void FreeMemStream(memStream_t * s)
+{
+	Com_Dealloc(s);
+}
+
+int MemStreamRead(memStream_t *s, void *buffer, int len)
+{
+	int				ret = 1;
+
+	if(s == NULL || buffer == NULL)
+		return 0;
+
+	if(s->curPos + len > s->buffer + s->bufSize)
+	{
+		s->flags |= MEMSTREAM_FLAGS_EOF;
+		len = s->buffer + s->bufSize - s->curPos;
+		ret = 0;
+
+		Com_Error(ERR_FATAL, "MemStreamRead: EOF reached");
+	}
+
+	Com_Memcpy(buffer, s->curPos, len);
+	s->curPos += len;
+
+	return ret;
+}
+
+int MemStreamGetC(memStream_t *s)
+{
+	int				c = 0;
+
+	if(s == NULL)
+		return -1;
+
+	if(MemStreamRead(s, &c, 1) == 0)
+		return -1;
+
+	return c;
+}
+
+int MemStreamGetLong(memStream_t * s)
+{
+	int				c = 0;
+
+	if(s == NULL)
+		return -1;
+
+	if(MemStreamRead(s, &c, 4) == 0)
+		return -1;
+
+	return LittleLong(c);
+}
+
+int MemStreamGetShort(memStream_t * s)
+{
+	int				c = 0;
+
+	if(s == NULL)
+		return -1;
+
+	if(MemStreamRead(s, &c, 2) == 0)
+		return -1;
+
+	return LittleShort(c);
+}
+
+float MemStreamGetFloat(memStream_t * s)
+{
+	floatint_t		c;
+
+	if(s == NULL)
+		return -1;
+
+	if(MemStreamRead(s, &c.i, 4) == 0)
+		return -1;
+
+	return LittleFloat(c.f);
+}
+
+//============================================================================
+
 float Com_Clamp(float min, float max, float value)
 {
 	if(value < min)
@@ -136,6 +331,35 @@ void COM_StripFilename(char *in, char *out)
 	Q_strncpyz(out, in, strlen(in) + 1);
 	end = COM_SkipPath(out);
 	*end = 0;
+}
+
+/*
+============
+COM_StripExtension3
+
+RB: ioquake3 version
+============
+*/
+void COM_StripExtension3(const char *src, char *dest, int destsize)
+{
+	int             length;
+
+	Q_strncpyz(dest, src, destsize);
+
+	length = strlen(dest) - 1;
+
+	while(length > 0 && dest[length] != '.')
+	{
+		length--;
+
+		if(dest[length] == '/')
+			return;				// no extension
+	}
+
+	if(length)
+	{
+		dest[length] = 0;
+	}
 }
 
 
@@ -428,6 +652,13 @@ PARSING
 ============================================================================
 */
 
+// multiple character punctuation tokens
+const char     *punctuation[] = {
+	"+=", "-=", "*=", "/=", "&=", "|=", "++", "--",
+	"&&", "||", "<=", ">=", "==", "!=",
+	NULL
+};
+
 static char     com_token[MAX_TOKEN_CHARS];
 static char     com_parsename[MAX_TOKEN_CHARS];
 static int      com_lines;
@@ -477,7 +708,7 @@ void COM_ParseError(char *format, ...)
 	Q_vsnprintf(string, sizeof(string), format, argptr);
 	va_end(argptr);
 
-	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, com_lines, string);
+	Com_Printf(S_COLOR_RED "ERROR: %s, line %d: %s\n", com_parsename, com_lines, string);
 }
 
 void COM_ParseWarning(char *format, ...)
@@ -489,7 +720,7 @@ void COM_ParseWarning(char *format, ...)
 	Q_vsnprintf(string, sizeof(string), format, argptr);
 	va_end(argptr);
 
-	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, com_lines, string);
+	Com_Printf(S_COLOR_YELLOW "WARNING: %s, line %d: %s\n", com_parsename, com_lines, string);
 }
 
 /*
@@ -746,6 +977,262 @@ char           *COM_ParseExt(char **data_p, qboolean allowLineBreaks)
 	return com_token;
 }
 
+
+
+char           *COM_Parse2(char **data_p)
+{
+	return COM_ParseExt2(data_p, qtrue);
+}
+
+
+// *INDENT-OFF*
+char           *COM_ParseExt2(char **data_p, qboolean allowLineBreaks)
+{
+	int             c = 0, len;
+	qboolean        hasNewLines = qfalse;
+	char           *data;
+	const char    **punc;
+
+	if(!data_p)
+	{
+		Com_Error(ERR_FATAL, "COM_ParseExt: NULL data_p");
+	}
+
+	data = *data_p;
+	len = 0;
+	com_token[0] = 0;
+
+	// make sure incoming data is valid
+	if(!data)
+	{
+		*data_p = NULL;
+		return com_token;
+	}
+
+	// RF, backup the session data so we can unget easily
+	COM_BackupParseSession(data_p);
+
+	// skip whitespace
+	while(1)
+	{
+		data = SkipWhitespace(data, &hasNewLines);
+		if(!data)
+		{
+			*data_p = NULL;
+			return com_token;
+		}
+		if(hasNewLines && !allowLineBreaks)
+		{
+			*data_p = data;
+			return com_token;
+		}
+
+		c = *data;
+
+		// skip double slash comments
+		if(c == '/' && data[1] == '/')
+		{
+			data += 2;
+			while(*data && *data != '\n')
+			{
+				data++;
+			}
+		}
+		// skip /* */ comments
+		else if(c == '/' && data[1] == '*')
+		{
+			data += 2;
+			while(*data && (*data != '*' || data[1] != '/'))
+			{
+				data++;
+			}
+			if(*data)
+			{
+				data += 2;
+			}
+		}
+		else
+		{
+			// a real token to parse
+			break;
+		}
+	}
+
+	// handle quoted strings
+	if(c == '\"')
+	{
+		data++;
+		while(1)
+		{
+			c = *data++;
+
+			if((c == '\\') && (*data == '\"'))
+			{
+				// allow quoted strings to use \" to indicate the " character
+				data++;
+			}
+			else if(c == '\"' || !c)
+			{
+				com_token[len] = 0;
+				*data_p = (char *)data;
+				return com_token;
+			}
+			else if(*data == '\n')
+			{
+				com_lines++;
+			}
+
+			if(len < MAX_TOKEN_CHARS - 1)
+			{
+				com_token[len] = c;
+				len++;
+			}
+		}
+	}
+
+	// check for a number
+	// is this parsing of negative numbers going to cause expression problems
+	if(	(c >= '0' && c <= '9') ||
+		(c == '-' && data[1] >= '0' && data[1] <= '9') ||
+		(c == '.' && data[1] >= '0' && data[1] <= '9') ||
+		(c == '-' && data[1] == '.' && data[2] >= '0' && data[2] <= '9'))
+	{
+		do
+		{
+			if(len < MAX_TOKEN_CHARS - 1)
+			{
+				com_token[len] = c;
+				len++;
+			}
+			data++;
+
+			c = *data;
+		} while((c >= '0' && c <= '9') || c == '.');
+
+		// parse the exponent
+		if(c == 'e' || c == 'E')
+		{
+			if(len < MAX_TOKEN_CHARS - 1)
+			{
+				com_token[len] = c;
+				len++;
+			}
+			data++;
+			c = *data;
+
+			if(c == '-' || c == '+')
+			{
+				if(len < MAX_TOKEN_CHARS - 1)
+				{
+					com_token[len] = c;
+					len++;
+				}
+				data++;
+				c = *data;
+			}
+
+			do
+			{
+				if(len < MAX_TOKEN_CHARS - 1)
+				{
+					com_token[len] = c;
+					len++;
+				}
+				data++;
+
+				c = *data;
+			} while(c >= '0' && c <= '9');
+		}
+
+		if(len == MAX_TOKEN_CHARS)
+		{
+			len = 0;
+		}
+		com_token[len] = 0;
+
+		*data_p = (char *)data;
+		return com_token;
+	}
+
+	// check for a regular word
+	// we still allow forward and back slashes in name tokens for pathnames
+	// and also colons for drive letters
+	if(	(c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		(c == '_') ||
+		(c == '/') ||
+		(c == '\\') ||
+		(c == '$') || (c == '*')) // Tr3B - for bad shader strings
+	{
+		do
+		{
+			if(len < MAX_TOKEN_CHARS - 1)
+			{
+				com_token[len] = c;
+				len++;
+			}
+			data++;
+
+			c = *data;
+		}
+		while
+			((c >= 'a' && c <= 'z') ||
+			 (c >= 'A' && c <= 'Z') ||
+			 (c == '_') ||
+			 (c == '-') ||
+			 (c >= '0' && c <= '9') ||
+			 (c == '/') ||
+			 (c == '\\') ||
+			 (c == ':') ||
+			 (c == '.') ||
+			 (c == '$') ||
+			 (c == '*') ||
+			 (c == '@'));
+
+		if(len == MAX_TOKEN_CHARS)
+		{
+			len = 0;
+		}
+		com_token[len] = 0;
+
+		*data_p = (char *)data;
+		return com_token;
+	}
+
+	// check for multi-character punctuation token
+	for(punc = punctuation; *punc; punc++)
+	{
+		int             l;
+		int             j;
+
+		l = strlen(*punc);
+		for(j = 0; j < l; j++)
+		{
+			if(data[j] != (*punc)[j])
+			{
+				break;
+			}
+		}
+		if(j == l)
+		{
+			// a valid multi-character punctuation
+			Com_Memcpy(com_token, *punc, l);
+			com_token[l] = 0;
+			data += l;
+			*data_p = (char *)data;
+			return com_token;
+		}
+	}
+
+	// single character punctuation
+	com_token[0] = *data;
+	com_token[1] = 0;
+	data++;
+	*data_p = (char *)data;
+
+	return com_token;
+}
+// *INDENT-ON*
 
 
 
@@ -1176,6 +1663,43 @@ void Q_strcat(char *dest, int size, const char *src)
 	Q_strncpyz(dest + l1, src, size - l1);
 }
 
+/*
+=============
+Q_strreplace
+
+replaces content of find by replace in dest
+=============
+*/
+qboolean Q_strreplace(char *dest, int destsize, const char *find, const char *replace)
+{
+	int             lstart, lfind, lreplace, lend;
+	char           *s;
+	char            backup[32000];	// big, but small enough to fit in PPC stack
+
+	lend = strlen(dest);
+	if(lend >= destsize)
+	{
+		Com_Error(ERR_FATAL, "Q_strreplace: already overflowed");
+	}
+
+	s = strstr(dest, find);
+	if(!s)
+	{
+		return qfalse;
+	}
+	else
+	{
+		Q_strncpyz(backup, dest, lend + 1);
+		lstart = s - dest;
+		lfind = strlen(find);
+		lreplace = strlen(replace);
+
+		strncpy(s, replace, destsize - lstart - 1);
+		strncpy(s + lreplace, backup + lstart + lfind, destsize - lstart - lreplace - 1);
+
+		return qtrue;
+	}
+}
 
 int Q_PrintStrlen(const char *string)
 {

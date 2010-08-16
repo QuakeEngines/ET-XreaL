@@ -2388,7 +2388,7 @@ void CG_Player(centity_t * cent)
 	   VectorMA( start, tag.origin[idx], body.axis[idx], start );
 	   }
 
-	   MatrixMultiply( tag.axis, body.axis, axis );
+	   AxisMultiply( tag.axis, body.axis, axis );
 
 	   for( idx = 0; idx < 3; idx++ ) {
 	   VectorMA( start, 32, axis[idx], ends[idx] );
@@ -2753,7 +2753,7 @@ qboolean CG_GetTag(int clientNum, char *tagname, orientation_t * or)
 	VectorCopy(org, or->origin);
 
 	// rotate with entity
-	MatrixMultiply(refent->axis, or->axis, tempAxis);
+	AxisMultiply(refent->axis, or->axis, tempAxis);
 	memcpy(or->axis, tempAxis, sizeof(vec3_t) * 3);
 
 	return qtrue;
@@ -2810,7 +2810,7 @@ qboolean CG_GetWeaponTag(int clientNum, char *tagname, orientation_t * or)
 	VectorCopy(org, or->origin);
 
 	// rotate with entity
-	MatrixMultiply(refent->axis, or->axis, tempAxis);
+	AxisMultiply(refent->axis, or->axis, tempAxis);
 	memcpy(or->axis, tempAxis, sizeof(vec3_t) * 3);
 
 	return qtrue;

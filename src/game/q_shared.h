@@ -3,6 +3,7 @@
 
 Wolfenstein: Enemy Territory GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 2006-2010 Robert Beckebans
 
 This file is part of the Wolfenstein: Enemy Territory GPL Source Code (Wolf ET Source Code).  
 
@@ -171,6 +172,7 @@ If you have questions concerning this license or the applicable additional terms
 #endif
 #endif
 
+#define ID_INLINE __inline
 
 #define PATH_SEP '\\'
 
@@ -187,6 +189,8 @@ If you have questions concerning this license or the applicable additional terms
 #define MAC_STATIC
 
 #define CPUSTRING   "MacOS_X"
+
+#define ID_INLINE inline
 
 #define PATH_SEP    '/'
 
@@ -243,6 +247,8 @@ static inline float idSqrt( float x ) {
 
 #define CPUSTRING   "OSX-universal"
 
+#define ID_INLINE inline
+
 #define PATH_SEP '/'
 
 void            Sys_PumpEvents(void);
@@ -265,6 +271,8 @@ void            Sys_PumpEvents(void);
 #define CPUSTRING   "linux-other"
 #endif
 
+#define ID_INLINE inline
+
 #define PATH_SEP '/'
 
 #define DLL_EXT ".so"
@@ -278,6 +286,13 @@ typedef unsigned char byte;
 
 typedef enum
 { qfalse, qtrue } qboolean;
+
+typedef union
+{
+	float           f;
+	int             i;
+	unsigned int    ui;
+} floatint_t;
 
 typedef int     qhandle_t;
 typedef int     sfxHandle_t;
@@ -293,6 +308,14 @@ typedef int     clipHandle_t;
 #define     SND_NO_ATTENUATION  0x020	// don't attenuate (even though the sound is in voice channel, for example)
 
 
+#if defined(_MSC_VER)
+#define ALIGN(x) __declspec(align(x));
+#elif defined(__GNUC__)
+#define ALIGN(x) __attribute__((aligned(x)))
+#else
+#define ALIGN(x)
+#endif
+
 #ifndef NULL
 #define NULL ( (void *)0 )
 #endif
@@ -300,16 +323,19 @@ typedef int     clipHandle_t;
 #define MAX_QINT            0x7fffffff
 #define MIN_QINT            ( -MAX_QINT - 1 )
 
+#ifndef BIT
+#define BIT(x)				(1 << x)
+#endif
+
 // TTimo gcc: was missing, added from Q3 source
 #ifndef max
 #define max( x, y ) ( ( ( x ) > ( y ) ) ? ( x ) : ( y ) )
 #define min( x, y ) ( ( ( x ) < ( y ) ) ? ( x ) : ( y ) )
 #endif
 
-// angle indexes
-#define PITCH               0	// up / down
-#define YAW                 1	// left / right
-#define ROLL                2	// fall over
+#ifndef sign
+#define sign( f )	( ( f > 0 ) ? 1 : ( ( f < 0 ) ? -1 : 0 ) )
+#endif
 
 // RF, this is just here so different elements of the engine can be aware of this setting as it changes
 #define MAX_SP_CLIENTS      64	// increasing this will increase memory usage significantly
@@ -447,6 +473,9 @@ void            Snd_Memset(void *dest, const int val, const size_t count);
 void            Com_Memset(void *dest, const int val, const size_t count);
 void            Com_Memcpy(void *dest, const void *src, const size_t count);
 
+#define Com_Allocate malloc
+#define Com_Dealloc free
+
 #define CIN_system  1
 #define CIN_loop    2
 #define CIN_hold    4
@@ -465,19 +494,53 @@ MATHLIB
 
 typedef float   vec_t;
 typedef vec_t   vec2_t[2];
+
+#if defined(SSEVEC3_T)
+typedef vec_t   vec3_t[4];		// ALIGN(16);
+typedef vec3_t  vec4_t;
+#else
 typedef vec_t   vec3_t[3];
 typedef vec_t   vec4_t[4];
+#endif
+
 typedef vec_t   vec5_t[5];
+
+typedef vec3_t  axis_t[3];
+typedef vec_t   matrix3x3_t[9];
+typedef vec_t   matrix_t[16];
+typedef vec_t   quat_t[4];		// | x y z w |
 
 typedef int     fixed4_t;
 typedef int     fixed8_t;
 typedef int     fixed16_t;
 
 #ifndef M_PI
-#define M_PI        3.14159265358979323846f	// matches value in gcc v2 math.h
+#define M_PI		3.14159265358979323846f	// matches value in gcc v2 math.h
 #endif
 
-#define NUMVERTEXNORMALS    162
+#ifndef M_SQRT2
+#define M_SQRT2 1.414213562f
+#endif
+
+#ifndef M_ROOT3
+#define M_ROOT3 1.732050808f
+#endif
+
+// angle indexes
+#define	PITCH				0	// up / down
+#define	YAW					1	// left / right
+#define	ROLL				2	// fall over
+
+// plane sides
+typedef enum
+{
+	SIDE_FRONT = 0,
+	SIDE_BACK = 1,
+	SIDE_ON = 2,
+	SIDE_CROSS = 3
+} planeSide_t;
+
+#define NUMVERTEXNORMALS	162
 extern vec3_t   bytedirs[NUMVERTEXNORMALS];
 
 // all drawing is done to a 640*480 virtual screen size
@@ -597,10 +660,18 @@ extern vec4_t   g_color_table[32];
 #define DEG2RAD( a ) ( ( ( a ) * M_PI ) / 180.0F )
 #define RAD2DEG( a ) ( ( ( a ) * 180.0f ) / M_PI )
 
+#define Q_max(a, b)      ((a) > (b) ? (a) : (b))
+#define Q_min(a, b)      ((a) < (b) ? (a) : (b))
+#define Q_bound(a, b, c) (Q_max(a, Q_min(b, c)))
+#define Q_clamp(a, b, c) ((b) >= (c) ? (a)=(b) : (a) < (b) ? (a)=(b) : (a) > (c) ? (a)=(c) : (a))
+#define Q_lerp(from, to, frac) (from + ((to - from) * frac))
+
 struct cplane_s;
 
 extern vec3_t   vec3_origin;
 extern vec3_t   axisDefault[3];
+extern matrix_t matrixIdentity;
+extern quat_t   quatIdentity;
 
 #define nanmask ( 255 << 23 )
 
@@ -693,7 +764,27 @@ float           NormalizeColor(const vec3_t in, vec3_t out);
 float           RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 void            ClearBounds(vec3_t mins, vec3_t maxs);
 void            AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
+
+// RB: same as BoundsIntersectPoint but kept for compatibility
 qboolean        PointInBounds(const vec3_t v, const vec3_t mins, const vec3_t maxs);
+
+void            BoundsAdd(vec3_t mins, vec3_t maxs, const vec3_t mins2, const vec3_t maxs2);
+qboolean        BoundsIntersect(const vec3_t mins, const vec3_t maxs, const vec3_t mins2, const vec3_t maxs2);
+qboolean        BoundsIntersectSphere(const vec3_t mins, const vec3_t maxs, const vec3_t origin, vec_t radius);
+qboolean        BoundsIntersectPoint(const vec3_t mins, const vec3_t maxs, const vec3_t origin);
+
+static ID_INLINE void BoundsToCorners(const vec3_t mins, const vec3_t maxs, vec3_t corners[8])
+{
+	VectorSet(corners[0], mins[0], maxs[1], maxs[2]);
+	VectorSet(corners[1], maxs[0], maxs[1], maxs[2]);
+	VectorSet(corners[2], maxs[0], mins[1], maxs[2]);
+	VectorSet(corners[3], mins[0], mins[1], maxs[2]);
+	VectorSet(corners[4], mins[0], maxs[1], mins[2]);
+	VectorSet(corners[5], maxs[0], maxs[1], mins[2]);
+	VectorSet(corners[6], maxs[0], mins[1], mins[2]);
+	VectorSet(corners[7], mins[0], mins[1], mins[2]);
+}
+
 int             VectorCompare(const vec3_t v1, const vec3_t v2);
 vec_t           VectorLength(const vec3_t v);
 vec_t           VectorLengthSquared(const vec3_t v);
@@ -706,9 +797,13 @@ vec_t           VectorNormalize2(const vec3_t v, vec3_t out);
 void            VectorInverse(vec3_t v);
 void            Vector4Scale(const vec4_t in, vec_t scale, vec4_t out);
 void            VectorRotate(vec3_t in, vec3_t matrix[3], vec3_t out);
+
+int             NearestPowerOfTwo(int val);
 int             Q_log2(int val);
 
 float           Q_acos(float c);
+
+int             Q_isnan(float x);
 
 int             Q_rand(int *seed);
 float           Q_random(int *seed);
@@ -744,8 +839,25 @@ float           AngleNormalize2Pi(float angle);
 float           AngleNormalize360(float angle);
 float           AngleNormalize180(float angle);
 float           AngleDelta(float angle1, float angle2);
+float           AngleBetweenVectors(const vec3_t a, const vec3_t b);
+void            AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
+
+static ID_INLINE void AnglesToVector(const vec3_t angles, vec3_t out)
+{
+	AngleVectors(angles, out, NULL, NULL);
+}
+
+void            VectorToAngles(const vec3_t value1, vec3_t angles);
+
+vec_t           PlaneNormalize(vec4_t plane);	// returns normal length
+/* greebo: This calculates the intersection point of three planes.
+ * Returns <0,0,0> if no intersection point could be found, otherwise returns the coordinates of the intersection point
+ * (this may also be 0,0,0) */
+qboolean		PlanesGetIntersectionPoint(const vec4_t plane1, const vec4_t plane2, const vec4_t plane3, vec3_t out);
+void			PlaneIntersectRay(const vec3_t rayPos, const vec3_t rayDir, const vec4_t plane, vec3_t res);
 
 qboolean        PlaneFromPoints(vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c);
+qboolean        PlaneFromPointsOrder(vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c, qboolean cw);
 void            ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal);
 void            RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees);
 void            RotatePointAroundVertex(vec3_t pnt, float rot_x, float rot_y, float rot_z, const vec3_t origin);
@@ -756,7 +868,10 @@ void            MakeNormalVectors(const vec3_t forward, vec3_t right, vec3_t up)
 
 int             PlaneTypeForNormal(vec3_t normal);
 
-void            MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]);
+// RB: NOTE renamed MatrixMultiply to AxisMultiply because it conflicts with most new matrix functions
+// It is important for mod developers to do this change as well or they risk a memory corruption by using
+// the other MatrixMultiply function.
+void            AxisMultiply(float in1[3][3], float in2[3][3], float out[3][3]);
 void            AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void            PerpendicularVector(vec3_t dst, const vec3_t src);
 
@@ -768,6 +883,230 @@ float           DistanceFromLineSquared(vec3_t p, vec3_t lp1, vec3_t lp2);
 float           DistanceFromVectorSquared(vec3_t p, vec3_t lp1, vec3_t lp2);
 
 // done.
+
+
+//=============================================
+
+// RB: XreaL matrix math functions required by the renderer
+
+void            MatrixIdentity(matrix_t m);
+void            MatrixClear(matrix_t m);
+void            MatrixCopy(const matrix_t in, matrix_t out);
+qboolean        MatrixCompare(const matrix_t a, const matrix_t b);
+void            MatrixTransposeIntoXMM(const matrix_t m);
+void            MatrixTranspose(const matrix_t in, matrix_t out);
+
+// invert any m4x4 using Kramer's rule.. return qtrue if matrix is singular, else return qfalse
+qboolean        MatrixInverse(matrix_t m);
+void            MatrixSetupXRotation(matrix_t m, vec_t degrees);
+void            MatrixSetupYRotation(matrix_t m, vec_t degrees);
+void            MatrixSetupZRotation(matrix_t m, vec_t degrees);
+void            MatrixSetupTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixSetupScale(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixSetupShear(matrix_t m, vec_t x, vec_t y);
+void            MatrixMultiply(const matrix_t a, const matrix_t b, matrix_t out);
+void            MatrixMultiply2(matrix_t m, const matrix_t m2);
+void            MatrixMultiplyRotation(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll);
+void            MatrixMultiplyZRotation(matrix_t m, vec_t degrees);
+void            MatrixMultiplyTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixMultiplyScale(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixMultiplyShear(matrix_t m, vec_t x, vec_t y);
+void            MatrixToAngles(const matrix_t m, vec3_t angles);
+void            MatrixFromAngles(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll);
+void            MatrixFromVectorsFLU(matrix_t m, const vec3_t forward, const vec3_t left, const vec3_t up);
+void            MatrixFromVectorsFRU(matrix_t m, const vec3_t forward, const vec3_t right, const vec3_t up);
+void            MatrixFromQuat(matrix_t m, const quat_t q);
+void            MatrixFromPlanes(matrix_t m, const vec4_t left, const vec4_t right, const vec4_t bottom, const vec4_t top,
+								 const vec4_t near, const vec4_t far);
+void            MatrixToVectorsFLU(const matrix_t m, vec3_t forward, vec3_t left, vec3_t up);
+void            MatrixToVectorsFRU(const matrix_t m, vec3_t forward, vec3_t right, vec3_t up);
+void            MatrixSetupTransformFromVectorsFLU(matrix_t m, const vec3_t forward, const vec3_t left, const vec3_t up, const vec3_t origin);
+void            MatrixSetupTransformFromVectorsFRU(matrix_t m, const vec3_t forward, const vec3_t right, const vec3_t up, const vec3_t origin);
+void            MatrixSetupTransformFromRotation(matrix_t m, const matrix_t rot, const vec3_t origin);
+void            MatrixSetupTransformFromQuat(matrix_t m, const quat_t quat, const vec3_t origin);
+void            MatrixAffineInverse(const matrix_t in, matrix_t out);
+void            MatrixTransformNormal(const matrix_t m, const vec3_t in, vec3_t out);
+void            MatrixTransformNormal2(const matrix_t m, vec3_t inout);
+void            MatrixTransformPoint(const matrix_t m, const vec3_t in, vec3_t out);
+void            MatrixTransformPoint2(const matrix_t m, vec3_t inout);
+void            MatrixTransform4(const matrix_t m, const vec4_t in, vec4_t out);
+void            MatrixTransformPlane(const matrix_t m, const vec4_t in, vec4_t out);
+void            MatrixTransformPlane2(const matrix_t m, vec3_t inout);
+void            MatrixPerspectiveProjection(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionLH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionRH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovYAspectLH(matrix_t m, vec_t fov, vec_t aspect, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovXYLH(matrix_t m, vec_t fovX, vec_t fovY, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovXYRH(matrix_t m, vec_t fovX, vec_t fovY, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovXYInfiniteRH(matrix_t m, vec_t fovX, vec_t fovY, vec_t near);
+void            MatrixOrthogonalProjection(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+
+void			MatrixOrthogonalProjectionLH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void			MatrixOrthogonalProjectionRH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+
+void			MatrixPlaneReflection(matrix_t m, const vec4_t plane);
+
+void            MatrixLookAtLH(matrix_t output, const vec3_t pos, const vec3_t dir, const vec3_t up);
+void            MatrixLookAtRH(matrix_t m, const vec3_t eye, const vec3_t dir, const vec3_t up);
+void            MatrixScaleTranslateToUnitCube(matrix_t m, const vec3_t mins, const vec3_t maxs);
+void            MatrixCrop(matrix_t m, const vec3_t mins, const vec3_t maxs);
+
+static ID_INLINE void AnglesToMatrix(const vec3_t angles, matrix_t m)
+{
+	MatrixFromAngles(m, angles[PITCH], angles[YAW], angles[ROLL]);
+}
+
+
+//=============================================
+
+// RB: XreaL quaternion math functions required by the renderer
+
+#define QuatSet(q,x,y,z,w)	((q)[0]=(x),(q)[1]=(y),(q)[2]=(z),(q)[3]=(w))
+#define QuatCopy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
+
+#define QuatCompare(a,b)	((a)[0]==(b)[0] && (a)[1]==(b)[1] && (a)[2]==(b)[2] && (a)[3]==(b)[3])
+
+static ID_INLINE void QuatClear(quat_t q)
+{
+	q[0] = 0;
+	q[1] = 0;
+	q[2] = 0;
+	q[3] = 1;
+}
+
+/*
+static ID_INLINE int QuatCompare(const quat_t a, const quat_t b)
+{
+	if(a[0] != b[0] || a[1] != b[1] || a[2] != b[2] || a[3] != b[3])
+	{
+		return 0;
+	}
+	return 1;
+}
+*/
+
+static ID_INLINE void QuatCalcW(quat_t q)
+{
+#if 1
+	vec_t           term = 1.0f - (q[0] * q[0] + q[1] * q[1] + q[2] * q[2]);
+
+	if(term < 0.0)
+		q[3] = 0.0;
+	else
+		q[3] = -sqrt(term);
+#else
+	q[3] = sqrt(fabs(1.0f - (q[0] * q[0] + q[1] * q[1] + q[2] * q[2])));
+#endif
+}
+
+static ID_INLINE void QuatInverse(quat_t q)
+{
+	q[0] = -q[0];
+	q[1] = -q[1];
+	q[2] = -q[2];
+}
+
+static ID_INLINE void QuatAntipodal(quat_t q)
+{
+	q[0] = -q[0];
+	q[1] = -q[1];
+	q[2] = -q[2];
+	q[3] = -q[3];
+}
+
+static ID_INLINE vec_t QuatLength(const quat_t q)
+{
+	return (vec_t) sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
+}
+
+vec_t           QuatNormalize(quat_t q);
+
+void            QuatFromAngles(quat_t q, vec_t pitch, vec_t yaw, vec_t roll);
+
+static ID_INLINE void AnglesToQuat(const vec3_t angles, quat_t q)
+{
+	QuatFromAngles(q, angles[PITCH], angles[YAW], angles[ROLL]);
+}
+
+void            QuatFromMatrix(quat_t q, const matrix_t m);
+void            QuatToVectorsFLU(const quat_t quat, vec3_t forward, vec3_t left, vec3_t up);
+void            QuatToVectorsFRU(const quat_t quat, vec3_t forward, vec3_t right, vec3_t up);
+void            QuatToAxis(const quat_t q, vec3_t axis[3]);
+void            QuatToAngles(const quat_t q, vec3_t angles);
+
+// Quaternion multiplication, analogous to the matrix multiplication routines.
+
+// qa = rotate by qa, then qb
+void            QuatMultiply0(quat_t qa, const quat_t qb);
+
+// qc = rotate by qa, then qb
+void            QuatMultiply1(const quat_t qa, const quat_t qb, quat_t qc);
+
+// qc = rotate by qa, then by inverse of qb
+void            QuatMultiply2(const quat_t qa, const quat_t qb, quat_t qc);
+
+// qc = rotate by inverse of qa, then by qb
+void            QuatMultiply3(const quat_t qa, const quat_t qb, quat_t qc);
+
+// qc = rotate by inverse of qa, then by inverse of qb
+void            QuatMultiply4(const quat_t qa, const quat_t qb, quat_t qc);
+
+
+void            QuatSlerp(const quat_t from, const quat_t to, float frac, quat_t out);
+void            QuatTransformVector(const quat_t q, const vec3_t in, vec3_t out);
+
+//=============================================
+
+
+typedef struct
+{
+	qboolean        frameMemory;
+	int             currentElements;
+	int             maxElements;	// will reallocate and move when exceeded
+	void          **elements;
+} growList_t;
+
+// you don't need to init the growlist if you don't mind it growing and moving
+// the list as it expands
+void            Com_InitGrowList(growList_t * list, int maxElements);
+void            Com_DestroyGrowList(growList_t * list);
+int             Com_AddToGrowList(growList_t * list, void *data);
+void           *Com_GrowListElement(const growList_t * list, int index);
+int             Com_IndexForGrowListElement(const growList_t * list, const void *element);
+
+
+//=============================================================================
+
+enum
+{
+	MEMSTREAM_SEEK_SET,
+	MEMSTREAM_SEEK_CUR,
+	MEMSTREAM_SEEK_END
+};
+
+enum
+{
+	MEMSTREAM_FLAGS_EOF = BIT(0),
+	MEMSTREAM_FLAGS_ERR = BIT(1),
+};
+
+// helper struct for reading binary file formats
+typedef struct memStream_s
+{
+	byte           *buffer;
+	int				bufSize;
+	byte           *curPos;
+	int             flags;
+}
+memStream_t;
+
+memStream_t    *AllocMemStream(byte *buffer, int bufSize);
+void			FreeMemStream(memStream_t * s);
+int				MemStreamRead(memStream_t *s, void *buffer, int len);
+int				MemStreamGetC(memStream_t *s);
+int				MemStreamGetLong(memStream_t * s);
+int				MemStreamGetShort(memStream_t * s);
+float			MemStreamGetFloat(memStream_t * s);
 
 //=============================================
 
@@ -784,8 +1123,14 @@ void            COM_BeginParseSession(const char *name);
 void            COM_RestoreParseSession(char **data_p);
 void            COM_SetCurrentParseLine(int line);
 int             COM_GetCurrentParseLine(void);
+
 char           *COM_Parse(char **data_p);
 char           *COM_ParseExt(char **data_p, qboolean allowLineBreak);
+
+// RB: added COM_Parse2 for having a Doom 3 style tokenizer. 
+char           *COM_Parse2(char **data_p);
+char           *COM_ParseExt2(char **data_p, qboolean allowLineBreak);
+
 int             COM_Compress(char *data_p);
 
 // *INDENT-OFF*
@@ -881,7 +1226,8 @@ char           *Q_strrchr(const char *string, int c);
 
 // buffer size safe library replacements
 void            Q_strncpyz(char *dest, const char *src, int destsize);
-void            Q_strcat(char *dest, int size, const char *src);
+void            Q_strcat(char *dest, int destsize, const char *src);
+qboolean        Q_strreplace(char *dest, int destsize, const char *find, const char *replace);
 
 // strlen that discounts Quake color sequences
 int             Q_PrintStrlen(const char *string);
@@ -1056,6 +1402,21 @@ PlaneTypeForNormal
 
 //#define PlaneTypeForNormal(x) (x[0] == 1.0 ? PLANE_X : (x[1] == 1.0 ? PLANE_Y : (x[2] == 1.0 ? PLANE_Z : PLANE_NON_AXIAL) ) )
 #define PlaneTypeForNormal( x ) ( x[0] == 1.0 ? PLANE_X : ( x[1] == 1.0 ? PLANE_Y : ( x[2] == 1.0 ? PLANE_Z : ( x[0] == 0.f && x[1] == 0.f && x[2] == 0.f ? PLANE_NON_PLANAR : PLANE_NON_AXIAL ) ) ) )
+/*
+static ID_INLINE int PlaneTypeForNormal(vec3_t normal)
+{
+	if(normal[0] == 1.0)
+		return PLANE_X;
+
+	if(normal[1] == 1.0)
+		return PLANE_Y;
+
+	if(normal[2] == 1.0)
+		return PLANE_Z;
+
+	return PLANE_NON_AXIAL;
+}
+*/
 
 
 // plane_t structure

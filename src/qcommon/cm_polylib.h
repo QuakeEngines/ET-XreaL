@@ -37,11 +37,6 @@ typedef struct
 
 #define MAX_POINTS_ON_WINDING   64
 
-#define SIDE_FRONT  0
-#define SIDE_BACK   1
-#define SIDE_ON     2
-#define SIDE_CROSS  3
-
 #define CLIP_EPSILON    0.1f
 
 #define MAX_MAP_BOUNDS  65535
