@@ -101,7 +101,7 @@ void HSVtoRGB(float h, float s, float v, float rgb[3])
 R_ColorShiftLightingBytes
 ===============
 */
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 static void R_ColorShiftLightingBytes(byte in[4], byte out[4])
 {
 	int             shift, r, g, b;
@@ -138,7 +138,7 @@ static void R_ColorShiftLightingBytes(byte in[4], byte out[4])
 R_ColorShiftLightingFloats
 ===============
 */
-#if 1 //defined(COMPAT_Q3A)
+#if 1 //defined(COMPAT_ET)
 static void R_ColorShiftLightingFloats(const vec4_t in, vec4_t out)
 {
 	int             shift, r, g, b;
@@ -205,8 +205,8 @@ static void R_HDRTonemapLightingColors(const vec4_t in, vec4_t out, qboolean app
 	VectorScale(sample, finalLuminance, sample);
 	sample[3] = Q_min(1.0f, sample[3]);
 
-	if(!r_hdrRendering->integer || !r_hdrLightmap->integer || !glConfig.framebufferObjectAvailable ||
-	   !glConfig.textureFloatAvailable || !glConfig.framebufferBlitAvailable)
+	if(!r_hdrRendering->integer || !r_hdrLightmap->integer || !glConfig2.framebufferObjectAvailable ||
+	   !glConfig2.textureFloatAvailable || !glConfig2.framebufferBlitAvailable)
 	{
 		float           max;
 
@@ -216,15 +216,15 @@ static void R_HDRTonemapLightingColors(const vec4_t in, vec4_t out, qboolean app
 	}
 	else
 	{
-		VectorCopy4(sample, out);
+		Vector4Copy(sample, out);
 	}
 #else
-	if(!r_hdrRendering->integer || !r_hdrLightmap->integer || !glConfig.framebufferObjectAvailable ||
-	   !glConfig.textureFloatAvailable || !glConfig.framebufferBlitAvailable)
+	if(!r_hdrRendering->integer || !r_hdrLightmap->integer || !glConfig2.framebufferObjectAvailable ||
+	   !glConfig2.textureFloatAvailable || !glConfig2.framebufferBlitAvailable)
 	{
 		float           max;
 
-		VectorCopy4(in, sample);
+		Vector4Copy(in, sample);
 
 		// clamp with color normalization
 		max = sample[0];
@@ -392,7 +392,7 @@ void LoadRGBEToFloats(const char *name, float **pic, int *width, int *height, qb
 	w = h = 0;
 	while(qtrue)
 	{
-		token = Com_ParseExt((char **)&buf_p, qtrue);
+		token = COM_ParseExt2((char **)&buf_p, qtrue);
 		if(!token[0])
 			break;
 
@@ -400,16 +400,16 @@ void LoadRGBEToFloats(const char *name, float **pic, int *width, int *height, qb
 		{
 			//ri.Printf(PRINT_ALL, "LoadRGBE: FORMAT found\n");
 
-			token = Com_ParseExt((char **)&buf_p, qfalse);
+			token = COM_ParseExt2((char **)&buf_p, qfalse);
 			if(!Q_stricmp(token, "="))
 			{
-				token = Com_ParseExt((char **)&buf_p, qfalse);
+				token = COM_ParseExt2((char **)&buf_p, qfalse);
 				if(!Q_stricmp(token, "32"))
 				{
-					token = Com_ParseExt((char **)&buf_p, qfalse);
+					token = COM_ParseExt2((char **)&buf_p, qfalse);
 					if(!Q_stricmp(token, "-"))
 					{
-						token = Com_ParseExt((char **)&buf_p, qfalse);
+						token = COM_ParseExt2((char **)&buf_p, qfalse);
 						if(!Q_stricmp(token, "bit_rle_rgbe"))
 						{
 							formatFound = qtrue;
@@ -437,19 +437,19 @@ void LoadRGBEToFloats(const char *name, float **pic, int *width, int *height, qb
 
 		if(!Q_stricmp(token, "-"))
 		{
-			token = Com_ParseExt((char **)&buf_p, qfalse);
+			token = COM_ParseExt2((char **)&buf_p, qfalse);
 			if(!Q_stricmp(token, "Y"))
 			{
-				token = Com_ParseExt((char **)&buf_p, qfalse);
+				token = COM_ParseExt2((char **)&buf_p, qfalse);
 				w = atoi(token);
 
-				token = Com_ParseExt((char **)&buf_p, qfalse);
+				token = COM_ParseExt2((char **)&buf_p, qfalse);
 				if(!Q_stricmp(token, "+"))
 				{
-					token = Com_ParseExt((char **)&buf_p, qfalse);
+					token = COM_ParseExt2((char **)&buf_p, qfalse);
 					if(!Q_stricmp(token, "X"))
 					{
-						token = Com_ParseExt((char **)&buf_p, qfalse);
+						token = COM_ParseExt2((char **)&buf_p, qfalse);
 						h = atoi(token);
 						break;
 					}
@@ -738,8 +738,8 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 
 			ri.Printf(PRINT_ALL, "...loading %i HDR lightmaps\n", numLightmaps);
 
-			if(r_hdrRendering->integer && r_hdrLightmap->integer && glConfig.framebufferObjectAvailable &&
-			   glConfig.framebufferBlitAvailable && glConfig.textureFloatAvailable && glConfig.textureHalfFloatAvailable)
+			if(r_hdrRendering->integer && r_hdrLightmap->integer && glConfig2.framebufferObjectAvailable &&
+			   glConfig2.framebufferBlitAvailable && glConfig2.textureFloatAvailable && glConfig.textureHalfFloatAvailable)
 			{
 				int             width, height;
 				unsigned short *hdrImage;
@@ -776,7 +776,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 
 					qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F_ARB, width, height, 0, GL_RGB, GL_HALF_FLOAT_ARB, hdrImage);
 
-					if(glConfig.generateMipmapAvailable)
+					if(glConfig2.generateMipmapAvailable)
 					{
 						//qglHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);    // make sure its nice
 						qglTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
@@ -905,7 +905,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			}
 		}
 	}
-#if 0 //defined(COMPAT_Q3A)
+#if 0 //defined(COMPAT_ET)
 	else
 	{
 		static byte     data[LIGHTMAP_SIZE * LIGHTMAP_SIZE * 4];
@@ -962,7 +962,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			}
 		}
 	}
-#elif defined(COMPAT_Q3A)
+#elif defined(COMPAT_ET)
 	else
 	{
 		int             i;
@@ -1069,7 +1069,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 #endif
 }
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 static float FatPackU(float input, int lightmapnum)
 {
 	int             x = lightmapnum % tr.fatLightmapStep;
@@ -1197,7 +1197,7 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 	}
 	else
 	{
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		surf->lightmapNum = 0;
 #else
 		surf->lightmapNum = realLightmapNum;
@@ -1250,7 +1250,7 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 			cv->verts[i].lightmap[j] = LittleFloat(verts[i].lightmap[j]);
 		}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		cv->verts[i].lightmap[0] = FatPackU(LittleFloat(verts[i].lightmap[0]), realLightmapNum);
 		cv->verts[i].lightmap[1] = FatPackV(LittleFloat(verts[i].lightmap[1]), realLightmapNum);
 
@@ -1393,7 +1393,7 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 	}
 	else
 	{
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		surf->lightmapNum = 0;
 #else
 		surf->lightmapNum = realLightmapNum;
@@ -1437,7 +1437,7 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 			points[i].lightmap[j] = LittleFloat(verts[i].lightmap[j]);
 		}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		points[i].lightmap[0] = FatPackU(LittleFloat(verts[i].lightmap[0]), realLightmapNum);
 		points[i].lightmap[1] = FatPackV(LittleFloat(verts[i].lightmap[1]), realLightmapNum);
 
@@ -1544,7 +1544,7 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 			cv->verts[i].lightmap[j] = LittleFloat(verts[i].lightmap[j]);
 		}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		for(j = 0; j < 4; j++)
 		{
 			cv->verts[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
@@ -3176,7 +3176,7 @@ static void R_LoadAreaPortals(const char *bspName)
 	buf_p = (char *)buffer;
 
 	// check version
-	token = Com_ParseExt(&buf_p, qfalse);
+	token = COM_ParseExt2(&buf_p, qfalse);
 	if(strcmp(token, version))
 	{
 		ri.Printf(PRINT_WARNING, "R_LoadAreaPortals: %s has wrong version (%i should be %i)\n", fileName, token, version);
@@ -3184,7 +3184,7 @@ static void R_LoadAreaPortals(const char *bspName)
 	}
 
 	// load areas num
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 	numAreas = atoi(token);
 	if(numAreas != s_worldData.numAreas)
 	{
@@ -3194,7 +3194,7 @@ static void R_LoadAreaPortals(const char *bspName)
 	}
 
 	// load areas portals
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 	numAreaPortals = atoi(token);
 
 	ri.Printf(PRINT_ALL, "...loading %i area portals\n", numAreaPortals);
@@ -3204,7 +3204,7 @@ static void R_LoadAreaPortals(const char *bspName)
 
 	for(i = 0, ap = s_worldData.areaPortals; i < numAreaPortals; i++, ap++)
 	{
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		numPoints = atoi(token);
 
 		if(numPoints != 4)
@@ -3213,16 +3213,16 @@ static void R_LoadAreaPortals(const char *bspName)
 			return;
 		}
 
-		Com_ParseExt(&buf_p, qfalse);
+		COM_ParseExt2(&buf_p, qfalse);
 		ap->areas[0] = atoi(token);
 
-		Com_ParseExt(&buf_p, qfalse);
+		COM_ParseExt2(&buf_p, qfalse);
 		ap->areas[1] = atoi(token);
 
 		for(j = 0; j < numPoints; j++)
 		{
 			// skip (
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			if(Q_stricmp(token, "("))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadAreaPortals: expected '(' found '%s' in file '%s'\n", token, fileName);
@@ -3231,12 +3231,12 @@ static void R_LoadAreaPortals(const char *bspName)
 
 			for(k = 0; k < 3; k++)
 			{
-				token = Com_ParseExt(&buf_p, qfalse);
+				token = COM_ParseExt2(&buf_p, qfalse);
 				ap->points[j][k] = atof(token);
 			}
 
 			// skip )
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			if(Q_stricmp(token, ")"))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadAreaPortals: expected ')' found '%s' in file '%s'\n", token, fileName);
@@ -5198,7 +5198,7 @@ void R_LoadLightGrid(lump_t * l)
 
 	for(i = 0; i < numGridPoints; i++, in++, out++)
 	{
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		byte		tmpAmbient[4];
 		byte		tmpDirected[4];
 
@@ -5243,7 +5243,7 @@ void R_LoadLightGrid(lump_t * l)
 			  i, out->ambient[0], out->ambient[1], out->ambient[2], out->directed[0], out->directed[1], out->directed[2]);
 #endif
 
-#if !defined(COMPAT_Q3A)
+#if !defined(COMPAT_ET)
 		// deal with overbright bits
 		R_HDRTonemapLightingColors(out->ambient, out->ambient, qtrue);
 		R_HDRTonemapLightingColors(out->directed, out->directed, qtrue);
@@ -5296,7 +5296,7 @@ void R_LoadEntities(lump_t * l)
 	while(1)
 	{
 		// parse key
-		token = Com_ParseExt(&p, qtrue);
+		token = COM_ParseExt2(&p, qtrue);
 
 		if(!*token)
 		{
@@ -5317,7 +5317,7 @@ void R_LoadEntities(lump_t * l)
 		Q_strncpyz(keyname, token, sizeof(keyname));
 
 		// parse value
-		token = Com_ParseExt(&p, qfalse);
+		token = COM_ParseExt2(&p, qfalse);
 
 		if(!*token)
 		{
@@ -5419,7 +5419,7 @@ void R_LoadEntities(lump_t * l)
 	while(1)
 	{
 		// parse {
-		token = Com_ParseExt(&p, qtrue);
+		token = COM_ParseExt2(&p, qtrue);
 
 		if(!*token)
 		{
@@ -5440,7 +5440,7 @@ void R_LoadEntities(lump_t * l)
 		while(1)
 		{
 			// parse key
-			token = Com_ParseExt(&p, qtrue);
+			token = COM_ParseExt2(&p, qtrue);
 
 			if(*token == '}')
 			{
@@ -5456,7 +5456,7 @@ void R_LoadEntities(lump_t * l)
 			Q_strncpyz(keyname, token, sizeof(keyname));
 
 			// parse value
-			token = Com_ParseExt(&p, qfalse);
+			token = COM_ParseExt2(&p, qfalse);
 
 			if(!*token)
 			{
@@ -5534,7 +5534,7 @@ void R_LoadEntities(lump_t * l)
 	while(1)
 	{
 		// parse {
-		token = Com_ParseExt(&p, qtrue);
+		token = COM_ParseExt2(&p, qtrue);
 
 		if(!*token)
 		{
@@ -5555,7 +5555,7 @@ void R_LoadEntities(lump_t * l)
 		while(1)
 		{
 			// parse key
-			token = Com_ParseExt(&p, qtrue);
+			token = COM_ParseExt2(&p, qtrue);
 
 			if(*token == '}')
 			{
@@ -5571,7 +5571,7 @@ void R_LoadEntities(lump_t * l)
 			Q_strncpyz(keyname, token, sizeof(keyname));
 
 			// parse value
-			token = Com_ParseExt(&p, qfalse);
+			token = COM_ParseExt2(&p, qfalse);
 
 			if(!*token)
 			{
@@ -5669,7 +5669,7 @@ void R_LoadEntities(lump_t * l)
 			{
 				light->l.scale = atof(value);
 
-				if(!r_hdrRendering->integer || !glConfig.textureFloatAvailable || !glConfig.framebufferObjectAvailable || !glConfig.framebufferBlitAvailable)
+				if(!r_hdrRendering->integer || !glConfig2.textureFloatAvailable || !glConfig2.framebufferObjectAvailable || !glConfig2.framebufferBlitAvailable)
 				{
 					if(light->l.scale >= r_lightScale->value)
 					{

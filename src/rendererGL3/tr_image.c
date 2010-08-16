@@ -32,8 +32,7 @@ int             gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int             gl_filter_max = GL_LINEAR;
 #endif
 
-#define FILE_HASH_SIZE		(1024 * 2)
-static image_t *hashTable[FILE_HASH_SIZE];
+image_t *r_imageHashTable[IMAGE_FILE_HASH_SIZE];
 
 /*
 ** R_GammaCorrect
@@ -72,13 +71,13 @@ textureMode_t   modes[] = {
 return a hash value for the filename
 ================
 */
-static long generateHashValue(const char *fname)
+long GenerateImageHashValue(const char *fname)
 {
 	int             i;
 	long            hash;
 	char            letter;
 
-//  ri.Printf(PRINT_ALL, "tr_image::generateHashValue: '%s'\n", fname);
+//  ri.Printf(PRINT_ALL, "tr_image::GenerateImageHashValue: '%s'\n", fname);
 
 	hash = 0;
 	i = 0;
@@ -95,7 +94,7 @@ static long generateHashValue(const char *fname)
 		hash += (long)(letter) * (i + 119);
 		i++;
 	}
-	hash &= (FILE_HASH_SIZE - 1);
+	hash &= (IMAGE_FILE_HASH_SIZE - 1);
 	return hash;
 }
 
@@ -128,7 +127,7 @@ void GL_TextureMode(const char *string)
 	gl_filter_max = modes[i].maximize;
 
 	// bound texture anisotropy
-	if(glConfig.textureAnisotropyAvailable)
+	if(glConfig2.textureAnisotropyAvailable)
 	{
 		if(r_ext_texture_filter_anisotropic->value > glConfig.maxTextureAnisotropy)
 		{
@@ -154,7 +153,7 @@ void GL_TextureMode(const char *string)
 			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 			// set texture anisotropy
-			if(glConfig.textureAnisotropyAvailable)
+			if(glConfig2.textureAnisotropyAvailable)
 				qglTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 		}
 	}
@@ -1067,7 +1066,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 	vec4_t          zeroClampBorder = { 0, 0, 0, 1 };
 	vec4_t          alphaZeroClampBorder = { 0, 0, 0, 0 };
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		scaledWidth = image->width;
 		scaledHeight = image->height;
@@ -1108,7 +1107,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 	// deal with a half mip resampling
 	if(image->type == GL_TEXTURE_CUBE_MAP_ARB)
 	{
-		while(scaledWidth > glConfig.maxCubeMapTextureSize || scaledHeight > glConfig.maxCubeMapTextureSize)
+		while(scaledWidth > glConfig2.maxCubeMapTextureSize || scaledHeight > glConfig2.maxCubeMapTextureSize)
 		{
 			scaledWidth >>= 1;
 			scaledHeight >>= 1;
@@ -1164,7 +1163,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 		format = GL_DEPTH_STENCIL_EXT;
 		internalFormat = GL_DEPTH24_STENCIL8_EXT;
 	}
-	else if(glConfig.textureFloatAvailable &&
+	else if(glConfig2.textureFloatAvailable &&
 			(image->bits & (IF_RGBA16F | IF_RGBA32F | IF_RGBA16 | IF_LA16F | IF_LA32F | IF_ALPHA16F | IF_ALPHA32F)))
 	{
 		if(image->bits & IF_RGBA16F)
@@ -1314,7 +1313,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 		image->uploadHeight = scaledHeight;
 		image->internalFormat = internalFormat;
 
-		if(image->filterType == FT_DEFAULT && glConfig.generateMipmapAvailable)
+		if(image->filterType == FT_DEFAULT && glConfig2.generateMipmapAvailable)
 		{
 			// raynorpat: if hardware mipmap generation is available, use it
 			//qglHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);	// make sure its nice
@@ -1341,7 +1340,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 				break;
 		}
 
-		if(!glConfig.generateMipmapAvailable)
+		if(!glConfig2.generateMipmapAvailable)
 		{
 			if(image->filterType == FT_DEFAULT && !(image->bits & (IF_DEPTH16 | IF_DEPTH24 | IF_DEPTH32 | IF_PACKED_DEPTH24_STENCIL8)))
 			{
@@ -1399,7 +1398,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 	{
 		case FT_DEFAULT:
 			// set texture anisotropy
-			if(glConfig.textureAnisotropyAvailable)
+			if(glConfig2.textureAnisotropyAvailable)
 				qglTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 
 			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
@@ -1505,9 +1504,9 @@ image_t        *R_AllocImage(const char *name, qboolean linkIntoHashTable)
 	if(linkIntoHashTable)
 	{
 		Q_strncpyz(buffer, name, sizeof(buffer));
-		hash = generateHashValue(buffer);
-		image->next = hashTable[hash];
-		hashTable[hash] = image;
+		hash = GenerateImageHashValue(buffer);
+		image->next = r_imageHashTable[hash];
+		r_imageHashTable[hash] = image;
 	}
 
 	return image;
@@ -1615,7 +1614,7 @@ static void ParseHeightMap(char **text, byte ** pic, int *width, int *height, in
 	char           *token;
 	float           scale;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for heightMap\n", token);
@@ -1629,17 +1628,17 @@ static void ParseHeightMap(char **text, byte ** pic, int *width, int *height, in
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ',')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: no matching ',' found\n");
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	scale = atof(token);
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for heightMap\n", token);
@@ -1659,7 +1658,7 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 	byte           *pic2;
 	int             width2, height2;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for displaceMap\n", token);
@@ -1673,7 +1672,7 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ',')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: no matching ',' found\n");
@@ -1687,7 +1686,7 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for displaceMap\n", token);
@@ -1721,7 +1720,7 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 	byte           *pic2;
 	int             width2, height2;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for addNormals\n", token);
@@ -1735,7 +1734,7 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ',')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: no matching ',' found\n");
@@ -1749,7 +1748,7 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for addNormals\n", token);
@@ -1780,7 +1779,7 @@ static void ParseInvertAlpha(char **text, byte ** pic, int *width, int *height, 
 {
 	char           *token;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for invertAlpha\n", token);
@@ -1794,7 +1793,7 @@ static void ParseInvertAlpha(char **text, byte ** pic, int *width, int *height, 
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for invertAlpha\n", token);
@@ -1808,7 +1807,7 @@ static void ParseInvertColor(char **text, byte ** pic, int *width, int *height, 
 {
 	char           *token;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for invertColor\n", token);
@@ -1822,7 +1821,7 @@ static void ParseInvertColor(char **text, byte ** pic, int *width, int *height, 
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for invertColor\n", token);
@@ -1836,7 +1835,7 @@ static void ParseMakeIntensity(char **text, byte ** pic, int *width, int *height
 {
 	char           *token;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for makeIntensity\n", token);
@@ -1850,7 +1849,7 @@ static void ParseMakeIntensity(char **text, byte ** pic, int *width, int *height
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for makeIntensity\n", token);
@@ -1868,7 +1867,7 @@ static void ParseMakeAlpha(char **text, byte ** pic, int *width, int *height, in
 {
 	char           *token;
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for makeAlpha\n", token);
@@ -1882,7 +1881,7 @@ static void ParseMakeAlpha(char **text, byte ** pic, int *width, int *height, in
 		return;
 	}
 
-	token = Com_ParseExt(text, qfalse);
+	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for makeAlpha\n", token);
@@ -1931,7 +1930,7 @@ static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int
 	*width = 0;
 	*height = 0;
 
-	token = Com_ParseExt(buffer, qfalse);
+	token = COM_ParseExt2(buffer, qfalse);
 	if(!token[0])
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: NULL parameter for R_LoadImage\n");
@@ -2086,12 +2085,12 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 	}
 
 	Q_strncpyz(buffer, name, sizeof(buffer));
-	hash = generateHashValue(buffer);
+	hash = GenerateImageHashValue(buffer);
 
 //  ri.Printf(PRINT_ALL, "R_FindImageFile: buffer '%s'\n", buffer);
 
 	// see if the image is already loaded
-	for(image = hashTable[hash]; image; image = image->next)
+	for(image = r_imageHashTable[hash]; image; image = image->next)
 	{
 		if(!Q_stricmpn(buffer, image->name, sizeof(image->name)))
 		{
@@ -2408,10 +2407,10 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 	}
 
 	Q_strncpyz(buffer, name, sizeof(buffer));
-	hash = generateHashValue(buffer);
+	hash = GenerateImageHashValue(buffer);
 
 	// see if the image is already loaded
-	for(image = hashTable[hash]; image; image = image->next)
+	for(image = r_imageHashTable[hash]; image; image = image->next)
 	{
 		if(!Q_stricmp(buffer, image->name))
 		{
@@ -2621,7 +2620,7 @@ static void R_CreateContrastRenderFBOImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth * 0.25f;
 		height = glConfig.vidHeight * 0.25f;
@@ -2634,7 +2633,7 @@ static void R_CreateContrastRenderFBOImage(void)
 
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
 
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.contrastRenderFBOImage = R_CreateImage("_contrastRenderFBO", data, width, height, IF_NOPICMIP | IF_NOCOMPRESSION | IF_RGBA16F, FT_LINEAR, WT_CLAMP);
 	}
@@ -2652,7 +2651,7 @@ static void R_CreateBloomRenderFBOImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth * 0.25f;
 		height = glConfig.vidHeight * 0.25f;
@@ -2667,7 +2666,7 @@ static void R_CreateBloomRenderFBOImage(void)
 
 	for(i = 0; i < 2; i++)
 	{
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			tr.bloomRenderFBOImage[i] = R_CreateImage(va("_bloomRenderFBO%d", i), data, width, height, IF_NOPICMIP | IF_NOCOMPRESSION | IF_RGBA16F, FT_LINEAR, WT_CLAMP);
 		}
@@ -2685,7 +2684,7 @@ static void R_CreateCurrentRenderImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth;
 		height = glConfig.vidHeight;
@@ -2708,7 +2707,7 @@ static void R_CreateDepthRenderImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth;
 		height = glConfig.vidHeight;
@@ -2741,7 +2740,7 @@ static void R_CreatePortalRenderImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth;
 		height = glConfig.vidHeight;
@@ -2754,7 +2753,7 @@ static void R_CreatePortalRenderImage(void)
 
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
 
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.portalRenderImage = R_CreateImage("_portalRender", data, width, height, IF_NOPICMIP | IF_RGBA16F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2771,7 +2770,7 @@ static void R_CreateOcclusionRenderFBOImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth;
 		height = glConfig.vidHeight;
@@ -2808,7 +2807,7 @@ static void R_CreateDepthToColorFBOImages(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth;
 		height = glConfig.vidHeight;
@@ -2854,7 +2853,7 @@ static void R_CreateDownScaleFBOImages(void)
 	int				width, height;
 
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth * 0.25f;
 		height = glConfig.vidHeight * 0.25f;
@@ -2866,7 +2865,7 @@ static void R_CreateDownScaleFBOImages(void)
 	}
 
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.downScaleFBOImage_quarter = R_CreateImage("_downScaleFBOImage_quarter", data, width, height, IF_NOPICMIP | IF_RGBA16F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2879,7 +2878,7 @@ static void R_CreateDownScaleFBOImages(void)
 
 	width = height = 64;
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.downScaleFBOImage_64x64 = R_CreateImage("_downScaleFBOImage_64x64", data, width, height, IF_NOPICMIP | IF_RGBA16F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2892,7 +2891,7 @@ static void R_CreateDownScaleFBOImages(void)
 #if 0
 	width = height = 16;
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.downScaleFBOImage_16x16 = R_CreateImage("_downScaleFBOImage_16x16", data, width, height, IF_NOPICMIP | IF_RGBA16F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2905,7 +2904,7 @@ static void R_CreateDownScaleFBOImages(void)
 
 	width = height = 4;
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.downScaleFBOImage_4x4 = R_CreateImage("_downScaleFBOImage_4x4", data, width, height, IF_NOPICMIP | IF_RGBA16F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2918,7 +2917,7 @@ static void R_CreateDownScaleFBOImages(void)
 
 	width = height = 1;
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
-	if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 	{
 		tr.downScaleFBOImage_1x1 = R_CreateImage("_downScaleFBOImage_1x1", data, width, height, IF_NOPICMIP | IF_RGBA16F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2935,7 +2934,7 @@ static void R_CreateDeferredRenderFBOImages(void)
 	int             width, height;
 	byte           *data;
 
-	if(glConfig.textureNPOTAvailable)
+	if(glConfig2.textureNPOTAvailable)
 	{
 		width = glConfig.vidWidth;
 		height = glConfig.vidHeight;
@@ -2987,7 +2986,7 @@ static void R_CreateShadowMapFBOImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(!glConfig.textureFloatAvailable || r_shadows->integer <= 3)
+	if(!glConfig2.textureFloatAvailable || r_shadows->integer <= 3)
 		return;
 
 	for(i = 0; i < MAX_SHADOWMAPS; i++)
@@ -3029,7 +3028,7 @@ static void R_CreateShadowCubeFBOImage(void)
 	int             width, height;
 	byte           *data[6];
 
-	if(!glConfig.textureFloatAvailable || r_shadows->integer <= 3)
+	if(!glConfig2.textureFloatAvailable || r_shadows->integer <= 3)
 		return;
 
 	for(j = 0; j < 5; j++)
@@ -3298,7 +3297,7 @@ void R_InitImages(void)
 
 	ri.Printf(PRINT_ALL, "------- R_InitImages -------\n");
 
-	Com_Memset(hashTable, 0, sizeof(hashTable));
+	Com_Memset(r_imageHashTable, 0, sizeof(r_imageHashTable));
 	Com_InitGrowList(&tr.images, 4096);
 	Com_InitGrowList(&tr.lightmaps, 128);
 	Com_InitGrowList(&tr.deluxemaps, 128);
@@ -3397,303 +3396,3 @@ void R_ShutdownImages(void)
 
 
 
-/*
-============================================================================
-
-SKINS
-
-============================================================================
-*/
-
-/*
-==================
-CommaParse
-
-This is unfortunate, but the skin files aren't
-compatable with our normal parsing rules.
-==================
-*/
-static char    *CommaParse(char **data_p)
-{
-	int             c = 0, len;
-	char           *data;
-	static char     com_token[MAX_TOKEN_CHARS];
-
-	data = *data_p;
-	len = 0;
-	com_token[0] = 0;
-
-	// make sure incoming data is valid
-	if(!data)
-	{
-		*data_p = NULL;
-		return com_token;
-	}
-
-	while(1)
-	{
-		// skip whitespace
-		while((c = *data) <= ' ')
-		{
-			if(!c)
-			{
-				break;
-			}
-			data++;
-		}
-
-
-		c = *data;
-
-		// skip double slash comments
-		if(c == '/' && data[1] == '/')
-		{
-			while(*data && *data != '\n')
-				data++;
-		}
-		// skip /* */ comments
-		else if(c == '/' && data[1] == '*')
-		{
-			while(*data && (*data != '*' || data[1] != '/'))
-			{
-				data++;
-			}
-			if(*data)
-			{
-				data += 2;
-			}
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	if(c == 0)
-	{
-		return "";
-	}
-
-	// handle quoted strings
-	if(c == '\"')
-	{
-		data++;
-		while(1)
-		{
-			c = *data++;
-			if(c == '\"' || !c)
-			{
-				com_token[len] = 0;
-				*data_p = (char *)data;
-				return com_token;
-			}
-			if(len < MAX_TOKEN_CHARS)
-			{
-				com_token[len] = c;
-				len++;
-			}
-		}
-	}
-
-	// parse a regular word
-	do
-	{
-		if(len < MAX_TOKEN_CHARS)
-		{
-			com_token[len] = c;
-			len++;
-		}
-		data++;
-		c = *data;
-	} while(c > 32 && c != ',');
-
-	if(len == MAX_TOKEN_CHARS)
-	{
-//      Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
-		len = 0;
-	}
-	com_token[len] = 0;
-
-	*data_p = (char *)data;
-	return com_token;
-}
-
-
-
-/*
-===============
-RE_RegisterSkin
-
-===============
-*/
-qhandle_t RE_RegisterSkin(const char *name)
-{
-	qhandle_t       hSkin;
-	skin_t         *skin;
-	skinSurface_t  *surf;
-	char           *text, *text_p;
-	char           *token;
-	char            surfName[MAX_QPATH];
-
-	if(!name || !name[0])
-	{
-		Com_Printf("Empty name passed to RE_RegisterSkin\n");
-		return 0;
-	}
-
-	if(strlen(name) >= MAX_QPATH)
-	{
-		Com_Printf("Skin name exceeds MAX_QPATH\n");
-		return 0;
-	}
-
-
-	// see if the skin is already loaded
-	for(hSkin = 1; hSkin < tr.numSkins; hSkin++)
-	{
-		skin = tr.skins[hSkin];
-		if(!Q_stricmp(skin->name, name))
-		{
-			if(skin->numSurfaces == 0)
-			{
-				return 0;		// default skin
-			}
-			return hSkin;
-		}
-	}
-
-	// allocate a new skin
-	if(tr.numSkins == MAX_SKINS)
-	{
-		ri.Printf(PRINT_WARNING, "WARNING: RE_RegisterSkin( '%s' ) MAX_SKINS hit\n", name);
-		return 0;
-	}
-	tr.numSkins++;
-	skin = ri.Hunk_Alloc(sizeof(skin_t), h_low);
-	tr.skins[hSkin] = skin;
-	Q_strncpyz(skin->name, name, sizeof(skin->name));
-	skin->numSurfaces = 0;
-
-	// make sure the render thread is stopped
-	R_SyncRenderThread();
-
-	// If not a .skin file, load as a single shader
-	if(strcmp(name + strlen(name) - 5, ".skin"))
-	{
-		skin->numSurfaces = 1;
-		skin->surfaces[0] = ri.Hunk_Alloc(sizeof(skin->surfaces[0]), h_low);
-		skin->surfaces[0]->shader = R_FindShader(name, SHADER_3D_DYNAMIC, qtrue);
-		return hSkin;
-	}
-
-	// load and parse the skin file
-	ri.FS_ReadFile(name, (void **)&text);
-	if(!text)
-	{
-		return 0;
-	}
-
-	text_p = text;
-	while(text_p && *text_p)
-	{
-		// get surface name
-		token = CommaParse(&text_p);
-		Q_strncpyz(surfName, token, sizeof(surfName));
-
-		if(!token[0])
-		{
-			break;
-		}
-		// lowercase the surface name so skin compares are faster
-		Q_strlwr(surfName);
-
-		if(*text_p == ',')
-		{
-			text_p++;
-		}
-
-		if(strstr(token, "tag_"))
-		{
-			continue;
-		}
-
-		// parse the shader name
-		token = CommaParse(&text_p);
-
-		surf = skin->surfaces[skin->numSurfaces] = ri.Hunk_Alloc(sizeof(*skin->surfaces[0]), h_low);
-		Q_strncpyz(surf->name, surfName, sizeof(surf->name));
-		surf->shader = R_FindShader(token, SHADER_3D_DYNAMIC, qtrue);
-		skin->numSurfaces++;
-	}
-
-	ri.FS_FreeFile(text);
-
-
-	// never let a skin have 0 shaders
-	if(skin->numSurfaces == 0)
-	{
-		return 0;				// use default skin
-	}
-
-	return hSkin;
-}
-
-
-
-/*
-===============
-R_InitSkins
-===============
-*/
-void R_InitSkins(void)
-{
-	skin_t         *skin;
-
-	tr.numSkins = 1;
-
-	// make the default skin have all default shaders
-	skin = tr.skins[0] = ri.Hunk_Alloc(sizeof(skin_t), h_low);
-	Q_strncpyz(skin->name, "<default skin>", sizeof(skin->name));
-	skin->numSurfaces = 1;
-	skin->surfaces[0] = ri.Hunk_Alloc(sizeof(*skin->surfaces), h_low);
-	skin->surfaces[0]->shader = tr.defaultShader;
-}
-
-/*
-===============
-R_GetSkinByHandle
-===============
-*/
-skin_t         *R_GetSkinByHandle(qhandle_t hSkin)
-{
-	if(hSkin < 1 || hSkin >= tr.numSkins)
-	{
-		return tr.skins[0];
-	}
-	return tr.skins[hSkin];
-}
-
-/*
-===============
-R_SkinList_f
-===============
-*/
-void R_SkinList_f(void)
-{
-	int             i, j;
-	skin_t         *skin;
-
-	ri.Printf(PRINT_ALL, "------------------\n");
-
-	for(i = 0; i < tr.numSkins; i++)
-	{
-		skin = tr.skins[i];
-
-		ri.Printf(PRINT_ALL, "%3i:%s\n", i, skin->name);
-		for(j = 0; j < skin->numSurfaces; j++)
-		{
-			ri.Printf(PRINT_ALL, "       %s = %s\n", skin->surfaces[j]->name, skin->surfaces[j]->shader->name);
-		}
-	}
-	ri.Printf(PRINT_ALL, "------------------\n");
-}

@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TR_TYPES_H
 
 
+
 #define	MAX_REF_LIGHTS		1024
 #define	MAX_REF_ENTITIES	1023	// can't be increased without changing drawsurf bit packing
 #define MAX_BONES      	 	120

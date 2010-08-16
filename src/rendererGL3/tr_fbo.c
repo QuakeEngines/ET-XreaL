@@ -160,7 +160,7 @@ void R_CreateFBOColorBuffer(FBO_t * fbo, int format, int index)
 #else
 	qboolean        absent;
 
-	if(index < 0 || index >= glConfig.maxColorAttachments)
+	if(index < 0 || index >= glConfig2.maxColorAttachments)
 	{
 		ri.Printf(PRINT_WARNING, "R_CreateFBOColorBuffer: invalid attachment index %i\n", index);
 		return;
@@ -317,7 +317,7 @@ void R_AttachFBOTexture1D(int texId, int index)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(index < 0 || index >= glConfig.maxColorAttachments)
+	if(index < 0 || index >= glConfig2.maxColorAttachments)
 	{
 		ri.Printf(PRINT_WARNING, "R_AttachFBOTexture1D: invalid attachment index %i\n", index);
 		return;
@@ -343,7 +343,7 @@ void R_AttachFBOTexture2D(int target, int texId, int index)
 		return;
 	}
 
-	if(index < 0 || index >= glConfig.maxColorAttachments)
+	if(index < 0 || index >= glConfig2.maxColorAttachments)
 	{
 		ri.Printf(PRINT_WARNING, "R_AttachFBOTexture2D: invalid attachment index %i\n", index);
 		return;
@@ -363,7 +363,7 @@ void R_AttachFBOTexture3D(int texId, int index, int zOffset)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(index < 0 || index >= glConfig.maxColorAttachments)
+	if(index < 0 || index >= glConfig2.maxColorAttachments)
 	{
 		ri.Printf(PRINT_WARNING, "R_AttachFBOTexture3D: invalid attachment index %i\n", index);
 		return;
@@ -484,7 +484,7 @@ void R_InitFBOs(void)
 
 	ri.Printf(PRINT_ALL, "------- R_InitFBOs -------\n");
 
-	if(!glConfig.framebufferObjectAvailable)
+	if(!glConfig2.framebufferObjectAvailable)
 		return;
 
 	tr.numFBOs = 0;
@@ -512,7 +512,7 @@ void R_InitFBOs(void)
 
 		ri.Printf(PRINT_ALL, "Deferred Shading enabled\n");
 
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth;
 			height = glConfig.vidHeight;
@@ -618,7 +618,7 @@ void R_InitFBOs(void)
 		ri.Printf(PRINT_ALL, "Deferred Lighting enabled\n");
 
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth;
 			height = glConfig.vidHeight;
@@ -733,7 +733,7 @@ void R_InitFBOs(void)
 	{
 		// forward shading
 
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth;
 			height = glConfig.vidHeight;
@@ -748,7 +748,7 @@ void R_InitFBOs(void)
 		tr.deferredRenderFBO = R_CreateFBO("_deferredRender", width, height);
 		R_BindFBO(tr.deferredRenderFBO);
 
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.deferredRenderFBO, GL_RGBA16F_ARB, 0);
 		}
@@ -776,9 +776,9 @@ void R_InitFBOs(void)
 		R_CheckFBO(tr.deferredRenderFBO);
 	}
 
-	if(glConfig.framebufferBlitAvailable)
+	if(glConfig2.framebufferBlitAvailable)
 	{
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth;
 			height = glConfig.vidHeight;
@@ -819,7 +819,7 @@ void R_InitFBOs(void)
 		R_CheckFBO(tr.occlusionRenderFBO);
 	}
 
-	if(r_shadows->integer >= 4 && glConfig.textureFloatAvailable)
+	if(r_shadows->integer >= 4 && glConfig2.textureFloatAvailable)
 	{
 		// shadowMap FBOs for shadow mapping offscreen rendering
 		for(i = 0; i < MAX_SHADOWMAPS; i++)
@@ -857,7 +857,7 @@ void R_InitFBOs(void)
 	}
 
 	{
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth;
 			height = glConfig.vidHeight;
@@ -872,7 +872,7 @@ void R_InitFBOs(void)
 		tr.portalRenderFBO = R_CreateFBO("_portalRender", width, height);
 		R_BindFBO(tr.portalRenderFBO);
 
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.portalRenderFBO, GL_RGBA16F_ARB, 0);
 		}
@@ -887,7 +887,7 @@ void R_InitFBOs(void)
 
 
 	{
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth * 0.25f;
 			height = glConfig.vidHeight * 0.25f;
@@ -900,7 +900,7 @@ void R_InitFBOs(void)
 
 		tr.downScaleFBO_quarter = R_CreateFBO("_downScale_quarter", width, height);
 		R_BindFBO(tr.downScaleFBO_quarter);
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.downScaleFBO_quarter, GL_RGBA16F_ARB, 0);
 		}
@@ -914,7 +914,7 @@ void R_InitFBOs(void)
 
 		tr.downScaleFBO_64x64 = R_CreateFBO("_downScale_64x64", 64, 64);
 		R_BindFBO(tr.downScaleFBO_64x64);
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.downScaleFBO_64x64, GL_RGBA16F_ARB, 0);
 		}
@@ -928,7 +928,7 @@ void R_InitFBOs(void)
 #if 0
 		tr.downScaleFBO_16x16 = R_CreateFBO("_downScale_16x16", 16, 16);
 		R_BindFBO(tr.downScaleFBO_16x16);
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.downScaleFBO_16x16, GL_RGBA16F_ARB, 0);
 		}
@@ -942,7 +942,7 @@ void R_InitFBOs(void)
 
 		tr.downScaleFBO_4x4 = R_CreateFBO("_downScale_4x4", 4, 4);
 		R_BindFBO(tr.downScaleFBO_4x4);
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.downScaleFBO_4x4, GL_RGBA16F_ARB, 0);
 		}
@@ -956,7 +956,7 @@ void R_InitFBOs(void)
 
 		tr.downScaleFBO_1x1 = R_CreateFBO("_downScale_1x1", 1, 1);
 		R_BindFBO(tr.downScaleFBO_1x1);
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.downScaleFBO_1x1, GL_RGBA16F_ARB, 0);
 		}
@@ -969,7 +969,7 @@ void R_InitFBOs(void)
 #endif
 
 
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			width = glConfig.vidWidth * 0.25f;
 			height = glConfig.vidHeight * 0.25f;
@@ -984,7 +984,7 @@ void R_InitFBOs(void)
 		tr.contrastRenderFBO = R_CreateFBO("_contrastRender", width, height);
 		R_BindFBO(tr.contrastRenderFBO);
 
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 		{
 			R_CreateFBOColorBuffer(tr.contrastRenderFBO, GL_RGBA16F_ARB, 0);
 		}
@@ -1002,7 +1002,7 @@ void R_InitFBOs(void)
 			tr.bloomRenderFBO[i] = R_CreateFBO(va("_bloomRender%d", i), width, height);
 			R_BindFBO(tr.bloomRenderFBO[i]);
 
-			if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+			if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 			{
 				R_CreateFBOColorBuffer(tr.bloomRenderFBO[i], GL_RGBA16F_ARB, 0);
 			}
@@ -1035,7 +1035,7 @@ void R_ShutdownFBOs(void)
 	ri.Printf(PRINT_ALL, "------- R_ShutdownFBOs -------\n");
 
 #if !defined(USE_D3D10)
-	if(!glConfig.framebufferObjectAvailable)
+	if(!glConfig2.framebufferObjectAvailable)
 		return;
 #endif
 
@@ -1048,7 +1048,7 @@ void R_ShutdownFBOs(void)
 #if defined(USE_D3D10)
 		// TODO
 #else
-		for(j = 0; j < glConfig.maxColorAttachments; j++)
+		for(j = 0; j < glConfig2.maxColorAttachments; j++)
 		{
 			if(fbo->colorBuffers[j])
 				qglDeleteRenderbuffersEXT(1, &fbo->colorBuffers[j]);
@@ -1077,7 +1077,7 @@ void R_FBOList_f(void)
 	FBO_t          *fbo;
 
 #if !defined(USE_D3D10)
-	if(!glConfig.framebufferObjectAvailable)
+	if(!glConfig2.framebufferObjectAvailable)
 	{
 		ri.Printf(PRINT_ALL, "GL_EXT_framebuffer_object is not available.\n");
 		return;

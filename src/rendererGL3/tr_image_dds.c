@@ -462,7 +462,7 @@ static void R_UploadCompressedImage2D(image_t * img, GLenum target, int level, G
 {
 	GLenum          int_fmat;
 
-	if(glConfig.ARBTextureCompressionAvailable && glConfig.textureCompression == TC_S3TC)
+	if(glConfig2.ARBTextureCompressionAvailable && glConfig.textureCompression == TC_S3TC)
 	{
 		qglCompressedTexImage2DARB(target, level, format, width, height, 0, size, data);
 		return;
@@ -908,7 +908,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 
 		int             i;
 
-		if(!glConfig.texture3DAvailable)
+		if(!glConfig2.texture3DAvailable)
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadDDSImage: Tried to load 3D texture but missing hardware support \"%s\"\n", name);
 			goto ret_error;
@@ -922,7 +922,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 
 		GL_Bind(ret);
 
-		if(filterType == FT_DEFAULT && mipLevels == 1 && glConfig.generateMipmapAvailable)
+		if(filterType == FT_DEFAULT && mipLevels == 1 && glConfig2.generateMipmapAvailable)
 			qglTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 
 		for(i = 0; i < mipLevels; i++)
@@ -985,7 +985,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 		for( i = 0; i <= mipLevels; i++ )											\
 			mipOffsets[ i ] += shift
 
-		if(filterType == FT_DEFAULT && mipLevels == 1 && glConfig.generateMipmapAvailable)
+		if(filterType == FT_DEFAULT && mipLevels == 1 && glConfig2.generateMipmapAvailable)
 			qglTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 
 		//the faces are stored in the order +x, -x, +y, -y, +z, -z
@@ -1041,7 +1041,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 		{
 			// non-pow2: check extensions
 
-			if(glConfig.textureNPOTAvailable)
+			if(glConfig2.textureNPOTAvailable)
 			{
 				ret->type = GL_TEXTURE_2D;
 			}
@@ -1093,7 +1093,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 	{
 		case FT_DEFAULT:
 			// set texture anisotropy
-			if(glConfig.textureAnisotropyAvailable)
+			if(glConfig2.textureAnisotropyAvailable)
 				qglTexParameterf(ret->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 
 			qglTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);

@@ -743,7 +743,7 @@ qboolean R_inPVS(const vec3_t p1, const vec3_t p2)
 	byte           *vis;
 
 	leaf = R_PointInLeaf(p1);
-	vis = ri.CM_ClusterPVS(leaf->cluster);
+	vis = R_ClusterPVS(leaf->cluster);
 	leaf = R_PointInLeaf(p2);
 
 	if(!(vis[leaf->cluster >> 3] & (1 << (leaf->cluster & 7))))
@@ -1778,7 +1778,7 @@ static void R_CoherentHierachicalCulling()
 	GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 	GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 	GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 	}
@@ -2367,7 +2367,7 @@ void R_AddWorldSurfaces(void)
 	ClearBounds(tr.viewParms.visBounds[0], tr.viewParms.visBounds[1]);
 
 	// update the bsp nodes with the dynamic occlusion query results
-	if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
+	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
 	{
 		R_CoherentHierachicalCulling();
 	}

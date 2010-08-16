@@ -50,6 +50,7 @@ void R_AddBrushModelInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	}
 
 	// avoid drawing of certain objects
+#if defined(USE_REFENTITY_NOSHADOWID)
 	if(light->l.inverseShadows)
 	{
 		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID != ent->e.noShadowID)))
@@ -60,6 +61,7 @@ void R_AddBrushModelInteractions(trRefEntity_t * ent, trRefLight_t * light)
 		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID == ent->e.noShadowID)))
 			return;
 	}
+#endif
 
 	pModel = R_GetModelByHandle(ent->e.hModel);
 	bspModel = pModel->bsp;
@@ -803,25 +805,25 @@ void R_SetupLightFrustum(trRefLight_t * light)
 					// draw outer surfaces
 					for(j = 0; j < 4; j++)
 					{
-						VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-						VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-						VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-						VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+						Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+						Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+						Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+						Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 						Tess_AddQuadStamp2(quadVerts, colorCyan);
 					}
 
 					// draw far cap
-					VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-					VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-					VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-					VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+					Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+					Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+					Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorRed);
 
 					// draw near cap
-					VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-					VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-					VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-					VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+					Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+					Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+					Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+					Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorGreen);
 
 				}
@@ -836,25 +838,25 @@ void R_SetupLightFrustum(trRefLight_t * light)
 					for(j = 0; j < 4; j++)
 					{
 						VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
-						VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 
 						VectorCopy(farCorners[(j + 1) % 4], tess.xyz[tess.numVertexes]);
-						VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 
 						VectorCopy(top, tess.xyz[tess.numVertexes]);
-						VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 					}
 
-					VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-					VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-					VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-					VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+					Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+					Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+					Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorRed);
 				}
 
@@ -948,9 +950,9 @@ void R_SetupLightProjection(trRefLight_t * light)
 			VectorScale(right, ( 0.5f * dist ) / rLen, right);
 			VectorScale(up, -( 0.5f * dist ) / uLen, up);
 
-			VectorSet4(lightProject[0], right[0], right[1], right[2], 0);
-			VectorSet4(lightProject[1], up[0], up[1], up[2], 0);
-			VectorSet4(lightProject[2], normal[0], normal[1], normal[2], 0);
+			Vector4Set(lightProject[0], right[0], right[1], right[2], 0);
+			Vector4Set(lightProject[1], up[0], up[1], up[2], 0);
+			Vector4Set(lightProject[2], normal[0], normal[1], normal[2], 0);
 
 			// now offset to center
 			VectorCopy(light->l.projTarget, targetGlobal);
@@ -960,14 +962,14 @@ void R_SetupLightProjection(trRefLight_t * light)
 				b = DotProduct4(targetGlobal, lightProject[2]);
 				ofs = 0.5 - a / b;
 
-				VectorMA4(lightProject[0], ofs, lightProject[2], lightProject[0]);
+				Vector4MA(lightProject[0], ofs, lightProject[2], lightProject[0]);
 			}
 			{
 				a = DotProduct4(targetGlobal, lightProject[1]);
 				b = DotProduct4(targetGlobal, lightProject[2]);
 				ofs = 0.5 - a / b;
 
-				VectorMA4(lightProject[1], ofs, lightProject[2], lightProject[1]);
+				Vector4MA(lightProject[1], ofs, lightProject[2], lightProject[1]);
 			}
 
 			if(!VectorCompare(light->l.projStart, vec3_origin))
@@ -1000,11 +1002,11 @@ void R_SetupLightProjection(trRefLight_t * light)
 
 			//light->falloffLength = 1;
 
-			VectorSet4(lightProject[3], falloff[0], falloff[1], falloff[2], -DotProduct(start, falloff));
+			Vector4Set(lightProject[3], falloff[0], falloff[1], falloff[2], -DotProduct(start, falloff));
 
 			// we want the planes of s=0, s=q, t=0, and t=q
-			VectorCopy4(lightProject[0], frustum[FRUSTUM_LEFT]);
-			VectorCopy4(lightProject[1], frustum[FRUSTUM_BOTTOM]);
+			Vector4Copy(lightProject[0], frustum[FRUSTUM_LEFT]);
+			Vector4Copy(lightProject[1], frustum[FRUSTUM_BOTTOM]);
 
 			VectorSubtract(lightProject[2], lightProject[0], frustum[FRUSTUM_RIGHT]);
 			frustum[FRUSTUM_RIGHT][3] = lightProject[2][3] - lightProject[0][3];
@@ -1147,7 +1149,7 @@ qboolean R_AddLightInteraction(trRefLight_t * light, surfaceType_t * surface, sh
 	}
 #endif
 
-	if(glConfig.occlusionQueryAvailable)
+	if(glConfig2.occlusionQueryAvailable)
 	{
 		ia->noOcclusionQueries = light->noOcclusionQueries;
 	}
@@ -1313,7 +1315,7 @@ static void R_AddEdgeToLightScissor(trRefLight_t * light, vec3_t local1, vec3_t 
 		side1 = ((DotProduct(frust->normal, world1) - frust->dist) >= 0.0);
 		side2 = ((DotProduct(frust->normal, world2) - frust->dist) >= 0.0);
 
-		if(glConfig.occlusionQueryAvailable && i == FRUSTUM_NEAR)
+		if(glConfig2.occlusionQueryAvailable && i == FRUSTUM_NEAR)
 		{
 			if(!side1 || !side2)
 			{
@@ -1358,7 +1360,7 @@ void R_SetupLightScissor(trRefLight_t * light)
 	light->scissor.coords[2] = tr.viewParms.viewportX + tr.viewParms.viewportWidth;
 	light->scissor.coords[3] = tr.viewParms.viewportY + tr.viewParms.viewportHeight;
 
-	if(glConfig.occlusionQueryAvailable)
+	if(glConfig2.occlusionQueryAvailable)
 	{
 		light->noOcclusionQueries = qfalse;
 	}
@@ -1366,7 +1368,7 @@ void R_SetupLightScissor(trRefLight_t * light)
 	// check if the light volume clips agains the near plane
 	if(r_noLightScissors->integer || BoxOnPlaneSide(light->worldBounds[0], light->worldBounds[1], &tr.viewParms.frustums[0][FRUSTUM_NEAR]) == 3)
 	{
-		if(glConfig.occlusionQueryAvailable)
+		if(glConfig2.occlusionQueryAvailable)
 		{
 			light->noOcclusionQueries = qtrue;
 		}

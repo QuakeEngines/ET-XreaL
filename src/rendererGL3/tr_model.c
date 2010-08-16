@@ -27,8 +27,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	LF(x) x=LittleFloat(x)
 
 static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const char *name, qboolean forceStatic);
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const char *name);
 static qboolean R_LoadPSK(model_t * mod, void *buffer, int bufferSize, const char *name);
+#endif
 
 model_t        *loadmodel;
 
@@ -170,6 +173,7 @@ qhandle_t RE_RegisterModel(const char *name, qboolean forceStatic)
 
 		len = strlen(filename);
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 		if(!Q_stricmpn((const char *)buffer, "MD5Version", 10))
 		{
 			loaded = R_LoadMD5(mod, buffer, bufferLen, name);
@@ -179,6 +183,7 @@ qhandle_t RE_RegisterModel(const char *name, qboolean forceStatic)
 			loaded = R_LoadPSK(mod, buffer, bufferLen, name);
 		}
 		else
+#endif
 		{
 			if(ident != MD3_IDENT)
 			{
@@ -254,10 +259,10 @@ compare function for qsort()
 */
 static int MDXSurfaceCompare(const void *a, const void *b)
 {
-	mdxSurface_t   *aa, *bb;
+	mdvSurface_t   *aa, *bb;
 
-	aa = *(mdxSurface_t **) a;
-	bb = *(mdxSurface_t **) b;
+	aa = *(mdvSurface_t **) a;
+	bb = *(mdvSurface_t **) b;
 
 	// shader first
 	if(&aa->shader < &bb->shader)
@@ -287,13 +292,13 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 	md3XyzNormal_t *md3xyz;
 	md3Tag_t       *md3Tag;
 
-	mdxModel_t     *mdxModel;
-	mdxFrame_t     *frame;
-	mdxSurface_t   *surf, *surface;
+	mdvModel_t     *mdxModel;
+	mdvFrame_t     *frame;
+	mdvSurface_t   *surf, *surface;
 	srfTriangle_t  *tri;
-	mdxVertex_t    *v;
-	mdxSt_t        *st;
-	mdxTag_t       *tag;
+	mdvVertex_t    *v;
+	mdvSt_t        *st;
+	mdvTag_t       *tag;
 
 	int             version;
 	int             size;
@@ -310,7 +315,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 	mod->type = MOD_MDX;
 	size = LittleLong(md3Model->ofsEnd);
 	mod->dataSize += size;
-	mdxModel = mod->mdx[lod] = ri.Hunk_Alloc(sizeof(mdxModel_t), h_low);
+	mdxModel = mod->mdx[lod] = ri.Hunk_Alloc(sizeof(mdvModel_t), h_low);
 
 //  Com_Memcpy(mod->md3[lod], buffer, LittleLong(md3Model->ofsEnd));
 
@@ -506,7 +511,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 		shader_t       *shader, *oldShader;
 
 		int             numSurfaces;
-		mdxSurface_t  **surfacesSorted;
+		mdvSurface_t  **surfacesSorted;
 
 		vec4_t          tmp;
 		int             index;
@@ -885,7 +890,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 
 //=============================================================================
 
-
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 typedef struct
 {
 	int             indexes[3];
@@ -1006,7 +1011,7 @@ static qboolean AddTriangleToVBOTriangleList(growList_t * vboTriangles, skelTria
 				if(!boneReferences[boneIndex])
 				{
 					// the bone isn't yet and we have to test if we can give the mesh this bone at all
-					if((*numBoneReferences + numNewReferences) >= glConfig.maxVertexSkinningBones)
+					if((*numBoneReferences + numNewReferences) >= glConfig2.maxVertexSkinningBones)
 					{
 						return qfalse;
 					}
@@ -1579,10 +1584,10 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 	buf_p = (char *)buffer;
 
 	// skip MD5Version indent string
-	Com_ParseExt(&buf_p, qfalse);
+	COM_ParseExt2(&buf_p, qfalse);
 
 	// check version
-	token = Com_ParseExt(&buf_p, qfalse);
+	token = COM_ParseExt2(&buf_p, qfalse);
 	version = atoi(token);
 	if(version != MD5_VERSION)
 	{
@@ -1595,28 +1600,28 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 	md5 = mod->md5 = ri.Hunk_Alloc(sizeof(md5Model_t), h_low);
 
 	// skip commandline <arguments string>
-	token = Com_ParseExt(&buf_p, qtrue);
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 //  ri.Printf(PRINT_ALL, "%s\n", token);
 
 	// parse numJoints <number>
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 	if(Q_stricmp(token, "numJoints"))
 	{
 		ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'numJoints' found '%s' in model '%s'\n", token, modName);
 		return qfalse;
 	}
-	token = Com_ParseExt(&buf_p, qfalse);
+	token = COM_ParseExt2(&buf_p, qfalse);
 	md5->numBones = atoi(token);
 
 	// parse numMeshes <number>
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 	if(Q_stricmp(token, "numMeshes"))
 	{
 		ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'numMeshes' found '%s' in model '%s'\n", token, modName);
 		return qfalse;
 	}
-	token = Com_ParseExt(&buf_p, qfalse);
+	token = COM_ParseExt2(&buf_p, qfalse);
 	md5->numSurfaces = atoi(token);
 	//ri.Printf(PRINT_ALL, "R_LoadMD5: '%s' has %i surfaces\n", modName, md5->numSurfaces);
 
@@ -1637,13 +1642,13 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 	md5->bones = ri.Hunk_Alloc(sizeof(*bone) * md5->numBones, h_low);
 
 	// parse joints {
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 	if(Q_stricmp(token, "joints"))
 	{
 		ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'joints' found '%s' in model '%s'\n", token, modName);
 		return qfalse;
 	}
-	token = Com_ParseExt(&buf_p, qfalse);
+	token = COM_ParseExt2(&buf_p, qfalse);
 	if(Q_stricmp(token, "{"))
 	{
 		ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '{' found '%s' in model '%s'\n", token, modName);
@@ -1652,12 +1657,12 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 
 	for(i = 0, bone = md5->bones; i < md5->numBones; i++, bone++)
 	{
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		Q_strncpyz(bone->name, token, sizeof(bone->name));
 
 		//ri.Printf(PRINT_ALL, "R_LoadMD5: '%s' has bone '%s'\n", modName, bone->name);
 
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		bone->parentIndex = atoi(token);
 
 		//ri.Printf(PRINT_ALL, "R_LoadMD5: '%s' has bone '%s' with parent index %i\n", modName, bone->name, bone->parentIndex);
@@ -1669,7 +1674,7 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		}
 
 		// skip (
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		if(Q_stricmp(token, "("))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '(' found '%s' in model '%s'\n", token, modName);
@@ -1678,12 +1683,12 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 
 		for(j = 0; j < 3; j++)
 		{
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			boneOrigin[j] = atof(token);
 		}
 
 		// skip )
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		if(Q_stricmp(token, ")"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected ')' found '%s' in model '%s'\n", token, modName);
@@ -1691,7 +1696,7 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		}
 
 		// skip (
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		if(Q_stricmp(token, "("))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '(' found '%s' in model '%s'\n", token, modName);
@@ -1700,7 +1705,7 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 
 		for(j = 0; j < 3; j++)
 		{
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			boneQuat[j] = atof(token);
 		}
 		QuatCalcW(boneQuat);
@@ -1713,7 +1718,7 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		MatrixInverse(bone->inverseTransform);
 
 		// skip )
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		if(Q_stricmp(token, ")"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '(' found '%s' in model '%s'\n", token, modName);
@@ -1722,7 +1727,7 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 	}
 
 	// parse }
-	token = Com_ParseExt(&buf_p, qtrue);
+	token = COM_ParseExt2(&buf_p, qtrue);
 	if(Q_stricmp(token, "}"))
 	{
 		ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '}' found '%s' in model '%s'\n", token, modName);
@@ -1741,13 +1746,13 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 	for(i = 0, surf = md5->surfaces; i < md5->numSurfaces; i++, surf++)
 	{
 		// parse mesh {
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		if(Q_stricmp(token, "mesh"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'mesh' found '%s' in model '%s'\n", token, modName);
 			return qfalse;
 		}
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		if(Q_stricmp(token, "{"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '{' found '%s' in model '%s'\n", token, modName);
@@ -1761,13 +1766,13 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		surf->model = md5;
 
 		// parse shader <name>
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		if(Q_stricmp(token, "shader"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'shader' found '%s' in model '%s'\n", token, modName);
 			return qfalse;
 		}
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		Q_strncpyz(surf->shader, token, sizeof(surf->shader));
 
 		//ri.Printf(PRINT_ALL, "R_LoadMD5: '%s' uses shader '%s'\n", modName, surf->shader);
@@ -1789,13 +1794,13 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		}
 
 		// parse numVerts <number>
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		if(Q_stricmp(token, "numVerts"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'numVerts' found '%s' in model '%s'\n", token, modName);
 			return qfalse;
 		}
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		surf->numVerts = atoi(token);
 
 		if(surf->numVerts > SHADER_MAX_VERTEXES)
@@ -1808,16 +1813,16 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
 		{
 			// skip vert <number>
-			token = Com_ParseExt(&buf_p, qtrue);
+			token = COM_ParseExt2(&buf_p, qtrue);
 			if(Q_stricmp(token, "vert"))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'vert' found '%s' in model '%s'\n", token, modName);
 				return qfalse;
 			}
-			Com_ParseExt(&buf_p, qfalse);
+			COM_ParseExt2(&buf_p, qfalse);
 
 			// skip (
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			if(Q_stricmp(token, "("))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '(' found '%s' in model '%s'\n", token, modName);
@@ -1826,22 +1831,22 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 
 			for(k = 0; k < 2; k++)
 			{
-				token = Com_ParseExt(&buf_p, qfalse);
+				token = COM_ParseExt2(&buf_p, qfalse);
 				v->texCoords[k] = atof(token);
 			}
 
 			// skip )
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			if(Q_stricmp(token, ")"))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected ')' found '%s' in model '%s'\n", token, modName);
 				return qfalse;
 			}
 
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			v->firstWeight = atoi(token);
 
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			v->numWeights = atoi(token);
 
 			if(v->numWeights > MAX_WEIGHTS)
@@ -1852,13 +1857,13 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		}
 
 		// parse numTris <number>
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		if(Q_stricmp(token, "numTris"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'numTris' found '%s' in model '%s'\n", token, modName);
 			return qfalse;
 		}
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		surf->numTriangles = atoi(token);
 
 		if(surf->numTriangles > SHADER_MAX_TRIANGLES)
@@ -1871,17 +1876,17 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
 		{
 			// skip tri <number>
-			token = Com_ParseExt(&buf_p, qtrue);
+			token = COM_ParseExt2(&buf_p, qtrue);
 			if(Q_stricmp(token, "tri"))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'tri' found '%s' in model '%s'\n", token, modName);
 				return qfalse;
 			}
-			Com_ParseExt(&buf_p, qfalse);
+			COM_ParseExt2(&buf_p, qfalse);
 
 			for(k = 0; k < 3; k++)
 			{
-				token = Com_ParseExt(&buf_p, qfalse);
+				token = COM_ParseExt2(&buf_p, qfalse);
 				tri->indexes[k] = atoi(token);
 			}
 		}
@@ -1889,35 +1894,35 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		R_CalcSurfaceTriangleNeighbors(surf->numTriangles, surf->triangles);
 
 		// parse numWeights <number>
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		if(Q_stricmp(token, "numWeights"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'numWeights' found '%s' in model '%s'\n", token, modName);
 			return qfalse;
 		}
-		token = Com_ParseExt(&buf_p, qfalse);
+		token = COM_ParseExt2(&buf_p, qfalse);
 		surf->numWeights = atoi(token);
 
 		surf->weights = ri.Hunk_Alloc(sizeof(*weight) * surf->numWeights, h_low);
 		for(j = 0, weight = surf->weights; j < surf->numWeights; j++, weight++)
 		{
 			// skip weight <number>
-			token = Com_ParseExt(&buf_p, qtrue);
+			token = COM_ParseExt2(&buf_p, qtrue);
 			if(Q_stricmp(token, "weight"))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected 'weight' found '%s' in model '%s'\n", token, modName);
 				return qfalse;
 			}
-			Com_ParseExt(&buf_p, qfalse);
+			COM_ParseExt2(&buf_p, qfalse);
 
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			weight->boneIndex = atoi(token);
 
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			weight->boneWeight = atof(token);
 
 			// skip (
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			if(Q_stricmp(token, "("))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '(' found '%s' in model '%s'\n", token, modName);
@@ -1926,12 +1931,12 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 
 			for(k = 0; k < 3; k++)
 			{
-				token = Com_ParseExt(&buf_p, qfalse);
+				token = COM_ParseExt2(&buf_p, qfalse);
 				weight->offset[k] = atof(token);
 			}
 
 			// skip )
-			token = Com_ParseExt(&buf_p, qfalse);
+			token = COM_ParseExt2(&buf_p, qfalse);
 			if(Q_stricmp(token, ")"))
 			{
 				ri.Printf(PRINT_WARNING, "R_LoadMD5: expected ')' found '%s' in model '%s'\n", token, modName);
@@ -1940,7 +1945,7 @@ static qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const cha
 		}
 
 		// parse }
-		token = Com_ParseExt(&buf_p, qtrue);
+		token = COM_ParseExt2(&buf_p, qtrue);
 		if(Q_stricmp(token, "}"))
 		{
 			ri.Printf(PRINT_WARNING, "R_LoadMD5: expected '}' found '%s' in model '%s'\n", token, modName);
@@ -3177,6 +3182,8 @@ static qboolean R_LoadPSK(model_t * mod, void *buffer, int bufferSize, const cha
 }
 
 
+#endif // USE_REFENTITY_ANIMATIONSYSTEM
+
 //=============================================================================
 
 /*
@@ -3250,7 +3257,7 @@ static qboolean R_LoadDAE(model_t * mod, void *buffer, int bufferLen, const char
 /*
 ** RE_BeginRegistration
 */
-void RE_BeginRegistration(glConfig_t * glconfigOut)
+void RE_BeginRegistration(glconfig_t * glconfigOut)
 {
 	R_Init();
 
@@ -3352,9 +3359,9 @@ void R_Modellist_f(void)
 R_GetTag
 ================
 */
-static mdxTag_t *R_GetTag(mdxModel_t * model, int frame, const char *tagName)
+static mdvTag_t *R_GetTag(mdvModel_t * model, int frame, const char *tagName)
 {
-	mdxTag_t       *tag;
+	mdvTag_t       *tag;
 	int             i;
 
 	if(frame >= model->numFrames)
@@ -3382,7 +3389,7 @@ RE_LerpTag
 */
 int RE_LerpTag(orientation_t * tag, qhandle_t handle, int startFrame, int endFrame, float frac, const char *tagName)
 {
-	mdxTag_t       *start, *end;
+	mdvTag_t       *start, *end;
 	int             i;
 	float           frontLerp, backLerp;
 	model_t        *model;
@@ -3463,8 +3470,8 @@ R_ModelBounds
 void R_ModelBounds(qhandle_t handle, vec3_t mins, vec3_t maxs)
 {
 	model_t        *model;
-	mdxModel_t     *header;
-	mdxFrame_t     *frame;
+	mdvModel_t     *header;
+	mdvFrame_t     *frame;
 
 	model = R_GetModelByHandle(handle);
 

@@ -125,7 +125,7 @@ void GL_TextureFilter(image_t * image, filterType_t filterType)
 			   qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 			   // set texture anisotropy
-			   if(glConfig.textureAnisotropyAvailable)
+			   if(glConfig2.textureAnisotropyAvailable)
 			   qglTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 			   break;
 			 */
@@ -675,7 +675,7 @@ void GL_VertexAttribsState(uint32_t stateBits)
 {
 	uint32_t		diff;
 
-	if(glConfig.vboVertexSkinningAvailable && tess.vboVertexSkinning)
+	if(glConfig2.vboVertexSkinningAvailable && tess.vboVertexSkinning)
 		stateBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 
 	GL_VertexAttribPointers(stateBits);
@@ -923,7 +923,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 		GLimp_LogComment(va("--- GL_VertexAttribPointers( %s ) ---\n", glState.currentVBO->name));
 	}
 
-	if(glConfig.vboVertexSkinningAvailable && tess.vboVertexSkinning)
+	if(glConfig2.vboVertexSkinningAvailable && tess.vboVertexSkinning)
 		attribBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 
 	if((attribBits & ATTR_POSITION) && !(glState.vertexAttribPointersSet & ATTR_POSITION))
@@ -1102,7 +1102,7 @@ static void RB_SetGL2D(void)
 	GLimp_LogComment("--- RB_SetGL2D ---\n");
 
 	// disable offscreen rendering
-	if(glConfig.framebufferObjectAvailable)
+	if(glConfig2.framebufferObjectAvailable)
 	{
 		R_BindNullFBO();
 	}
@@ -1378,12 +1378,12 @@ static void Render_lightVolume(interaction_t * ia)
 
 			// bind u_DepthMap
 			GL_SelectTexture(0);
-			if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+			if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 					   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 			{
 				GL_Bind(tr.depthRenderImage);
 			}
-			else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+			else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 			{
 				GL_Bind(tr.depthRenderImage);
 			}
@@ -1410,11 +1410,11 @@ static void Render_lightVolume(interaction_t * ia)
 			}
 
 			// draw light scissor rectangle
-			VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-			VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-			VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0,
+			Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+			Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+			Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0,
 					   1);
-			VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+			Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 			Tess_InstantQuad(quadVerts);
 
 			GL_CheckErrors();
@@ -1674,7 +1674,7 @@ static void RB_RenderInteractions()
 		surface = ia->surface;
 		shader = ia->surfaceShader;
 
-		if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
 		{
 			// skip all interactions of this light because it failed the occlusion query
 			goto skipInteraction;
@@ -1920,7 +1920,7 @@ static void RB_RenderInteractionsStencilShadowed()
 		surface = ia->surface;
 		shader = ia->surfaceShader;
 
-		if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
 		{
 			// skip all interactions of this light because it failed the occlusion query
 			goto skipInteraction;
@@ -2339,7 +2339,7 @@ static void RB_RenderInteractionsShadowMapped()
 								0.0, 0.0, 0.5, 0.0,
 								0.5, 0.5, 0.5, 1.0};
 
-	if(!glConfig.framebufferObjectAvailable || !glConfig.textureFloatAvailable)
+	if(!glConfig2.framebufferObjectAvailable || !glConfig2.textureFloatAvailable)
 	{
 		RB_RenderInteractions();
 		return;
@@ -2385,7 +2385,7 @@ static void RB_RenderInteractionsShadowMapped()
 			deformType = DEFORM_TYPE_NONE;
 		}
 
-		if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
 		{
 			// skip all interactions of this light because it failed the occlusion query
 			goto skipInteraction;
@@ -2983,10 +2983,10 @@ static void RB_RenderInteractionsShadowMapped()
 								x = 205 * frustumIndex;
 								y = 70;
 
-								VectorSet4(quadVerts[0], x, y, 0, 1);
-								VectorSet4(quadVerts[1], x + w, y, 0, 1);
-								VectorSet4(quadVerts[2], x + w, y + h, 0, 1);
-								VectorSet4(quadVerts[3], x, y + h, 0, 1);
+								Vector4Set(quadVerts[0], x, y, 0, 1);
+								Vector4Set(quadVerts[1], x + w, y, 0, 1);
+								Vector4Set(quadVerts[2], x + w, y + h, 0, 1);
+								Vector4Set(quadVerts[3], x, y + h, 0, 1);
 
 								Tess_InstantQuad(quadVerts);
 
@@ -3009,7 +3009,7 @@ static void RB_RenderInteractionsShadowMapped()
 									GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 									GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 									GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-									if(glConfig.vboVertexSkinningAvailable)
+									if(glConfig2.vboVertexSkinningAvailable)
 									{
 										GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 									}
@@ -3046,25 +3046,25 @@ static void RB_RenderInteractionsShadowMapped()
 									// draw outer surfaces
 									for(j = 0; j < 4; j++)
 									{
-										VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-										VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-										VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-										VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+										Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+										Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+										Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+										Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 										Tess_AddQuadStamp2(quadVerts, colorCyan);
 									}
 
 									// draw far cap
-									VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-									VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-									VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-									VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+									Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+									Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+									Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+									Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 									Tess_AddQuadStamp2(quadVerts, colorBlue);
 
 									// draw near cap
-									VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-									VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-									VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-									VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+									Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+									Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+									Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+									Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 									Tess_AddQuadStamp2(quadVerts, colorGreen);
 
 									Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
@@ -3734,7 +3734,7 @@ void RB_RenderInteractionsDeferred()
 	{
 		backEnd.currentLight = light = ia->light;
 
-		if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
 		{
 			// skip all interactions of this light because it failed the occlusion query
 			goto skipInteraction;
@@ -3743,7 +3743,7 @@ void RB_RenderInteractionsDeferred()
 	  skipInteraction:
 		if(!ia->next)
 		{
-			if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && ia->occlusionQuerySamples)
+			if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && ia->occlusionQuerySamples)
 			{
 				GLimp_LogComment("--- Rendering light volume ---\n");
 
@@ -3755,7 +3755,7 @@ void RB_RenderInteractionsDeferred()
 				GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 				GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 				GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-				if(glConfig.vboVertexSkinningAvailable)
+				if(glConfig2.vboVertexSkinningAvailable)
 				{
 					GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 				}
@@ -3843,25 +3843,25 @@ void RB_RenderInteractionsDeferred()
 								// draw outer surfaces
 								for(j = 0; j < 4; j++)
 								{
-									VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-									VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-									VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-									VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+									Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+									Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+									Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+									Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 									Tess_AddQuadStamp2(quadVerts, colorCyan);
 								}
 
 								// draw far cap
-								VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-								VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-								VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-								VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+								Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+								Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+								Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+								Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorRed);
 
 								// draw near cap
-								VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-								VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-								VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-								VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+								Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+								Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+								Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+								Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorGreen);
 
 							}
@@ -3876,25 +3876,25 @@ void RB_RenderInteractionsDeferred()
 								for(j = 0; j < 4; j++)
 								{
 									VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
-									VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+									Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 
 									VectorCopy(farCorners[(j + 1) % 4], tess.xyz[tess.numVertexes]);
-									VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+									Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 
 									VectorCopy(top, tess.xyz[tess.numVertexes]);
-									VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+									Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 								}
 
-								VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-								VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-								VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-								VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+								Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+								Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+								Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+								Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorRed);
 							}
 
@@ -3935,7 +3935,7 @@ void RB_RenderInteractionsDeferred()
 				}
 				else
 				{
-					if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig.stencilWrapAvailable)
+					if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig2.stencilWrapAvailable)
 					{
 						GL_Cull(CT_TWO_SIDED);
 
@@ -3954,7 +3954,7 @@ void RB_RenderInteractionsDeferred()
 						qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
 						qglActiveStencilFaceEXT(GL_BACK);
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
@@ -3964,7 +3964,7 @@ void RB_RenderInteractionsDeferred()
 						}
 
 						qglActiveStencilFaceEXT(GL_FRONT);
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
@@ -3983,7 +3983,7 @@ void RB_RenderInteractionsDeferred()
 						GL_Cull(CT_FRONT_SIDED);
 
 						// increment the stencil value on zfail
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
@@ -3998,7 +3998,7 @@ void RB_RenderInteractionsDeferred()
 						GL_Cull(CT_BACK_SIDED);
 
 						// decrement the stencil value on zfail
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
@@ -4167,10 +4167,10 @@ void RB_RenderInteractionsDeferred()
 						// draw lighting with a fullscreen quad
 						Tess_InstantQuad(backEnd.viewParms.viewportVerts);
 #else
-						VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-						VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
@@ -4232,10 +4232,10 @@ void RB_RenderInteractionsDeferred()
 						// draw lighting with a fullscreen quad
 						Tess_InstantQuad(backEnd.viewParms.viewportVerts);
 #else
-						VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-						VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
@@ -4315,10 +4315,10 @@ void RB_RenderInteractionsDeferred()
 						// draw lighting with a fullscreen quad
 						Tess_InstantQuad(backEnd.viewParms.viewportVerts);
 #else
-						VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-						VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
@@ -4479,7 +4479,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 			deformType = DEFORM_TYPE_NONE;
 		}
 
-		if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
 		{
 			// skip all interactions of this light because it failed the occlusion query
 			goto skipInteraction;
@@ -5403,7 +5403,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 				GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 				GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 				GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-				if(glConfig.vboVertexSkinningAvailable)
+				if(glConfig2.vboVertexSkinningAvailable)
 				{
 					GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 				}
@@ -5493,25 +5493,25 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 								// draw outer surfaces
 								for(j = 0; j < 4; j++)
 								{
-									VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-									VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-									VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-									VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+									Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+									Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+									Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+									Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 									Tess_AddQuadStamp2(quadVerts, colorCyan);
 								}
 
 								// draw far cap
-								VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-								VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-								VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-								VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+								Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+								Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+								Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+								Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorRed);
 
 								// draw near cap
-								VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-								VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-								VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-								VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+								Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+								Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+								Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+								Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorGreen);
 
 							}
@@ -5526,25 +5526,25 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 								for(j = 0; j < 4; j++)
 								{
 									VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
-									VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+									Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 
 									VectorCopy(farCorners[(j + 1) % 4], tess.xyz[tess.numVertexes]);
-									VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+									Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 
 									VectorCopy(top, tess.xyz[tess.numVertexes]);
-									VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+									Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 								}
 
-								VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-								VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-								VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-								VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+								Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+								Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+								Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+								Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorRed);
 							}
 
@@ -5568,7 +5568,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 				}
 				else
 				{
-					if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig.stencilWrapAvailable)
+					if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig2.stencilWrapAvailable)
 					{
 						GL_Cull(CT_TWO_SIDED);
 
@@ -5587,7 +5587,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
 						qglActiveStencilFaceEXT(GL_BACK);
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
@@ -5597,7 +5597,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						}
 
 						qglActiveStencilFaceEXT(GL_FRONT);
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
@@ -5616,7 +5616,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						GL_Cull(CT_FRONT_SIDED);
 
 						// increment the stencil value on zfail
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
@@ -5631,7 +5631,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						GL_Cull(CT_BACK_SIDED);
 
 						// decrement the stencil value on zfail
-						if(glConfig.stencilWrapAvailable)
+						if(glConfig2.stencilWrapAvailable)
 						{
 							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
@@ -5835,10 +5835,10 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						// draw lighting with a fullscreen quad
 						Tess_InstantQuad(backEnd.viewParms.viewportVerts);
 #else
-						VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-						VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
@@ -5987,10 +5987,10 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							// draw lighting with a fullscreen quad
 							Tess_InstantQuad(backEnd.viewParms.viewportVerts);
 #else
-							VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-							VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-							VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-							VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+							Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+							Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+							Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+							Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 							Tess_InstantQuad(quadVerts);
 #endif
 						}
@@ -6111,10 +6111,10 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						// draw lighting with a fullscreen quad
 						Tess_InstantQuad(backEnd.viewParms.viewportVerts);
 #else
-						VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-						VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
@@ -6150,10 +6150,10 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						x = 205 * frustumIndex;
 						y = 70;
 
-						VectorSet4(quadVerts[0], x, y, 0, 1);
-						VectorSet4(quadVerts[1], x + w, y, 0, 1);
-						VectorSet4(quadVerts[2], x + w, y + h, 0, 1);
-						VectorSet4(quadVerts[3], x, y + h, 0, 1);
+						Vector4Set(quadVerts[0], x, y, 0, 1);
+						Vector4Set(quadVerts[1], x + w, y, 0, 1);
+						Vector4Set(quadVerts[2], x + w, y + h, 0, 1);
+						Vector4Set(quadVerts[3], x, y + h, 0, 1);
 
 						Tess_InstantQuad(quadVerts);
 
@@ -6176,7 +6176,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 							GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 							GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-							if(glConfig.vboVertexSkinningAvailable)
+							if(glConfig2.vboVertexSkinningAvailable)
 							{
 								GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 							}
@@ -6222,25 +6222,25 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 #if 1
 							for(j = 0; j < 4; j++)
 							{
-								VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-								VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-								VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-								VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+								Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+								Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+								Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+								Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 								Tess_AddQuadStamp2(quadVerts, colorCyan);
 							}
 
 							// draw far cap
-							VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-							VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-							VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-							VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+							Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+							Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+							Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+							Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 							Tess_AddQuadStamp2(quadVerts, colorBlue);
 
 							// draw near cap
-							VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-							VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-							VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-							VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+							Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+							Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+							Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+							Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 							Tess_AddQuadStamp2(quadVerts, colorGreen);
 #else
 
@@ -6248,25 +6248,25 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							for(j = 0; j < 4; j++)
 							{
 								VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
-								VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+								Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 								tess.indexes[tess.numIndexes++] = tess.numVertexes;
 								tess.numVertexes++;
 
 								VectorCopy(farCorners[(j + 1) % 4], tess.xyz[tess.numVertexes]);
-								VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+								Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 								tess.indexes[tess.numIndexes++] = tess.numVertexes;
 								tess.numVertexes++;
 
 								VectorCopy(backEnd.viewParms.orientation.origin, tess.xyz[tess.numVertexes]);
-								VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+								Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 								tess.indexes[tess.numIndexes++] = tess.numVertexes;
 								tess.numVertexes++;
 							}
 
-							VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-							VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-							VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-							VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+							Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+							Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+							Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+							Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 							Tess_AddQuadStamp2(quadVerts, colorRed);
 #endif
 
@@ -6679,10 +6679,10 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 
 	GLimp_LogComment("--- RB_RenderInteractionsDeferredInverseShadows ---\n");
 
-	if(!glConfig.framebufferObjectAvailable)
+	if(!glConfig2.framebufferObjectAvailable)
 		return;
 
-	if(r_hdrRendering->integer && !glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && !glConfig2.textureFloatAvailable)
 		return;
 
 	if(r_speeds->integer == 9)
@@ -6703,13 +6703,13 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 	GL_ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// update depth render image
-	if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 					   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 	{
 		// no update needed FBO handles it
 		R_BindFBO(tr.deferredRenderFBO);
 	}
-	else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+	else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		// no update needed FBO handles it
 		R_BindFBO(tr.deferredRenderFBO);
@@ -6732,7 +6732,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 		shader = ia->surfaceShader;
 		alphaTest = shader->alphaTest;
 
-		if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
 		{
 			// skip all interactions of this light because it failed the occlusion query
 			goto skipInteraction;
@@ -7132,10 +7132,10 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 						}
 
 						// draw lighting
-						VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-						VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-						VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+						Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+						Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 						Tess_InstantQuad(quadVerts);
 					}
 					else
@@ -7570,12 +7570,12 @@ void RB_RenderDepthOfField()
 
 	// capture current color buffer for u_CurrentMap
 	GL_SelectTexture(0);
-	if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 				   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 	{
 		GL_Bind(tr.deferredRenderFBOImage);
 	}
-	else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+	else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		GL_Bind(tr.deferredRenderFBOImage);
 	}
@@ -7587,12 +7587,12 @@ void RB_RenderDepthOfField()
 
 	// bind u_DepthMap
 	GL_SelectTexture(1);
-	if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 			   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
-	else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+	else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
@@ -7674,12 +7674,12 @@ void RB_RenderUniformFog()
 
 	// bind u_DepthMap
 	GL_SelectTexture(0);
-	if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 			   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
-	else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+	else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
@@ -7718,7 +7718,7 @@ void RB_RenderBloom()
 
 	GLimp_LogComment("--- RB_RenderBloom ---\n");
 
-	if((backEnd.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOBLOOM)) || !r_bloom->integer || backEnd.viewParms.isPortal || !glConfig.framebufferObjectAvailable)
+	if((backEnd.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOBLOOM)) || !r_bloom->integer || backEnd.viewParms.isPortal || !glConfig2.framebufferObjectAvailable)
 		return;
 
 	// set 2D virtual screen size
@@ -8002,7 +8002,7 @@ void RB_CameraPostFX(void)
 	GL_SelectTexture(0);
 	GL_Bind(tr.occlusionRenderFBOImage);
 	/*
-	if(glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+	if(glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		// copy depth of the main context to deferredRenderFBO
 		qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -8225,7 +8225,7 @@ void RB_RenderDeferredHDRResultToFrameBuffer()
 
 	GLimp_LogComment("--- RB_RenderDeferredHDRResultToFrameBuffer ---\n");
 
-	if(!r_hdrRendering->integer || !glConfig.framebufferObjectAvailable || !glConfig.textureFloatAvailable)
+	if(!r_hdrRendering->integer || !glConfig2.framebufferObjectAvailable || !glConfig2.textureFloatAvailable)
 		return;
 
 	GL_CheckErrors();
@@ -8369,25 +8369,25 @@ static void RenderLightOcclusionVolume( trRefLight_t * light)
 					// draw outer surfaces
 					for(j = 0; j < 4; j++)
 					{
-						VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-						VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-						VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-						VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+						Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+						Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+						Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+						Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 						Tess_AddQuadStamp2(quadVerts, colorCyan);
 					}
 
 					// draw far cap
-					VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-					VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-					VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-					VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+					Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+					Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+					Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorRed);
 
 					// draw near cap
-					VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-					VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-					VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-					VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+					Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+					Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+					Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+					Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorGreen);
 
 				}
@@ -8402,25 +8402,25 @@ static void RenderLightOcclusionVolume( trRefLight_t * light)
 					for(j = 0; j < 4; j++)
 					{
 						VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
-						VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 
 						VectorCopy(farCorners[(j + 1) % 4], tess.xyz[tess.numVertexes]);
-						VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 
 						VectorCopy(top, tess.xyz[tess.numVertexes]);
-						VectorCopy4(colorCyan, tess.colors[tess.numVertexes]);
+						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 					}
 
-					VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-					VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-					VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-					VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+					Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+					Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+					Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorRed);
 				}
 
@@ -8676,7 +8676,7 @@ void RB_RenderLightOcclusionQueries()
 {
 	GLimp_LogComment("--- RB_RenderLightOcclusionQueries ---\n");
 
-	if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
+	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
 	{
 		int				i;
 		interaction_t  *ia;
@@ -8707,7 +8707,7 @@ void RB_RenderLightOcclusionQueries()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -8952,7 +8952,7 @@ void RB_RenderBspOcclusionQueries()
 {
 	GLimp_LogComment("--- RB_RenderBspOcclusionQueries ---\n");
 
-	if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
+	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
 	{
 		//int             j;
 		bspNode_t      *node;
@@ -8967,7 +8967,7 @@ void RB_RenderBspOcclusionQueries()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -9032,7 +9032,7 @@ void RB_CollectBspOcclusionQueries()
 {
 	GLimp_LogComment("--- RB_CollectBspOcclusionQueries ---\n");
 
-	if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
+	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
 	{
 		//int             j;
 		bspNode_t      *node;
@@ -9148,7 +9148,7 @@ static void RB_RenderDebugUtils()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_CUSTOM_RGB);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_CUSTOM);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -9170,48 +9170,48 @@ static void RB_RenderDebugUtils()
 				{
 					if(light->shadowLOD == 0)
 					{
-						VectorCopy4(colorRed, lightColor);
+						Vector4Copy(colorRed, lightColor);
 					}
 					else if(light->shadowLOD == 1)
 					{
-						VectorCopy4(colorGreen, lightColor);
+						Vector4Copy(colorGreen, lightColor);
 					}
 					else if(light->shadowLOD == 2)
 					{
-						VectorCopy4(colorBlue, lightColor);
+						Vector4Copy(colorBlue, lightColor);
 					}
 					else if(light->shadowLOD == 3)
 					{
-						VectorCopy4(colorYellow, lightColor);
+						Vector4Copy(colorYellow, lightColor);
 					}
 					else if(light->shadowLOD == 4)
 					{
-						VectorCopy4(colorMagenta, lightColor);
+						Vector4Copy(colorMagenta, lightColor);
 					}
 					else if(light->shadowLOD == 5)
 					{
-						VectorCopy4(colorCyan, lightColor);
+						Vector4Copy(colorCyan, lightColor);
 					}
 					else
 					{
-						VectorCopy4(colorMdGrey, lightColor);
+						Vector4Copy(colorMdGrey, lightColor);
 					}
 				}
 				else// if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
 				{
 					if(!ia->occlusionQuerySamples)
 					{
-						VectorCopy4(colorRed, lightColor);
+						Vector4Copy(colorRed, lightColor);
 					}
 					else
 					{
-						VectorCopy4(colorGreen, lightColor);
+						Vector4Copy(colorGreen, lightColor);
 					}
 				}
 				/*
 				else
 				{
-					VectorCopy4(g_color_table[iaCount % 8], lightColor);
+					Vector4Copy(g_color_table[iaCount % 8], lightColor);
 				}
 				*/
 
@@ -9309,7 +9309,7 @@ static void RB_RenderDebugUtils()
 							for(j = 0; j < 6; j++)
 							{
 								MatrixTransformPlane(light->transformMatrix, light->localFrustum[j], frustum[j]);
-								//VectorCopy4(light->localFrustum[j], frustum[j]);
+								//Vector4Copy(light->localFrustum[j], frustum[j]);
 								//MatrixTransformPlane2(light->viewMatrix, frustum[j]);
 							}
 
@@ -9358,25 +9358,25 @@ static void RB_RenderDebugUtils()
 								// draw outer surfaces
 								for(j = 0; j < 4; j++)
 								{
-									VectorSet4(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-									VectorSet4(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-									VectorSet4(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-									VectorSet4(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+									Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+									Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+									Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+									Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 									Tess_AddQuadStamp2(quadVerts, lightColor);
 								}
 
 								// draw far cap
-								VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-								VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-								VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-								VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+								Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+								Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+								Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+								Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 								Tess_AddQuadStamp2(quadVerts, lightColor);
 
 								// draw near cap
-								VectorSet4(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-								VectorSet4(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-								VectorSet4(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-								VectorSet4(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+								Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+								Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+								Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+								Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 								Tess_AddQuadStamp2(quadVerts, lightColor);
 
 							}
@@ -9391,25 +9391,25 @@ static void RB_RenderDebugUtils()
 								for(j = 0; j < 4; j++)
 								{
 									VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
-									VectorCopy4(lightColor, tess.colors[tess.numVertexes]);
+									Vector4Copy(lightColor, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 
 									VectorCopy(farCorners[(j + 1) % 4], tess.xyz[tess.numVertexes]);
-									VectorCopy4(lightColor, tess.colors[tess.numVertexes]);
+									Vector4Copy(lightColor, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 
 									VectorCopy(top, tess.xyz[tess.numVertexes]);
-									VectorCopy4(lightColor, tess.colors[tess.numVertexes]);
+									Vector4Copy(lightColor, tess.colors[tess.numVertexes]);
 									tess.indexes[tess.numIndexes++] = tess.numVertexes;
 									tess.numVertexes++;
 								}
 
-								VectorSet4(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-								VectorSet4(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-								VectorSet4(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-								VectorSet4(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+								Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
+								Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+								Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+								Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
 								Tess_AddQuadStamp2(quadVerts, lightColor);
 							}
 
@@ -9482,7 +9482,7 @@ static void RB_RenderDebugUtils()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -9516,35 +9516,35 @@ static void RB_RenderDebugUtils()
 			if(r_shadows->integer >= 4 && light->l.rlType == RL_OMNI)
 			{
 #if 0
-				VectorCopy4(colorMdGrey, lightColor);
+				Vector4Copy(colorMdGrey, lightColor);
 
 				if(ia->cubeSideBits & CUBESIDE_PX)
 				{
-					VectorCopy4(colorBlack, lightColor);
+					Vector4Copy(colorBlack, lightColor);
 				}
 				if(ia->cubeSideBits & CUBESIDE_PY)
 				{
-					VectorCopy4(colorRed, lightColor);
+					Vector4Copy(colorRed, lightColor);
 				}
 				if(ia->cubeSideBits & CUBESIDE_PZ)
 				{
-					VectorCopy4(colorGreen, lightColor);
+					Vector4Copy(colorGreen, lightColor);
 				}
 				if(ia->cubeSideBits & CUBESIDE_NX)
 				{
-					VectorCopy4(colorYellow, lightColor);
+					Vector4Copy(colorYellow, lightColor);
 				}
 				if(ia->cubeSideBits & CUBESIDE_NY)
 				{
-					VectorCopy4(colorBlue, lightColor);
+					Vector4Copy(colorBlue, lightColor);
 				}
 				if(ia->cubeSideBits & CUBESIDE_NZ)
 				{
-					VectorCopy4(colorCyan, lightColor);
+					Vector4Copy(colorCyan, lightColor);
 				}
 				if(ia->cubeSideBits == CUBESIDE_CLIPALL)
 				{
-					VectorCopy4(colorMagenta, lightColor);
+					Vector4Copy(colorMagenta, lightColor);
 				}
 #else
 				// count how many cube sides are in use for this interaction
@@ -9557,12 +9557,12 @@ static void RB_RenderDebugUtils()
 					}
 				}
 
-				VectorCopy4(g_color_table[cubeSides], lightColor);
+				Vector4Copy(g_color_table[cubeSides], lightColor);
 #endif
 			}
 			else
 			{
-				VectorCopy4(colorMdGrey, lightColor);
+				Vector4Copy(colorMdGrey, lightColor);
 			}
 
 			lightColor[0] *= 0.5f;
@@ -9570,7 +9570,7 @@ static void RB_RenderDebugUtils()
 			lightColor[2] *= 0.5f;
 			//lightColor[3] *= 0.2f;
 
-			VectorCopy4(colorWhite, lightColor);
+			Vector4Copy(colorWhite, lightColor);
 
 			tess.numVertexes = 0;
 			tess.numIndexes = 0;
@@ -9653,7 +9653,7 @@ static void RB_RenderDebugUtils()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -9681,40 +9681,40 @@ static void RB_RenderDebugUtils()
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
-			VectorSet4(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[1], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[3], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[1], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[3], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
 			Tess_AddQuadStamp2(quadVerts, colorRed);
 
-			VectorSet4(quadVerts[0], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[2], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[0], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[2], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
 			Tess_AddQuadStamp2(quadVerts, colorGreen);
 
-			VectorSet4(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[1], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[2], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[1], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[2], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
 			Tess_AddQuadStamp2(quadVerts, colorBlue);
 
-			VectorSet4(quadVerts[0], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[3], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[0], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[3], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
 			Tess_AddQuadStamp2(quadVerts, colorYellow);
 
-			VectorSet4(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[1], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[2], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[1], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[2], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
 			Tess_AddQuadStamp2(quadVerts, colorMagenta);
 
-			VectorSet4(quadVerts[0], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			VectorSet4(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			VectorSet4(quadVerts[3], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[0], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
+			Vector4Set(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
+			Vector4Set(quadVerts[3], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
 			Tess_AddQuadStamp2(quadVerts, colorCyan);
 
 			Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
@@ -9755,7 +9755,7 @@ static void RB_RenderDebugUtils()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -9963,7 +9963,7 @@ static void RB_RenderDebugUtils()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_CUSTOM_RGB);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_CUSTOM);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -9988,7 +9988,7 @@ static void RB_RenderDebugUtils()
 
 		for(iaCount = 0, ia = &backEnd.viewParms.interactions[0]; iaCount < backEnd.viewParms.numInteractions;)
 		{
-			if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
+			if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
 			{
 				if(!ia->occlusionQuerySamples)
 				{
@@ -9999,10 +9999,10 @@ static void RB_RenderDebugUtils()
 					GLSL_SetUniform_Color(&tr.genericSingleShader, colorGreen);
 				}
 
-				VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-				VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-				VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-				VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+				Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+				Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+				Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+				Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 				Tess_InstantQuad(quadVerts);
 			}
 			else if(r_shadows->integer == 3 && qglDepthBoundsEXT)
@@ -10016,20 +10016,20 @@ static void RB_RenderDebugUtils()
 					GLSL_SetUniform_Color(&tr.genericSingleShader, colorGreen);
 				}
 
-				VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-				VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-				VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-				VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+				Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+				Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+				Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+				Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 				Tess_InstantQuad(quadVerts);
 			}
 			else
 			{
 				GLSL_SetUniform_Color(&tr.genericSingleShader, colorWhite);
 
-				VectorSet4(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
-				VectorSet4(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
-				VectorSet4(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
-				VectorSet4(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+				Vector4Set(quadVerts[0], ia->scissorX, ia->scissorY, 0, 1);
+				Vector4Set(quadVerts[1], ia->scissorX + ia->scissorWidth - 1, ia->scissorY, 0, 1);
+				Vector4Set(quadVerts[2], ia->scissorX + ia->scissorWidth - 1, ia->scissorY + ia->scissorHeight - 1, 0, 1);
+				Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 				Tess_InstantQuad(quadVerts);
 			}
 
@@ -10081,7 +10081,7 @@ static void RB_RenderDebugUtils()
 		// set uniforms
 		VectorCopy(backEnd.viewParms.orientation.origin, viewOrigin);	// in world space
 		GLSL_SetUniform_ViewOrigin(&tr.reflectionShader_C, viewOrigin);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.reflectionShader_C, qfalse);
 		}
@@ -10105,40 +10105,40 @@ static void RB_RenderDebugUtils()
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
-			VectorSet4(quadVerts[0], mins[0], mins[1], mins[2], 1);
-			VectorSet4(quadVerts[1], mins[0], maxs[1], mins[2], 1);
-			VectorSet4(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
-			VectorSet4(quadVerts[3], mins[0], mins[1], maxs[2], 1);
+			Vector4Set(quadVerts[0], mins[0], mins[1], mins[2], 1);
+			Vector4Set(quadVerts[1], mins[0], maxs[1], mins[2], 1);
+			Vector4Set(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
+			Vector4Set(quadVerts[3], mins[0], mins[1], maxs[2], 1);
 			Tess_AddQuadStamp2WithNormals(quadVerts, colorWhite);
 
-			VectorSet4(quadVerts[0], maxs[0], mins[1], maxs[2], 1);
-			VectorSet4(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
-			VectorSet4(quadVerts[2], maxs[0], maxs[1], mins[2], 1);
-			VectorSet4(quadVerts[3], maxs[0], mins[1], mins[2], 1);
+			Vector4Set(quadVerts[0], maxs[0], mins[1], maxs[2], 1);
+			Vector4Set(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
+			Vector4Set(quadVerts[2], maxs[0], maxs[1], mins[2], 1);
+			Vector4Set(quadVerts[3], maxs[0], mins[1], mins[2], 1);
 			Tess_AddQuadStamp2WithNormals(quadVerts, colorWhite);
 
-			VectorSet4(quadVerts[0], mins[0], mins[1], maxs[2], 1);
-			VectorSet4(quadVerts[1], mins[0], maxs[1], maxs[2], 1);
-			VectorSet4(quadVerts[2], maxs[0], maxs[1], maxs[2], 1);
-			VectorSet4(quadVerts[3], maxs[0], mins[1], maxs[2], 1);
+			Vector4Set(quadVerts[0], mins[0], mins[1], maxs[2], 1);
+			Vector4Set(quadVerts[1], mins[0], maxs[1], maxs[2], 1);
+			Vector4Set(quadVerts[2], maxs[0], maxs[1], maxs[2], 1);
+			Vector4Set(quadVerts[3], maxs[0], mins[1], maxs[2], 1);
 			Tess_AddQuadStamp2WithNormals(quadVerts, colorWhite);
 
-			VectorSet4(quadVerts[0], maxs[0], mins[1], mins[2], 1);
-			VectorSet4(quadVerts[1], maxs[0], maxs[1], mins[2], 1);
-			VectorSet4(quadVerts[2], mins[0], maxs[1], mins[2], 1);
-			VectorSet4(quadVerts[3], mins[0], mins[1], mins[2], 1);
+			Vector4Set(quadVerts[0], maxs[0], mins[1], mins[2], 1);
+			Vector4Set(quadVerts[1], maxs[0], maxs[1], mins[2], 1);
+			Vector4Set(quadVerts[2], mins[0], maxs[1], mins[2], 1);
+			Vector4Set(quadVerts[3], mins[0], mins[1], mins[2], 1);
 			Tess_AddQuadStamp2WithNormals(quadVerts, colorWhite);
 
-			VectorSet4(quadVerts[0], mins[0], mins[1], mins[2], 1);
-			VectorSet4(quadVerts[1], mins[0], mins[1], maxs[2], 1);
-			VectorSet4(quadVerts[2], maxs[0], mins[1], maxs[2], 1);
-			VectorSet4(quadVerts[3], maxs[0], mins[1], mins[2], 1);
+			Vector4Set(quadVerts[0], mins[0], mins[1], mins[2], 1);
+			Vector4Set(quadVerts[1], mins[0], mins[1], maxs[2], 1);
+			Vector4Set(quadVerts[2], maxs[0], mins[1], maxs[2], 1);
+			Vector4Set(quadVerts[3], maxs[0], mins[1], mins[2], 1);
 			Tess_AddQuadStamp2WithNormals(quadVerts, colorWhite);
 
-			VectorSet4(quadVerts[0], maxs[0], maxs[1], mins[2], 1);
-			VectorSet4(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
-			VectorSet4(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
-			VectorSet4(quadVerts[3], mins[0], maxs[1], mins[2], 1);
+			Vector4Set(quadVerts[0], maxs[0], maxs[1], mins[2], 1);
+			Vector4Set(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
+			Vector4Set(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
+			Vector4Set(quadVerts[3], mins[0], maxs[1], mins[2], 1);
 			Tess_AddQuadStamp2WithNormals(quadVerts, colorWhite);
 
 			Tess_UpdateVBOs(ATTR_POSITION | ATTR_NORMAL);
@@ -10172,7 +10172,7 @@ static void RB_RenderDebugUtils()
 		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_CUSTOM_RGB);
 		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_CUSTOM);
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 		}
@@ -10372,7 +10372,7 @@ static void RB_RenderView(void)
 		}
 		else
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy color of the main context to deferredRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -10386,7 +10386,7 @@ static void RB_RenderView(void)
 		qglClear(clearBits);
 
 #else
-		if(glConfig.framebufferObjectAvailable)
+		if(glConfig2.framebufferObjectAvailable)
 		{
 			R_BindNullFBO();
 		}
@@ -10554,7 +10554,7 @@ static void RB_RenderView(void)
 		// scale down rendered HDR scene to 1 / 4th
 		if(HDR_ENABLED())
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
 				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
@@ -10580,7 +10580,7 @@ static void RB_RenderView(void)
 		else
 		{
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -10597,7 +10597,7 @@ static void RB_RenderView(void)
 #else
 #if 0
 			// FIXME: this trashes the OpenGL context for an unknown reason
-			if(glConfig.framebufferObjectAvailable && glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy main context to portalRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -10628,7 +10628,7 @@ static void RB_RenderView(void)
 		if(backEnd.viewParms.isPortal)
 		{
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -10648,7 +10648,7 @@ static void RB_RenderView(void)
 #else
 #if 0
 			// FIXME: this trashes the OpenGL context for an unknown reason
-			if(glConfig.framebufferObjectAvailable && glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy main context to portalRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -10726,7 +10726,7 @@ static void RB_RenderView(void)
 		}
 		else
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy color of the main context to deferredRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -10809,7 +10809,7 @@ static void RB_RenderView(void)
 		// scale down rendered HDR scene to 1 / 4th
 		if(r_hdrRendering->integer)
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
 				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
@@ -10834,7 +10834,7 @@ static void RB_RenderView(void)
 		}
 		else
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -10860,7 +10860,7 @@ static void RB_RenderView(void)
 
 		if(backEnd.viewParms.isPortal)
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -10901,9 +10901,9 @@ static void RB_RenderView(void)
 		}
 
 		// disable offscreen rendering
-		if(glConfig.framebufferObjectAvailable)
+		if(glConfig2.framebufferObjectAvailable)
 		{
-			if(r_hdrRendering->integer && glConfig.textureFloatAvailable)
+			if(r_hdrRendering->integer && glConfig2.textureFloatAvailable)
 				R_BindFBO(tr.deferredRenderFBO);
 			else
 				R_BindNullFBO();
@@ -11011,7 +11011,7 @@ static void RB_RenderView(void)
 			RB_RenderInteractions();
 		}
 
-		if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 			R_BindFBO(tr.deferredRenderFBO);
 
 		// draw everything that is translucent
@@ -11021,9 +11021,9 @@ static void RB_RenderView(void)
 		RB_RenderUniformFog(qfalse);
 
 		// scale down rendered HDR scene to 1 / 4th
-		if(r_hdrRendering->integer && glConfig.textureFloatAvailable && glConfig.framebufferObjectAvailable)
+		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
 		{
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
 				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
@@ -11052,7 +11052,7 @@ static void RB_RenderView(void)
 			Tr3B: FIXME this causes: caught OpenGL error:
 			GL_INVALID_OPERATION in file code/renderer/tr_backend.c line 6479
 
-			if(glConfig.framebufferBlitAvailable)
+			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -11101,7 +11101,7 @@ static void RB_RenderView(void)
 
 		if(backEnd.viewParms.isPortal)
 		{
-			if(r_hdrRendering->integer && glConfig.textureFloatAvailable && glConfig.framebufferObjectAvailable && glConfig.framebufferBlitAvailable)
+			if(r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -11113,7 +11113,7 @@ static void RB_RenderView(void)
 			}
 #if 0
 			// FIXME: this trashes the OpenGL context for an unknown reason
-			else if(glConfig.framebufferObjectAvailable && glConfig.framebufferBlitAvailable)
+			else if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy main context to portalRenderFBO
 				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
@@ -11242,7 +11242,7 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 	GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 	GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
 	//GLSL_SetUniform_Color(&tr.genericSingleShader, colorWhite);
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 	}
@@ -11602,7 +11602,7 @@ void RB_ShowImages(void)
 	GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
 	GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
 	GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
 	}
@@ -11641,10 +11641,10 @@ void RB_ShowImages(void)
 		// bind u_ColorMap
 		GL_Bind(image);
 
-		VectorSet4(quadVerts[0], x, y, 0, 1);
-		VectorSet4(quadVerts[1], x + w, y, 0, 1);
-		VectorSet4(quadVerts[2], x + w, y + h, 0, 1);
-		VectorSet4(quadVerts[3], x, y + h, 0, 1);
+		Vector4Set(quadVerts[0], x, y, 0, 1);
+		Vector4Set(quadVerts[1], x + w, y, 0, 1);
+		Vector4Set(quadVerts[2], x + w, y + h, 0, 1);
+		Vector4Set(quadVerts[3], x, y + h, 0, 1);
 
 		Tess_InstantQuad(quadVerts);
 

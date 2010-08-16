@@ -28,9 +28,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 R_CullMDX
 =============
 */
-static void R_CullMDX(mdxModel_t * model, trRefEntity_t * ent)
+static void R_CullMDX(mdvModel_t * model, trRefEntity_t * ent)
 {
-	mdxFrame_t     *oldFrame, *newFrame;
+	mdvFrame_t     *oldFrame, *newFrame;
 	int             i;
 	vec3_t          v;
 	vec3_t          transformed;
@@ -153,7 +153,7 @@ int R_ComputeLOD(trRefEntity_t * ent)
 	float           radius;
 	float           flod, lodscale;
 	float           projectedRadius;
-	mdxFrame_t     *frame;
+	mdvFrame_t     *frame;
 	int             lod;
 
 	if(tr.currentModel->numLods < 2)
@@ -215,8 +215,8 @@ R_AddMDXSurfaces
 void R_AddMDXSurfaces(trRefEntity_t * ent)
 {
 	int             i;
-	mdxModel_t     *model = 0;
-	mdxSurface_t   *surface = 0;
+	mdvModel_t     *model = 0;
+	mdvSurface_t   *surface = 0;
 	shader_t       *shader = 0;
 	int             lod;
 	qboolean        personalModel;
@@ -358,8 +358,8 @@ R_AddMDXInteractions
 void R_AddMDXInteractions(trRefEntity_t * ent, trRefLight_t * light)
 {
 	int             i;
-	mdxModel_t     *model = 0;
-	mdxSurface_t   *surface = 0;
+	mdvModel_t     *model = 0;
+	mdvSurface_t   *surface = 0;
 	shader_t       *shader = 0;
 	int             lod;
 	qboolean        personalModel;
@@ -377,6 +377,7 @@ void R_AddMDXInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	}
 
 	// avoid drawing of certain objects
+#if defined(USE_REFENTITY_NOSHADOWID)
 	if(light->l.inverseShadows)
 	{
 		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID != ent->e.noShadowID)))
@@ -387,6 +388,7 @@ void R_AddMDXInteractions(trRefEntity_t * ent, trRefLight_t * light)
 		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID == ent->e.noShadowID)))
 			return;
 	}
+#endif
 
 	// don't add third_person objects if not in a portal
 	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal;

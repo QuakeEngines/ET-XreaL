@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 //#include "tr_local.h"
-#include "../qcommon/q_shared.h"
+#include "../game/q_shared.h"
 #ifdef __cplusplus
 }
 #endif

@@ -150,8 +150,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#version 120\n");
 		}
 
-#if defined(COMPAT_Q3A)
-		Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef COMPAT_Q3A\n#define COMPAT_Q3A 1\n#endif\n");
+#if defined(COMPAT_ET)
+		Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef COMPAT_ET\n#define COMPAT_ET 1\n#endif\n");
 #endif
 
 		// HACK: add some macros to avoid extra uniforms and save speed and code maintenance
@@ -220,7 +220,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 		Q_strcat(bufferExtra, sizeof(bufferExtra),
 				 va("#ifndef r_FBufScale\n#define r_FBufScale vec2(%f, %f)\n#endif\n", fbufWidthScale, fbufHeightScale));
 
-		if(glConfig.textureNPOTAvailable)
+		if(glConfig2.textureNPOTAvailable)
 		{
 			npotWidthScale = 1;
 			npotHeightScale = 1;
@@ -251,7 +251,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GLHW_NV_DX10\n#define GLHW_NV_DX10 1\n#endif\n");
 		}
 
-		if(r_shadows->integer >= 4 && glConfig.textureFloatAvailable && glConfig.framebufferObjectAvailable)
+		if(r_shadows->integer >= 4 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
 		{
 			if(r_shadows->integer == 6)
 			{
@@ -353,8 +353,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 			}
 		}
 
-		if(r_deferredShading->integer && glConfig.maxColorAttachments >= 4 && glConfig.textureFloatAvailable &&
-		   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+		if(r_deferredShading->integer && glConfig2.maxColorAttachments >= 4 && glConfig2.textureFloatAvailable &&
+		   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 		{
 
 			if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
@@ -362,14 +362,14 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_DeferredLighting\n#define r_DeferredLighting 1\n#endif\n");
 			}
 
-			if(glConfig.framebufferMixedFormatsAvailable)
+			if(glConfig2.framebufferMixedFormatsAvailable)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra),
 						 "#ifndef GL_EXTX_framebuffer_mixed_formats\n#define GL_EXTX_framebuffer_mixed_formats 1\n#endif\n");
 			}
 		}
 
-		if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+		if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 		{
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_HDRRendering\n#define r_HDRRendering 1\n#endif\n");
 
@@ -396,7 +396,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 					 "#ifndef r_precomputedLighting\n#define r_precomputedLighting 1\n#endif\n");
 		}
 
-		if(r_heatHazeFix->integer && glConfig.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
+		if(r_heatHazeFix->integer && glConfig2.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
 		{
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_heatHazeFix\n#define r_heatHazeFix 1\n#endif\n");
 		}
@@ -439,12 +439,12 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 		}
 #endif
 
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_VertexSkinning\n#define r_VertexSkinning 1\n#endif\n");
 
 			Q_strcat(bufferExtra, sizeof(bufferExtra),
-								 va("#ifndef MAX_GLSL_BONES\n#define MAX_GLSL_BONES %i\n#endif\n", glConfig.maxVertexSkinningBones));
+								 va("#ifndef MAX_GLSL_BONES\n#define MAX_GLSL_BONES %i\n#endif\n", glConfig2.maxVertexSkinningBones));
 		}
 
 		/*
@@ -478,7 +478,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 		}
 
 		/*
-		   if(glConfig.textureFloatAvailable)
+		   if(glConfig2.textureFloatAvailable)
 		   {
 		   Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GL_ARB_texture_float\n#define GL_ARB_texture_float 1\n#endif\n");
 		   }
@@ -635,7 +635,7 @@ static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int 
 	if(attribs & ATTR_LIGHTDIRECTION)
 		qglBindAttribLocationARB(program->program, ATTR_INDEX_LIGHTDIRECTION, "attr_LightDirection");
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		qglBindAttribLocationARB(program->program, ATTR_INDEX_BONE_INDEXES, "attr_BoneIndexes");
 		qglBindAttribLocationARB(program->program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
@@ -684,7 +684,7 @@ void GLSL_InitGPUShaders(void)
 	 */
 	tr.genericSingleShader.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.genericSingleShader.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.genericSingleShader.u_VertexSkinning = qglGetUniformLocationARB(tr.genericSingleShader.program, "u_VertexSkinning");
 		tr.genericSingleShader.u_BoneMatrix = qglGetUniformLocationARB(tr.genericSingleShader.program, "u_BoneMatrix");
@@ -737,7 +737,7 @@ void GLSL_InitGPUShaders(void)
 		qglGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ModelMatrix");
 	tr.vertexLightingShader_DBS_entity.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.vertexLightingShader_DBS_entity.u_VertexSkinning =
 			qglGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_VertexSkinning");
@@ -912,7 +912,7 @@ void GLSL_InitGPUShaders(void)
 			qglGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ModelViewMatrix");
 		tr.geometricFillShader_DBS.u_ModelViewProjectionMatrix =
 			qglGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ModelViewProjectionMatrix");
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			tr.geometricFillShader_DBS.u_VertexSkinning =
 				qglGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_VertexSkinning");
@@ -1128,7 +1128,7 @@ void GLSL_InitGPUShaders(void)
 	tr.depthFillShader.u_AmbientColor = qglGetUniformLocationARB(tr.depthFillShader.program, "u_AmbientColor");
 	tr.depthFillShader.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.depthFillShader.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.depthFillShader.u_VertexSkinning = qglGetUniformLocationARB(tr.depthFillShader.program, "u_VertexSkinning");
 		tr.depthFillShader.u_BoneMatrix = qglGetUniformLocationARB(tr.depthFillShader.program, "u_BoneMatrix");
@@ -1170,7 +1170,7 @@ void GLSL_InitGPUShaders(void)
 
 	tr.depthToColorShader.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.depthToColorShader.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.depthToColorShader.u_VertexSkinning = qglGetUniformLocationARB(tr.depthToColorShader.program, "u_VertexSkinning");
 		tr.depthToColorShader.u_BoneMatrix = qglGetUniformLocationARB(tr.depthToColorShader.program, "u_BoneMatrix");
@@ -1207,7 +1207,7 @@ void GLSL_InitGPUShaders(void)
 	tr.shadowFillShader.u_ModelMatrix = qglGetUniformLocationARB(tr.shadowFillShader.program, "u_ModelMatrix");
 	tr.shadowFillShader.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.shadowFillShader.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.shadowFillShader.u_VertexSkinning = qglGetUniformLocationARB(tr.shadowFillShader.program, "u_VertexSkinning");
 		tr.shadowFillShader.u_BoneMatrix = qglGetUniformLocationARB(tr.shadowFillShader.program, "u_BoneMatrix");
@@ -1282,7 +1282,7 @@ void GLSL_InitGPUShaders(void)
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_omni.program, "u_ModelMatrix");
 	tr.forwardLightingShader_DBS_omni.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_omni.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.forwardLightingShader_DBS_omni.u_VertexSkinning =
 			qglGetUniformLocationARB(tr.forwardLightingShader_DBS_omni.program, "u_VertexSkinning");
@@ -1373,7 +1373,7 @@ void GLSL_InitGPUShaders(void)
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_proj.program, "u_ModelMatrix");
 	tr.forwardLightingShader_DBS_proj.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_proj.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.forwardLightingShader_DBS_proj.u_VertexSkinning =
 			qglGetUniformLocationARB(tr.forwardLightingShader_DBS_proj.program, "u_VertexSkinning");
@@ -1478,7 +1478,7 @@ void GLSL_InitGPUShaders(void)
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_directional.program, "u_ViewMatrix");
 	tr.forwardLightingShader_DBS_directional.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_directional.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.forwardLightingShader_DBS_directional.u_VertexSkinning =
 			qglGetUniformLocationARB(tr.forwardLightingShader_DBS_directional.program, "u_VertexSkinning");
@@ -1542,7 +1542,7 @@ void GLSL_InitGPUShaders(void)
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_post.program, "u_ModelViewMatrix");
 	tr.forwardLightingShader_DBS_post.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.forwardLightingShader_DBS_post.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.forwardLightingShader_DBS_post.u_VertexSkinning =
 			qglGetUniformLocationARB(tr.forwardLightingShader_DBS_post.program, "u_VertexSkinning");
@@ -1657,7 +1657,7 @@ void GLSL_InitGPUShaders(void)
 	tr.reflectionShader_C.u_ModelMatrix = qglGetUniformLocationARB(tr.reflectionShader_C.program, "u_ModelMatrix");
 	tr.reflectionShader_C.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.reflectionShader_C.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.reflectionShader_C.u_VertexSkinning = qglGetUniformLocationARB(tr.reflectionShader_C.program, "u_VertexSkinning");
 		tr.reflectionShader_C.u_BoneMatrix = qglGetUniformLocationARB(tr.reflectionShader_C.program, "u_BoneMatrix");
@@ -1683,7 +1683,7 @@ void GLSL_InitGPUShaders(void)
 	tr.reflectionShader_CB.u_ModelMatrix = qglGetUniformLocationARB(tr.reflectionShader_CB.program, "u_ModelMatrix");
 	tr.reflectionShader_CB.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.reflectionShader_CB.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.reflectionShader_CB.u_VertexSkinning = qglGetUniformLocationARB(tr.reflectionShader_CB.program, "u_VertexSkinning");
 		tr.reflectionShader_CB.u_BoneMatrix = qglGetUniformLocationARB(tr.reflectionShader_CB.program, "u_BoneMatrix");
@@ -1710,7 +1710,7 @@ void GLSL_InitGPUShaders(void)
 	tr.refractionShader_C.u_ModelMatrix = qglGetUniformLocationARB(tr.refractionShader_C.program, "u_ModelMatrix");
 	tr.refractionShader_C.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.refractionShader_C.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.refractionShader_C.u_VertexSkinning = qglGetUniformLocationARB(tr.refractionShader_C.program, "u_VertexSkinning");
 		tr.refractionShader_C.u_BoneMatrix = qglGetUniformLocationARB(tr.refractionShader_C.program, "u_BoneMatrix");
@@ -1736,7 +1736,7 @@ void GLSL_InitGPUShaders(void)
 	tr.dispersionShader_C.u_ModelMatrix = qglGetUniformLocationARB(tr.dispersionShader_C.program, "u_ModelMatrix");
 	tr.dispersionShader_C.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.dispersionShader_C.program, "u_ModelViewProjectionMatrix");
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.dispersionShader_C.u_VertexSkinning = qglGetUniformLocationARB(tr.dispersionShader_C.program, "u_VertexSkinning");
 		tr.dispersionShader_C.u_BoneMatrix = qglGetUniformLocationARB(tr.dispersionShader_C.program, "u_BoneMatrix");
@@ -1774,7 +1774,7 @@ void GLSL_InitGPUShaders(void)
 	tr.heatHazeShader.u_NormalMap = qglGetUniformLocationARB(tr.heatHazeShader.program, "u_NormalMap");
 	tr.heatHazeShader.u_CurrentMap = qglGetUniformLocationARB(tr.heatHazeShader.program, "u_CurrentMap");
 	tr.heatHazeShader.u_NormalTextureMatrix = qglGetUniformLocationARB(tr.heatHazeShader.program, "u_NormalTextureMatrix");
-	if(r_heatHazeFix->integer && glConfig.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
+	if(r_heatHazeFix->integer && glConfig2.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
 	{
 		tr.heatHazeShader.u_ContrastMap = qglGetUniformLocationARB(tr.heatHazeShader.program, "u_ContrastMap");
 	}
@@ -1787,7 +1787,7 @@ void GLSL_InitGPUShaders(void)
 	tr.heatHazeShader.u_ModelViewProjectionMatrix =
 		qglGetUniformLocationARB(tr.heatHazeShader.program, "u_ModelViewProjectionMatrix");
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.heatHazeShader.u_VertexSkinning = qglGetUniformLocationARB(tr.heatHazeShader.program, "u_VertexSkinning");
 		tr.heatHazeShader.u_BoneMatrix = qglGetUniformLocationARB(tr.heatHazeShader.program, "u_BoneMatrix");
@@ -1796,7 +1796,7 @@ void GLSL_InitGPUShaders(void)
 	qglUseProgramObjectARB(tr.heatHazeShader.program);
 	qglUniform1iARB(tr.heatHazeShader.u_NormalMap, 0);
 	qglUniform1iARB(tr.heatHazeShader.u_CurrentMap, 1);
-	if(r_heatHazeFix->integer && glConfig.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
+	if(r_heatHazeFix->integer && glConfig2.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
 	{
 		qglUniform1iARB(tr.heatHazeShader.u_ContrastMap, 2);
 	}
@@ -1827,7 +1827,7 @@ void GLSL_InitGPUShaders(void)
 	GLSL_InitGPUShader(&tr.contrastShader, "contrast", ATTR_POSITION, qtrue);
 
 	tr.contrastShader.u_ColorMap = qglGetUniformLocationARB(tr.contrastShader.program, "u_ColorMap");
-	if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+	if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		tr.contrastShader.u_HDRKey = qglGetUniformLocationARB(tr.contrastShader.program, "u_HDRKey");
 		tr.contrastShader.u_HDRAverageLuminance = qglGetUniformLocationARB(tr.contrastShader.program, "u_HDRAverageLuminance");
@@ -2415,7 +2415,7 @@ static void BindLightMap()
 
 	if(tess.lightmapNum >= 0 && (tess.lightmapNum / 2) < tr.lightmaps.currentElements)
 	{
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 		lightmap = tr.fatLightmap;
 #else
 		lightmap = Com_GrowListElement(&tr.lightmaps, tess.lightmapNum / 2);
@@ -2502,7 +2502,7 @@ static void DrawTris()
 	GLSL_SetUniform_ModelMatrix(&tr.genericSingleShader, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, tess.vboVertexSkinning);
 
@@ -2684,7 +2684,7 @@ static void Render_genericSingle(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.genericSingleShader, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, tess.vboVertexSkinning);
 
@@ -2795,7 +2795,7 @@ static void Render_vertexLighting_DBS_entity(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.vertexLightingShader_DBS_entity, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.vertexLightingShader_DBS_entity, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.vertexLightingShader_DBS_entity, tess.vboVertexSkinning);
 
@@ -2967,7 +2967,7 @@ static void Render_vertexLighting_DBS_world(int stage)
 		GLSL_SetUniform_DeformGen(&tr.vertexLightingShader_DBS_world, DGEN_NONE);
 	}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 	// u_ColorGen
 	switch (pStage->rgbGen)
 	{
@@ -3376,7 +3376,7 @@ static void Render_forwardLighting_DBS_post(int stage, qboolean cmap2black)
 	GLSL_SetUniform_ModelViewMatrix(&tr.forwardLightingShader_DBS_post, glState.modelViewMatrix[glState.stackIndex]);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.forwardLightingShader_DBS_post, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.forwardLightingShader_DBS_post, tess.vboVertexSkinning);
 
@@ -3535,7 +3535,7 @@ static void Render_geometricFill_DBS(int stage, qboolean cmap2black)
 	GLSL_SetUniform_ModelViewMatrix(&tr.geometricFillShader_DBS, glState.modelViewMatrix[glState.stackIndex]);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.geometricFillShader_DBS, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.geometricFillShader_DBS, tess.vboVertexSkinning);
 
@@ -3668,7 +3668,7 @@ static void Render_depthFill(int stage, qboolean cmap2black)
 	}
 
 	// set uniforms
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.depthFillShader, tess.vboVertexSkinning);
 
@@ -3771,7 +3771,7 @@ static void Render_shadowFill(int stage)
 	{
 		vec4_t          shadowMapColor;
 
-		VectorCopy4(g_color_table[backEnd.pc.c_batches % 8], shadowMapColor);
+		Vector4Copy(g_color_table[backEnd.pc.c_batches % 8], shadowMapColor);
 
 		qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, shadowMapColor);
 	}
@@ -3794,7 +3794,7 @@ static void Render_shadowFill(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.shadowFillShader, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.shadowFillShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.shadowFillShader, tess.vboVertexSkinning);
 
@@ -3910,7 +3910,7 @@ static void Render_forwardLighting_DBS_omni(shaderStage_t * diffuseStage,
 	GLSL_SetUniform_ModelMatrix(&tr.forwardLightingShader_DBS_omni, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.forwardLightingShader_DBS_omni, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.forwardLightingShader_DBS_omni, tess.vboVertexSkinning);
 
@@ -4080,7 +4080,7 @@ static void Render_forwardLighting_DBS_proj(shaderStage_t * diffuseStage,
 	GLSL_SetUniform_ModelMatrix(&tr.forwardLightingShader_DBS_proj, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.forwardLightingShader_DBS_proj, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.forwardLightingShader_DBS_proj, tess.vboVertexSkinning);
 
@@ -4259,7 +4259,7 @@ static void Render_forwardLighting_DBS_directional(shaderStage_t * diffuseStage,
 //	GLSL_SetUniform_ModelViewMatrix(&tr.forwardLightingShader_DBS_directional, glState.modelViewMatrix[glState.stackIndex]);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.forwardLightingShader_DBS_directional, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.forwardLightingShader_DBS_directional, tess.vboVertexSkinning);
 
@@ -4406,7 +4406,7 @@ static void Render_reflection_C(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.reflectionShader_C, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.reflectionShader_C, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.reflectionShader_C, tess.vboVertexSkinning);
 
@@ -4454,7 +4454,7 @@ static void Render_reflection_CB(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.reflectionShader_CB, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.reflectionShader_CB, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.reflectionShader_CB, tess.vboVertexSkinning);
 
@@ -4511,7 +4511,7 @@ static void Render_refraction_C(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.refractionShader_C, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.refractionShader_C, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.refractionShader_C, tess.vboVertexSkinning);
 
@@ -4557,7 +4557,7 @@ static void Render_dispersion_C(int stage)
 	GLSL_SetUniform_ModelMatrix(&tr.dispersionShader_C, backEnd.orientation.transformMatrix);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.dispersionShader_C, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.dispersionShader_C, tess.vboVertexSkinning);
 
@@ -4683,7 +4683,7 @@ static void Render_heatHaze(int stage)
 
 	GLimp_LogComment("--- Render_heatHaze ---\n");
 
-	if(r_heatHazeFix->integer && glConfig.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
+	if(r_heatHazeFix->integer && glConfig2.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
 	{
 		FBO_t          *previousFBO;
 		uint32_t        stateBits;
@@ -4809,7 +4809,7 @@ static void Render_heatHaze(int stage)
 	GLSL_SetUniform_ProjectionMatrixTranspose(&tr.heatHazeShader, glState.projectionMatrix[glState.stackIndex]);
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.heatHazeShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	if(glConfig.vboVertexSkinningAvailable)
+	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		GLSL_SetUniform_VertexSkinning(&tr.heatHazeShader, tess.vboVertexSkinning);
 
@@ -4848,7 +4848,7 @@ static void Render_heatHaze(int stage)
 	}
 
 	// bind u_ContrastMap
-	if(r_heatHazeFix->integer && glConfig.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
+	if(r_heatHazeFix->integer && glConfig2.framebufferBlitAvailable && glConfig.hardwareType != GLHW_ATI && glConfig.hardwareType != GLHW_ATI_DX10 && glConfig.driverType != GLDRV_MESA)
 	{
 		GL_SelectTexture(2);
 		GL_Bind(tr.occlusionRenderFBOImage);
@@ -4971,13 +4971,13 @@ static void Render_volumetricFog()
 
 	GLimp_LogComment("--- Render_volumetricFog---\n");
 
-	if(glConfig.framebufferBlitAvailable)
+	if(glConfig2.framebufferBlitAvailable)
 	{
 		FBO_t          *previousFBO;
 
 		previousFBO = glState.currentFBO;
 
-		if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+		if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 			   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 		{
 			// copy deferredRenderFBO to occlusionRenderFBO
@@ -4988,7 +4988,7 @@ static void Render_volumetricFog()
 								   GL_DEPTH_BUFFER_BIT,
 								   GL_NEAREST);
 		}
-		else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+		else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 		{
 			// copy deferredRenderFBO to occlusionRenderFBO
 			qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -5017,7 +5017,7 @@ static void Render_volumetricFog()
 		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.depthToColorShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 		// Tr3B: might be cool for ghost player effects
-		if(glConfig.vboVertexSkinningAvailable)
+		if(glConfig2.vboVertexSkinningAvailable)
 		{
 			GLSL_SetUniform_VertexSkinning(&tr.depthToColorShader, tess.vboVertexSkinning);
 
@@ -5077,12 +5077,12 @@ static void Render_volumetricFog()
 
 		// bind u_DepthMap
 		GL_SelectTexture(0);
-		if(r_deferredShading->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable &&
+		if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 				   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
 		{
 			GL_Bind(tr.depthRenderImage);
 		}
-		else if(r_hdrRendering->integer && glConfig.framebufferObjectAvailable && glConfig.textureFloatAvailable)
+		else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 		{
 			GL_Bind(tr.depthRenderImage);
 		}
@@ -5448,7 +5448,7 @@ void Tess_StageIteratorGeneric()
 				break;
 			}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 			case ST_LIGHTMAP:
 			{
 				Render_lightMapping(stage, qtrue);
@@ -5880,7 +5880,7 @@ void Tess_StageIteratorDepthFill()
 				break;
 			}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 			case ST_LIGHTMAP:
 			{
 				Render_depthFill(stage, qtrue);
@@ -5965,7 +5965,7 @@ void Tess_StageIteratorShadowFill()
 				break;
 			}
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 			case ST_LIGHTMAP:
 #endif
 			case ST_DIFFUSEMAP:
@@ -6038,7 +6038,7 @@ void Tess_StageIteratorStencilShadowVolume()
 			//if(backEnd.viewParms.isMirror)
 			//  GL_FrontFace(GL_CW);
 
-			if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig.stencilWrapAvailable)
+			if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig2.stencilWrapAvailable)
 			{
 				GL_Cull(CT_TWO_SIDED);
 
@@ -6057,7 +6057,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
 				qglActiveStencilFaceEXT(GL_BACK);
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 				}
@@ -6067,7 +6067,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				}
 
 				qglActiveStencilFaceEXT(GL_FRONT);
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 				}
@@ -6086,7 +6086,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				GL_Cull(CT_FRONT_SIDED);
 
 				// increment the stencil value on zfail
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 				}
@@ -6101,7 +6101,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				GL_Cull(CT_BACK_SIDED);
 
 				// decrement the stencil value on zfail
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 				}
@@ -6125,7 +6125,7 @@ void Tess_StageIteratorStencilShadowVolume()
 			//if(backEnd.viewParms.isMirror)
 			//  GL_FrontFace(GL_CW);
 
-			if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig.stencilWrapAvailable)
+			if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig2.stencilWrapAvailable)
 			{
 				GL_Cull(CT_TWO_SIDED);
 
@@ -6144,7 +6144,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
 				qglActiveStencilFaceEXT(GL_BACK);
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
 				}
@@ -6154,7 +6154,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				}
 
 				qglActiveStencilFaceEXT(GL_FRONT);
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
 				}
@@ -6173,7 +6173,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				GL_Cull(CT_BACK_SIDED);
 
 				// increment the stencil value on zpass
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
 				}
@@ -6188,7 +6188,7 @@ void Tess_StageIteratorStencilShadowVolume()
 				GL_Cull(CT_FRONT_SIDED);
 
 				// decrement the stencil value on zpass
-				if(glConfig.stencilWrapAvailable)
+				if(glConfig2.stencilWrapAvailable)
 				{
 					qglStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
 				}

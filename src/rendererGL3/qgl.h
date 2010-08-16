@@ -25,11 +25,64 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __QGL_H__
 #define __QGL_H__
 
+/*
 #undef HAVE_STDLIB_H
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL_opengl.h"
 #else
 #	include <SDL_opengl.h>
+#endif
+*/
+
+#if defined( __LINT__ )
+
+#include <GL/gl.h>
+
+#elif defined( _WIN32 )
+
+#if !defined( __GNUC__ )
+#pragma warning (disable: 4201)
+#pragma warning (disable: 4214)
+#pragma warning (disable: 4514)
+#pragma warning (disable: 4032)
+#pragma warning (disable: 4201)
+#pragma warning (disable: 4214)
+#endif							/* __GNUC__ */
+
+#include <windows.h>
+#include <GL/gl.h>
+#include "glext.h"
+
+#elif defined( __MACOS__ )
+
+#include <OpenGL/gl.h>
+
+#elif defined( __linux__ )
+
+// using our local glext.h
+// http://oss.sgi.com/projects/ogl-sample/ABI/
+#define GL_GLEXT_LEGACY
+#define GLX_GLXEXT_LEGACY
+// some GL headers define that, but only partially
+// define and undefine so GL doesn't attempt anything
+#define GL_ARB_multitexture
+#include <GL/gl.h>
+#include <GL/glx.h>
+#undef GL_ARB_multitexture
+#include "glext.h"
+
+#elif defined( __FreeBSD__ )	// rb010123
+
+#include <GL/gl.h>
+#include <GL/glx.h>
+#if defined( __FX__ )
+#include <GL/fxmesa.h>
+#endif
+
+#else
+
+#include <gl.h>
+
 #endif
 
 

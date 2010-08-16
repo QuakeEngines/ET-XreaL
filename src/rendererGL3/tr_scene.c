@@ -245,7 +245,7 @@ void RE_AddRefLightToScene(const refLight_t * l)
 		light->l.scale = r_lightScale->value;
 	}
 
-	if(!r_hdrRendering->integer || !glConfig.textureFloatAvailable || !glConfig.framebufferObjectAvailable || !glConfig.framebufferBlitAvailable)
+	if(!r_hdrRendering->integer || !glConfig2.textureFloatAvailable || !glConfig2.framebufferObjectAvailable || !glConfig2.framebufferBlitAvailable)
 	{
 		if(light->l.scale >= r_lightScale->value)
 		{
@@ -519,10 +519,10 @@ void RE_RenderScene(const refdef_t * fd)
 	parms.viewportWidth = tr.refdef.width;
 	parms.viewportHeight = tr.refdef.height;
 
-	VectorSet4(parms.viewportVerts[0], parms.viewportX, parms.viewportY, 0, 1);
-	VectorSet4(parms.viewportVerts[1], parms.viewportX + parms.viewportWidth, parms.viewportY, 0, 1);
-	VectorSet4(parms.viewportVerts[2], parms.viewportX + parms.viewportWidth, parms.viewportY + parms.viewportHeight, 0, 1);
-	VectorSet4(parms.viewportVerts[3], parms.viewportX, parms.viewportY + parms.viewportHeight, 0, 1);
+	Vector4Set(parms.viewportVerts[0], parms.viewportX, parms.viewportY, 0, 1);
+	Vector4Set(parms.viewportVerts[1], parms.viewportX + parms.viewportWidth, parms.viewportY, 0, 1);
+	Vector4Set(parms.viewportVerts[2], parms.viewportX + parms.viewportWidth, parms.viewportY + parms.viewportHeight, 0, 1);
+	Vector4Set(parms.viewportVerts[3], parms.viewportX, parms.viewportY + parms.viewportHeight, 0, 1);
 
 	parms.isPortal = qfalse;
 

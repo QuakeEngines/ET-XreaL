@@ -24,10 +24,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef TR_LOCAL_H
 #define TR_LOCAL_H
 
-#include "../qcommon/q_shared.h"
+#include "../game/q_shared.h"
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
-#include "tr_public.h"
+#include "../renderer/tr_public.h"
 
 #if 0
 #if !defined(USE_D3D10)
@@ -102,15 +102,15 @@ typedef enum
 	DS_PREPASS_LIGHTING			// light pre pass rendering like in Cry Engine 3
 } deferredShading_t;
 
-#define DS_STANDARD_ENABLED() ((r_deferredShading->integer == DS_STANDARD && glConfig.maxColorAttachments >= 4 && glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4 && glConfig.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
+#define DS_STANDARD_ENABLED() ((r_deferredShading->integer == DS_STANDARD && glConfig2.maxColorAttachments >= 4 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4 && glConfig2.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
 
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
-#define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING && glConfig.maxColorAttachments >= 2 && glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 2 && glConfig.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
+#define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING && glConfig2.maxColorAttachments >= 2 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 2 && glConfig2.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
 #else
 #define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING))
 #endif
 
-#define HDR_ENABLED() ((r_hdrRendering->integer && glConfig.textureFloatAvailable && glConfig.framebufferObjectAvailable && glConfig.framebufferBlitAvailable && glConfig.driverType != GLDRV_MESA))
+#define HDR_ENABLED() ((r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable && glConfig.driverType != GLDRV_MESA))
 
 #define REF_CUBEMAP_SIZE	128
 #define REF_CUBEMAP_STORE_SIZE	1024
@@ -909,7 +909,7 @@ typedef enum
 	ST_HEATHAZEMAP,				// heatHaze post process effect
 	ST_LIQUIDMAP,
 
-#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 	ST_LIGHTMAP,
 #endif
 
@@ -1637,13 +1637,13 @@ static ID_INLINE void GLSL_SetUniform_DeformWave(shaderProgram_t * program, cons
 {
 	vec4_t v;
 
-	VectorSet4(v, wf->base, wf->amplitude, wf->phase, wf->frequency);
+	Vector4Set(v, wf->base, wf->amplitude, wf->phase, wf->frequency);
 
 #if defined(USE_UNIFORM_FIREWALL)
-	if(VectorCompare4(program->t_DeformWave, v))
+	if(Vector4Compare(program->t_DeformWave, v))
 		return;
 
-	VectorCopy4(v, program->t_DeformWave);
+	Vector4Copy(v, program->t_DeformWave);
 #endif
 
 #if defined(LOG_GLSL_UNIFORMS)
@@ -1796,10 +1796,10 @@ static ID_INLINE void GLSL_SetUniform_AlphaGen(shaderProgram_t * program, alphaG
 static ID_INLINE void GLSL_SetUniform_Color(shaderProgram_t * program, const vec4_t v)
 {
 #if defined(USE_UNIFORM_FIREWALL)
-	if(VectorCompare4(program->t_Color, v))
+	if(Vector4Compare(program->t_Color, v))
 		return;
 
-	VectorCopy4(v, program->t_Color);
+	Vector4Copy(v, program->t_Color);
 #endif
 
 #if defined(LOG_GLSL_UNIFORMS)
@@ -2095,10 +2095,10 @@ static ID_INLINE void GLSL_SetUniform_ShadowBlur(shaderProgram_t * program, floa
 static ID_INLINE void GLSL_SetUniform_ShadowParallelSplitDistances(shaderProgram_t * program, const vec4_t v)
 {
 #if defined(USE_UNIFORM_FIREWALL)
-	if(VectorCompare4(program->t_ShadowParallelSplitDistances, v))
+	if(Vector4Compare(program->t_ShadowParallelSplitDistances, v))
 		return;
 
-	VectorCopy4(v, program->t_ShadowParallelSplitDistances);
+	Vector4Copy(v, program->t_ShadowParallelSplitDistances);
 #endif
 
 #if defined(LOG_GLSL_UNIFORMS)
@@ -2190,7 +2190,7 @@ static ID_INLINE void GLSL_SetUniform_PortalClipping(shaderProgram_t * program, 
 static ID_INLINE void GLSL_SetUniform_PortalPlane(shaderProgram_t * program, const vec4_t v)
 {
 #if defined(USE_UNIFORM_FIREWALL)
-	if(VectorCompare4(program->t_PortalPlane, v))
+	if(Vector4Compare(program->t_PortalPlane, v))
 		return;
 
 	VectorCopy(v, program->t_PortalPlane);
@@ -2457,12 +2457,29 @@ typedef struct
 	shader_t       *shader;
 } skinSurface_t;
 
+//----(SA) modified
+#define MAX_PART_MODELS 5
+
+typedef struct
+{
+	char            type[MAX_QPATH];	// md3_lower, md3_lbelt, md3_rbelt, etc.
+	char            model[MAX_QPATH];	// lower.md3, belt1.md3, etc.
+	int             hash;
+} skinModel_t;
+
 typedef struct skin_s
 {
 	char            name[MAX_QPATH];	// game path, including extension
 	int             numSurfaces;
+	int             numModels;
 	skinSurface_t  *surfaces[MD3_MAX_SURFACES];
+	skinModel_t    *models[MAX_PART_MODELS];
 } skin_t;
+
+//----(SA) end
+
+
+//=================================================================================
 
 typedef struct
 {
@@ -2521,11 +2538,19 @@ typedef enum
 	SF_TRIANGLES,
 	SF_POLY,
 	SF_MDX,
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	SF_MD5,
+#endif
+
 	SF_FLARE,
 	SF_ENTITY,					// beams, rails, lightning, etc that can be determined by entity
 	SF_VBO_MESH,
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	SF_VBO_MD5MESH,
+#endif
+
 	SF_VBO_SHADOW_VOLUME,
 
 	SF_NUM_SURFACE_TYPES,
@@ -2987,7 +3012,7 @@ typedef struct
 
 /*
 ==============================================================================
-MDX MODELS - meta format for .md2, .md3, .mdc and so on
+MDV MODELS - meta format for vertex animation models like .md2, .md3, .mdc
 ==============================================================================
 */
 typedef struct
@@ -2995,24 +3020,24 @@ typedef struct
 	float           bounds[2][3];
 	float           localOrigin[3];
 	float           radius;
-} mdxFrame_t;
+} mdvFrame_t;
 
 typedef struct
 {
 	char            name[MAX_QPATH];	// tag name
 	float           origin[3];
 	float           axis[3][3];
-} mdxTag_t;
+} mdvTag_t;
 
 typedef struct
 {
 	short           xyz[3];
-} mdxVertex_t;
+} mdvVertex_t;
 
 typedef struct
 {
 	float           st[2];
-} mdxSt_t;
+} mdvSt_t;
 
 typedef struct
 {
@@ -3023,31 +3048,31 @@ typedef struct
 	shader_t       *shader;
 
 	int             numVerts;
-	mdxVertex_t    *verts;
-	mdxSt_t        *st;
+	mdvVertex_t    *verts;
+	mdvSt_t        *st;
 
 	int             numTriangles;
 	srfTriangle_t  *triangles;
 
 	struct mdxModel_s *model;
-} mdxSurface_t;
+} mdvSurface_t;
 
 typedef struct mdxModel_s
 {
 	int             numFrames;
-	mdxFrame_t     *frames;
+	mdvFrame_t     *frames;
 
 	int             numTags;
-	mdxTag_t       *tags;
+	mdvTag_t       *tags;
 
 	int             numSurfaces;
-	mdxSurface_t   *surfaces;
+	mdvSurface_t   *surfaces;
 
 	int             numVBOSurfaces;
 	srfVBOMesh_t  **vboSurfaces;
 
 	int             numSkins;
-} mdxModel_t;
+} mdvModel_t;
 
 
 /*
@@ -3220,7 +3245,7 @@ typedef struct model_s
 
 	int             dataSize;	// just for listing purposes
 	bspModel_t     *bsp;		// only if type == MOD_BSP
-	mdxModel_t     *mdx[MD3_MAX_LODS];	// only if type == MOD_MD3
+	mdvModel_t     *mdx[MD3_MAX_LODS];	// only if type == MOD_MD3
 	md5Model_t     *md5;		// only if type == MOD_MD5
 
 	int             numLods;
@@ -3703,7 +3728,8 @@ extern int      shadowMapResolutions[5];
 
 extern backEndState_t backEnd;
 extern trGlobals_t tr;
-extern glConfig_t glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
+extern glconfig_t glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
+extern glconfig2_t glConfig2;
 
 #if defined(USE_D3D10)
 extern dxGlobals_t dx;
@@ -3973,6 +3999,11 @@ extern cvar_t  *r_cameraPostFX;
 
 //====================================================================
 
+#define IMAGE_FILE_HASH_SIZE      4096
+extern image_t *r_imageHashTable[IMAGE_FILE_HASH_SIZE];
+
+extern long		GenerateImageHashValue(const char *fname);
+
 float           R_NoiseGet4f(float x, float y, float z, float t);
 void            R_NoiseInit(void);
 
@@ -4089,12 +4120,17 @@ void            RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, co
 void            RE_UploadCinematic(int w, int h, int cols, int rows, const byte * data, int client, qboolean dirty);
 
 void            RE_BeginFrame(stereoFrame_t stereoFrame);
-void            RE_BeginRegistration(glConfig_t * glconfig);
+void            RE_BeginRegistration(glconfig_t * glconfig);
 void            RE_LoadWorldMap(const char *mapname);
 void            RE_SetWorldVisData(const byte * vis);
 qhandle_t       RE_RegisterModel(const char *name, qboolean forceStatic);
 qhandle_t       RE_RegisterSkin(const char *name);
 void            RE_Shutdown(qboolean destroyWindow);
+
+//----(SA)
+qboolean        RE_GetSkinModel(qhandle_t skinid, const char *type, char *name);
+qhandle_t       RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withlightmap);	//----(SA)
+//----(SA) end
 
 qboolean        R_GetEntityToken(char *buffer, int size);
 
@@ -4482,7 +4518,11 @@ ANIMATED MODELS
 */
 
 void            R_InitAnimations(void);
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 qhandle_t       RE_RegisterAnimation(const char *name);
+#endif
+
 skelAnimation_t *R_GetAnimationByHandle(qhandle_t hAnim);
 void            R_AnimationList_f(void);
 
@@ -4491,12 +4531,14 @@ void            R_AddMDSSurfaces(trRefEntity_t * ent);
 void            R_AddMD5Surfaces(trRefEntity_t * ent);
 void            R_AddMD5Interactions(trRefEntity_t * ent, trRefLight_t * light);
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 int				RE_CheckSkeleton(refSkeleton_t * skel, qhandle_t hModel, qhandle_t hAnim);
 int             RE_BuildSkeleton(refSkeleton_t * skel, qhandle_t anim, int startFrame, int endFrame, float frac,
 								 qboolean clearOrigin);
 int             RE_BlendSkeleton(refSkeleton_t * skel, const refSkeleton_t * blend, float frac);
 int             RE_AnimNumFrames(qhandle_t hAnim);
 int             RE_AnimFrameRate(qhandle_t hAnim);
+#endif
 
 /*
 =============================================================

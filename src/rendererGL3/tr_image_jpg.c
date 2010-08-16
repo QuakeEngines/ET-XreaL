@@ -132,7 +132,7 @@ void LoadJPG(const char *filename, unsigned char **pic, int *width, int *height,
 	/* JSAMPLEs per row in output buffer */
 	pixelcount = cinfo.output_width * cinfo.output_height;
 	row_stride = cinfo.output_width * cinfo.output_components;
-	out = ri.Malloc(pixelcount * 4);
+	out = ri.Z_Malloc(pixelcount * 4);
 
 	if(!cinfo.output_width || !cinfo.output_height || ((pixelcount * 4) / cinfo.output_width) / 4 != cinfo.output_height || pixelcount > 0x1FFFFFFF || cinfo.output_components > 4)	// 4*1FFFFFFF == 0x7FFFFFFC < 0x7FFFFFFF
 	{
@@ -168,7 +168,7 @@ void LoadJPG(const char *filename, unsigned char **pic, int *width, int *height,
 		unsigned char   greyshade;
 
 		// allocate a new buffer for the transformed image
-		out_converted = ri.Malloc(pixelcount * 4);
+		out_converted = ri.Z_Malloc(pixelcount * 4);
 
 		for(sindex = 0; sindex < pixelcount; sindex++)
 		{

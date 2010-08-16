@@ -1106,8 +1106,8 @@ Sets up the modelview matrix for a given viewParm
 void R_RotateForViewer(void)
 {
 	matrix_t        transformMatrix;
-	axis_t			viewAxis;
-	vec3_t			forward, right, up;
+//	axis_t			viewAxis;
+//	vec3_t			forward, right, up;
 	matrix_t        viewMatrix;
 
 	Com_Memset(&tr.orientation, 0, sizeof(tr.orientation));
@@ -1232,9 +1232,9 @@ static void SetFarClip(void)
 {
 	float           farthestCornerDistance;
 	int             i, j;
-	vec3_t          v;
-	vec3_t          eye;
-	float          *modelMatrix;
+//	vec3_t          v;
+//	vec3_t          eye;
+//	float          *modelMatrix;
 
 	// if not rendering the world (icons, menus, etc)
 	// set a 2k far clip plane
@@ -1516,9 +1516,9 @@ static void R_SetupProjection(qboolean infiniteFarClip)
 	MatrixMultiply(tr.viewParms.projectionMatrix, tr.orientation.modelViewMatrix, mvp);
 	MatrixCopy(tr.orientation.modelViewMatrix, mvp);
 
-	VectorSet4(axis[0], 1, 0, 0, 1);
-	VectorSet4(axis[1], 0, 1, 0, 1);
-	VectorSet4(axis[2], 0, 0, 1, 1);
+	Vector4Set(axis[0], 1, 0, 0, 1);
+	Vector4Set(axis[1], 0, 1, 0, 1);
+	Vector4Set(axis[2], 0, 0, 1, 1);
 
 	for(i = 0; i < 3; i++)
 	{
@@ -1812,13 +1812,13 @@ void R_PlaneForSurface(surfaceType_t * surfType, cplane_t * plane)
 			v1 = tri->verts + tri->triangles[0].indexes[0];
 			v2 = tri->verts + tri->triangles[0].indexes[1];
 			v3 = tri->verts + tri->triangles[0].indexes[2];
-			PlaneFromPoints(plane4, v1->xyz, v2->xyz, v3->xyz, qtrue);
+			PlaneFromPoints(plane4, v1->xyz, v2->xyz, v3->xyz);
 			VectorCopy(plane4, plane->normal);
 			plane->dist = plane4[3];
 			return;
 		case SF_POLY:
 			poly = (srfPoly_t *) surfType;
-			PlaneFromPoints(plane4, poly->verts[0].xyz, poly->verts[1].xyz, poly->verts[2].xyz, qtrue);
+			PlaneFromPoints(plane4, poly->verts[0].xyz, poly->verts[1].xyz, poly->verts[2].xyz);
 			VectorCopy(plane4, plane->normal);
 			plane->dist = plane4[3];
 			return;
@@ -2674,7 +2674,7 @@ void R_AddLightInteractions()
 			// ignore if not in PVS
 			if(!r_noLightVisCull->integer)
 			{
-				if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
+				if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
 				{
 					int numVisibleLeafs = 0;
 
@@ -2911,7 +2911,7 @@ void R_AddLightBoundsToVisBounds()
 			// ignore if not in PVS
 			if(!r_noLightVisCull->integer)
 			{
-				if(glConfig.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
+				if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicBspOcclusionCulling->integer)
 				{
 					int numVisibleLeafs = 0;
 

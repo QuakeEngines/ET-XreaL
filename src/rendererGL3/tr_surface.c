@@ -179,7 +179,7 @@ void Tess_AddQuadStampExt(vec3_t origin, vec3_t left, vec3_t up, const vec4_t co
 
 	for(i = 0; i < 4; i++)
 	{
-		VectorCopy4(color, tess.colors[ndx + i]);
+		Vector4Copy(color, tess.colors[ndx + i]);
 	}
 
 	tess.numVertexes += 4;
@@ -222,15 +222,15 @@ void Tess_AddQuadStampExt2(vec4_t quadVerts[4], const vec4_t color, float s1, fl
 	tess.indexes[tess.numIndexes + 4] = ndx + 1;
 	tess.indexes[tess.numIndexes + 5] = ndx + 2;
 
-	VectorCopy4(quadVerts[0], tess.xyz[ndx + 0]);
-	VectorCopy4(quadVerts[1], tess.xyz[ndx + 1]);
-	VectorCopy4(quadVerts[2], tess.xyz[ndx + 2]);
-	VectorCopy4(quadVerts[3], tess.xyz[ndx + 3]);
+	Vector4Copy(quadVerts[0], tess.xyz[ndx + 0]);
+	Vector4Copy(quadVerts[1], tess.xyz[ndx + 1]);
+	Vector4Copy(quadVerts[2], tess.xyz[ndx + 2]);
+	Vector4Copy(quadVerts[3], tess.xyz[ndx + 3]);
 
 	// constant normal all the way around
 	if(calcNormals)
 	{
-		PlaneFromPoints(plane, quadVerts[0], quadVerts[1], quadVerts[2], qtrue);
+		PlaneFromPoints(plane, quadVerts[0], quadVerts[1], quadVerts[2]);
 	}
 	else
 	{
@@ -267,7 +267,7 @@ void Tess_AddQuadStampExt2(vec4_t quadVerts[4], const vec4_t color, float s1, fl
 
 	for(i = 0; i < 4; i++)
 	{
-		VectorCopy4(color, tess.colors[ndx + i]);
+		Vector4Copy(color, tess.colors[ndx + i]);
 	}
 
 	tess.numVertexes += 4;
@@ -298,8 +298,8 @@ void Tess_AddTetrahedron(vec4_t tetraVerts[4], const vec4_t color)
 	// ground triangle
 	for(k = 0; k < 3; k++)
 	{
-		VectorCopy4(tetraVerts[k], tess.xyz[tess.numVertexes]);
-		VectorCopy4(color, tess.colors[tess.numVertexes]);
+		Vector4Copy(tetraVerts[k], tess.xyz[tess.numVertexes]);
+		Vector4Copy(color, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 	}
@@ -307,18 +307,18 @@ void Tess_AddTetrahedron(vec4_t tetraVerts[4], const vec4_t color)
 	// side triangles
 	for(k = 0; k < 3; k++)
 	{
-		VectorCopy4(tetraVerts[3], tess.xyz[tess.numVertexes]);	// offset
-		VectorCopy4(color, tess.colors[tess.numVertexes]);
+		Vector4Copy(tetraVerts[3], tess.xyz[tess.numVertexes]);	// offset
+		Vector4Copy(color, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 
-		VectorCopy4(tetraVerts[k], tess.xyz[tess.numVertexes]);
-		VectorCopy4(color, tess.colors[tess.numVertexes]);
+		Vector4Copy(tetraVerts[k], tess.xyz[tess.numVertexes]);
+		Vector4Copy(color, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 
-		VectorCopy4(tetraVerts[(k + 1) % 3], tess.xyz[tess.numVertexes]);
-		VectorCopy4(color, tess.colors[tess.numVertexes]);
+		Vector4Copy(tetraVerts[(k + 1) % 3], tess.xyz[tess.numVertexes]);
+		Vector4Copy(color, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 	}
@@ -333,40 +333,40 @@ void Tess_AddCube(const vec3_t position, const vec3_t minSize, const vec3_t maxS
 	VectorAdd(position, minSize, mins);
 	VectorAdd(position, maxSize, maxs);
 
-	VectorSet4(quadVerts[0], mins[0], mins[1], mins[2], 1);
-	VectorSet4(quadVerts[1], mins[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], mins[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[0], mins[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[1], mins[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], mins[0], mins[1], maxs[2], 1);
 	Tess_AddQuadStamp2(quadVerts, color);
 
-	VectorSet4(quadVerts[0], maxs[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], maxs[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[3], maxs[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[0], maxs[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], maxs[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[3], maxs[0], mins[1], mins[2], 1);
 	Tess_AddQuadStamp2(quadVerts, color);
 
-	VectorSet4(quadVerts[0], mins[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[1], mins[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], maxs[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], maxs[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[0], mins[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[1], mins[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], maxs[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], maxs[0], mins[1], maxs[2], 1);
 	Tess_AddQuadStamp2(quadVerts, color);
 
-	VectorSet4(quadVerts[0], maxs[0], mins[1], mins[2], 1);
-	VectorSet4(quadVerts[1], maxs[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[2], mins[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[3], mins[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[0], maxs[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[1], maxs[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[2], mins[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[3], mins[0], mins[1], mins[2], 1);
 	Tess_AddQuadStamp2(quadVerts, color);
 
-	VectorSet4(quadVerts[0], mins[0], mins[1], mins[2], 1);
-	VectorSet4(quadVerts[1], mins[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], maxs[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], maxs[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[0], mins[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[1], mins[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], maxs[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], maxs[0], mins[1], mins[2], 1);
 	Tess_AddQuadStamp2(quadVerts, color);
 
-	VectorSet4(quadVerts[0], maxs[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], mins[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[0], maxs[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], mins[0], maxs[1], mins[2], 1);
 	Tess_AddQuadStamp2(quadVerts, color);
 }
 
@@ -379,40 +379,40 @@ void Tess_AddCubeWithNormals(const vec3_t position, const vec3_t minSize, const 
 	VectorAdd(position, minSize, mins);
 	VectorAdd(position, maxSize, maxs);
 
-	VectorSet4(quadVerts[0], mins[0], mins[1], mins[2], 1);
-	VectorSet4(quadVerts[1], mins[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], mins[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[0], mins[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[1], mins[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], mins[0], mins[1], maxs[2], 1);
 	Tess_AddQuadStamp2WithNormals(quadVerts, color);
 
-	VectorSet4(quadVerts[0], maxs[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], maxs[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[3], maxs[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[0], maxs[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], maxs[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[3], maxs[0], mins[1], mins[2], 1);
 	Tess_AddQuadStamp2WithNormals(quadVerts, color);
 
-	VectorSet4(quadVerts[0], mins[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[1], mins[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], maxs[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], maxs[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[0], mins[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[1], mins[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], maxs[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], maxs[0], mins[1], maxs[2], 1);
 	Tess_AddQuadStamp2WithNormals(quadVerts, color);
 
-	VectorSet4(quadVerts[0], maxs[0], mins[1], mins[2], 1);
-	VectorSet4(quadVerts[1], maxs[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[2], mins[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[3], mins[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[0], maxs[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[1], maxs[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[2], mins[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[3], mins[0], mins[1], mins[2], 1);
 	Tess_AddQuadStamp2WithNormals(quadVerts, color);
 
-	VectorSet4(quadVerts[0], mins[0], mins[1], mins[2], 1);
-	VectorSet4(quadVerts[1], mins[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], maxs[0], mins[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], maxs[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[0], mins[0], mins[1], mins[2], 1);
+	Vector4Set(quadVerts[1], mins[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], maxs[0], mins[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], maxs[0], mins[1], mins[2], 1);
 	Tess_AddQuadStamp2WithNormals(quadVerts, color);
 
-	VectorSet4(quadVerts[0], maxs[0], maxs[1], mins[2], 1);
-	VectorSet4(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
-	VectorSet4(quadVerts[3], mins[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[0], maxs[0], maxs[1], mins[2], 1);
+	Vector4Set(quadVerts[1], maxs[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[2], mins[0], maxs[1], maxs[2], 1);
+	Vector4Set(quadVerts[3], mins[0], maxs[1], mins[2], 1);
 	Tess_AddQuadStamp2WithNormals(quadVerts, color);
 }
 
@@ -441,7 +441,7 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 
 		if(attribBits & ATTR_BITS)
 		{
-			if(glConfig.vboVertexSkinningAvailable && tess.vboVertexSkinning)
+			if(glConfig2.vboVertexSkinningAvailable && tess.vboVertexSkinning)
 				attribBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 
 			GL_VertexAttribsState(attribBits);
@@ -482,7 +482,7 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsColors, tess.numVertexes * sizeof(vec4_t), tess.colors);
 			}
 
-#if !defined(COMPAT_Q3A)
+#if !defined(COMPAT_ET)
 			if(attribBits & ATTR_PAINTCOLOR)
 			{
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsPaintColors, tess.numVertexes * sizeof(vec4_t), tess.paintColors);
@@ -522,19 +522,20 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 
 			if(backEnd.currentEntity == &tr.worldEntity)
 			{
-	#if defined(COMPAT_Q3A)
+#if defined(COMPAT_ET)
 				GL_VertexAttribPointers(ATTR_LIGHTCOORD);
 
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightCoords, tess.numVertexes * sizeof(vec4_t), tess.lightCoords);
-	#else
+#else
 				GL_VertexAttribPointers(ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION);
 
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightCoords, tess.numVertexes * sizeof(vec4_t), tess.lightCoords);
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsPaintColors, tess.numVertexes * sizeof(vec4_t), tess.paintColors);
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightDirections, tess.numVertexes * sizeof(vec4_t), tess.lightDirections);
-	#endif
+#endif
 			}
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 			if((backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE) && !tess.vboVertexSkinning)
 			{
 				GL_VertexAttribPointers(ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
@@ -542,6 +543,7 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneIndexes, tess.numVertexes * sizeof(vec4_t), tess.boneIndexes);
 				qglBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneWeights, tess.numVertexes * sizeof(vec4_t), tess.boneWeights);
 			}
+#endif
 		}
 	}
 
@@ -572,7 +574,7 @@ void Tess_InstantQuad(vec4_t quadVerts[4])
 	tess.numVertexes = 0;
 	tess.numIndexes = 0;
 
-	VectorCopy4(quadVerts[0], tess.xyz[tess.numVertexes]);
+	Vector4Copy(quadVerts[0], tess.xyz[tess.numVertexes]);
 	tess.texCoords[tess.numVertexes][0] = 0;
 	tess.texCoords[tess.numVertexes][1] = 0;
 	tess.texCoords[tess.numVertexes][2] = 0;
@@ -583,7 +585,7 @@ void Tess_InstantQuad(vec4_t quadVerts[4])
 	tess.colors[tess.numVertexes][3] = 1;
 	tess.numVertexes++;
 
-	VectorCopy4(quadVerts[1], tess.xyz[tess.numVertexes]);
+	Vector4Copy(quadVerts[1], tess.xyz[tess.numVertexes]);
 	tess.texCoords[tess.numVertexes][0] = 1;
 	tess.texCoords[tess.numVertexes][1] = 0;
 	tess.texCoords[tess.numVertexes][2] = 0;
@@ -594,7 +596,7 @@ void Tess_InstantQuad(vec4_t quadVerts[4])
 	tess.colors[tess.numVertexes][3] = 1;
 	tess.numVertexes++;
 
-	VectorCopy4(quadVerts[2], tess.xyz[tess.numVertexes]);
+	Vector4Copy(quadVerts[2], tess.xyz[tess.numVertexes]);
 	tess.texCoords[tess.numVertexes][0] = 1;
 	tess.texCoords[tess.numVertexes][1] = 1;
 	tess.texCoords[tess.numVertexes][2] = 0;
@@ -605,7 +607,7 @@ void Tess_InstantQuad(vec4_t quadVerts[4])
 	tess.colors[tess.numVertexes][3] = 1;
 	tess.numVertexes++;
 
-	VectorCopy4(quadVerts[3], tess.xyz[tess.numVertexes]);
+	Vector4Copy(quadVerts[3], tess.xyz[tess.numVertexes]);
 	tess.texCoords[tess.numVertexes][0] = 0;
 	tess.texCoords[tess.numVertexes][1] = 1;
 	tess.texCoords[tess.numVertexes][2] = 0;
@@ -1880,14 +1882,14 @@ static void Tess_SurfaceLightningBolt(void)
 Tess_SurfaceMDX
 =============
 */
-static void Tess_SurfaceMDX(mdxSurface_t * srf)
+static void Tess_SurfaceMDX(mdvSurface_t * srf)
 {
 	int             i, j;
 	int             numIndexes = 0;
 	int             numVertexes;
-	mdxModel_t     *model;
-	mdxVertex_t    *oldVert, *newVert;
-	mdxSt_t        *st;
+	mdvModel_t     *model;
+	mdvVertex_t    *oldVert, *newVert;
+	mdvSt_t        *st;
 	srfTriangle_t  *tri;
 	vec3_t          lightOrigin;
 	float           backlerp;
@@ -2168,6 +2170,8 @@ static void Tess_SurfaceMDX(mdxSurface_t * srf)
 		tess.numVertexes += numVertexes;
 	}
 }
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 
 /*
 ==============
@@ -2530,6 +2534,8 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 	}
 }
 
+#endif
+
 /*
 ===========================================================================
 
@@ -2564,8 +2570,8 @@ static void Tess_SurfaceAxis(void)
 	for(k = 0; k < 3; k++)
 	{
 		verts[k][3] = 1;
-		VectorCopy4(verts[k], tess.xyz[tess.numVertexes]);
-		VectorCopy4(colorRed, tess.colors[tess.numVertexes]);
+		Vector4Copy(verts[k], tess.xyz[tess.numVertexes]);
+		Vector4Copy(colorRed, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 	}
@@ -2575,8 +2581,8 @@ static void Tess_SurfaceAxis(void)
 	for(k = 0; k < 3; k++)
 	{
 		verts[k][3] = 1;
-		VectorCopy4(verts[k], tess.xyz[tess.numVertexes]);
-		VectorCopy4(colorGreen, tess.colors[tess.numVertexes]);
+		Vector4Copy(verts[k], tess.xyz[tess.numVertexes]);
+		Vector4Copy(colorGreen, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 	}
@@ -2586,8 +2592,8 @@ static void Tess_SurfaceAxis(void)
 	for(k = 0; k < 3; k++)
 	{
 		verts[k][3] = 1;
-		VectorCopy4(verts[k], tess.xyz[tess.numVertexes]);
-		VectorCopy4(colorBlue, tess.colors[tess.numVertexes]);
+		Vector4Copy(verts[k], tess.xyz[tess.numVertexes]);
+		Vector4Copy(colorBlue, tess.colors[tess.numVertexes]);
 		tess.indexes[tess.numIndexes++] = tess.numVertexes;
 		tess.numVertexes++;
 	}
@@ -2746,6 +2752,7 @@ static void Tess_SurfaceVBOMesh(srfVBOMesh_t * srf)
 Tess_SurfaceVBOMD5Mesh
 ==============
 */
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 {
 	int             i;
@@ -2809,6 +2816,7 @@ static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 
 	Tess_End();
 }
+#endif
 
 /*
 ==============
@@ -2847,10 +2855,16 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfaceTriangles,	// SF_TRIANGLES,
 		(void (*)(void *))Tess_SurfacePolychain,	// SF_POLY,
 		(void (*)(void *))Tess_SurfaceMDX,	// SF_MDX,
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 		(void (*)(void *))Tess_SurfaceMD5,	// SF_MD5,
+#endif
 		(void (*)(void *))Tess_SurfaceFlare,	// SF_FLARE,
 		(void (*)(void *))Tess_SurfaceEntity,	// SF_ENTITY
 		(void (*)(void *))Tess_SurfaceVBOMesh,	// SF_VBO_MESH
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 		(void (*)(void *))Tess_SurfaceVBOMD5Mesh,	// SF_VBO_MD5MESH
+#endif
 		(void (*)(void *))Tess_SurfaceVBOShadowVolume	// SF_VBO_SHADOW_VOLUME
 };
