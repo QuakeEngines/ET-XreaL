@@ -60,6 +60,14 @@ If you have questions concerning this license or the applicable additional terms
 
 //#define LOCALIZATION_SUPPORT
 
+
+#if 1
+#if !defined(COMPAT_ET)
+#define COMPAT_ET 1
+#endif
+#endif
+
+
 #define NEW_ANIMS
 #define MAX_TEAMNAME    32
 
@@ -126,6 +134,28 @@ If you have questions concerning this license or the applicable additional terms
 #include <sys/stat.h>			// rain
 #include <float.h>
 
+#endif
+
+//=============================================================
+
+#ifdef Q3_VM
+typedef int     intptr_t;
+#else
+#ifndef _MSC_VER
+#include <stdint.h>
+#else
+//#ifndef __cplusplus
+#include <io.h>
+typedef __int64 int64_t;
+typedef __int32 int32_t;
+typedef __int16 int16_t;
+typedef __int8  int8_t;
+typedef unsigned __int64 uint64_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int8 uint8_t;
+//#endif
+#endif
 #endif
 
 
@@ -677,6 +707,18 @@ extern quat_t   quatIdentity;
 
 #define IS_NAN( x ) ( ( ( *(int *)&x ) & nanmask ) == nanmask )
 
+static ID_INLINE long Q_ftol(float f)
+{
+#if id386_sse && defined(_MSC_VER)
+	static int      tmp;
+	__asm fld f
+	__asm fistp tmp
+	__asm mov eax, tmp
+#else
+	return (long)f;
+#endif
+}
+
 float           Q_fabs(float f);
 float           Q_rsqrt(float f);	// reciprocal square root
 
@@ -693,6 +735,26 @@ extern long int lrintf(float x);
 #define myftol( x ) lrintf( x )
 #endif
 
+static ID_INLINE float Q_recip(float in)
+{
+#if id386_3dnow && defined __GNUC__ && 0
+	vec_t           out;
+
+	femms();
+	asm volatile    ("movd		(%%eax),	%%mm0\n" "pfrcp		%%mm0,		%%mm1\n"	// (approx)
+					 "pfrcpit1	%%mm1,		%%mm0\n"	// (intermediate)
+					 "pfrcpit2	%%mm1,		%%mm0\n"	// (full 24-bit)
+					 // out = mm0[low]
+					 "movd		%%mm0,		(%%edx)\n"::"a" (&in), "d"(&out):"memory");
+
+	femms();
+	return out;
+#else
+	return (float)(1.0f / in);
+#endif
+}
+
+byte			ClampByte(int i);
 signed char     ClampChar(int i);
 signed short    ClampShort(int i);
 
@@ -746,6 +808,8 @@ typedef struct
 #define Vector4MA( v, s, b, o )       ( ( o )[0] = ( v )[0] + ( b )[0] * ( s ),( o )[1] = ( v )[1] + ( b )[1] * ( s ),( o )[2] = ( v )[2] + ( b )[2] * ( s ),( o )[3] = ( v )[3] + ( b )[3] * ( s ) )
 #define Vector4Average( v, b, s, o )  ( ( o )[0] = ( ( v )[0] * ( 1 - ( s ) ) ) + ( ( b )[0] * ( s ) ),( o )[1] = ( ( v )[1] * ( 1 - ( s ) ) ) + ( ( b )[1] * ( s ) ),( o )[2] = ( ( v )[2] * ( 1 - ( s ) ) ) + ( ( b )[2] * ( s ) ),( o )[3] = ( ( v )[3] * ( 1 - ( s ) ) ) + ( ( b )[3] * ( s ) ) )
 
+#define DotProduct4(x, y)			  ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2]+(x)[3]*(y)[3])
+
 #define SnapVector( v ) {v[0] = ( (int)( v[0] ) ); v[1] = ( (int)( v[1] ) ); v[2] = ( (int)( v[2] ) );}
 
 // just in case you do't want to use the macros
@@ -760,6 +824,7 @@ unsigned        ColorBytes3(float r, float g, float b);
 unsigned        ColorBytes4(float r, float g, float b, float a);
 
 float           NormalizeColor(const vec3_t in, vec3_t out);
+void			ClampColor(vec4_t color);
 
 float           RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 void            ClearBounds(vec3_t mins, vec3_t maxs);
@@ -786,6 +851,16 @@ static ID_INLINE void BoundsToCorners(const vec3_t mins, const vec3_t maxs, vec3
 }
 
 int             VectorCompare(const vec3_t v1, const vec3_t v2);
+
+static ID_INLINE int Vector4Compare(const vec4_t v1, const vec4_t v2)
+{
+	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3])
+	{
+		return 0;
+	}
+	return 1;
+}
+
 vec_t           VectorLength(const vec3_t v);
 vec_t           VectorLengthSquared(const vec3_t v);
 vec_t           Distance(const vec3_t p1, const vec3_t p2);
@@ -1116,6 +1191,7 @@ char           *COM_SkipPath(char *pathname);
 void            COM_FixPath(char *pathname);
 void            COM_StripExtension(const char *in, char *out);
 void            COM_StripExtension2(const char *in, char *out, int destsize);
+void			COM_StripExtension3(const char *src, char *dest, int destsize);
 void            COM_StripFilename(char *in, char *out);
 void            COM_DefaultExtension(char *path, int maxSize, const char *extension);
 
@@ -1217,6 +1293,7 @@ int             Q_stricmpn(const char *s1, const char *s2, int n);
 char           *Q_strlwr(char *s1);
 char           *Q_strupr(char *s1);
 char           *Q_strrchr(const char *string, int c);
+char           *Q_stristr(const char *s, const char *find);
 
 #ifdef _WIN32
 #define Q_putenv _putenv

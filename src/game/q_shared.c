@@ -1537,6 +1537,45 @@ char           *Q_strrchr(const char *string, int c)
 
 /*
 =============
+Q_stristr
+
+Find the first occurrence of find in s.
+=============
+*/
+char           *Q_stristr(const char *s, const char *find)
+{
+	char            c, sc;
+	size_t          len;
+
+	if((c = *find++) != 0)
+	{
+		if(c >= 'a' && c <= 'z')
+		{
+			c -= ('a' - 'A');
+		}
+		len = strlen(find);
+		do
+		{
+			do
+			{
+				if((sc = *s++) == 0)
+				{
+					return NULL;
+				}
+
+				if(sc >= 'a' && sc <= 'z')
+				{
+					sc -= ('a' - 'A');
+				}
+			} while(sc != c);
+		} while(Q_stricmpn(s, find, len) != 0);
+		s--;
+	}
+	return (char *)s;
+}
+
+/*
+=============
 Q_strncpyz
 
 Safe strncpy that ensures a trailing zero
