@@ -3584,9 +3584,13 @@ void CL_InitRef(void)
 	ri.Cmd_Argc = Cmd_Argc;
 	ri.Cmd_Argv = Cmd_Argv;
 	ri.Cmd_ExecuteText = Cbuf_ExecuteText;
+	
 	ri.Printf = CL_RefPrintf;
 	ri.Error = Com_Error;
+	
 	ri.Milliseconds = CL_ScaledMilliseconds;
+	ri.RealTime = Com_RealTime;
+
 #ifdef ZONE_DEBUG
 	ri.Z_MallocDebug = CL_RefMallocDebug;
 #else
@@ -3602,7 +3606,10 @@ void CL_InitRef(void)
 #endif
 	ri.Hunk_AllocateTempMemory = Hunk_AllocateTempMemory;
 	ri.Hunk_FreeTempMemory = Hunk_FreeTempMemory;
+
+	ri.CM_PointContents = CM_PointContents;
 	ri.CM_DrawDebugSurface = CM_DrawDebugSurface;
+	
 	ri.FS_ReadFile = FS_ReadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_WriteFile = FS_WriteFile;
@@ -3610,6 +3617,7 @@ void CL_InitRef(void)
 	ri.FS_ListFiles = FS_ListFiles;
 	ri.FS_FileIsInPAK = FS_FileIsInPAK;
 	ri.FS_FileExists = FS_FileExists;
+	
 	ri.Cvar_Get = Cvar_Get;
 	ri.Cvar_Set = Cvar_Set;
 

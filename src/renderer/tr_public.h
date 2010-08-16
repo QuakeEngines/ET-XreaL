@@ -3,6 +3,7 @@
 
 Wolfenstein: Enemy Territory GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 2006-2010 Robert Beckebans
 
 This file is part of the Wolfenstein: Enemy Territory GPL Source Code (Wolf ET Source Code).  
 
@@ -31,7 +32,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../cgame/tr_types.h"
 
-#define REF_API_VERSION     9
+#define REF_API_VERSION     10
+
+// *INDENT-OFF*
 
 //
 // these are the functions exported by the refresh module
@@ -53,16 +56,16 @@ typedef struct
 	// and height, which can be used by the client to intelligently
 	// size display elements
 	void            (*BeginRegistration) (glconfig_t * config);
-	                qhandle_t(*RegisterModel) (const char *name);
-	                qhandle_t(*RegisterModelAllLODs) (const char *name);
-	                qhandle_t(*RegisterSkin) (const char *name);
-	                qhandle_t(*RegisterShader) (const char *name);
-	                qhandle_t(*RegisterShaderNoMip) (const char *name);
+	qhandle_t		(*RegisterModel) (const char *name);
+	qhandle_t		(*RegisterModelAllLODs) (const char *name);
+	qhandle_t		(*RegisterSkin) (const char *name);
+	qhandle_t       (*RegisterShader) (const char *name);
+	qhandle_t		(*RegisterShaderNoMip) (const char *name);
 	void            (*RegisterFont) (const char *fontName, int pointSize, fontInfo_t * font);
 
 	void            (*LoadWorld) (const char *name);
-	                qboolean(*GetSkinModel) (qhandle_t skinid, const char *type, char *name);	//----(SA) added
-	                qhandle_t(*GetShaderFromModel) (qhandle_t modelid, int surfnum, int withlightmap);	//----(SA)    added
+	qboolean		(*GetSkinModel) (qhandle_t skinid, const char *type, char *name);	//----(SA) added
+	qhandle_t		(*GetShaderFromModel) (qhandle_t modelid, int surfnum, int withlightmap);	//----(SA)    added
 
 	// the vis data is a large enough block of data that we go to the trouble
 	// of sharing it with the clipmodel subsystem
@@ -76,11 +79,12 @@ typedef struct
 	// Nothing is drawn until R_RenderScene is called.
 	void            (*ClearScene) (void);
 	void            (*AddRefEntityToScene) (const refEntity_t * re);
+// RB:void          (*AddRefLightToScene) (const refLight_t * light);
 	int             (*LightForPoint) (vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir);
+
 	void            (*AddPolyToScene) (qhandle_t hShader, int numVerts, const polyVert_t * verts);
-	// Ridah
 	void            (*AddPolysToScene) (qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys);
-	// done.
+	
 	void            (*AddLightToScene) (const vec3_t org, float radius, float intensity, float r, float g, float b,
 										qhandle_t hShader, int flags);
 //----(SA)
@@ -123,26 +127,37 @@ typedef struct
 	void            (*RemapShader) (const char *oldShader, const char *newShader, const char *offsetTime);
 
 	void            (*DrawDebugPolygon) (int color, int numpoints, float *points);
-
 	void            (*DrawDebugText) (const vec3_t org, float r, float g, float b, const char *text, qboolean neverOcclude);
 
-	                qboolean(*GetEntityToken) (char *buffer, int size);
+	qboolean		(*GetEntityToken) (char *buffer, int size);
 
 	void            (*AddPolyBufferToScene) (polyBuffer_t * pPolyBuffer);
 
 	void            (*SetGlobalFog) (qboolean restore, int duration, float r, float g, float b, float depthForOpaque);
 
-	                qboolean(*inPVS) (const vec3_t p1, const vec3_t p2);
+	qboolean		(*inPVS) (const vec3_t p1, const vec3_t p2);
 
 	void            (*purgeCache) (void);
 
-	//bani
-	                qboolean(*LoadDynamicShader) (const char *shadername, const char *shadertext);
-	// fretn
+	qboolean		(*LoadDynamicShader) (const char *shadername, const char *shadertext);
+	
 	void            (*RenderToTexture) (int textureid, int x, int y, int w, int h);
-	//bani
+
 	int             (*GetTextureId) (const char *imagename);
 	void            (*Finish) (void);
+
+	// RB: XreaL skeletal animation system
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
+	qhandle_t		(*RegisterAnimation) (const char *name);
+	int				(*CheckSkeleton) (refSkeleton_t * skel, qhandle_t model, qhandle_t anim);
+	int             (*BuildSkeleton) (refSkeleton_t * skel, qhandle_t anim, int startFrame, int endFrame, float frac,
+									  qboolean clearOrigin);
+	int             (*BlendSkeleton) (refSkeleton_t * skel, const refSkeleton_t * blend, float frac);
+	int             (*BoneIndex) (qhandle_t hModel, const char *boneName);
+	int             (*AnimNumFrames) (qhandle_t hAnim);
+	int             (*AnimFrameRate) (qhandle_t hAnim);
+#endif
+
 } refexport_t;
 
 //
@@ -159,6 +174,8 @@ typedef struct
 	// milliseconds should only be used for profiling, never
 	// for anything game related.  Get time from the refdef
 	int             (*Milliseconds) (void);
+
+	int             (*RealTime) (qtime_t * qtime);
 
 	// stack based memory allocation for per-level things that
 	// won't be freed
@@ -192,6 +209,7 @@ typedef struct
 	void            (*Cmd_ExecuteText) (int exec_when, const char *text);
 
 	// visualization for debugging collision detection
+	int             (*CM_PointContents)(const vec3_t p, clipHandle_t model);
 	void            (*CM_DrawDebugSurface) (void (*drawPoly) (int color, int numPoints, float *points));
 
 	// a -1 return means the file does not exist
