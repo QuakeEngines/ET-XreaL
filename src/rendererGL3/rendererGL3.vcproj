@@ -194,10 +194,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\qgl.c"
-				>
-			</File>
-			<File
 				RelativePath=".\tr_animation.c"
 				>
 			</File>
@@ -327,6 +323,18 @@
 			</File>
 			<File
 				RelativePath=".\tr_world.c"
+				>
+			</File>
+			<File
+				RelativePath="..\win32\win_gamma.c"
+				>
+			</File>
+			<File
+				RelativePath="..\win32\win_gl3imp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\win32\win_qgl3.c"
 				>
 			</File>
 		</Filter>

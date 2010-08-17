@@ -122,6 +122,7 @@ cvar_t         *r_depthbits;
 cvar_t         *r_colorbits;
 cvar_t         *r_stereo;
 
+cvar_t         *r_glDriver;
 cvar_t         *r_drawBuffer;
 cvar_t         *r_uiFullScreen;
 cvar_t         *r_shadows;
@@ -923,7 +924,7 @@ static void R_GenerateMaterialFile_f(void)
 			FS_Rename(fileName2, cleanName2);
 		}
 
-		Com_StripExtension(cleanName, cleanName, sizeof(cleanName));
+		COM_StripExtension3(cleanName, cleanName, sizeof(cleanName));
 		if(!Q_stristr(cleanName, "_nm") && !Q_stristr(cleanName, "blend"))
 		{
 			Q_strncpyz(baseName, cleanName, sizeof(baseName));
@@ -1269,6 +1270,8 @@ R_Register
 void R_Register(void)
 {
 	// latched and archived variables
+	r_glDriver = ri.Cvar_Get("r_glDriver", OPENGL_DRIVER_NAME, CVAR_ARCHIVE | CVAR_LATCH | CVAR_UNSAFE);
+
 	r_ext_texture_compression = ri.Cvar_Get("r_ext_texture_compression", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_ext_occlusion_query = ri.Cvar_Get("r_ext_occlusion_query", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_ext_texture_non_power_of_two = ri.Cvar_Get("r_ext_texture_non_power_of_two", "1", CVAR_CHEAT | CVAR_LATCH);
@@ -1572,7 +1575,11 @@ void R_Register(void)
 	ri.Cmd_AddCommand("skinlist", R_SkinList_f);
 	ri.Cmd_AddCommand("modellist", R_Modellist_f);
 	ri.Cmd_AddCommand("modelist", R_ModeList_f);
+
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	ri.Cmd_AddCommand("animationlist", R_AnimationList_f);
+#endif
+
 	ri.Cmd_AddCommand("fbolist", R_FBOList_f);
 	ri.Cmd_AddCommand("vbolist", R_VBOList_f);
 	ri.Cmd_AddCommand("screenshot", R_ScreenShot_f);
@@ -1908,7 +1915,9 @@ void R_Init(void)
 
 	R_ModelInit();
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	R_InitAnimations();
+#endif
 
 	R_InitFreeType();
 

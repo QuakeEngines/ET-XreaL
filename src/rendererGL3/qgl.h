@@ -90,9 +90,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
-int             QGL_Init();
-void            QGL_Shutdown(void);
-void            QGL_EnableLogging(int enable);
+//int             QGL_Init();
+//void            QGL_Shutdown(void);
+//void            QGL_EnableLogging(qboolean enable);
 
 /*
 	This interface is similar to OpenGL ES 2.0.
@@ -439,6 +439,59 @@ extern void     (APIENTRY * qglGenerateMipmapEXT) (GLenum target);
 #endif
 
 extern void		(APIENTRY * qglBlitFramebufferEXT) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+
+
+
+#if defined( _WIN32 )
+
+extern int      (WINAPI * qwglChoosePixelFormat) (HDC, CONST PIXELFORMATDESCRIPTOR *);
+extern int      (WINAPI * qwglDescribePixelFormat) (HDC, int, UINT, LPPIXELFORMATDESCRIPTOR);
+extern int      (WINAPI * qwglGetPixelFormat) (HDC);
+extern          BOOL(WINAPI * qwglSetPixelFormat) (HDC, int, CONST PIXELFORMATDESCRIPTOR *);
+extern          BOOL(WINAPI * qwglSwapBuffers) (HDC);
+
+extern          BOOL(WINAPI * qwglGetDeviceGammaRamp3DFX) (HDC, LPVOID);
+extern          BOOL(WINAPI * qwglSetDeviceGammaRamp3DFX) (HDC, LPVOID);
+
+extern          BOOL(WINAPI * qwglCopyContext) (HGLRC, HGLRC, UINT);
+extern          HGLRC(WINAPI * qwglCreateContext) (HDC);
+extern          HGLRC(WINAPI * qwglCreateLayerContext) (HDC, int);
+extern          BOOL(WINAPI * qwglDeleteContext) (HGLRC);
+extern          HGLRC(WINAPI * qwglGetCurrentContext) (VOID);
+extern          HDC(WINAPI * qwglGetCurrentDC) (VOID);
+extern          PROC(WINAPI * qwglGetProcAddress) (LPCSTR);
+extern          BOOL(WINAPI * qwglMakeCurrent) (HDC, HGLRC);
+extern          BOOL(WINAPI * qwglShareLists) (HGLRC, HGLRC);
+extern          BOOL(WINAPI * qwglUseFontBitmaps) (HDC, DWORD, DWORD, DWORD);
+
+extern          BOOL(WINAPI * qwglUseFontOutlines) (HDC, DWORD, DWORD, DWORD, FLOAT, FLOAT, int, LPGLYPHMETRICSFLOAT);
+
+extern          BOOL(WINAPI * qwglDescribeLayerPlane) (HDC, int, int, UINT, LPLAYERPLANEDESCRIPTOR);
+extern int      (WINAPI * qwglSetLayerPaletteEntries) (HDC, int, int, int, CONST COLORREF *);
+extern int      (WINAPI * qwglGetLayerPaletteEntries) (HDC, int, int, int, COLORREF *);
+extern          BOOL(WINAPI * qwglRealizeLayerPalette) (HDC, int, BOOL);
+extern          BOOL(WINAPI * qwglSwapLayerBuffers) (HDC, UINT);
+
+extern          BOOL(WINAPI * qwglSwapIntervalEXT) (int interval);
+
+#endif							// _WIN32
+
+#if ( ( defined __linux__ )  || ( defined __FreeBSD__ ) )	// rb010123
+
+//GLX Functions
+extern XVisualInfo *(*qglXChooseVisual) (Display * dpy, int screen, int *attribList);
+extern          GLXContext(*qglXCreateContext) (Display * dpy, XVisualInfo * vis, GLXContext shareList, Bool direct);
+extern void     (*qglXDestroyContext) (Display * dpy, GLXContext ctx);
+extern          Bool(*qglXMakeCurrent) (Display * dpy, GLXDrawable drawable, GLXContext ctx);
+extern void     (*qglXCopyContext) (Display * dpy, GLXContext src, GLXContext dst, GLuint mask);
+extern void     (*qglXSwapBuffers) (Display * dpy, GLXDrawable drawable);
+extern void     (*qglXUseXFont) (Font font, int first, int count, int list);
+extern int      (*qglXSwapIntervalSGI) (int interval);
+extern int      (*qglXGetVideoSyncSGI) (unsigned int *count);
+extern int      (*qglXWaitVideoSyncSGI) (int divisor, int remainder, unsigned int *count);
+extern const char *(*qglXQueryExtensionsString) (Display * dpy, int screen);
+
+#endif							// __linux__ || __FreeBSD__ // rb010123
 
 
 #if defined(__cplusplus)

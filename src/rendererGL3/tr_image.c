@@ -2005,7 +2005,7 @@ static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int
 
 		Q_strncpyz(filename, token, sizeof(filename));
 
-		ext = Com_GetExtension(filename);
+		ext = COM_GetExtension(filename);
 
 		if(*ext)
 		{
@@ -2028,7 +2028,7 @@ static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int
 					// loader failed, most likely because the file isn't there;
 					// try again without the extension
 					orgNameFailed = qtrue;
-					Com_StripExtension(token, filename, MAX_QPATH);
+					COM_StripExtension3(token, filename, MAX_QPATH);
 				}
 				else
 				{
@@ -2126,7 +2126,7 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 	if(glConfig.textureCompression == TC_S3TC && !(bits & IF_NOCOMPRESSION) && Q_stricmpn(name, "fonts", 5))
 	{
 		Q_strncpyz(ddsName, name, sizeof(ddsName));
-		Com_StripExtension(ddsName, ddsName, sizeof(ddsName));
+		COM_StripExtension3(ddsName, ddsName, sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), ".dds");
 
 		// try to load a customized .dds texture
@@ -2144,7 +2144,7 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 	{
 		Q_strncpyz(ddsName, "dds/", sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), name);
-		Com_StripExtension(ddsName, ddsName, sizeof(ddsName));
+		COM_StripExtension3(ddsName, ddsName, sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), ".dds");
 
 		// try to load a cached .dds texture from the XreaL/<mod>/dds/ folder
@@ -2425,7 +2425,7 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 	if(glConfig.textureCompression == TC_S3TC && !(bits & IF_NOCOMPRESSION) && Q_stricmpn(name, "fonts", 5))
 	{
 		Q_strncpyz(ddsName, name, sizeof(ddsName));
-		Com_StripExtension(ddsName, ddsName, sizeof(ddsName));
+		COM_StripExtension3(ddsName, ddsName, sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), ".dds");
 
 		// try to load a customized .dds texture
@@ -2443,7 +2443,7 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 	{
 		Q_strncpyz(ddsName, "dds/", sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), name);
-		Com_StripExtension(ddsName, ddsName, sizeof(ddsName));
+		COM_StripExtension3(ddsName, ddsName, sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), ".dds");
 
 		// try to load a cached .dds texture from the XreaL/<mod>/dds/ folder
@@ -3291,7 +3291,7 @@ R_InitImages
 */
 void R_InitImages(void)
 {
-	const char *charsetImage = "gfx/2d/charset-bezerk-plain-rc2.png";
+	const char *charsetImage = "gfx/2d/consolechars";
 	const char *grainImage = "gfx/2d/camera/grain.png";
 	const char *vignetteImage = "gfx/2d/camera/vignette.png";
 

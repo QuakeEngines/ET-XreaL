@@ -721,7 +721,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 		char          **lightmapFiles;
 
 		Q_strncpyz(mapName, bspName, sizeof(mapName));
-		Com_StripExtension(mapName, mapName, sizeof(mapName));
+		COM_StripExtension3(mapName, mapName, sizeof(mapName));
 
 #if !defined(USE_D3D10)
 		if(tr.worldHDR_RGBE)
@@ -3167,7 +3167,7 @@ static void R_LoadAreaPortals(const char *bspName)
 	bspAreaPortal_t *ap;
 
 	Q_strncpyz(fileName, bspName, sizeof(fileName));
-	Com_StripExtension(fileName, fileName, sizeof(fileName));
+	COM_StripExtension3(fileName, fileName, sizeof(fileName));
 	Q_strcat(fileName, sizeof(fileName), ".areaprt");
 
 	bufferLen = ri.FS_ReadFile(fileName, (void **)&buffer);
@@ -5775,7 +5775,7 @@ qboolean R_GetEntityToken(char *buffer, int size)
 {
 	const char     *s;
 
-	s = Com_Parse(&s_worldData.entityParsePoint);
+	s = COM_Parse2(&s_worldData.entityParsePoint);
 	Q_strncpyz(buffer, s, size);
 	if(!s_worldData.entityParsePoint || !s[0])
 	{
@@ -8939,7 +8939,7 @@ void RE_LoadWorldMap(const char *name)
 	Q_strncpyz(s_worldData.name, name, sizeof(s_worldData.name));
 
 	Q_strncpyz(s_worldData.baseName, COM_SkipPath(s_worldData.name), sizeof(s_worldData.name));
-	Com_StripExtension(s_worldData.baseName, s_worldData.baseName, sizeof(s_worldData.baseName));
+	COM_StripExtension3(s_worldData.baseName, s_worldData.baseName, sizeof(s_worldData.baseName));
 
 	startMarker = ri.Hunk_Alloc(0, h_low);
 

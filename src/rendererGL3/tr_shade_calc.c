@@ -44,8 +44,13 @@ static float   *TableForFunc(genFunc_t func)
 			break;
 	}
 
+#if 0
 	ri.Error(ERR_DROP, "TableForFunc called with invalid function '%d' in shader '%s'\n", func, tess.surfaceShader->name);
 	return NULL;
+#else
+	ri.Printf(PRINT_WARNING, "TableForFunc called with invalid function '%d' in shader '%s'\n", func, tess.surfaceShader->name);
+	return tr.sinTable;
+#endif
 }
 
 /*

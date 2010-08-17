@@ -396,13 +396,13 @@ void RE_StretchPic(float x, float y, float w, float h, float s1, float t1, float
 RE_2DPolyies
 =============
 */
-extern int      r_numpolyverts;
+extern int      r_numPolyVerts;
 
 void RE_2DPolyies(polyVert_t * verts, int numverts, qhandle_t hShader)
 {
 	poly2dCommand_t *cmd;
 
-	if(r_numpolyverts + numverts > max_polyverts)
+	if(r_numPolyVerts + numverts > r_maxPolyVerts->integer)
 	{
 		return;
 	}
@@ -414,12 +414,12 @@ void RE_2DPolyies(polyVert_t * verts, int numverts, qhandle_t hShader)
 	}
 
 	cmd->commandId = RC_2DPOLYS;
-	cmd->verts = &backEndData[tr.smpFrame]->polyVerts[r_numpolyverts];
+	cmd->verts = &backEndData[tr.smpFrame]->polyVerts[r_numPolyVerts];
 	cmd->numverts = numverts;
 	memcpy(cmd->verts, verts, sizeof(polyVert_t) * numverts);
 	cmd->shader = R_GetShaderByHandle(hShader);
 
-	r_numpolyverts += numverts;
+	r_numPolyVerts += numverts;
 }
 
 

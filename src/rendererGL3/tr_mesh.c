@@ -237,7 +237,7 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 	if((ent->e.frame >= tr.currentModel->mdv[0]->numFrames)
 	   || (ent->e.frame < 0) || (ent->e.oldframe >= tr.currentModel->mdv[0]->numFrames) || (ent->e.oldframe < 0))
 	{
-		ri.Printf(PRINT_DEVELOPER, "R_AddMDXSurfaces: no such frame %d to %d for '%s'\n",
+		ri.Printf(PRINT_DEVELOPER, "R_AddMDVSurfaces: no such frame %d to %d for '%s'\n",
 				  ent->e.oldframe, ent->e.frame, tr.currentModel->name);
 		ent->e.frame = 0;
 		ent->e.oldframe = 0;
@@ -352,10 +352,10 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 
 /*
 =================
-R_AddMDXInteractions
+R_AddMDVInteractions
 =================
 */
-void R_AddMDXInteractions(trRefEntity_t * ent, trRefLight_t * light)
+void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 {
 	int             i;
 	mdvModel_t     *model = 0;

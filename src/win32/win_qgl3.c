@@ -1,45 +1,80 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
 
-This file is part of XreaL source code.
+Wolfenstein: Enemy Territory GPL Source Code
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
 
-XreaL source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+This file is part of the Wolfenstein: Enemy Territory GPL Source Code (Wolf ET Source Code).  
 
-XreaL source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+Wolf ET Source Code is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Wolf ET Source Code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with XreaL source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with Wolf ET Source Code.  If not, see <http://www.gnu.org/licenses/>.
+
+In addition, the Wolf: ET Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the Wolf ET Source Code.  If not, please request a copy in writing from id Software at the address below.
+
+If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
+
 ===========================================================================
 */
+
 /*
-** QGL.C
+** QGL_WIN.C
 **
 ** This file implements the operating system binding of GL to QGL function
-** pointers.  When doing a port of XreaL you must implement the following
+** pointers.  When doing a port of Quake3 you must implement the following
 ** two functions:
 **
 ** QGL_Init() - loads libraries, assigns function pointers, etc.
 ** QGL_Shutdown() - unloads libraries, NULLs function pointers
 */
+#include <float.h>
+#include <stddef.h>
+#include "../rendererGL3/tr_local.h"
+#include "glw_win.h"
 
-//#include "SDL.h"
-//#include "SDL_loadso.h"
+void            QGL_EnableLogging(qboolean enable);
 
-#include "qgl.h"
-#include "tr_local.h"
+int             (WINAPI * qwglSwapIntervalEXT) (int interval);
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+BOOL(WINAPI * qwglGetDeviceGammaRamp3DFX) (HDC, LPVOID);
+BOOL(WINAPI * qwglSetDeviceGammaRamp3DFX) (HDC, LPVOID);
+
+int             (WINAPI * qwglChoosePixelFormat) (HDC, CONST PIXELFORMATDESCRIPTOR *);
+int             (WINAPI * qwglDescribePixelFormat) (HDC, int, UINT, LPPIXELFORMATDESCRIPTOR);
+int             (WINAPI * qwglGetPixelFormat) (HDC);
+
+BOOL(WINAPI * qwglSetPixelFormat) (HDC, int, CONST PIXELFORMATDESCRIPTOR *);
+BOOL(WINAPI * qwglSwapBuffers) (HDC);
+
+BOOL(WINAPI * qwglCopyContext) (HGLRC, HGLRC, UINT);
+HGLRC(WINAPI * qwglCreateContext) (HDC);
+HGLRC(WINAPI * qwglCreateLayerContext) (HDC, int);
+BOOL(WINAPI * qwglDeleteContext) (HGLRC);
+HGLRC(WINAPI * qwglGetCurrentContext) (VOID);
+HDC(WINAPI * qwglGetCurrentDC) (VOID);
+PROC(WINAPI * qwglGetProcAddress) (LPCSTR);
+BOOL(WINAPI * qwglMakeCurrent) (HDC, HGLRC);
+BOOL(WINAPI * qwglShareLists) (HGLRC, HGLRC);
+BOOL(WINAPI * qwglUseFontBitmaps) (HDC, DWORD, DWORD, DWORD);
+
+BOOL(WINAPI * qwglUseFontOutlines) (HDC, DWORD, DWORD, DWORD, FLOAT, FLOAT, int, LPGLYPHMETRICSFLOAT);
+
+BOOL(WINAPI * qwglDescribeLayerPlane) (HDC, int, int, UINT, LPLAYERPLANEDESCRIPTOR);
+int             (WINAPI * qwglSetLayerPaletteEntries) (HDC, int, int, int, CONST COLORREF *);
+int             (WINAPI * qwglGetLayerPaletteEntries) (HDC, int, int, int, COLORREF *);
+
+BOOL(WINAPI * qwglRealizeLayerPalette) (HDC, int, BOOL);
+BOOL(WINAPI * qwglSwapLayerBuffers) (HDC, UINT);
+
 
 // OpenGL 2.x core API
 void            (APIENTRY * qglBindTexture) (GLenum target, GLuint texture);
@@ -133,7 +168,7 @@ void            (APIENTRY * qglBindBufferARB) (GLenum target, GLuint buffer);
 void            (APIENTRY * qglDeleteBuffersARB) (GLsizei n, const GLuint * buffers);
 void            (APIENTRY * qglGenBuffersARB) (GLsizei n, GLuint * buffers);
 
-GLboolean(APIENTRY * qglIsBufferARB) (GLuint buffer);
+GLboolean		(APIENTRY * qglIsBufferARB) (GLuint buffer);
 void            (APIENTRY * qglBufferDataARB) (GLenum target, GLsizeiptrARB size, const GLvoid * data, GLenum usage);
 void            (APIENTRY * qglBufferSubDataARB) (GLenum target, GLintptrARB offset, GLsizeiptrARB size, const GLvoid * data);
 void            (APIENTRY * qglGetBufferSubDataARB) (GLenum target, GLintptrARB offset, GLsizeiptrARB size, GLvoid * data);
@@ -262,10 +297,6 @@ void			(APIENTRY * qglBlitFramebufferEXT) (GLint srcX0, GLint srcY0, GLint srcX1
 HGLRC(APIENTRY * qwglCreateContextAttribsARB) (HDC hdC, HGLRC hShareContext, const int *attribList);
 #endif
 
-#if 0 //defined(__linux__)
-// GLX_ARB_create_context
-GLXContext      (APIENTRY * qglXCreateContextAttribsARB) (Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
-#endif
 
 
 static void     (APIENTRY * dllBindTexture) (GLenum target, GLuint texture);
@@ -333,16 +364,20 @@ static void     (APIENTRY * dllTexSubImage2D) (GLenum target, GLint level, GLint
 											   GLsizei height, GLenum format, GLenum type, const GLvoid * pixels);
 static void     (APIENTRY * dllViewport) (GLint x, GLint y, GLsizei width, GLsizei height);
 
-static FILE    *log_fp = NULL;
-
 static const char *BooleanToString(GLboolean b)
 {
 	if(b == GL_FALSE)
+	{
 		return "GL_FALSE";
+	}
 	else if(b == GL_TRUE)
+	{
 		return "GL_TRUE";
+	}
 	else
+	{
 		return "OUT OF RANGE FOR BOOLEAN";
+	}
 }
 
 static const char *FuncToString(GLenum f)
@@ -375,27 +410,49 @@ static const char *PrimToString(GLenum mode)
 	static char     prim[1024];
 
 	if(mode == GL_TRIANGLES)
+	{
 		strcpy(prim, "GL_TRIANGLES");
+	}
 	else if(mode == GL_TRIANGLE_STRIP)
+	{
 		strcpy(prim, "GL_TRIANGLE_STRIP");
+	}
 	else if(mode == GL_TRIANGLE_FAN)
+	{
 		strcpy(prim, "GL_TRIANGLE_FAN");
+	}
 	else if(mode == GL_QUADS)
+	{
 		strcpy(prim, "GL_QUADS");
+	}
 	else if(mode == GL_QUAD_STRIP)
+	{
 		strcpy(prim, "GL_QUAD_STRIP");
+	}
 	else if(mode == GL_POLYGON)
+	{
 		strcpy(prim, "GL_POLYGON");
+	}
 	else if(mode == GL_POINTS)
+	{
 		strcpy(prim, "GL_POINTS");
+	}
 	else if(mode == GL_LINES)
+	{
 		strcpy(prim, "GL_LINES");
+	}
 	else if(mode == GL_LINE_STRIP)
+	{
 		strcpy(prim, "GL_LINE_STRIP");
+	}
 	else if(mode == GL_LINE_LOOP)
+	{
 		strcpy(prim, "GL_LINE_LOOP");
+	}
 	else
+	{
 		sprintf(prim, "0x%x", mode);
+	}
 
 	return prim;
 }
@@ -460,7 +517,7 @@ static const char *TypeToString(GLenum t)
 
 static void APIENTRY logBindTexture(GLenum target, GLuint texture)
 {
-	fprintf(log_fp, "glBindTexture( 0x%x, %u )\n", target, texture);
+	fprintf(glw_state.log_fp, "glBindTexture( 0x%x, %u )\n", target, texture);
 	dllBindTexture(target, texture);
 }
 
@@ -500,48 +557,56 @@ static void APIENTRY logBlendFunc(GLenum sfactor, GLenum dfactor)
 	BlendToName(sf, sfactor);
 	BlendToName(df, dfactor);
 
-	fprintf(log_fp, "glBlendFunc( %s, %s )\n", sf, df);
+	fprintf(glw_state.log_fp, "glBlendFunc( %s, %s )\n", sf, df);
 	dllBlendFunc(sfactor, dfactor);
 }
 
 static void APIENTRY logClear(GLbitfield mask)
 {
-	fprintf(log_fp, "glClear( 0x%x = ", mask);
+	fprintf(glw_state.log_fp, "glClear( 0x%x = ", mask);
 
 	if(mask & GL_COLOR_BUFFER_BIT)
-		fprintf(log_fp, "GL_COLOR_BUFFER_BIT ");
+	{
+		fprintf(glw_state.log_fp, "GL_COLOR_BUFFER_BIT ");
+	}
 	if(mask & GL_DEPTH_BUFFER_BIT)
-		fprintf(log_fp, "GL_DEPTH_BUFFER_BIT ");
+	{
+		fprintf(glw_state.log_fp, "GL_DEPTH_BUFFER_BIT ");
+	}
 	if(mask & GL_STENCIL_BUFFER_BIT)
-		fprintf(log_fp, "GL_STENCIL_BUFFER_BIT ");
+	{
+		fprintf(glw_state.log_fp, "GL_STENCIL_BUFFER_BIT ");
+	}
 	if(mask & GL_ACCUM_BUFFER_BIT)
-		fprintf(log_fp, "GL_ACCUM_BUFFER_BIT ");
+	{
+		fprintf(glw_state.log_fp, "GL_ACCUM_BUFFER_BIT ");
+	}
 
-	fprintf(log_fp, ")\n");
+	fprintf(glw_state.log_fp, ")\n");
 	dllClear(mask);
 }
 
 static void APIENTRY logClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
-	fprintf(log_fp, "glClearColor\n");
+	fprintf(glw_state.log_fp, "glClearColor\n");
 	dllClearColor(red, green, blue, alpha);
 }
 
 static void APIENTRY logClearDepth(GLclampd depth)
 {
-	fprintf(log_fp, "glClearDepth( %f )\n", (float)depth);
+	fprintf(glw_state.log_fp, "glClearDepth( %f )\n", (float)depth);
 	dllClearDepth(depth);
 }
 
 static void APIENTRY logClearStencil(GLint s)
 {
-	fprintf(log_fp, "glClearStencil( %d )\n", s);
+	fprintf(glw_state.log_fp, "glClearStencil( %d )\n", s);
 	dllClearStencil(s);
 }
 
 
 
-#define SIG( x ) fprintf( log_fp, x "\n" )
+#define SIG( x ) fprintf( glw_state.log_fp, x "\n" )
 
 
 static void APIENTRY logColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
@@ -585,7 +650,7 @@ static void APIENTRY logCopyTexSubImage2D(GLenum target, GLint level, GLint xoff
 
 static void APIENTRY logCullFace(GLenum mode)
 {
-	fprintf(log_fp, "glCullFace( %s )\n", (mode == GL_FRONT) ? "GL_FRONT" : "GL_BACK");
+	fprintf(glw_state.log_fp, "glCullFace( %s )\n", (mode == GL_FRONT) ? "GL_FRONT" : "GL_BACK");
 	dllCullFace(mode);
 }
 
@@ -597,25 +662,25 @@ static void APIENTRY logDeleteTextures(GLsizei n, const GLuint * textures)
 
 static void APIENTRY logDepthFunc(GLenum func)
 {
-	fprintf(log_fp, "glDepthFunc( %s )\n", FuncToString(func));
+	fprintf(glw_state.log_fp, "glDepthFunc( %s )\n", FuncToString(func));
 	dllDepthFunc(func);
 }
 
 static void APIENTRY logDepthMask(GLboolean flag)
 {
-	fprintf(log_fp, "glDepthMask( %s )\n", BooleanToString(flag));
+	fprintf(glw_state.log_fp, "glDepthMask( %s )\n", BooleanToString(flag));
 	dllDepthMask(flag);
 }
 
 static void APIENTRY logDepthRange(GLclampd zNear, GLclampd zFar)
 {
-	fprintf(log_fp, "glDepthRange( %f, %f )\n", (float)zNear, (float)zFar);
+	fprintf(glw_state.log_fp, "glDepthRange( %f, %f )\n", (float)zNear, (float)zFar);
 	dllDepthRange(zNear, zFar);
 }
 
 static void APIENTRY logDisable(GLenum cap)
 {
-	fprintf(log_fp, "glDisable( %s )\n", CapToString(cap));
+	fprintf(glw_state.log_fp, "glDisable( %s )\n", CapToString(cap));
 	dllDisable(cap);
 }
 
@@ -633,13 +698,13 @@ static void APIENTRY logDrawBuffer(GLenum mode)
 
 static void APIENTRY logDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
-	fprintf(log_fp, "glDrawElements( %s, %d, %s, MEM )\n", PrimToString(mode), count, TypeToString(type));
+	fprintf(glw_state.log_fp, "glDrawElements( %s, %d, %s, MEM )\n", PrimToString(mode), count, TypeToString(type));
 	dllDrawElements(mode, count, type, indices);
 }
 
 static void APIENTRY logEnable(GLenum cap)
 {
-	fprintf(log_fp, "glEnable( %s )\n", CapToString(cap));
+	fprintf(glw_state.log_fp, "glEnable( %s )\n", CapToString(cap));
 	dllEnable(cap);
 }
 
@@ -711,7 +776,7 @@ static void APIENTRY logGetTexParameteriv(GLenum target, GLenum pname, GLint * p
 
 static void APIENTRY logHint(GLenum target, GLenum mode)
 {
-	fprintf(log_fp, "glHint( 0x%x, 0x%x )\n", target, mode);
+	fprintf(glw_state.log_fp, "glHint( 0x%x, 0x%x )\n", target, mode);
 	dllHint(target, mode);
 }
 
@@ -735,7 +800,7 @@ static void APIENTRY logLineWidth(GLfloat width)
 
 static void APIENTRY logPolygonMode(GLenum face, GLenum mode)
 {
-	fprintf(log_fp, "glPolygonMode( 0x%x, 0x%x )\n", face, mode);
+	fprintf(glw_state.log_fp, "glPolygonMode( 0x%x, 0x%x )\n", face, mode);
 	dllPolygonMode(face, mode);
 }
 
@@ -753,7 +818,7 @@ static void APIENTRY logReadPixels(GLint x, GLint y, GLsizei width, GLsizei heig
 
 static void APIENTRY logScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	fprintf(log_fp, "glScissor( %d, %d, %d, %d )\n", x, y, width, height);
+	fprintf(glw_state.log_fp, "glScissor( %d, %d, %d, %d )\n", x, y, width, height);
 	dllScissor(x, y, width, height);
 }
 
@@ -790,7 +855,7 @@ static void APIENTRY logTexImage2D(GLenum target, GLint level, GLint internalfor
 
 static void APIENTRY logTexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
-	fprintf(log_fp, "glTexParameterf( 0x%x, 0x%x, %f )\n", target, pname, param);
+	fprintf(glw_state.log_fp, "glTexParameterf( 0x%x, 0x%x, %f )\n", target, pname, param);
 	dllTexParameterf(target, pname, param);
 }
 
@@ -802,7 +867,7 @@ static void APIENTRY logTexParameterfv(GLenum target, GLenum pname, const GLfloa
 
 static void APIENTRY logTexParameteri(GLenum target, GLenum pname, GLint param)
 {
-	fprintf(log_fp, "glTexParameteri( 0x%x, 0x%x, 0x%x )\n", target, pname, param);
+	fprintf(glw_state.log_fp, "glTexParameteri( 0x%x, 0x%x, 0x%x )\n", target, pname, param);
 	dllTexParameteri(target, pname, param);
 }
 
@@ -828,9 +893,10 @@ static void APIENTRY logTexSubImage2D(GLenum target, GLint level, GLint xoffset,
 
 static void APIENTRY logViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	fprintf(log_fp, "glViewport( %d, %d, %d, %d )\n", x, y, width, height);
+	fprintf(glw_state.log_fp, "glViewport( %d, %d, %d, %d )\n", x, y, width, height);
 	dllViewport(x, y, width, height);
 }
+
 
 /*
 ** QGL_Shutdown
@@ -842,6 +908,14 @@ static void APIENTRY logViewport(GLint x, GLint y, GLsizei width, GLsizei height
 void QGL_Shutdown(void)
 {
 	ri.Printf(PRINT_ALL, "...shutting down QGL\n");
+
+	if(glw_state.hinstOpenGL)
+	{
+		ri.Printf(PRINT_ALL, "...unloading OpenGL DLL\n");
+		FreeLibrary(glw_state.hinstOpenGL);
+	}
+
+	glw_state.hinstOpenGL = NULL;
 
 	qglBindTexture               = NULL;
 	qglBlendFunc                 = NULL;
@@ -896,26 +970,36 @@ void QGL_Shutdown(void)
 	qglTexSubImage1D             = NULL;
 	qglTexSubImage2D             = NULL;
 	qglViewport                  = NULL;
+
+	qwglCopyContext = NULL;
+	qwglCreateContext = NULL;
+	qwglCreateLayerContext = NULL;
+	qwglDeleteContext = NULL;
+	qwglDescribeLayerPlane = NULL;
+	qwglGetCurrentContext = NULL;
+	qwglGetCurrentDC = NULL;
+	qwglGetLayerPaletteEntries = NULL;
+	qwglGetProcAddress = NULL;
+	qwglMakeCurrent = NULL;
+	qwglRealizeLayerPalette = NULL;
+	qwglSetLayerPaletteEntries = NULL;
+	qwglShareLists = NULL;
+	qwglSwapLayerBuffers = NULL;
+	qwglUseFontBitmaps = NULL;
+	qwglUseFontOutlines = NULL;
+
+	qwglChoosePixelFormat = NULL;
+	qwglDescribePixelFormat = NULL;
+	qwglGetPixelFormat = NULL;
+	qwglSetPixelFormat = NULL;
+	qwglSwapBuffers = NULL;
 }
 // *INDENT-ON*
 
-#define GPA(a) SDL_GL_GetProcAddress(a)
-
-qboolean GLimp_sdl_init_video(void)
-{
-	if(!SDL_WasInit(SDL_INIT_VIDEO))
-	{
-		ri.Printf(PRINT_ALL, "Calling SDL_Init(SDL_INIT_VIDEO)...\n");
-		if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) == -1)
-		{
-			ri.Printf(PRINT_ALL, "SDL_Init(SDL_INIT_VIDEO) failed: %s\n", SDL_GetError());
-			return qfalse;
-		}
-		ri.Printf(PRINT_ALL, "SDL_Init(SDL_INIT_VIDEO) passed.\n");
-	}
-
-	return qtrue;
-}
+#ifndef __GNUC__
+#   pragma warning (disable : 4113 4133 4047 )
+#endif
+#   define GPA( a ) GetProcAddress( glw_state.hinstOpenGL, a )
 
 /*
 ** QGL_Init
@@ -926,13 +1010,34 @@ qboolean GLimp_sdl_init_video(void)
 ** operating systems we need to do the right thing, whatever that
 ** might be.
 */
-// *INDENT-OFF*
-int QGL_Init()
+qboolean QGL_Init(const char *dllname)
 {
+	char            systemDir[1024];
+	char            libName[1024];
+
+	GetSystemDirectory(systemDir, sizeof(systemDir));
+
+	assert(glw_state.hinstOpenGL == 0);
+
 	ri.Printf(PRINT_ALL, "...initializing QGL\n");
 
-	if(GLimp_sdl_init_video() == qfalse)
+	if(dllname[0] != '!' && strstr("dllname", ".dll") == NULL)
+	{
+		Com_sprintf(libName, sizeof(libName), "%s\\%s", systemDir, dllname);
+	}
+	else
+	{
+		Q_strncpyz(libName, dllname, sizeof(libName));
+	}
+
+	ri.Printf(PRINT_ALL, "...calling LoadLibrary( '%s.dll' ): ", libName);
+
+	if((glw_state.hinstOpenGL = LoadLibrary(dllname)) == 0)
+	{
+		ri.Printf(PRINT_ALL, "failed\n");
 		return qfalse;
+	}
+	ri.Printf(PRINT_ALL, "succeeded\n");
 
 	qglBindTexture               = dllBindTexture = GPA( "glBindTexture" );
 	qglBlendFunc                 = dllBlendFunc = GPA( "glBlendFunc" );
@@ -988,6 +1093,35 @@ int QGL_Init()
 	qglTexSubImage2D             = dllTexSubImage2D             = GPA( "glTexSubImage2D" );
 	qglViewport                  = dllViewport                  = GPA( "glViewport" );
 
+	qwglCopyContext = GPA("wglCopyContext");
+	qwglCreateContext = GPA("wglCreateContext");
+	qwglCreateLayerContext = GPA("wglCreateLayerContext");
+	qwglDeleteContext = GPA("wglDeleteContext");
+	qwglDescribeLayerPlane = GPA("wglDescribeLayerPlane");
+	qwglGetCurrentContext = GPA("wglGetCurrentContext");
+	qwglGetCurrentDC = GPA("wglGetCurrentDC");
+	qwglGetLayerPaletteEntries = GPA("wglGetLayerPaletteEntries");
+	qwglGetProcAddress = GPA("wglGetProcAddress");
+	qwglMakeCurrent = GPA("wglMakeCurrent");
+	qwglRealizeLayerPalette = GPA("wglRealizeLayerPalette");
+	qwglSetLayerPaletteEntries = GPA("wglSetLayerPaletteEntries");
+	qwglShareLists = GPA("wglShareLists");
+	qwglSwapLayerBuffers = GPA("wglSwapLayerBuffers");
+	qwglUseFontBitmaps = GPA("wglUseFontBitmapsA");
+	qwglUseFontOutlines = GPA("wglUseFontOutlinesA");
+
+	qwglChoosePixelFormat = GPA("wglChoosePixelFormat");
+	qwglDescribePixelFormat = GPA("wglDescribePixelFormat");
+	qwglGetPixelFormat = GPA("wglGetPixelFormat");
+	qwglSetPixelFormat = GPA("wglSetPixelFormat");
+	qwglSwapBuffers = GPA("wglSwapBuffers");
+
+	qwglSwapIntervalEXT = 0;
+	qglActiveTextureARB = 0;
+
+	qwglGetDeviceGammaRamp3DFX = NULL;
+	qwglSetDeviceGammaRamp3DFX = NULL;
+
 	// check logging
 	QGL_EnableLogging(r_logFile->integer);
 
@@ -995,8 +1129,7 @@ int QGL_Init()
 }
 // *INDENT-ON*
 
-// *INDENT-OFF*
-void QGL_EnableLogging(int enable)
+void QGL_EnableLogging(qboolean enable)
 {
 	// fixed for new countdown
 	static qboolean isEnabled = qfalse;	// init
@@ -1015,14 +1148,15 @@ void QGL_EnableLogging(int enable)
 
 	// return if we're already disabled
 	if(!enable && !isEnabled)
+	{
 		return;
+	}
 
 	isEnabled = enable;
 
-	// old code starts here
 	if(enable)
 	{
-		if(!log_fp)
+		if(!glw_state.log_fp)
 		{
 			struct tm      *newtime;
 			time_t          aclock;
@@ -1034,14 +1168,11 @@ void QGL_EnableLogging(int enable)
 
 			asctime(newtime);
 
-			basedir = ri.Cvar_Get("fs_basepath", "", 0);	// FIXME: userdir?
-			assert(basedir);
+			basedir = ri.Cvar_Get("fs_basepath", "", 0);
 			Com_sprintf(buffer, sizeof(buffer), "%s/gl.log", basedir->string);
-			log_fp = fopen(buffer, "wt");
-			assert(log_fp);
-			ri.Printf(PRINT_ALL, "QGL_EnableLogging(%d): writing %s\n", r_logFile->integer, buffer);
+			glw_state.log_fp = fopen(buffer, "wt");
 
-			fprintf(log_fp, "%s\n", asctime(newtime));
+			fprintf(glw_state.log_fp, "%s\n", asctime(newtime));
 		}
 
 		qglBindTexture               = logBindTexture;
@@ -1100,11 +1231,11 @@ void QGL_EnableLogging(int enable)
 	}
 	else
 	{
-		if(log_fp)
+		if(glw_state.log_fp)
 		{
-			fprintf(log_fp, "*** CLOSING LOG ***\n");
-			fclose(log_fp);
-			log_fp = NULL;
+			fprintf(glw_state.log_fp, "*** CLOSING LOG ***\n");
+			fclose(glw_state.log_fp);
+			glw_state.log_fp = NULL;
 		}
 		qglBindTexture               = dllBindTexture;
 		qglBlendFunc                 = dllBlendFunc;
@@ -1163,24 +1294,6 @@ void QGL_EnableLogging(int enable)
 }
 // *INDENT-ON*
 
-
-/*
-===============
-GLimp_LogComment
-===============
-*/
-void GLimp_LogComment(char *comment)
-{
-	if(log_fp)
-	{
-		fprintf(log_fp, "%s", comment);
-	}
-}
-
-#if defined(__cplusplus)
-}
-#endif
-
-#ifdef _MSC_VER
+#ifndef __GNUC__
 #pragma warning (default : 4113 4133 4047 )
 #endif

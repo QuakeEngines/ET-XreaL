@@ -3900,6 +3900,7 @@ extern cvar_t  *r_colorMipLevels;	// development aid to see texture mip usage
 extern cvar_t  *r_picmip;		// controls picmip values
 extern cvar_t  *r_finish;
 extern cvar_t  *r_drawBuffer;
+extern cvar_t  *r_glDriver;
 extern cvar_t  *r_swapInterval;
 extern cvar_t  *r_textureMode;
 extern cvar_t  *r_offsetFactor;
@@ -4075,8 +4076,8 @@ void            R_SwapBuffers(int);
 
 void            R_RenderView(viewParms_t * parms);
 
-void            R_AddMDXSurfaces(trRefEntity_t * e);
-void            R_AddMDXInteractions(trRefEntity_t * e, trRefLight_t * light);
+void            R_AddMDVSurfaces(trRefEntity_t * e);
+void            R_AddMDVInteractions(trRefEntity_t * e, trRefLight_t * light);
 void            R_AddNullModelSurfaces(trRefEntity_t * e);
 void            R_AddBeamSurfaces(trRefEntity_t * e);
 void            R_AddRailSurfaces(trRefEntity_t * e, qboolean isUnderwater);
@@ -4877,9 +4878,6 @@ typedef struct
 
 	renderCommandList_t commands;
 } backEndData_t;
-
-extern int      max_polys;
-extern int      max_polyverts;
 
 extern backEndData_t *backEndData[SMP_FRAMES];	// the second one may not be allocated
 

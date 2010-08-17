@@ -4873,7 +4873,7 @@ static char    *FindShaderInShaderText(const char *shaderName)
 			// skip table name
 			token = COM_ParseExt2(&p, qtrue);
 
-			Com_SkipBracedSection(&p);
+			SkipBracedSection(&p);
 		}
 		// support shader templates
 		else if(!Q_stricmp(token, "guide"))
@@ -4916,7 +4916,7 @@ static char    *FindShaderInShaderText(const char *shaderName)
 		else
 		{
 			// skip the shader body
-			Com_SkipBracedSection(&p);
+			SkipBracedSection(&p);
 		}
 	}
 
@@ -4944,7 +4944,7 @@ shader_t       *R_FindShaderByName(const char *name)
 		return tr.defaultShader;
 	}
 
-	Com_StripExtension(name, strippedName, sizeof(strippedName));
+	COM_StripExtension3(name, strippedName, sizeof(strippedName));
 
 	hash = generateHashValue(strippedName, FILE_HASH_SIZE);
 
@@ -5002,7 +5002,7 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 		return tr.defaultShader;
 	}
 
-	Com_StripExtension(name, strippedName, sizeof(strippedName));
+	COM_StripExtension3(name, strippedName, sizeof(strippedName));
 
 	hash = generateHashValue(strippedName, FILE_HASH_SIZE);
 
@@ -5617,7 +5617,7 @@ static void ScanAndLoadGuideFiles(void)
 		strcat(s_guideText, buffers[i]);
 		ri.FS_FreeFile(buffers[i]);
 		buffers[i] = p;
-		Com_Compress(p);
+		COM_Compress(p);
 	}
 
 	size = 0;
@@ -5626,7 +5626,7 @@ static void ScanAndLoadGuideFiles(void)
 	{
 		Com_sprintf(filename, sizeof(filename), "guides/%s", guideFiles[i]);
 
-		Com_BeginParseSession(filename);
+		COM_BeginParseSession(filename);
 
 		// pointer to the first shader file
 		p = buffers[i];
@@ -5642,7 +5642,7 @@ static void ScanAndLoadGuideFiles(void)
 
 			if(Q_stricmp(token, "guide") && Q_stricmp(token, "inlineGuide"))
 			{
-				Com_ParseWarning("expected guide or inlineGuide found '%s'\n", token);
+				COM_ParseWarning("expected guide or inlineGuide found '%s'\n", token);
 				break;
 			}
 
@@ -5659,7 +5659,7 @@ static void ScanAndLoadGuideFiles(void)
 			token = COM_ParseExt2(&p, qtrue);
 			if(Q_stricmp(token, "("))
 			{
-				Com_ParseWarning("expected ( found '%s'\n", token);
+				COM_ParseWarning("expected ( found '%s'\n", token);
 				break;
 			}
 
@@ -5676,12 +5676,12 @@ static void ScanAndLoadGuideFiles(void)
 
 			if(Q_stricmp(token, ")"))
 			{
-				Com_ParseWarning("expected ) found '%s'\n", token);
+				COM_ParseWarning("expected ) found '%s'\n", token);
 				break;
 			}
 
 			// skip guide body
-			Com_SkipBracedSection(&p);
+			SkipBracedSection(&p);
 
 			// if we passed the pointer to the next shader file
 			if(i < numGuides - 1)
@@ -5710,7 +5710,7 @@ static void ScanAndLoadGuideFiles(void)
 	{
 		Com_sprintf(filename, sizeof(filename), "guides/%s", guideFiles[i]);
 
-		Com_BeginParseSession(filename);
+		COM_BeginParseSession(filename);
 
 		// pointer to the first shader file
 		p = buffers[i];
@@ -5726,7 +5726,7 @@ static void ScanAndLoadGuideFiles(void)
 
 			if(Q_stricmp(token, "guide") && Q_stricmp(token, "inlineGuide"))
 			{
-				Com_ParseWarning("expected guide or inlineGuide found '%s'\n", token);
+				COM_ParseWarning("expected guide or inlineGuide found '%s'\n", token);
 				break;
 			}
 
@@ -5743,7 +5743,7 @@ static void ScanAndLoadGuideFiles(void)
 			token = COM_ParseExt2(&p, qtrue);
 			if(Q_stricmp(token, "("))
 			{
-				Com_ParseWarning("expected ( found '%s'\n", token);
+				COM_ParseWarning("expected ( found '%s'\n", token);
 				break;
 			}
 
@@ -5760,12 +5760,12 @@ static void ScanAndLoadGuideFiles(void)
 
 			if(Q_stricmp(token, ")"))
 			{
-				Com_ParseWarning("expected ) found '%s'\n", token);
+				COM_ParseWarning("expected ) found '%s'\n", token);
 				break;
 			}
 
 			// skip guide body
-			Com_SkipBracedSection(&p);
+			SkipBracedSection(&p);
 
 			// if we passed the pointer to the next shader file
 			if(i < numGuides - 1)
@@ -5857,7 +5857,7 @@ static void ScanAndLoadShaderFiles(void)
 		strcat(s_shaderText, buffers[i]);
 		ri.FS_FreeFile(buffers[i]);
 		buffers[i] = p;
-		Com_Compress(p);
+		COM_Compress(p);
 	}
 
 	Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes));
@@ -5869,7 +5869,7 @@ static void ScanAndLoadShaderFiles(void)
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
 #endif
-		Com_BeginParseSession(filename);
+		COM_BeginParseSession(filename);
 
 		// pointer to the first shader file
 		p = buffers[i];
@@ -5889,7 +5889,7 @@ static void ScanAndLoadShaderFiles(void)
 				// skip table name
 				token = COM_ParseExt2(&p, qtrue);
 
-				Com_SkipBracedSection(&p);
+				SkipBracedSection(&p);
 			}
 			// support shader templates
 			else if(!Q_stricmp(token, "guide"))
@@ -5910,7 +5910,7 @@ static void ScanAndLoadShaderFiles(void)
 				token = COM_ParseExt2(&p, qtrue);
 				if(Q_stricmp(token, "("))
 				{
-					Com_ParseWarning("expected ( found '%s'\n", token);
+					COM_ParseWarning("expected ( found '%s'\n", token);
 					break;
 				}
 
@@ -5927,7 +5927,7 @@ static void ScanAndLoadShaderFiles(void)
 
 				if(Q_stricmp(token, ")"))
 				{
-					Com_ParseWarning("expected ) found '%s'\n", token);
+					COM_ParseWarning("expected ) found '%s'\n", token);
 					break;
 				}
 			}
@@ -5937,7 +5937,7 @@ static void ScanAndLoadShaderFiles(void)
 				shaderTextHashTableSizes[hash]++;
 				size++;
 
-				Com_SkipBracedSection(&p);
+				SkipBracedSection(&p);
 			}
 
 			// if we passed the pointer to the next shader file
@@ -5970,7 +5970,7 @@ static void ScanAndLoadShaderFiles(void)
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
 #endif
-		Com_BeginParseSession(filename);
+		COM_BeginParseSession(filename);
 
 		// pointer to the first shader file
 		p = buffers[i];
@@ -6074,7 +6074,7 @@ static void ScanAndLoadShaderFiles(void)
 				token = COM_ParseExt2(&p, qtrue);
 				if(Q_stricmp(token, "("))
 				{
-					Com_ParseWarning("expected ( found '%s'\n", token);
+					COM_ParseWarning("expected ( found '%s'\n", token);
 					break;
 				}
 
@@ -6091,7 +6091,7 @@ static void ScanAndLoadShaderFiles(void)
 
 				if(Q_stricmp(token, ")"))
 				{
-					Com_ParseWarning("expected ) found '%s'\n", token);
+					COM_ParseWarning("expected ) found '%s'\n", token);
 					break;
 				}
 			}
@@ -6101,7 +6101,7 @@ static void ScanAndLoadShaderFiles(void)
 				shaderTextHashTable[hash][shaderTextHashTableSizes[hash]++] = oldp;
 
 				// skip shaderbody
-				Com_SkipBracedSection(&p);
+				SkipBracedSection(&p);
 			}
 
 			// if we passed the pointer to the next shader file

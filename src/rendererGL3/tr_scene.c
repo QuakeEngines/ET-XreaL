@@ -35,7 +35,7 @@ static int      r_firstSceneEntity;
 static int      r_numPolys;
 static int      r_firstScenePoly;
 
-static int      r_numPolyVerts;
+int				r_numPolyVerts;
 
 
 /*

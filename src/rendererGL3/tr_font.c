@@ -372,7 +372,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 #if defined(COMPAT_ET)
 	Com_sprintf(fileName, sizeof(fileName), "fonts/%s_%i.dat", fontName, pointSize);
 #else
-	Com_StripExtension(fontName, strippedName, sizeof(strippedName));
+	COM_StripExtension3(fontName, strippedName, sizeof(strippedName));
 	Com_sprintf(fileName, sizeof(fileName), "%s_%i.dat", strippedName, pointSize);
 #endif
 	for(i = 0; i < registeredFontCount; i++)

@@ -2472,12 +2472,14 @@ void R_AddEntitySurfaces(void)
 					switch (tr.currentModel->type)
 					{
 						case MOD_MESH:
-							R_AddMDXSurfaces(ent);
+							R_AddMDVSurfaces(ent);
 							break;
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 						case MOD_MD5:
 							R_AddMD5Surfaces(ent);
 							break;
+#endif
 
 						case MOD_BSP:
 							R_AddBSPModelSurfaces(ent);
@@ -2562,12 +2564,14 @@ void R_AddEntityInteractions(trRefLight_t * light)
 					switch (tr.currentModel->type)
 					{
 						case MOD_MESH:
-							R_AddMDXInteractions(ent, light);
+							R_AddMDVInteractions(ent, light);
 							break;
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 						case MOD_MD5:
 							R_AddMD5Interactions(ent, light);
 							break;
+#endif
 
 						case MOD_BSP:
 							R_AddBrushModelInteractions(ent, light);
