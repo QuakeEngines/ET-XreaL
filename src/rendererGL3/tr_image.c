@@ -3381,7 +3381,27 @@ void R_ShutdownImages(void)
 }
 
 
+int RE_GetTextureId(const char *name)
+{
+	int             i;
+	image_t			*image;
 
+	ri.Printf(PRINT_ALL, S_COLOR_ORANGE "RE_GetTextureId [%s].\n", name);
+
+	for(i = 0; i < tr.images.currentElements; i++)
+	{
+		image = Com_GrowListElement(&tr.images, i);
+
+		if(!strcmp(name, image->name))
+		{
+//          ri.Printf(PRINT_ALL, "Found textureid %d\n", i);
+			return i;
+		}
+	}
+
+//  ri.Printf(PRINT_ALL, "Image not found.\n");
+	return -1;
+}
 
 
 

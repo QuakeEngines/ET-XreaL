@@ -826,9 +826,9 @@ void RE_RenderToTexture(int textureid, int x, int y, int w, int h)
 {
 	renderToTextureCommand_t *cmd;
 
-#if 0
-//  ri.Printf( PRINT_ALL, "RE_RenderToTexture\n" );
+	ri.Printf(PRINT_ALL, S_COLOR_RED "TODO RE_RenderToTexture\n");
 
+#if 0
 	if(textureid > tr.numImages || textureid < 0)
 	{
 		ri.Printf(PRINT_ALL, "Warning: trap_R_RenderToTexture textureid %d out of range.\n", textureid);

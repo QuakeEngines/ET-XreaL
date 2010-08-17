@@ -4135,9 +4135,18 @@ float           R_CalcFov(float fovX, float width, float height);
 // Tr3B - visualisation tools to help debugging the renderer frontend
 void            R_DebugAxis(const vec3_t origin, const matrix_t transformMatrix);
 void            R_DebugBoundingBox(const vec3_t origin, const vec3_t mins, const vec3_t maxs, vec4_t color);
+void			R_DebugPolygon(int color, int numPoints, float *points);
+void			R_DebugText(const vec3_t org, float r, float g, float b, const char *text, qboolean neverOcclude);
+
+
+
 
 /*
-** GL wrapper/helper functions
+====================================================================
+
+OpenGL WRAPPERS, tr_backend.c
+
+====================================================================
 */
 #if !defined(USE_D3D10)
 void            GL_Bind(image_t * image);
@@ -4180,6 +4189,16 @@ void			GL_VertexAttribPointers(uint32_t attribBits);
 void            GL_Cull(int cullType);
 #endif // !defined(USE_D3D10)
 
+
+
+/*
+====================================================================
+
+
+
+====================================================================
+*/
+
 void            RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * data, int client, qboolean dirty);
 void            RE_UploadCinematic(int w, int h, int cols, int rows, const byte * data, int client, qboolean dirty);
 
@@ -4199,19 +4218,10 @@ qhandle_t       RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withli
 qboolean        R_GetEntityToken(char *buffer, int size);
 
 model_t        *R_AllocModel(void);
-image_t        *R_AllocImage(const char *name, qboolean linkIntoHashTable);
-void			R_UploadImage(const byte ** dataArray, int numData, image_t * image);
+
 
 void            R_Init(void);
-image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterType, wrapType_t wrapType);
-image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterType, wrapType_t wrapType);
 
-image_t        *R_CreateImage(const char *name, const byte * pic, int width, int height, int bits, filterType_t filterType,
-							  wrapType_t wrapType);
-
-image_t        *R_CreateCubeImage(const char *name,
-								  const byte * pic[6],
-								  int width, int height, int bits, filterType_t filterType, wrapType_t wrapType);
 
 qboolean        R_GetModeInfo(int *width, int *height, float *windowAspect, int mode);
 
@@ -4226,21 +4236,53 @@ void            R_SubImageCpy(byte *dest, size_t destx, size_t desty, size_t des
 // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=516
 const void     *RB_TakeScreenshotCmd(const void *data);
 
-void            R_InitImages(void);
-void            R_ShutdownImages(void);
-int             R_SumOfUsedImages(void);
+
 void            R_InitSkins(void);
 skin_t         *R_GetSkinByHandle(qhandle_t hSkin);
 
 void            R_DeleteSurfaceVBOs();
 
-//
-// tr_shader.c
-//
+
+/*
+====================================================================
+
+IMAGES, tr_image.c
+
+====================================================================
+*/
+void            R_InitImages(void);
+void            R_ShutdownImages(void);
+int             R_SumOfUsedImages(void);
+
+image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterType, wrapType_t wrapType);
+image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterType, wrapType_t wrapType);
+
+image_t        *R_CreateImage(const char *name, const byte * pic, int width, int height, int bits, filterType_t filterType,
+							  wrapType_t wrapType);
+
+image_t        *R_CreateCubeImage(const char *name,
+								  const byte * pic[6],
+								  int width, int height, int bits, filterType_t filterType, wrapType_t wrapType);
+
+image_t        *R_AllocImage(const char *name, qboolean linkIntoHashTable);
+void			R_UploadImage(const byte ** dataArray, int numData, image_t * image);
+
+int				RE_GetTextureId(const char *name);
+
+
+
+/*
+====================================================================
+
+SHADERS, tr_shader.c
+
+====================================================================
+*/
 qhandle_t       RE_RegisterShader(const char *name);
 qhandle_t       RE_RegisterShaderNoMip(const char *name);
 qhandle_t       RE_RegisterShaderLightAttenuation(const char *name);
 qhandle_t       RE_RegisterShaderFromImage(const char *name, image_t * image, qboolean mipRawImage);
+qboolean		RE_LoadDynamicShader(const char *shadername, const char *shadertext);
 
 shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRawImage);
 shader_t       *R_GetShaderByHandle(qhandle_t hShader);
@@ -4390,7 +4432,7 @@ void            RB_ShowImages(void);
 /*
 ============================================================
 
-WORLD MAP
+WORLD MAP, tr_world.c
 
 ============================================================
 */
@@ -4406,7 +4448,7 @@ void            R_ShutdownVBOs();
 /*
 ============================================================
 
-FLARES
+FLARES, tr_flares.c
 
 ============================================================
 */
@@ -4420,7 +4462,7 @@ void            RB_RenderFlares(void);
 /*
 ============================================================
 
-LIGHTS
+LIGHTS, tr_light.c
 
 ============================================================
 */
@@ -4459,12 +4501,13 @@ void            R_ComputeFinalAttenuation(shaderStage_t * pStage, trRefLight_t *
 /*
 ============================================================
 
-FOG
+FOG, tr_fog.c
 
 ============================================================
 */
 
 void			RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density);
+void			RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque);
 
 
 
@@ -4472,7 +4515,7 @@ void			RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, floa
 /*
 ============================================================
 
-SHADOWS
+SHADOWS, tr_shadows.c
 
 ============================================================
 */
@@ -4493,7 +4536,7 @@ void            RB_DrawSun(void);
 /*
 ============================================================
 
-CURVE TESSELATION
+CURVE TESSELATION, tr_curve.c
 
 ============================================================
 */
@@ -4506,7 +4549,7 @@ void            R_FreeSurfaceGridMesh(srfGridMesh_t * grid);
 /*
 ============================================================
 
-MARKERS, POLYGON PROJECTION ON WORLD POLYGONS
+MARKERS, POLYGON PROJECTION ON WORLD POLYGONS, tr_marks.c
 
 ============================================================
 */
@@ -4518,7 +4561,7 @@ int             R_MarkFragments(int numPoints, const vec3_t * points, const vec3
 /*
 ============================================================
 
-FRAME BUFFER OBJECTS
+FRAME BUFFER OBJECTS, tr_fbo.c
 
 ============================================================
 */
@@ -4546,7 +4589,7 @@ void            R_FBOList_f(void);
 /*
 ============================================================
 
-VERTEX BUFFER OBJECTS
+VERTEX BUFFER OBJECTS, tr_vbo.c
 
 ============================================================
 */
@@ -4570,7 +4613,7 @@ void            R_VBOList_f(void);
 /*
 ============================================================
 
-DECALS - ydnar
+DECALS - ydnar, tr_decals.c
 
 ============================================================
 */
@@ -4595,7 +4638,7 @@ void            R_CullDecalProjectors(void);
 /*
 ============================================================
 
-SCENE GENERATION
+SCENE GENERATION, tr_scene.c
 
 ============================================================
 */
@@ -4607,6 +4650,7 @@ void            RE_AddRefEntityToScene(const refEntity_t * ent);
 void            RE_AddRefLightToScene(const refLight_t * light);
 void            RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts);
 void            RE_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys);
+void            RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer);
 void			RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, float r, float g, float b, qhandle_t hShader, int flags);
 void            RE_AddCoronaToScene(const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible);
 void            RE_RenderScene(const refdef_t * fd);
@@ -4890,6 +4934,10 @@ void            FreeVertexHashTable(vertexHash_t ** hashTable);
 void            R_InitFreeType();
 void            R_DoneFreeType();
 void            RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font);
+
+// bani
+void			RE_RenderToTexture(int textureid, int x, int y, int w, int h);
+void			RE_Finish(void);
 
 
 #if defined(__cplusplus)

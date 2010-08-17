@@ -2059,6 +2059,17 @@ void RE_EndRegistration(void)
 	 */
 }
 
+static void RE_PurgeCache(void)
+{
+	ri.Printf(PRINT_ALL, S_COLOR_RED "TODO RE_PurgeCache\n");
+
+	/*
+	R_PurgeShaders(9999999);
+	R_PurgeBackupImages(9999999);
+	R_PurgeModels(9999999);
+	*/
+}
+
 
 /*
 =====================
@@ -2085,16 +2096,14 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	}
 
 	// the RE_ functions are Renderer Entry points
+
+	// Q3A BEGIN
 	re.Shutdown = RE_Shutdown;
 
 	re.BeginRegistration = RE_BeginRegistration;
 	re.RegisterModel = RE_RegisterModel;
 	
 	re.RegisterSkin = RE_RegisterSkin;
-//----(SA) added
-	re.GetSkinModel = RE_GetSkinModel;
-	re.GetShaderFromModel = RE_GetShaderFromModel;
-//----(SA) end
 	re.RegisterShader = RE_RegisterShader;
 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
 
@@ -2106,8 +2115,6 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.EndFrame = RE_EndFrame;
 
 	re.MarkFragments = R_MarkFragments;
-	re.ProjectDecal = RE_ProjectDecal;
-	re.ClearDecals = RE_ClearDecals;
 
 	re.LerpTag = RE_LerpTag;
 
@@ -2121,19 +2128,11 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 
 //	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddDynamicLightToScene;
-//----(SA)
-	re.AddCoronaToScene = RE_AddCoronaToScene;
-	re.SetFog = RE_SetFog;
-//----(SA)
+
 	re.RenderScene = RE_RenderScene;
-	re.SaveViewParms = RE_SaveViewParms;
-	re.RestoreViewParms = RE_RestoreViewParms;
 
 	re.SetColor = RE_SetColor;
 	re.DrawStretchPic = RE_StretchPic;
-	re.DrawRotatedPic = RE_RotatedPic;	// NERVE - SMF
-	re.Add2dPolys = RE_2DPolyies;
-	re.DrawStretchPicGradient = RE_StretchPicGradient;
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 
@@ -2141,7 +2140,38 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.RemapShader = R_RemapShader;
 	re.GetEntityToken = R_GetEntityToken;
 	re.inPVS = R_inPVS;
+	// Q3A END
 
+	// ET BEGIN
+	re.GetSkinModel = RE_GetSkinModel;
+	re.GetShaderFromModel = RE_GetShaderFromModel;
+
+	re.ProjectDecal = RE_ProjectDecal;
+	re.ClearDecals = RE_ClearDecals;
+
+	re.DrawDebugPolygon = R_DebugPolygon;
+	re.DrawDebugText = R_DebugText;
+
+	re.SaveViewParms = RE_SaveViewParms;
+	re.RestoreViewParms = RE_RestoreViewParms;
+
+	re.AddCoronaToScene = RE_AddCoronaToScene;
+	re.AddPolyBufferToScene = RE_AddPolyBufferToScene;
+
+	re.DrawRotatedPic = RE_RotatedPic;	// NERVE - SMF
+	re.Add2dPolys = RE_2DPolyies;
+	re.DrawStretchPicGradient = RE_StretchPicGradient;
+	
+	re.SetFog = RE_SetFog;
+	re.SetGlobalFog = RE_SetGlobalFog;
+
+	re.purgeCache = RE_PurgeCache;
+
+	re.LoadDynamicShader = RE_LoadDynamicShader;
+	re.GetTextureId = RE_GetTextureId;
+	re.RenderToTexture = RE_RenderToTexture;
+	re.Finish = RE_Finish;
+	// ET END
 
 	// XreaL BEGIN
 

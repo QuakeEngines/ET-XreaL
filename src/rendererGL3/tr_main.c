@@ -3166,6 +3166,35 @@ void R_DebugPolygon(int color, int numPoints, float *points)
 }
 
 /*
+================
+R_DebugText
+================
+*/
+void R_DebugText(const vec3_t org, float r, float g, float b, const char *text, qboolean neverOcclude)
+{
+#if 0
+	if(neverOcclude)
+	{
+		qglDepthRange(0, 0);	// never occluded
+
+	}
+	qglColor3f(r, g, b);
+	qglRasterPos3fv(org);
+	qglPushAttrib(GL_LIST_BIT);
+	qglListBase(gl_NormalFontBase);
+	qglCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
+	qglListBase(0);
+	qglPopAttrib();
+
+	if(neverOcclude)
+	{
+		qglDepthRange(0, 1);
+	}
+#endif
+}
+
+
+/*
 ====================
 R_DebugGraphics
 

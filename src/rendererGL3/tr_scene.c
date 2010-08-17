@@ -191,6 +191,57 @@ void RE_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t * vert
 	R_AddPolysToScene(hShader, numVerts, verts, numPolys);
 }
 
+/*
+=====================
+RE_AddPolyBufferToScene
+=====================
+*/
+void RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer)
+{
+#if 0
+	srfPolyBuffer_t *pPolySurf;
+	int             fogIndex;
+	fog_t          *fog;
+	vec3_t          bounds[2];
+	int             i;
+
+	if(r_numpolybuffers >= MAX_POLYS)
+	{
+		return;
+	}
+
+	pPolySurf = &backEndData[tr.smpFrame]->polybuffers[r_numpolybuffers];
+	r_numpolybuffers++;
+
+	pPolySurf->surfaceType = SF_POLYBUFFER;
+	pPolySurf->pPolyBuffer = pPolyBuffer;
+
+	VectorCopy(pPolyBuffer->xyz[0], bounds[0]);
+	VectorCopy(pPolyBuffer->xyz[0], bounds[1]);
+	for(i = 1; i < pPolyBuffer->numVerts; i++)
+	{
+		AddPointToBounds(pPolyBuffer->xyz[i], bounds[0], bounds[1]);
+	}
+	for(fogIndex = 1; fogIndex < tr.world->numfogs; fogIndex++)
+	{
+		fog = &tr.world->fogs[fogIndex];
+		if(bounds[1][0] >= fog->bounds[0][0]
+		   && bounds[1][1] >= fog->bounds[0][1]
+		   && bounds[1][2] >= fog->bounds[0][2]
+		   && bounds[0][0] <= fog->bounds[1][0] && bounds[0][1] <= fog->bounds[1][1] && bounds[0][2] <= fog->bounds[1][2])
+		{
+			break;
+		}
+	}
+	if(fogIndex == tr.world->numfogs)
+	{
+		fogIndex = 0;
+	}
+
+	pPolySurf->fogIndex = fogIndex;
+#endif
+}
+
 
 //=================================================================================
 
