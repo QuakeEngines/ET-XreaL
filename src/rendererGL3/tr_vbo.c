@@ -94,6 +94,8 @@ VBO_t          *R_CreateVBO(const char *name, byte * vertexes, int vertexesSize,
 /*
 ============
 R_CreateVBO2
+
+RB: OPTIMIZE rewrite to not use memcpy
 ============
 */
 VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * verts, unsigned int stateBits, vboUsage_t usage)

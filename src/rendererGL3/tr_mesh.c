@@ -25,10 +25,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /*
 =============
-R_CullMDX
+R_CullMDV
 =============
 */
-static void R_CullMDX(mdvModel_t * model, trRefEntity_t * ent)
+static void R_CullMDV(mdvModel_t * model, trRefEntity_t * ent)
 {
 	mdvFrame_t     *oldFrame, *newFrame;
 	int             i;
@@ -166,7 +166,7 @@ int R_ComputeLOD(trRefEntity_t * ent)
 		// multiple LODs exist, so compute projected bounding sphere
 		// and use that as a criteria for selecting LOD
 
-		frame = tr.currentModel->mdx[0]->frames;
+		frame = tr.currentModel->mdv[0]->frames;
 		frame += ent->e.frame;
 
 		radius = RadiusFromBounds(frame->bounds[0], frame->bounds[1]);
@@ -209,10 +209,10 @@ int R_ComputeLOD(trRefEntity_t * ent)
 
 /*
 =================
-R_AddMDXSurfaces
+R_AddMDVSurfaces
 =================
 */
-void R_AddMDXSurfaces(trRefEntity_t * ent)
+void R_AddMDVSurfaces(trRefEntity_t * ent)
 {
 	int             i;
 	mdvModel_t     *model = 0;
@@ -226,16 +226,16 @@ void R_AddMDXSurfaces(trRefEntity_t * ent)
 
 	if(ent->e.renderfx & RF_WRAP_FRAMES)
 	{
-		ent->e.frame %= tr.currentModel->mdx[0]->numFrames;
-		ent->e.oldframe %= tr.currentModel->mdx[0]->numFrames;
+		ent->e.frame %= tr.currentModel->mdv[0]->numFrames;
+		ent->e.oldframe %= tr.currentModel->mdv[0]->numFrames;
 	}
 
 	// Validate the frames so there is no chance of a crash.
 	// This will write directly into the entity structure, so
 	// when the surfaces are rendered, they don't need to be
 	// range checked again.
-	if((ent->e.frame >= tr.currentModel->mdx[0]->numFrames)
-	   || (ent->e.frame < 0) || (ent->e.oldframe >= tr.currentModel->mdx[0]->numFrames) || (ent->e.oldframe < 0))
+	if((ent->e.frame >= tr.currentModel->mdv[0]->numFrames)
+	   || (ent->e.frame < 0) || (ent->e.oldframe >= tr.currentModel->mdv[0]->numFrames) || (ent->e.oldframe < 0))
 	{
 		ri.Printf(PRINT_DEVELOPER, "R_AddMDXSurfaces: no such frame %d to %d for '%s'\n",
 				  ent->e.oldframe, ent->e.frame, tr.currentModel->name);
@@ -246,11 +246,11 @@ void R_AddMDXSurfaces(trRefEntity_t * ent)
 	// compute LOD
 	lod = R_ComputeLOD(ent);
 
-	model = tr.currentModel->mdx[lod];
+	model = tr.currentModel->mdv[lod];
 
 	// cull the entire model if merged bounding box of both frames
 	// is outside the view frustum.
-	R_CullMDX(model, ent);
+	R_CullMDV(model, ent);
 	if(ent->cull == CULL_OUT)
 	{
 		return;
@@ -396,7 +396,7 @@ void R_AddMDXInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	// compute LOD
 	lod = R_ComputeLOD(ent);
 
-	model = tr.currentModel->mdx[lod];
+	model = tr.currentModel->mdv[lod];
 
 	// do a quick AABB cull
 	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], ent->worldBounds[0], ent->worldBounds[1]))

@@ -121,10 +121,10 @@ void R_AddPolygonSurfaces(void)
 
 /*
 =====================
-RE_AddPolyToScene
+R_AddPolysToScene
 =====================
 */
-void RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys)
+static void R_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys)
 {
 	srfPoly_t      *poly;
 	int             j;
@@ -169,6 +169,26 @@ void RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts
 		r_numPolys++;
 		r_numPolyVerts += numVerts;
 	}
+}
+
+/*
+=====================
+RE_AddPolyToScene
+=====================
+*/
+void RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts)
+{
+	R_AddPolysToScene(hShader, numVerts, verts, 1);
+}
+
+/*
+=====================
+RE_AddPolysToScene
+=====================
+*/
+void RE_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys)
+{
+	R_AddPolysToScene(hShader, numVerts, verts, numPolys);
 }
 
 
@@ -309,9 +329,11 @@ static void R_AddWorldLightsToScene()
 /*
 =====================
 RE_AddDynamicLightToScene
+
+ydnar: modified dlight system to support seperate radius and intensity
 =====================
 */
-static void RE_AddDynamicLightToScene(const vec3_t org, float intensity, float r, float g, float b, int additive)
+void RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, float r, float g, float b, qhandle_t hShader, int flags)
 {
 	trRefLight_t   *light;
 
@@ -325,7 +347,7 @@ static void RE_AddDynamicLightToScene(const vec3_t org, float intensity, float r
 		return;
 	}
 
-	if(intensity <= 0)
+	if(intensity <= 0 || radius <= 0)
 	{
 		return;
 	}
@@ -340,6 +362,13 @@ static void RE_AddDynamicLightToScene(const vec3_t org, float intensity, float r
 	VectorClear(light->l.center);
 
 	// HACK: this will tell the renderer backend to use tr.defaultLightShader
+#if 0
+	dl->shader = R_GetShaderByHandle(hShader);
+	if(dl->shader == tr.defaultShader)
+	{
+		dl->shader = NULL;
+	}
+#endif
 	light->l.attenuationShader = 0;
 
 	light->l.radius[0] = intensity;
@@ -354,7 +383,7 @@ static void RE_AddDynamicLightToScene(const vec3_t org, float intensity, float r
 	light->l.inverseShadows = qfalse;
 
 	light->isStatic = qfalse;
-	light->additive = additive;
+	light->additive = qtrue;
 
 	if(light->l.scale <= 0)
 	{
@@ -362,25 +391,39 @@ static void RE_AddDynamicLightToScene(const vec3_t org, float intensity, float r
 	}
 }
 
-/*
-=====================
-RE_AddLightToScene
-=====================
-*/
-void RE_AddLightToScene(const vec3_t org, float intensity, float r, float g, float b)
-{
-	RE_AddDynamicLightToScene(org, intensity, r, g, b, qfalse);
-}
 
 /*
-=====================
-RE_AddAdditiveLightToScene
-=====================
+==============
+RE_AddCoronaToScene
+
+RB: TODO
+==============
 */
-void RE_AddAdditiveLightToScene(const vec3_t org, float intensity, float r, float g, float b)
+void RE_AddCoronaToScene(const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible)
 {
-	RE_AddDynamicLightToScene(org, intensity, r, g, b, qtrue);
+#if 0
+	corona_t       *cor;
+
+	if(!tr.registered)
+	{
+		return;
+	}
+	if(r_numcoronas >= MAX_CORONAS)
+	{
+		return;
+	}
+
+	cor = &backEndData[tr.smpFrame]->coronas[r_numcoronas++];
+	VectorCopy(org, cor->origin);
+	cor->color[0] = r;
+	cor->color[1] = g;
+	cor->color[2] = b;
+	cor->scale = scale;
+	cor->id = id;
+	cor->visible = visible;
+#endif
 }
+
 
 /*
 @@@@@@@@@@@@@@@@@@@@@

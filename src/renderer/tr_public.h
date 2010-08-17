@@ -79,7 +79,7 @@ typedef struct
 	// Nothing is drawn until R_RenderScene is called.
 	void            (*ClearScene) (void);
 	void            (*AddRefEntityToScene) (const refEntity_t * re);
-// RB:void          (*AddRefLightToScene) (const refLight_t * light);
+
 	int             (*LightForPoint) (vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir);
 
 	void            (*AddPolyToScene) (qhandle_t hShader, int numVerts, const polyVert_t * verts);
@@ -146,7 +146,13 @@ typedef struct
 	int             (*GetTextureId) (const char *imagename);
 	void            (*Finish) (void);
 
-	// RB: XreaL skeletal animation system
+	
+	// XreaL BEGIN
+#if defined(USE_REFLIGHT)
+	void            (*AddRefLightToScene) (const refLight_t * light);
+#endif
+
+	// RB: alternative skeletal animation system
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	qhandle_t		(*RegisterAnimation) (const char *name);
 	int				(*CheckSkeleton) (refSkeleton_t * skel, qhandle_t model, qhandle_t anim);
@@ -157,6 +163,8 @@ typedef struct
 	int             (*AnimNumFrames) (qhandle_t hAnim);
 	int             (*AnimFrameRate) (qhandle_t hAnim);
 #endif
+
+	// XreaL END
 
 } refexport_t;
 

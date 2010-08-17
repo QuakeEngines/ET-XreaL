@@ -190,8 +190,8 @@ RE_GetShaderFromModel
 qhandle_t RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withlightmap)
 {
 	model_t        *model;
-	bmodel_t       *bmodel;
-	msurface_t     *surf;
+	bspModel_t     *bmodel;
+	bspSurface_t   *surf;
 	shader_t       *shd;
 
 	if(surfnum < 0)
@@ -203,7 +203,7 @@ qhandle_t RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withlightmap
 
 	if(model)
 	{
-		bmodel = model->model.bmodel;
+		bmodel = model->bsp;
 		if(bmodel && bmodel->firstSurface)
 		{
 			if(surfnum >= bmodel->numSurfaces)
@@ -218,6 +218,9 @@ qhandle_t RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withlightmap
 				return 0;
 			}
 //          if(surf->shader->lightmapIndex != LIGHTMAP_NONE) {
+
+			/*
+			RB: FIXME ?
 			if(surf->shader->lightmapIndex > LIGHTMAP_NONE)
 			{
 				image_t        *image;
@@ -238,6 +241,7 @@ qhandle_t RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withlightmap
 				shd->stages[0]->rgbGen = CGEN_LIGHTING_DIFFUSE;	// (SA) new
 			}
 			else
+			*/
 			{
 				shd = surf->shader;
 			}
@@ -380,7 +384,9 @@ qhandle_t RE_RegisterSkin(const char *name)
 
 		surf = skin->surfaces[skin->numSurfaces] = ri.Hunk_Alloc(sizeof(*skin->surfaces[0]), h_low);
 		Q_strncpyz(surf->name, surfName, sizeof(surf->name));
-		surf->hash = Com_HashKey(surf->name, sizeof(surf->name));
+
+		// RB: bspSurface not not have ::hash yet
+//		surf->hash = Com_HashKey(surf->name, sizeof(surf->name));
 		surf->shader = R_FindShader(token, SHADER_3D_DYNAMIC, qtrue);
 		skin->numSurfaces++;
 	}

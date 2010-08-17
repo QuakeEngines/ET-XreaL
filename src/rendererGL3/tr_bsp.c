@@ -241,7 +241,7 @@ static void R_HDRTonemapLightingColors(const vec4_t in, vec4_t out, qboolean app
 	}
 	else
 	{
-		VectorScale4(in, 1.0f / 255.0f, sample);
+		Vector4Scale(in, 1.0f / 255.0f, sample);
 
 		if(applyGamma)
 		{
@@ -331,7 +331,11 @@ static ID_INLINE void rgbe2float(float *red, float *green, float *blue, unsigned
 		f = ldexp(1.0, rgbe[3] - (int)(128 + 8));
 		//f = ldexp(1.0, rgbe[3] - 128) / 10.0;
 		e = (rgbe[3] - 128) / 4.0f;
-		f = exp2(e);
+		
+		// RB: exp2 not defined by MSVC
+		//f = exp2(e);
+		f = pow(2, e);
+
 		//decoded = rgbe.rgb * exp2(fExp);
 		*red = (rgbe[0] / 255.0f) * f;
 		*green = (rgbe[1] / 255.0f) * f;
@@ -665,7 +669,7 @@ static void LoadRGBEToBytes(const char *name, byte ** ldrImage, int *width, int 
 	*width = w;
 	*height = h;
 
-	*ldrImage = ri.Malloc(w * h * 4);
+	*ldrImage = ri.Z_Malloc(w * h * 4);
 	pixbuf = *ldrImage;
 
 	floatbuf = hdrImage;
@@ -726,7 +730,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			R_SyncRenderThread();
 
 			// load HDR lightmaps
-			lightmapFiles = ri.FS_ListFilteredFiles(mapName, ".hdr", "/lm_*.hdr", &numLightmaps);
+			lightmapFiles = ri.FS_ListFiles(mapName, ".hdr", &numLightmaps);
 
 			qsort(lightmapFiles, numLightmaps, sizeof(char *), LightmapNameCompare);
 
@@ -739,7 +743,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			ri.Printf(PRINT_ALL, "...loading %i HDR lightmaps\n", numLightmaps);
 
 			if(r_hdrRendering->integer && r_hdrLightmap->integer && glConfig2.framebufferObjectAvailable &&
-			   glConfig2.framebufferBlitAvailable && glConfig2.textureFloatAvailable && glConfig.textureHalfFloatAvailable)
+			   glConfig2.framebufferBlitAvailable && glConfig2.textureFloatAvailable && glConfig2.textureHalfFloatAvailable)
 			{
 				int             width, height;
 				unsigned short *hdrImage;
@@ -831,11 +835,11 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			if(tr.worldDeluxeMapping)
 			{
 				// load deluxemaps
-				lightmapFiles = ri.FS_ListFilteredFiles(mapName, ".png", "/lm_*.png", &numLightmaps);
+				lightmapFiles = ri.FS_ListFiles(mapName, ".png", &numLightmaps);
 
 				if(!lightmapFiles || !numLightmaps)
 				{
-					lightmapFiles = ri.FS_ListFilteredFiles(mapName, ".tga", "/lm_*.png", &numLightmaps);
+					lightmapFiles = ri.FS_ListFiles(mapName, ".tga", &numLightmaps);
 
 					if(!lightmapFiles || !numLightmaps)
 					{
@@ -860,11 +864,11 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 		else
 #endif
 		{
-			lightmapFiles = ri.FS_ListFilteredFiles(mapName, ".png", "/lm_*.png", &numLightmaps);
+			lightmapFiles = ri.FS_ListFiles(mapName, ".png", &numLightmaps);
 
 			if(!lightmapFiles || !numLightmaps)
 			{
-				lightmapFiles = ri.FS_ListFilteredFiles(mapName, ".tga", "/lm_*.png", &numLightmaps);
+				lightmapFiles = ri.FS_ListFiles(mapName, ".tga", &numLightmaps);
 
 				if(!lightmapFiles || !numLightmaps)
 				{
@@ -1409,7 +1413,7 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 
 	// we may have a nodraw surface, because they might still need to
 	// be around for movement clipping
-	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW | SURF_COLLISION))
+	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW))// | SURF_COLLISION))
 	{
 		surf->data = &skipData;
 		return;
@@ -1508,7 +1512,7 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 
 	// we may have a nodraw surface, because they might still need to
 	// be around for movement clipping
-	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW | SURF_COLLISION))
+	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW))// | SURF_COLLISION))
 	{
 		surf->data = &skipData;
 		return;
@@ -8421,10 +8425,10 @@ void R_BuildCubeMaps(void)
 
 	for(i = 0; i < 6; i++)
 	{
-		tr.cubeTemp[i] = ri.Malloc(REF_CUBEMAP_SIZE * REF_CUBEMAP_SIZE * 4);
+		tr.cubeTemp[i] = ri.Z_Malloc(REF_CUBEMAP_SIZE * REF_CUBEMAP_SIZE * 4);
 	}
 
-	fileBuf = ri.Malloc(REF_CUBEMAP_STORE_SIZE * REF_CUBEMAP_STORE_SIZE * 4);
+	fileBuf = ri.Z_Malloc(REF_CUBEMAP_STORE_SIZE * REF_CUBEMAP_STORE_SIZE * 4);
 
 	// calculate origins for our probes
 	Com_InitGrowList(&tr.cubeProbes, 4000);

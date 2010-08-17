@@ -448,7 +448,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 		}
 
 		/*
-		   if(glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+		   if(glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 		   {
 		   //Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GL_ARB_draw_buffers\n#define GL_ARB_draw_buffers 1\n#endif\n");
 		   Q_strcat(bufferExtra, sizeof(bufferExtra), "#extension GL_ARB_draw_buffers : enable\n");
@@ -4978,7 +4978,7 @@ static void Render_volumetricFog()
 		previousFBO = glState.currentFBO;
 
 		if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-			   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+			   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 		{
 			// copy deferredRenderFBO to occlusionRenderFBO
 			qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
@@ -5078,7 +5078,7 @@ static void Render_volumetricFog()
 		// bind u_DepthMap
 		GL_SelectTexture(0);
 		if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-				   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+				   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 		{
 			GL_Bind(tr.depthRenderImage);
 		}

@@ -1379,7 +1379,7 @@ static void Render_lightVolume(interaction_t * ia)
 			// bind u_DepthMap
 			GL_SelectTexture(0);
 			if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-					   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+					   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 			{
 				GL_Bind(tr.depthRenderImage);
 			}
@@ -6704,7 +6704,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 
 	// update depth render image
 	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-					   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+					   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 	{
 		// no update needed FBO handles it
 		R_BindFBO(tr.deferredRenderFBO);
@@ -7571,7 +7571,7 @@ void RB_RenderDepthOfField()
 	// capture current color buffer for u_CurrentMap
 	GL_SelectTexture(0);
 	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-				   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+				   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 	{
 		GL_Bind(tr.deferredRenderFBOImage);
 	}
@@ -7588,7 +7588,7 @@ void RB_RenderDepthOfField()
 	// bind u_DepthMap
 	GL_SelectTexture(1);
 	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-			   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+			   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
@@ -7675,7 +7675,7 @@ void RB_RenderUniformFog()
 	// bind u_DepthMap
 	GL_SelectTexture(0);
 	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-			   glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+			   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
@@ -9736,6 +9736,7 @@ static void RB_RenderDebugUtils()
 		GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	}
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	if(r_showSkeleton->integer)
 	{
 		int             i, j, k, parentIndex;
@@ -9947,6 +9948,7 @@ static void RB_RenderDebugUtils()
 			tess.numIndexes = 0;
 		}
 	}
+#endif
 
 	if(r_showLightScissors->integer)
 	{

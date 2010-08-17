@@ -119,12 +119,12 @@ FBO_t          *R_CreateFBO(const char *name, int width, int height)
 		ri.Error(ERR_DROP, "R_CreateFBO: \"%s\" is too long\n", name);
 	}
 
-	if(width <= 0 || width > glConfig.maxRenderbufferSize)
+	if(width <= 0 || width > glConfig2.maxRenderbufferSize)
 	{
 		ri.Error(ERR_DROP, "R_CreateFBO: bad width %i", width);
 	}
 
-	if(height <= 0 || height > glConfig.maxRenderbufferSize)
+	if(height <= 0 || height > glConfig2.maxRenderbufferSize)
 	{
 		ri.Error(ERR_DROP, "R_CreateFBO: bad height %i", height);
 	}
@@ -537,7 +537,7 @@ void R_InitFBOs(void)
 		}
 		R_AttachFBOTexture2D(GL_TEXTURE_2D, tr.deferredRenderFBOImage->texnum, 0);
 
-		//if(glConfig.framebufferPackedDepthStencilAvailable)
+		//if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			R_CreateFBOPackedDepthStencilBuffer(tr.deferredRenderFBO, GL_DEPTH24_STENCIL8_EXT);
 			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
@@ -598,7 +598,7 @@ void R_InitFBOs(void)
 		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  tr.geometricRenderFBO->depthBuffer);
 
-		if(glConfig.framebufferPackedDepthStencilAvailable)
+		if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
 		}
@@ -643,7 +643,7 @@ void R_InitFBOs(void)
 		}
 		R_AttachFBOTexture2D(GL_TEXTURE_2D, tr.deferredRenderFBOImage->texnum, 0);
 
-		//if(glConfig.framebufferPackedDepthStencilAvailable)
+		//if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			R_CreateFBOPackedDepthStencilBuffer(tr.deferredRenderFBO, GL_DEPTH24_STENCIL8_EXT);
 			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
@@ -681,7 +681,7 @@ void R_InitFBOs(void)
 		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  tr.geometricRenderFBO->depthBuffer);
 
-		if(glConfig.framebufferPackedDepthStencilAvailable)
+		if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
 		}
@@ -713,7 +713,7 @@ void R_InitFBOs(void)
 		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  tr.lightRenderFBO->depthBuffer);
 
-		if(glConfig.framebufferPackedDepthStencilAvailable)
+		if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
 		}
@@ -763,7 +763,7 @@ void R_InitFBOs(void)
 			R_CreateFBODepthBuffer(tr.deferredRenderFBO, GL_DEPTH_COMPONENT16_ARB);
 			R_AttachFBOTextureDepth(tr.depthRenderImage->texnum);
 		}
-		else if(glConfig.framebufferPackedDepthStencilAvailable)
+		else if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			R_CreateFBOPackedDepthStencilBuffer(tr.deferredRenderFBO, GL_DEPTH24_STENCIL8_EXT);
 			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
@@ -802,7 +802,7 @@ void R_InitFBOs(void)
 			//R_CreateFBOColorBuffer(tr.occlusionRenderFBO, GL_ALPHA32F_ARB, 0);
 			R_CreateFBODepthBuffer(tr.occlusionRenderFBO, GL_DEPTH_COMPONENT24_ARB);
 		}
-		else if(glConfig.framebufferPackedDepthStencilAvailable)
+		else if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
 			//R_CreateFBOColorBuffer(tr.occlusionRenderFBO, GL_ALPHA32F_ARB, 0);
 			R_CreateFBOPackedDepthStencilBuffer(tr.occlusionRenderFBO, GL_DEPTH24_STENCIL8_EXT);

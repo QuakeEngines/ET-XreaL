@@ -129,9 +129,9 @@ void GL_TextureMode(const char *string)
 	// bound texture anisotropy
 	if(glConfig2.textureAnisotropyAvailable)
 	{
-		if(r_ext_texture_filter_anisotropic->value > glConfig.maxTextureAnisotropy)
+		if(r_ext_texture_filter_anisotropic->value > glConfig2.maxTextureAnisotropy)
 		{
-			ri.Cvar_Set("r_ext_texture_filter_anisotropic", va("%f", glConfig.maxTextureAnisotropy));
+			ri.Cvar_Set("r_ext_texture_filter_anisotropic", va("%f", glConfig2.maxTextureAnisotropy));
 		}
 		else if(r_ext_texture_filter_anisotropic->value < 1.0)
 		{
@@ -2720,7 +2720,7 @@ static void R_CreateDepthRenderImage(void)
 
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
 
-	if(glConfig.framebufferPackedDepthStencilAvailable)
+	if(glConfig2.framebufferPackedDepthStencilAvailable)
 	{
 		tr.depthRenderImage = R_CreateImage("_depthRender", data, width, height, IF_NOPICMIP | IF_PACKED_DEPTH24_STENCIL8, FT_NEAREST, WT_CLAMP);
 	}
@@ -2789,7 +2789,7 @@ static void R_CreateOcclusionRenderFBOImage(void)
 	{
 		tr.occlusionRenderFBOImage = R_CreateImage("_occlusionFBORender", data, width, height, IF_NOPICMIP | IF_ALPHA16F, FT_NEAREST, WT_CLAMP);
 	}
-	else if(glConfig.framebufferPackedDepthStencilAvailable)
+	else if(glConfig2.framebufferPackedDepthStencilAvailable)
 	{
 		tr.occlusionRenderFBOImage = R_CreateImage("_occlusionFBORender", data, width, height, IF_NOPICMIP | IF_ALPHA32F, FT_NEAREST, WT_CLAMP);
 	}
@@ -2831,7 +2831,7 @@ static void R_CreateDepthToColorFBOImages(void)
 		tr.depthToColorBackFacesFBOImage = R_CreateImage("_depthToColorBackFacesFBORender", data, width, height, IF_NOPICMIP | IF_ALPHA32F, FT_NEAREST, WT_CLAMP);
 		tr.depthToColorFrontFacesFBOImage = R_CreateImage("_depthToColorFrontFacesFBORender", data, width, height, IF_NOPICMIP | IF_ALPHA32F, FT_NEAREST, WT_CLAMP);
 	}
-	else if(glConfig.framebufferPackedDepthStencilAvailable)
+	else if(glConfig2.framebufferPackedDepthStencilAvailable)
 	{
 		tr.depthToColorBackFacesFBOImage = R_CreateImage("_depthToColorBackFacesFBORender", data, width, height, IF_NOPICMIP | IF_ALPHA32F, FT_NEAREST, WT_CLAMP);
 		tr.depthToColorFrontFacesFBOImage = R_CreateImage("_depthToColorFrontFacesFBORender", data, width, height, IF_NOPICMIP | IF_ALPHA32F, FT_NEAREST, WT_CLAMP);

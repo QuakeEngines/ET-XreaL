@@ -191,7 +191,7 @@ qhandle_t RE_RegisterModel(const char *name, qboolean forceStatic)
 				goto fail;
 			}
 
-			loaded = R_LoadMD3(mod, lod, buffer, bufferLen, name, forceStatic);
+			loaded = R_LoadMD3(mod, lod, buffer, bufferLen, name, qfalse);
 		}
 
 		ri.FS_FreeFile(buffer);
@@ -231,7 +231,7 @@ qhandle_t RE_RegisterModel(const char *name, qboolean forceStatic)
 		for(lod--; lod >= 0; lod--)
 		{
 			mod->numLods++;
-			mod->mdx[lod] = mod->mdx[lod + 1];
+			mod->mdv[lod] = mod->mdv[lod + 1];
 		}
 
 		return mod->index;
@@ -292,7 +292,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 	md3XyzNormal_t *md3xyz;
 	md3Tag_t       *md3Tag;
 
-	mdvModel_t     *mdxModel;
+	mdvModel_t     *mdvModel;
 	mdvFrame_t     *frame;
 	mdvSurface_t   *surf, *surface;
 	srfTriangle_t  *tri;
@@ -312,10 +312,10 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 		return qfalse;
 	}
 
-	mod->type = MOD_MDX;
+	mod->type = MOD_MESH;
 	size = LittleLong(md3Model->ofsEnd);
 	mod->dataSize += size;
-	mdxModel = mod->mdx[lod] = ri.Hunk_Alloc(sizeof(mdvModel_t), h_low);
+	mdvModel = mod->mdv[lod] = ri.Hunk_Alloc(sizeof(mdvModel_t), h_low);
 
 //  Com_Memcpy(mod->md3[lod], buffer, LittleLong(md3Model->ofsEnd));
 
@@ -336,8 +336,8 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 	}
 
 	// swap all the frames
-	mdxModel->numFrames = md3Model->numFrames;
-	mdxModel->frames = frame = ri.Hunk_Alloc(sizeof(*frame) * md3Model->numFrames, h_low);
+	mdvModel->numFrames = md3Model->numFrames;
+	mdvModel->frames = frame = ri.Hunk_Alloc(sizeof(*frame) * md3Model->numFrames, h_low);
 
 	md3Frame = (md3Frame_t *) ((byte *) md3Model + md3Model->ofsFrames);
 	for(i = 0; i < md3Model->numFrames; i++, frame++, md3Frame++)
@@ -352,8 +352,8 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 	}
 
 	// swap all the tags
-	mdxModel->numTags = md3Model->numTags;
-	mdxModel->tags = tag = ri.Hunk_Alloc(sizeof(*tag) * (md3Model->numTags * md3Model->numFrames), h_low);
+	mdvModel->numTags = md3Model->numTags;
+	mdvModel->tags = tag = ri.Hunk_Alloc(sizeof(*tag) * (md3Model->numTags * md3Model->numFrames), h_low);
 
 	md3Tag = (md3Tag_t *) ((byte *) md3Model + md3Model->ofsTags);
 	for(i = 0; i < md3Model->numTags * md3Model->numFrames; i++, tag++, md3Tag++)
@@ -370,8 +370,8 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 	}
 
 	// swap all the surfaces
-	mdxModel->numSurfaces = md3Model->numSurfaces;
-	mdxModel->surfaces = surf = ri.Hunk_Alloc(sizeof(*surf) * md3Model->numSurfaces, h_low);
+	mdvModel->numSurfaces = md3Model->numSurfaces;
+	mdvModel->surfaces = surf = ri.Hunk_Alloc(sizeof(*surf) * md3Model->numSurfaces, h_low);
 
 	md3Surf = (md3Surface_t *) ((byte *) md3Model + md3Model->ofsSurfaces);
 	for(i = 0; i < md3Model->numSurfaces; i++)
@@ -403,7 +403,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 		surf->surfaceType = SF_MDX;
 
 		// give pointer to model for Tess_SurfaceMDX
-		surf->model = mdxModel;
+		surf->model = mdvModel;
 
 		// copy surface name
 		Q_strncpyz(surf->name, md3Surf->name, sizeof(surf->name));
@@ -533,7 +533,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 
 		// count number of surfaces that we want to merge
 		numSurfaces = 0;
-		for(i = 0, surf = mdxModel->surfaces; i < mdxModel->numSurfaces; i++, surf++)
+		for(i = 0, surf = mdvModel->surfaces; i < mdvModel->numSurfaces; i++, surf++)
 		{
 			// remove all deformVertexes surfaces
 			shader = surf->shader;
@@ -546,7 +546,7 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 		// build surfaces list
 		surfacesSorted = ri.Hunk_AllocateTempMemory(numSurfaces * sizeof(surfacesSorted[0]));
 
-		for(i = 0, surf = mdxModel->surfaces; i < numSurfaces; i++, surf++)
+		for(i = 0, surf = mdvModel->surfaces; i < numSurfaces; i++, surf++)
 		{
 			surfacesSorted[i] = surf;
 		}
@@ -871,17 +871,17 @@ static qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, 
 		ri.Hunk_FreeTempMemory(surfacesSorted);
 
 		// move VBO surfaces list to hunk
-		mdxModel->numVBOSurfaces = vboSurfaces.currentElements;
-		mdxModel->vboSurfaces = ri.Hunk_Alloc(mdxModel->numVBOSurfaces * sizeof(*mdxModel->vboSurfaces), h_low);
+		mdvModel->numVBOSurfaces = vboSurfaces.currentElements;
+		mdvModel->vboSurfaces = ri.Hunk_Alloc(mdvModel->numVBOSurfaces * sizeof(*mdvModel->vboSurfaces), h_low);
 
-		for(i = 0; i < mdxModel->numVBOSurfaces; i++)
+		for(i = 0; i < mdvModel->numVBOSurfaces; i++)
 		{
-			mdxModel->vboSurfaces[i] = (srfVBOMesh_t *) Com_GrowListElement(&vboSurfaces, i);
+			mdvModel->vboSurfaces[i] = (srfVBOMesh_t *) Com_GrowListElement(&vboSurfaces, i);
 		}
 
 		Com_DestroyGrowList(&vboSurfaces);
 
-		//ri.Printf(PRINT_ALL, "%i MD3 VBO surfaces created\n", mdxModel->numVBOSurfaces);
+		//ri.Printf(PRINT_ALL, "%i MD3 VBO surfaces created\n", mdvModel->numVBOSurfaces);
 	}
 #endif // defined(USE_D3D10)
 
@@ -3332,7 +3332,7 @@ void R_Modellist_f(void)
 		lods = 1;
 		for(j = 1; j < MD3_MAX_LODS; j++)
 		{
-			if(mod->mdx[j] && mod->mdx[j] != mod->mdx[j - 1])
+			if(mod->mdv[j] && mod->mdv[j] != mod->mdv[j - 1])
 			{
 				lods++;
 			}
@@ -3359,10 +3359,10 @@ void R_Modellist_f(void)
 R_GetTag
 ================
 */
-static mdvTag_t *R_GetTag(mdvModel_t * model, int frame, const char *tagName)
+static mdvTag_t *R_GetTag(mdvModel_t * model, int frame, const char *tagName, int startTagIndex, mdvTag_t ** outTag)
 {
-	mdvTag_t       *tag;
 	int             i;
+	mdvTag_t       *tag;
 
 	if(frame >= model->numFrames)
 	{
@@ -3373,13 +3373,15 @@ static mdvTag_t *R_GetTag(mdvModel_t * model, int frame, const char *tagName)
 	tag = model->tags + frame * model->numTags;
 	for(i = 0; i < model->numTags; i++, tag++)
 	{
-		if(!strcmp(tag->name, tagName))
+		if((i >= startTagIndex) && !strcmp(tag->name, tagName))
 		{
-			return tag;			// found it
+			*outTag = tag;
+			return i;
 		}
 	}
 
-	return NULL;
+	*outTag = NULL;
+	return -1;
 }
 
 /*
@@ -3387,32 +3389,122 @@ static mdvTag_t *R_GetTag(mdvModel_t * model, int frame, const char *tagName)
 RE_LerpTag
 ================
 */
-int RE_LerpTag(orientation_t * tag, qhandle_t handle, int startFrame, int endFrame, float frac, const char *tagName)
+int RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagNameIn, int startIndex)
 {
-	mdvTag_t       *start, *end;
+	md3Tag_t       *start, *end;
+	md3Tag_t        ustart, uend;
 	int             i;
 	float           frontLerp, backLerp;
 	model_t        *model;
+	vec3_t          sangles, eangles;
+	char            tagName[MAX_QPATH];	//, *ch;
+	int             retval;
+	qhandle_t       handle;
+	int             startFrame, endFrame;
+	float           frac;
 
+	handle = refent->hModel;
+	startFrame = refent->oldframe;
+	endFrame = refent->frame;
+	frac = 1.0 - refent->backlerp;
+
+	Q_strncpyz(tagName, tagNameIn, MAX_QPATH);
+/*
+	// if the tagName has a space in it, then it is passing through the starting tag number
+	if (ch = strrchr(tagName, ' ')) {
+		*ch = 0;
+		ch++;
+		startIndex = atoi(ch);
+	}
+*/
 	model = R_GetModelByHandle(handle);
-	if(!model->mdx[0])
+	if(!model->mdv[0]) //if(!model->model.md3[0] && !model->model.mdc[0] && !model->model.mds)
 	{
 		AxisClear(tag->axis);
 		VectorClear(tag->origin);
-		return qfalse;
+		return -1;
 	}
 
-	start = R_GetTag(model->mdx[0], startFrame, tagName);
-	end = R_GetTag(model->mdx[0], endFrame, tagName);
+	frontLerp = frac;
+	backLerp = 1.0 - frac;
+
+	start = end = NULL;
+
+	if(model->type == MOD_MESH)
+	{
+		// old MD3 style
+		retval = R_GetTag((byte *) model->mdv[0], startFrame, tagName, startIndex, &start);
+		retval = R_GetTag((byte *) model->mdv[0], endFrame, tagName, startIndex, &end);
+
+	}
+/*
+	else if(model->type == MOD_MDS)
+	{
+		// use bone lerping
+		retval = R_GetBoneTag(tag, model->model.mds, startIndex, refent, tagNameIn);
+
+		if(retval >= 0)
+		{
+			return retval;
+		}
+
+		// failed
+		return -1;
+
+	}
+	else if(model->type == MOD_MDM)
+	{
+		// use bone lerping
+		retval = R_MDM_GetBoneTag(tag, model->model.mdm, startIndex, refent, tagNameIn);
+
+		if(retval >= 0)
+		{
+			return retval;
+		}
+
+		// failed
+		return -1;
+
+	}
+	else
+	{
+		// psuedo-compressed MDC tags
+		mdcTag_t       *cstart, *cend;
+
+		retval = R_GetMDCTag((byte *) model->model.mdc[0], startFrame, tagName, startIndex, &cstart);
+		retval = R_GetMDCTag((byte *) model->model.mdc[0], endFrame, tagName, startIndex, &cend);
+
+		// uncompress the MDC tags into MD3 style tags
+		if(cstart && cend)
+		{
+			for(i = 0; i < 3; i++)
+			{
+				ustart.origin[i] = (float)cstart->xyz[i] * MD3_XYZ_SCALE;
+				uend.origin[i] = (float)cend->xyz[i] * MD3_XYZ_SCALE;
+				sangles[i] = (float)cstart->angles[i] * MDC_TAG_ANGLE_SCALE;
+				eangles[i] = (float)cend->angles[i] * MDC_TAG_ANGLE_SCALE;
+			}
+
+			AnglesToAxis(sangles, ustart.axis);
+			AnglesToAxis(eangles, uend.axis);
+
+			start = &ustart;
+			end = &uend;
+		}
+		else
+		{
+			start = NULL;
+			end = NULL;
+		}
+	}
+	*/
+
 	if(!start || !end)
 	{
 		AxisClear(tag->axis);
 		VectorClear(tag->origin);
-		return qfalse;
+		return -1;
 	}
-
-	frontLerp = frac;
-	backLerp = 1.0f - frac;
 
 	for(i = 0; i < 3; i++)
 	{
@@ -3421,10 +3513,12 @@ int RE_LerpTag(orientation_t * tag, qhandle_t handle, int startFrame, int endFra
 		tag->axis[1][i] = start->axis[1][i] * backLerp + end->axis[1][i] * frontLerp;
 		tag->axis[2][i] = start->axis[2][i] * backLerp + end->axis[2][i] * frontLerp;
 	}
+
 	VectorNormalize(tag->axis[0]);
 	VectorNormalize(tag->axis[1]);
 	VectorNormalize(tag->axis[2]);
-	return qtrue;
+
+	return retval;
 }
 
 /*
@@ -3480,9 +3574,9 @@ void R_ModelBounds(qhandle_t handle, vec3_t mins, vec3_t maxs)
 		VectorCopy(model->bsp->bounds[0], mins);
 		VectorCopy(model->bsp->bounds[1], maxs);
 	}
-	else if(model->mdx[0])
+	else if(model->mdv[0])
 	{
-		header = model->mdx[0];
+		header = model->mdv[0];
 
 		frame = header->frames;
 

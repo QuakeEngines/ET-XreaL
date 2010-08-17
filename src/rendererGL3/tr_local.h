@@ -2450,6 +2450,36 @@ typedef struct
 
 //=================================================================================
 
+// ydnar: decal projection
+typedef struct decalProjector_s
+{
+	shader_t       *shader;
+	byte            color[4];
+	int             fadeStartTime, fadeEndTime;
+	vec3_t          mins, maxs;
+	vec3_t          center;
+	float           radius, radius2;
+	qboolean        omnidirectional;
+	int             numPlanes;	// either 5 or 6, for quad or triangle projectors
+	vec4_t          planes[6];
+	vec4_t          texMat[3][2];
+}
+decalProjector_t;
+
+typedef struct corona_s
+{
+	vec3_t          origin;
+	vec3_t          color;		// range from 0.0 to 1.0, should be color normalized
+	vec3_t          transformed;	// origin in local coordinate system
+	float           scale;		// uses r_flaresize as the baseline (1.0)
+	int             id;
+	qboolean        visible;	// still send the corona request, even if not visible, for proper fading
+} corona_t;
+
+
+//=================================================================================
+
+
 // skins allow models to be retextured without modifying the model file
 typedef struct
 {
@@ -2656,6 +2686,18 @@ typedef struct srfPoly_s
 	polyVert_t     *verts;
 } srfPoly_t;
 
+// ydnar: decals
+#define MAX_DECAL_VERTS         10	// worst case is triangle clipped by 6 planes
+#define MAX_WORLD_DECALS        1024
+#define MAX_ENTITY_DECALS       128
+typedef struct srfDecal_s
+{
+	surfaceType_t   surfaceType;
+	int             numVerts;
+	polyVert_t      verts[MAX_DECAL_VERTS];
+}
+srfDecal_t;
+
 typedef struct srfFlare_s
 {
 	surfaceType_t   surfaceType;
@@ -2847,6 +2889,18 @@ typedef struct bspSurface_s
 
 	surfaceType_t  *data;		// any of srf*_t
 } bspSurface_t;
+
+// ydnar: bsp model decal surfaces
+typedef struct decal_s
+{
+	bspSurface_t   *parent;
+	shader_t       *shader;
+	float           fadeStartTime, fadeEndTime;
+	int             fogIndex;
+	int             numVerts;
+	polyVert_t      verts[MAX_DECAL_VERTS];
+}
+decal_t;
 
 
 #define	CONTENTS_NODE		-1
@@ -3054,10 +3108,10 @@ typedef struct
 	int             numTriangles;
 	srfTriangle_t  *triangles;
 
-	struct mdxModel_s *model;
+	struct mdvModel_s *model;
 } mdvSurface_t;
 
-typedef struct mdxModel_s
+typedef struct mdvModel_s
 {
 	int             numFrames;
 	mdvFrame_t     *frames;
@@ -3233,7 +3287,7 @@ typedef enum
 {
 	MOD_BAD,
 	MOD_BSP,
-	MOD_MDX,
+	MOD_MESH,
 	MOD_MD5
 } modtype_t;
 
@@ -3245,7 +3299,7 @@ typedef struct model_s
 
 	int             dataSize;	// just for listing purposes
 	bspModel_t     *bsp;		// only if type == MOD_BSP
-	mdvModel_t     *mdx[MD3_MAX_LODS];	// only if type == MOD_MD3
+	mdvModel_t     *mdv[MD3_MAX_LODS];	// only if type == MOD_MESH
 	md5Model_t     *md5;		// only if type == MOD_MD5
 
 	int             numLods;
@@ -3254,7 +3308,7 @@ typedef struct model_s
 void            R_ModelInit(void);
 model_t        *R_GetModelByHandle(qhandle_t hModel);
 
-int             RE_LerpTag(orientation_t * tag, qhandle_t handle, int startFrame, int endFrame, float frac, const char *tagName);
+int             RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagNameIn, int startIndex);
 
 int             RE_BoneIndex(qhandle_t hModel, const char *boneName);
 
@@ -4123,7 +4177,7 @@ void            RE_BeginFrame(stereoFrame_t stereoFrame);
 void            RE_BeginRegistration(glconfig_t * glconfig);
 void            RE_LoadWorldMap(const char *mapname);
 void            RE_SetWorldVisData(const byte * vis);
-qhandle_t       RE_RegisterModel(const char *name, qboolean forceStatic);
+qhandle_t       RE_RegisterModel(const char *name);
 qhandle_t       RE_RegisterSkin(const char *name);
 void            RE_Shutdown(qboolean destroyWindow);
 
@@ -4490,6 +4544,30 @@ void            R_ShutdownVBOs(void);
 void            R_VBOList_f(void);
 
 
+/*
+============================================================
+
+DECALS - ydnar
+
+============================================================
+*/
+
+void            RE_ProjectDecal(qhandle_t hShader, int numPoints, vec3_t * points, vec4_t projection, vec4_t color, int lifeTime,
+								int fadeTime);
+void            RE_ClearDecals(void);
+
+void            R_AddModelShadow(refEntity_t * ent);
+
+void            R_TransformDecalProjector(decalProjector_t * in, vec3_t axis[3], vec3_t origin, decalProjector_t * out);
+qboolean        R_TestDecalBoundingBox(decalProjector_t * dp, vec3_t mins, vec3_t maxs);
+qboolean        R_TestDecalBoundingSphere(decalProjector_t * dp, vec3_t center, float radius2);
+
+void            R_ProjectDecalOntoSurface(decalProjector_t * dp, bspSurface_t * surf, bspModel_t * bmodel);
+
+void            R_AddDecalSurface(decal_t * decal);
+void            R_AddDecalSurfaces(bspModel_t * bmodel);
+void            R_CullDecalProjectors(void);
+
 
 /*
 ============================================================
@@ -4504,9 +4582,10 @@ void            R_ToggleSmpFrame(void);
 void            RE_ClearScene(void);
 void            RE_AddRefEntityToScene(const refEntity_t * ent);
 void            RE_AddRefLightToScene(const refLight_t * light);
-void            RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int num);
-void            RE_AddLightToScene(const vec3_t org, float intensity, float r, float g, float b);
-void            RE_AddAdditiveLightToScene(const vec3_t org, float intensity, float r, float g, float b);
+void            RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts);
+void            RE_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys);
+void			RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, float r, float g, float b, qhandle_t hShader, int flags);
+void            RE_AddCoronaToScene(const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible);
 void            RE_RenderScene(const refdef_t * fd);
 
 /*

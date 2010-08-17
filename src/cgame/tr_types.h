@@ -112,6 +112,7 @@ typedef enum
 #define REFLAG_DEAD_LOD     32	// allow the LOD to go lower than recommended
 
 
+//#define USE_REFLIGHT 1
 
 // RB: defining any of the following macros would break the compatibility to old ET mods
 //#define USE_REFENTITY_ANIMATIONSYSTEM 1

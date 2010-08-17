@@ -218,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tr_decals.c"
+				>
+			</File>
+			<File
 				RelativePath=".\tr_fbo.c"
 				>
 			</File>

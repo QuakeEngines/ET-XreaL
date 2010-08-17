@@ -1048,7 +1048,7 @@ void GL_SetDefaultState(void)
 	// in a multitexture environment
 	if(qglActiveTextureARB)
 	{
-		for(i = glConfig.maxTextureUnits - 1; i >= 0; i--)
+		for(i = glConfig.maxActiveTextures - 1; i >= 0; i--)
 		{
 			GL_SelectTexture(i);
 			GL_TextureMode(r_textureMode->string);
@@ -1096,7 +1096,7 @@ void GL_SetDefaultState(void)
 
 
 	/*
-	   if(glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4)
+	   if(glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 	   {
 	   // enable all attachments as draw buffers
 	   GLenum drawbuffers[] = {GL_DRAW_BUFFER0_ARB,
@@ -1147,7 +1147,7 @@ void GfxInfo_f(void)
 	ri.Printf(PRINT_ALL, "GL_VERSION: %s\n", glConfig.version_string);
 	ri.Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", glConfig.extensions_string);
 	ri.Printf(PRINT_ALL, "GL_MAX_TEXTURE_SIZE: %d\n", glConfig.maxTextureSize);
-	ri.Printf(PRINT_ALL, "GL_MAX_TEXTURE_UNITS_ARB: %d\n", glConfig.maxTextureUnits);
+	ri.Printf(PRINT_ALL, "GL_MAX_TEXTURE_UNITS_ARB: %d\n", glConfig.maxActiveTextures);
 
 	/*
 	   if(glConfig.fragmentProgramAvailable)
@@ -2089,10 +2089,6 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 
 	re.BeginRegistration = RE_BeginRegistration;
 	re.RegisterModel = RE_RegisterModel;
-
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
-	re.RegisterAnimation = RE_RegisterAnimation;
-#endif
 	
 	re.RegisterSkin = RE_RegisterSkin;
 //----(SA) added
@@ -2101,10 +2097,6 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 //----(SA) end
 	re.RegisterShader = RE_RegisterShader;
 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
-/*
-	RB: TODO
-	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
-*/
 
 	re.LoadWorld = RE_LoadWorldMap;
 	re.SetWorldVisData = RE_SetWorldVisData;
@@ -2114,17 +2106,25 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.EndFrame = RE_EndFrame;
 
 	re.MarkFragments = R_MarkFragments;
+	re.ProjectDecal = RE_ProjectDecal;
+	re.ClearDecals = RE_ClearDecals;
+
 	re.LerpTag = RE_LerpTag;
 
 	re.ModelBounds = R_ModelBounds;
 
 	re.ClearScene = RE_ClearScene;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
-	re.AddRefLightToScene = RE_AddRefLightToScene;
+	
 	re.AddPolyToScene = RE_AddPolyToScene;
-	re.LightForPoint = R_LightForPoint;
-	re.AddLightToScene = RE_AddLightToScene;
-	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
+	re.AddPolysToScene = RE_AddPolysToScene;
+
+//	re.LightForPoint = R_LightForPoint;
+	re.AddLightToScene = RE_AddDynamicLightToScene;
+//----(SA)
+	re.AddCoronaToScene = RE_AddCoronaToScene;
+	re.SetFog = R_SetFog;
+//----(SA)
 	re.RenderScene = RE_RenderScene;
 
 	re.SetColor = RE_SetColor;
@@ -2137,12 +2137,21 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.GetEntityToken = R_GetEntityToken;
 	re.inPVS = R_inPVS;
 
-/*
+
+	// XreaL BEGIN
+
+#if defined(USE_REFLIGHT)
+//	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
+	
+
+	/*
 	RB: TODO
+	
 	re.TakeVideoFrame = RE_TakeVideoFrame;
-*/
+	*/
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
+	re.RegisterAnimation = RE_RegisterAnimation;
 	re.CheckSkeleton = RE_CheckSkeleton;
 	re.BuildSkeleton = RE_BuildSkeleton;
 	re.BlendSkeleton = RE_BlendSkeleton;
@@ -2150,6 +2159,8 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.AnimNumFrames = RE_AnimNumFrames;
 	re.AnimFrameRate = RE_AnimFrameRate;
 #endif
+
+	// XreaL END
 
 	return &re;
 }
