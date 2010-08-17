@@ -20,6 +20,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wolf", "wolf.vcproj", "{B60
 		{0C24E6E9-2B9F-43AE-ADB7-B7693966F41E} = {0C24E6E9-2B9F-43AE-ADB7-B7693966F41E}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rendererGL3", "rendererGL3\rendererGL3.vcproj", "{A78CE356-910C-4C0E-886D-5E3F09F40082}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Dedicated|Win32 = Debug Dedicated|Win32
@@ -85,6 +87,14 @@ Global
 		{B604B554-38D6-4BC8-9F7F-D6BC8719A653}.Release Dedicated|Win32.Build.0 = Release Dedicated|Win32
 		{B604B554-38D6-4BC8-9F7F-D6BC8719A653}.Release|Win32.ActiveCfg = Release|Win32
 		{B604B554-38D6-4BC8-9F7F-D6BC8719A653}.Release|Win32.Build.0 = Release|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Debug Dedicated|Win32.ActiveCfg = Debug|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Debug Dedicated|Win32.Build.0 = Debug|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Debug|Win32.Build.0 = Debug|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Release Dedicated|Win32.ActiveCfg = Release|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Release Dedicated|Win32.Build.0 = Release|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Release|Win32.ActiveCfg = Release|Win32
+		{A78CE356-910C-4C0E-886D-5E3F09F40082}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
