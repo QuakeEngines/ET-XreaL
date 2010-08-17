@@ -5593,69 +5593,69 @@ void R_LoadEntities(lump_t * l)
 			// check for origin
 			else if(!Q_stricmp(keyname, "origin") || !Q_stricmp(keyname, "light_origin"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.origin[0], &light->l.origin[1], &light->l.origin[2]);
+				sscanf(value, "%f %f %f", &light->l.origin[0], &light->l.origin[1], &light->l.origin[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.origin, qfalse);
+				//COM_Parse1DMatrix(&s, 3, light->l.origin, qfalse);
 			}
 			// check for center
 			else if(!Q_stricmp(keyname, "light_center"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.center[0], &light->l.center[1], &light->l.center[2]);
+				sscanf(value, "%f %f %f", &light->l.center[0], &light->l.center[1], &light->l.center[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.center, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.center, qfalse);
 			}
 			// check for color
 			else if(!Q_stricmp(keyname, "_color"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.color[0], &light->l.color[1], &light->l.color[2]);
+				sscanf(value, "%f %f %f", &light->l.color[0], &light->l.color[1], &light->l.color[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.color, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.color, qfalse);
 			}
 			// check for radius
 			else if(!Q_stricmp(keyname, "light_radius"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.radius[0], &light->l.radius[1], &light->l.radius[2]);
+				sscanf(value, "%f %f %f", &light->l.radius[0], &light->l.radius[1], &light->l.radius[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.radius, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.radius, qfalse);
 			}
 			// check for light_target
 			else if(!Q_stricmp(keyname, "light_target"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.projTarget[0], &light->l.projTarget[1], &light->l.projTarget[2]);
+				sscanf(value, "%f %f %f", &light->l.projTarget[0], &light->l.projTarget[1], &light->l.projTarget[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.projTarget, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.projTarget, qfalse);
 				light->l.rlType = RL_PROJ;
 			}
 			// check for light_right
 			else if(!Q_stricmp(keyname, "light_right"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.projRight[0], &light->l.projRight[1], &light->l.projRight[2]);
+				sscanf(value, "%f %f %f", &light->l.projRight[0], &light->l.projRight[1], &light->l.projRight[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.projRight, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.projRight, qfalse);
 				light->l.rlType = RL_PROJ;
 			}
 			// check for light_up
 			else if(!Q_stricmp(keyname, "light_up"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.projUp[0], &light->l.projUp[1], &light->l.projUp[2]);
+				sscanf(value, "%f %f %f", &light->l.projUp[0], &light->l.projUp[1], &light->l.projUp[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.projUp, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.projUp, qfalse);
 				light->l.rlType = RL_PROJ;
 			}
 			// check for light_start
 			else if(!Q_stricmp(keyname, "light_start"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.projStart[0], &light->l.projStart[1], &light->l.projStart[2]);
+				sscanf(value, "%f %f %f", &light->l.projStart[0], &light->l.projStart[1], &light->l.projStart[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.projStart, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.projStart, qfalse);
 				light->l.rlType = RL_PROJ;
 			}
 			// check for light_end
 			else if(!Q_stricmp(keyname, "light_end"))
 			{
-				//sscanf(value, "%f %f %f", &light->l.projEnd[0], &light->l.projEnd[1], &light->l.projEnd[2]);
+				sscanf(value, "%f %f %f", &light->l.projEnd[0], &light->l.projEnd[1], &light->l.projEnd[2]);
 				s = &value[0];
-				Com_Parse1DMatrix(&s, 3, light->l.projEnd, qfalse);
+				//Com_Parse1DMatrix(&s, 3, light->l.projEnd, qfalse);
 				light->l.rlType = RL_PROJ;
 			}
 			// check for radius
@@ -8938,7 +8938,7 @@ void RE_LoadWorldMap(const char *name)
 	Com_Memset(&s_worldData, 0, sizeof(s_worldData));
 	Q_strncpyz(s_worldData.name, name, sizeof(s_worldData.name));
 
-	Q_strncpyz(s_worldData.baseName, Com_SkipPath(s_worldData.name), sizeof(s_worldData.name));
+	Q_strncpyz(s_worldData.baseName, COM_SkipPath(s_worldData.name), sizeof(s_worldData.name));
 	Com_StripExtension(s_worldData.baseName, s_worldData.baseName, sizeof(s_worldData.baseName));
 
 	startMarker = ri.Hunk_Alloc(0, h_low);
