@@ -30,6 +30,10 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __Q_SHARED_H
 #define __Q_SHARED_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
@@ -827,6 +831,7 @@ float           NormalizeColor(const vec3_t in, vec3_t out);
 void			ClampColor(vec4_t color);
 
 float           RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
+void			ZeroBounds(vec3_t mins, vec3_t maxs);
 void            ClearBounds(vec3_t mins, vec3_t maxs);
 void            AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 
@@ -1371,6 +1376,7 @@ void            Info_NextPair(const char **s, char *key, char *value);
 // *INDENT-OFF*
 void QDECL Com_Error(int level, const char *error, ...) _attribute((format(printf, 2, 3)));
 void QDECL Com_Printf(const char *msg, ...) _attribute((format(printf, 1, 2)));
+void QDECL Com_DPrintf(const char *msg, ...) _attribute((format(printf, 1, 2)));
 // *INDENT-ON*
 
 /*
@@ -2234,5 +2240,9 @@ typedef enum
 } gamestate_t;
 
 #define SQR( a ) ( ( a ) * ( a ) )
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif							// __Q_SHARED_H
