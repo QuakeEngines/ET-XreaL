@@ -1189,6 +1189,7 @@ float           Com_Clamp(float min, float max, float value);
 
 char           *COM_SkipPath(char *pathname);
 void            COM_FixPath(char *pathname);
+const char     *COM_GetExtension(const char *name);
 void            COM_StripExtension(const char *in, char *out);
 void            COM_StripExtension2(const char *in, char *out, int destsize);
 void			COM_StripExtension3(const char *src, char *dest, int destsize);
