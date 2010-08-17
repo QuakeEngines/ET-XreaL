@@ -33,6 +33,13 @@ If you have questions concerning this license or the applicable additional terms
 vec3_t vec3_origin = {0,0,0};
 vec3_t axisDefault[3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
 
+matrix_t matrixIdentity = {	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1};
+
+quat_t quatIdentity = { 0, 0, 0, 1 };
+
 
 vec4_t colorBlack      =   {0, 0, 0, 1};
 vec4_t colorRed        =   {1, 0, 0, 1};
@@ -1442,6 +1449,35 @@ qboolean PointInBounds(const vec3_t v, const vec3_t mins, const vec3_t maxs)
 	return qtrue;
 }
 
+void BoundsAdd(vec3_t mins, vec3_t maxs, const vec3_t mins2, const vec3_t maxs2)
+{
+	if(mins2[0] < mins[0])
+	{
+		mins[0] = mins2[0];
+	}
+	if(mins2[1] < mins[1])
+	{
+		mins[1] = mins2[1];
+	}
+	if(mins2[2] < mins[2])
+	{
+		mins[2] = mins2[2];
+	}
+
+	if(maxs2[0] > maxs[0])
+	{
+		maxs[0] = maxs2[0];
+	}
+	if(maxs2[1] > maxs[1])
+	{
+		maxs[1] = maxs2[1];
+	}
+	if(maxs2[2] > maxs[2])
+	{
+		maxs[2] = maxs2[2];
+	}
+}
+
 qboolean BoundsIntersect(const vec3_t mins, const vec3_t maxs, const vec3_t mins2, const vec3_t maxs2)
 {
 	if(maxs[0] < mins2[0] ||
@@ -1635,6 +1671,14 @@ void Vector4Scale(const vec4_t in, vec_t scale, vec4_t out)
 	out[3] = in[3] * scale;
 }
 
+int NearestPowerOfTwo(int val)
+{
+	int             answer;
+
+	for(answer = 1; answer < val; answer <<= 1)
+		;
+	return answer;
+}
 
 int Q_log2(int val)
 {

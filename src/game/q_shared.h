@@ -893,6 +893,12 @@ float           Q_crandom(int *seed);
 #define crandom()   ( 2.0 * ( random() - 0.5 ) )
 
 void            vectoangles(const vec3_t value1, vec3_t angles);
+
+static ID_INLINE void VectorToAngles(const vec3_t value1, vec3_t angles)
+{
+	vectoangles(value1, angles);
+}
+
 float           vectoyaw(const vec3_t vec);
 void            AnglesToAxis(const vec3_t angles, vec3_t axis[3]);
 
