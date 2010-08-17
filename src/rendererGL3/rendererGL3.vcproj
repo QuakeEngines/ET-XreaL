@@ -230,6 +230,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tr_fog.c"
+				>
+			</File>
+			<File
 				RelativePath=".\tr_font.c"
 				>
 			</File>
