@@ -11514,6 +11514,252 @@ const void     *RB_StretchPic(const void *data)
 }
 
 
+const void     *RB_Draw2dPolys(const void *data)
+{
+	const poly2dCommand_t *cmd;
+	shader_t       *shader;
+	int             i;
+
+	cmd = (const poly2dCommand_t *)data;
+
+	if(!backEnd.projection2D)
+	{
+		RB_SetGL2D();
+	}
+
+	shader = cmd->shader;
+	if(shader != tess.surfaceShader)
+	{
+		if(tess.numIndexes)
+		{
+			Tess_End();
+		}
+		backEnd.currentEntity = &backEnd.entity2D;
+		Tess_Begin(Tess_StageIteratorGeneric, shader, NULL, qfalse, qfalse, -1);
+	}
+
+	Tess_CheckOverflow(cmd->numverts, (cmd->numverts - 2) * 3);
+
+	for(i = 0; i < cmd->numverts - 2; i++)
+	{
+		tess.indexes[tess.numIndexes + 0] = tess.numVertexes;
+		tess.indexes[tess.numIndexes + 1] = tess.numVertexes + i + 1;
+		tess.indexes[tess.numIndexes + 2] = tess.numVertexes + i + 2;
+		tess.numIndexes += 3;
+	}
+
+	for(i = 0; i < cmd->numverts; i++)
+	{
+		tess.xyz[tess.numVertexes][0] = cmd->verts[i].xyz[0];
+		tess.xyz[tess.numVertexes][1] = cmd->verts[i].xyz[1];
+		tess.xyz[tess.numVertexes][2] = 0;
+		tess.xyz[tess.numVertexes][3] = 1;
+
+		tess.texCoords[tess.numVertexes][0] = cmd->verts[i].st[0];
+		tess.texCoords[tess.numVertexes][1] = cmd->verts[i].st[1];
+
+		tess.colors[tess.numVertexes][0] = cmd->verts[i].modulate[0];
+		tess.colors[tess.numVertexes][1] = cmd->verts[i].modulate[1];
+		tess.colors[tess.numVertexes][2] = cmd->verts[i].modulate[2];
+		tess.colors[tess.numVertexes][3] = cmd->verts[i].modulate[3];
+		tess.numVertexes++;
+	}
+
+	return (const void *)(cmd + 1);
+}
+
+// NERVE - SMF
+/*
+=============
+RB_RotatedPic
+=============
+*/
+const void     *RB_RotatedPic(const void *data)
+{
+	const stretchPicCommand_t *cmd;
+	shader_t       *shader;
+	int             numVerts, numIndexes;
+	float           angle;
+	float           pi2 = M_PI * 2;
+
+	cmd = (const stretchPicCommand_t *)data;
+
+	if(!backEnd.projection2D)
+	{
+		RB_SetGL2D();
+	}
+
+	shader = cmd->shader;
+	if(shader != tess.surfaceShader)
+	{
+		if(tess.numIndexes)
+		{
+			Tess_End();
+		}
+		backEnd.currentEntity = &backEnd.entity2D;
+		Tess_Begin(Tess_StageIteratorGeneric, shader, NULL, qfalse, qfalse, -1);
+	}
+
+	Tess_CheckOverflow(4, 6);
+	numVerts = tess.numVertexes;
+	numIndexes = tess.numIndexes;
+
+	tess.numVertexes += 4;
+	tess.numIndexes += 6;
+
+	tess.indexes[numIndexes] = numVerts + 3;
+	tess.indexes[numIndexes + 1] = numVerts + 0;
+	tess.indexes[numIndexes + 2] = numVerts + 2;
+	tess.indexes[numIndexes + 3] = numVerts + 2;
+	tess.indexes[numIndexes + 4] = numVerts + 0;
+	tess.indexes[numIndexes + 5] = numVerts + 1;
+
+	Vector4Copy(backEnd.color2D, tess.colors[numVerts + 0]);
+	Vector4Copy(backEnd.color2D, tess.colors[numVerts + 1]);
+	Vector4Copy(backEnd.color2D, tess.colors[numVerts + 2]);
+	Vector4Copy(backEnd.color2D, tess.colors[numVerts + 3]);
+
+	angle = cmd->angle * pi2;
+	tess.xyz[numVerts][0] = cmd->x + (cos(angle) * cmd->w);
+	tess.xyz[numVerts][1] = cmd->y + (sin(angle) * cmd->h);
+	tess.xyz[numVerts][2] = 0;
+	tess.xyz[numVerts][3] = 1;
+
+	tess.texCoords[numVerts][0] = cmd->s1;
+	tess.texCoords[numVerts][1] = cmd->t1;
+
+	angle = cmd->angle * pi2 + 0.25 * pi2;
+	tess.xyz[numVerts + 1][0] = cmd->x + (cos(angle) * cmd->w);
+	tess.xyz[numVerts + 1][1] = cmd->y + (sin(angle) * cmd->h);
+	tess.xyz[numVerts + 1][2] = 0;
+	tess.xyz[numVerts + 1][3] = 1;
+
+	tess.texCoords[numVerts + 1][0] = cmd->s2;
+	tess.texCoords[numVerts + 1][1] = cmd->t1;
+
+	angle = cmd->angle * pi2 + 0.50 * pi2;
+	tess.xyz[numVerts + 2][0] = cmd->x + (cos(angle) * cmd->w);
+	tess.xyz[numVerts + 2][1] = cmd->y + (sin(angle) * cmd->h);
+	tess.xyz[numVerts + 2][2] = 0;
+	tess.xyz[numVerts + 2][3] = 1;
+
+	tess.texCoords[numVerts + 2][0] = cmd->s2;
+	tess.texCoords[numVerts + 2][1] = cmd->t2;
+
+	angle = cmd->angle * pi2 + 0.75 * pi2;
+	tess.xyz[numVerts + 3][0] = cmd->x + (cos(angle) * cmd->w);
+	tess.xyz[numVerts + 3][1] = cmd->y + (sin(angle) * cmd->h);
+	tess.xyz[numVerts + 3][2] = 0;
+	tess.xyz[numVerts + 3][3] = 1;
+
+	tess.texCoords[numVerts + 3][0] = cmd->s1;
+	tess.texCoords[numVerts + 3][1] = cmd->t2;
+
+	return (const void *)(cmd + 1);
+}
+
+// -NERVE - SMF
+
+/*
+==============
+RB_StretchPicGradient
+==============
+*/
+const void     *RB_StretchPicGradient(const void *data)
+{
+	const stretchPicCommand_t *cmd;
+	shader_t       *shader;
+	int             numVerts, numIndexes;
+	int				i;
+
+	cmd = (const stretchPicCommand_t *)data;
+
+	if(!backEnd.projection2D)
+	{
+		RB_SetGL2D();
+	}
+
+	shader = cmd->shader;
+	if(shader != tess.surfaceShader)
+	{
+		if(tess.numIndexes)
+		{
+			Tess_End();
+		}
+		backEnd.currentEntity = &backEnd.entity2D;
+		Tess_Begin(Tess_StageIteratorGeneric, shader, NULL, qfalse, qfalse, -1);
+	}
+
+	Tess_CheckOverflow(4, 6);
+	numVerts = tess.numVertexes;
+	numIndexes = tess.numIndexes;
+
+	tess.numVertexes += 4;
+	tess.numIndexes += 6;
+
+	tess.indexes[numIndexes] = numVerts + 3;
+	tess.indexes[numIndexes + 1] = numVerts + 0;
+	tess.indexes[numIndexes + 2] = numVerts + 2;
+	tess.indexes[numIndexes + 3] = numVerts + 2;
+	tess.indexes[numIndexes + 4] = numVerts + 0;
+	tess.indexes[numIndexes + 5] = numVerts + 1;
+
+	//*(int *)tess.vertexColors[numVerts].v = *(int *)tess.vertexColors[numVerts + 1].v = *(int *)backEnd.color2D;
+	//*(int *)tess.vertexColors[numVerts + 2].v = *(int *)tess.vertexColors[numVerts + 3].v = *(int *)cmd->gradientColor;
+
+	Vector4Copy(backEnd.color2D, tess.colors[numVerts + 0]);
+	Vector4Copy(backEnd.color2D, tess.colors[numVerts + 1]);
+
+	for(i = 0; i < 4; i++)
+	{
+		tess.colors[numVerts + 2][0] = cmd->gradientColor[0] * (1.0f / 255.0f);
+		tess.colors[numVerts + 2][1] = cmd->gradientColor[0] * (1.0f / 255.0f);
+		tess.colors[numVerts + 2][2] = cmd->gradientColor[0] * (1.0f / 255.0f);
+		tess.colors[numVerts + 2][3] = cmd->gradientColor[0] * (1.0f / 255.0f);
+
+		tess.colors[numVerts + 3][0] = cmd->gradientColor[0] * (1.0f / 255.0f);
+		tess.colors[numVerts + 3][1] = cmd->gradientColor[0] * (1.0f / 255.0f);
+		tess.colors[numVerts + 3][2] = cmd->gradientColor[0] * (1.0f / 255.0f);
+		tess.colors[numVerts + 3][3] = cmd->gradientColor[0] * (1.0f / 255.0f);
+	}
+
+	
+
+	tess.xyz[numVerts][0] = cmd->x;
+	tess.xyz[numVerts][1] = cmd->y;
+	tess.xyz[numVerts][2] = 0;
+	tess.xyz[numVerts][3] = 1;
+
+	tess.texCoords[numVerts][0] = cmd->s1;
+	tess.texCoords[numVerts][1] = cmd->t1;
+
+	tess.xyz[numVerts + 1][0] = cmd->x + cmd->w;
+	tess.xyz[numVerts + 1][1] = cmd->y;
+	tess.xyz[numVerts + 1][2] = 0;
+	tess.xyz[numVerts + 1][3] = 1;
+
+	tess.texCoords[numVerts + 1][0] = cmd->s2;
+	tess.texCoords[numVerts + 1][1] = cmd->t1;
+
+	tess.xyz[numVerts + 2][0] = cmd->x + cmd->w;
+	tess.xyz[numVerts + 2][1] = cmd->y + cmd->h;
+	tess.xyz[numVerts + 2][2] = 0;
+	tess.xyz[numVerts + 2][3] = 1;
+
+	tess.texCoords[numVerts + 2][0] = cmd->s2;
+	tess.texCoords[numVerts + 2][1] = cmd->t2;
+
+	tess.xyz[numVerts + 3][0] = cmd->x;
+	tess.xyz[numVerts + 3][1] = cmd->y + cmd->h;
+	tess.xyz[numVerts + 3][2] = 0;
+	tess.xyz[numVerts + 3][3] = 1;
+
+	tess.texCoords[numVerts + 3][0] = cmd->s1;
+	tess.texCoords[numVerts + 3][1] = cmd->t2;
+
+	return (const void *)(cmd + 1);
+}
+
 /*
 =============
 RB_DrawView
@@ -11730,6 +11976,49 @@ const void     *RB_SwapBuffers(const void *data)
 	return (const void *)(cmd + 1);
 }
 
+//bani
+/*
+=============
+RB_RenderToTexture
+=============
+*/
+const void     *RB_RenderToTexture(const void *data)
+{
+	const renderToTextureCommand_t *cmd;
+
+//  ri.Printf( PRINT_ALL, "RB_RenderToTexture\n" );
+
+	cmd = (const renderToTextureCommand_t *)data;
+
+	GL_Bind(cmd->image);
+	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
+	qglTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+	qglCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, cmd->x, cmd->y, cmd->w, cmd->h, 0);
+//  qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cmd->x, cmd->y, cmd->w, cmd->h );
+
+	return (const void *)(cmd + 1);
+}
+
+//bani
+/*
+=============
+RB_Finish
+=============
+*/
+const void     *RB_Finish(const void *data)
+{
+	const renderFinishCommand_t *cmd;
+
+//  ri.Printf( PRINT_ALL, "RB_Finish\n" );
+
+	cmd = (const renderFinishCommand_t *)data;
+
+	qglFinish();
+
+	return (const void *)(cmd + 1);
+}
+
 /*
 ====================
 RB_ExecuteRenderCommands
@@ -11765,6 +12054,15 @@ void RB_ExecuteRenderCommands(const void *data)
 			case RC_STRETCH_PIC:
 				data = RB_StretchPic(data);
 				break;
+			case RC_2DPOLYS:
+				data = RB_Draw2dPolys(data);
+				break;
+			case RC_ROTATED_PIC:
+				data = RB_RotatedPic(data);
+				break;
+			case RC_STRETCH_PIC_GRADIENT:
+				data = RB_StretchPicGradient(data);
+				break;
 			case RC_DRAW_VIEW:
 				data = RB_DrawView(data);
 				break;
@@ -11779,6 +12077,12 @@ void RB_ExecuteRenderCommands(const void *data)
 				break;
 			case RC_VIDEOFRAME:
 				data = RB_TakeVideoFrameCmd(data);
+				break;
+			case RC_RENDERTOTEXTURE:
+				data = RB_RenderToTexture(data);
+				break;
+			case RC_FINISH:
+				data = RB_Finish(data);
 				break;
 
 			case RC_END_OF_LIST:

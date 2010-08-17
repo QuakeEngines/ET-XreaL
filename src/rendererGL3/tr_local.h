@@ -102,6 +102,16 @@ typedef enum
 	DS_PREPASS_LIGHTING			// light pre pass rendering like in Cry Engine 3
 } deferredShading_t;
 
+typedef enum
+{
+	SHADOWING_BLOB,
+	SHADOWING_PLANAR,
+	SHADOWING_STENCIL,
+	SHADOWING_VSM16,
+	SHADOWING_VSM32,
+	SHADOWING_ESM
+} shadowingMode_t;
+
 #define DS_STANDARD_ENABLED() ((r_deferredShading->integer == DS_STANDARD && glConfig2.maxColorAttachments >= 4 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4 && glConfig2.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
 
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
@@ -4449,6 +4459,19 @@ void            R_ComputeFinalAttenuation(shaderStage_t * pStage, trRefLight_t *
 /*
 ============================================================
 
+FOG
+
+============================================================
+*/
+
+void			RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density);
+
+
+
+
+/*
+============================================================
+
 SHADOWS
 
 ============================================================
@@ -4587,6 +4610,8 @@ void            RE_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVe
 void			RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, float r, float g, float b, qhandle_t hShader, int flags);
 void            RE_AddCoronaToScene(const vec3_t org, float r, float g, float b, float scale, int id, qboolean visible);
 void            RE_RenderScene(const refdef_t * fd);
+void            RE_SaveViewParms();
+void            RE_RestoreViewParms();
 
 /*
 =============================================================
@@ -4708,7 +4733,19 @@ typedef struct
 	float           w, h;
 	float           s1, t1;
 	float           s2, t2;
+
+	byte            gradientColor[4];	// color values 0-255
+	int             gradientType;	//----(SA)  added
+	float           angle;		// NERVE - SMF
 } stretchPicCommand_t;
+
+typedef struct
+{
+	int             commandId;
+	polyVert_t     *verts;
+	int             numverts;
+	shader_t       *shader;
+} poly2dCommand_t;
 
 typedef struct
 {
@@ -4716,6 +4753,16 @@ typedef struct
 	trRefdef_t      refdef;
 	viewParms_t     viewParms;
 } drawViewCommand_t;
+
+typedef struct
+{
+	int             commandId;
+	image_t        *image;
+	int             x;
+	int             y;
+	int             w;
+	int             h;
+} renderToTextureCommand_t;
 
 
 typedef enum
@@ -4746,16 +4793,26 @@ typedef struct
 	qboolean        motionJpeg;
 } videoFrameCommand_t;
 
+typedef struct
+{
+	int             commandId;
+} renderFinishCommand_t;
+
 typedef enum
 {
 	RC_END_OF_LIST,
 	RC_SET_COLOR,
 	RC_STRETCH_PIC,
+	RC_2DPOLYS,
+	RC_ROTATED_PIC,
+	RC_STRETCH_PIC_GRADIENT,	// (SA) added
 	RC_DRAW_VIEW,
 	RC_DRAW_BUFFER,
 	RC_SWAP_BUFFERS,
 	RC_SCREENSHOT,
-	RC_VIDEOFRAME
+	RC_VIDEOFRAME,
+	RC_RENDERTOTEXTURE,			//bani
+	RC_FINISH					//bani
 } renderCommand_t;
 
 
@@ -4799,6 +4856,14 @@ void            R_AddDrawViewCmd(void);
 
 void            RE_SetColor(const float *rgba);
 void            RE_StretchPic(float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader);
+void            RE_RotatedPic(float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader, float angle);	// NERVE - SMF
+void            RE_StretchPicGradient(float x, float y, float w, float h,
+									  float s1, float t1, float s2, float t2, qhandle_t hShader, const float *gradientColor,
+									  int gradientType);
+void            RE_2DPolyies(polyVert_t * verts, int numverts, qhandle_t hShader);
+
+
+
 void            RE_BeginFrame(stereoFrame_t stereoFrame);
 void            RE_EndFrame(int *frontEndMsec, int *backEndMsec);
 

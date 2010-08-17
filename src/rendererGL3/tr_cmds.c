@@ -391,6 +391,180 @@ void RE_StretchPic(float x, float y, float w, float h, float s1, float t1, float
 	cmd->t2 = t2;
 }
 
+/*
+=============
+RE_2DPolyies
+=============
+*/
+extern int      r_numpolyverts;
+
+void RE_2DPolyies(polyVert_t * verts, int numverts, qhandle_t hShader)
+{
+	poly2dCommand_t *cmd;
+
+	if(r_numpolyverts + numverts > max_polyverts)
+	{
+		return;
+	}
+
+	cmd = R_GetCommandBuffer(sizeof(*cmd));
+	if(!cmd)
+	{
+		return;
+	}
+
+	cmd->commandId = RC_2DPOLYS;
+	cmd->verts = &backEndData[tr.smpFrame]->polyVerts[r_numpolyverts];
+	cmd->numverts = numverts;
+	memcpy(cmd->verts, verts, sizeof(polyVert_t) * numverts);
+	cmd->shader = R_GetShaderByHandle(hShader);
+
+	r_numpolyverts += numverts;
+}
+
+
+/*
+=============
+RE_RotatedPic
+=============
+*/
+void RE_RotatedPic(float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader, float angle)
+{
+	stretchPicCommand_t *cmd;
+
+	cmd = R_GetCommandBuffer(sizeof(*cmd));
+	if(!cmd)
+	{
+		return;
+	}
+	cmd->commandId = RC_ROTATED_PIC;
+	cmd->shader = R_GetShaderByHandle(hShader);
+	cmd->x = x;
+	cmd->y = y;
+	cmd->w = w;
+	cmd->h = h;
+
+	// fixup
+	cmd->w /= 2;
+	cmd->h /= 2;
+	cmd->x += cmd->w;
+	cmd->y += cmd->h;
+	cmd->w = sqrt((cmd->w * cmd->w) + (cmd->h * cmd->h));
+	cmd->h = cmd->w;
+
+	cmd->angle = angle;
+	cmd->s1 = s1;
+	cmd->t1 = t1;
+	cmd->s2 = s2;
+	cmd->t2 = t2;
+}
+
+//----(SA)  added
+/*
+==============
+RE_StretchPicGradient
+==============
+*/
+void RE_StretchPicGradient(float x, float y, float w, float h,
+						   float s1, float t1, float s2, float t2, qhandle_t hShader, const float *gradientColor,
+						   int gradientType)
+{
+	stretchPicCommand_t *cmd;
+
+	cmd = R_GetCommandBuffer(sizeof(*cmd));
+	if(!cmd)
+	{
+		return;
+	}
+	cmd->commandId = RC_STRETCH_PIC_GRADIENT;
+	cmd->shader = R_GetShaderByHandle(hShader);
+	cmd->x = x;
+	cmd->y = y;
+	cmd->w = w;
+	cmd->h = h;
+	cmd->s1 = s1;
+	cmd->t1 = t1;
+	cmd->s2 = s2;
+	cmd->t2 = t2;
+
+	if(!gradientColor)
+	{
+		static float    colorWhite[4] = { 1, 1, 1, 1 };
+
+		gradientColor = colorWhite;
+	}
+
+	cmd->gradientColor[0] = gradientColor[0] * 255;
+	cmd->gradientColor[1] = gradientColor[1] * 255;
+	cmd->gradientColor[2] = gradientColor[2] * 255;
+	cmd->gradientColor[3] = gradientColor[3] * 255;
+	cmd->gradientType = gradientType;
+}
+
+//----(SA)  end
+
+/*
+====================
+RE_SetGlobalFog
+	rgb = colour
+	depthForOpaque is depth for opaque
+
+	the restore flag can be used to restore the original level fog
+	duration can be set to fade over a certain period
+====================
+*/
+void RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque)
+{
+#if 0
+	if(restore)
+	{
+		if(duration > 0)
+		{
+			VectorCopy(tr.world->fogs[tr.world->globalFog].shader->fogParms.color, tr.world->globalTransStartFog);
+			tr.world->globalTransStartFog[3] = tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque;
+
+			Vector4Copy(tr.world->globalOriginalFog, tr.world->globalTransEndFog);
+
+			tr.world->globalFogTransStartTime = tr.refdef.time;
+			tr.world->globalFogTransEndTime = tr.refdef.time + duration;
+		}
+		else
+		{
+			VectorCopy(tr.world->globalOriginalFog, tr.world->fogs[tr.world->globalFog].shader->fogParms.color);
+			tr.world->fogs[tr.world->globalFog].shader->fogParms.colorInt =
+				ColorBytes4(tr.world->globalOriginalFog[0] * tr.identityLight, tr.world->globalOriginalFog[1] * tr.identityLight,
+							tr.world->globalOriginalFog[2] * tr.identityLight, 1.0);
+			tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque = tr.world->globalOriginalFog[3];
+			tr.world->fogs[tr.world->globalFog].shader->fogParms.tcScale =
+				1.0f / (tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque);
+		}
+	}
+	else
+	{
+		if(duration > 0)
+		{
+			VectorCopy(tr.world->fogs[tr.world->globalFog].shader->fogParms.color, tr.world->globalTransStartFog);
+			tr.world->globalTransStartFog[3] = tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque;
+
+			VectorSet(tr.world->globalTransEndFog, r, g, b);
+			tr.world->globalTransEndFog[3] = depthForOpaque < 1 ? 1 : depthForOpaque;
+
+			tr.world->globalFogTransStartTime = tr.refdef.time;
+			tr.world->globalFogTransEndTime = tr.refdef.time + duration;
+		}
+		else
+		{
+			VectorSet(tr.world->fogs[tr.world->globalFog].shader->fogParms.color, r, g, b);
+			tr.world->fogs[tr.world->globalFog].shader->fogParms.colorInt = ColorBytes4(r * tr.identityLight,
+																						g * tr.identityLight,
+																						b * tr.identityLight, 1.0);
+			tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque = depthForOpaque < 1 ? 1 : depthForOpaque;
+			tr.world->fogs[tr.world->globalFog].shader->fogParms.tcScale =
+				1.0f / (tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque);
+		}
+	}
+#endif
+}
 
 /*
 ====================
@@ -640,4 +814,56 @@ void RE_TakeVideoFrame(int width, int height, byte * captureBuffer, byte * encod
 	cmd->captureBuffer = captureBuffer;
 	cmd->encodeBuffer = encodeBuffer;
 	cmd->motionJpeg = motionJpeg;
+}
+
+//bani
+/*
+==================
+RE_RenderToTexture
+==================
+*/
+void RE_RenderToTexture(int textureid, int x, int y, int w, int h)
+{
+	renderToTextureCommand_t *cmd;
+
+#if 0
+//  ri.Printf( PRINT_ALL, "RE_RenderToTexture\n" );
+
+	if(textureid > tr.numImages || textureid < 0)
+	{
+		ri.Printf(PRINT_ALL, "Warning: trap_R_RenderToTexture textureid %d out of range.\n", textureid);
+		return;
+	}
+
+	cmd = R_GetCommandBuffer(sizeof(*cmd));
+	if(!cmd)
+	{
+		return;
+	}
+	cmd->commandId = RC_RENDERTOTEXTURE;
+	cmd->image = tr.images[textureid];
+	cmd->x = x;
+	cmd->y = y;
+	cmd->w = w;
+	cmd->h = h;
+#endif
+}
+
+/*
+==================
+RE_Finish
+==================
+*/
+void RE_Finish(void)
+{
+	renderFinishCommand_t *cmd;
+
+	ri.Printf(PRINT_ALL, "RE_Finish\n");
+
+	cmd = R_GetCommandBuffer(sizeof(*cmd));
+	if(!cmd)
+	{
+		return;
+	}
+	cmd->commandId = RC_FINISH;
 }

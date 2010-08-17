@@ -2123,12 +2123,17 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.AddLightToScene = RE_AddDynamicLightToScene;
 //----(SA)
 	re.AddCoronaToScene = RE_AddCoronaToScene;
-	re.SetFog = R_SetFog;
+	re.SetFog = RE_SetFog;
 //----(SA)
 	re.RenderScene = RE_RenderScene;
+	re.SaveViewParms = RE_SaveViewParms;
+	re.RestoreViewParms = RE_RestoreViewParms;
 
 	re.SetColor = RE_SetColor;
 	re.DrawStretchPic = RE_StretchPic;
+	re.DrawRotatedPic = RE_RotatedPic;	// NERVE - SMF
+	re.Add2dPolys = RE_2DPolyies;
+	re.DrawStretchPicGradient = RE_StretchPicGradient;
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 
@@ -2142,7 +2147,7 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 
 #if defined(USE_REFLIGHT)
 //	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
-	
+#endif
 
 	/*
 	RB: TODO
@@ -2183,7 +2188,7 @@ void QDECL Com_Printf(const char *msg, ...)
 
 	ri.Printf(PRINT_ALL, "%s", text);
 }
-/*
+
 void QDECL Com_DPrintf(const char *msg, ...)
 {
 	va_list         argptr;
@@ -2195,7 +2200,7 @@ void QDECL Com_DPrintf(const char *msg, ...)
 
 	ri.Printf(PRINT_DEVELOPER, "%s", text);
 }
-*/
+
 void QDECL Com_Error(int level, const char *error, ...)
 {
 	va_list         argptr;
@@ -2212,3 +2217,4 @@ void QDECL Com_Error(int level, const char *error, ...)
 #if defined(__cplusplus)
 }
 #endif
+

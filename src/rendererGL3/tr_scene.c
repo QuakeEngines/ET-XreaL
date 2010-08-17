@@ -371,9 +371,9 @@ void RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, 
 #endif
 	light->l.attenuationShader = 0;
 
-	light->l.radius[0] = intensity;
-	light->l.radius[1] = intensity;
-	light->l.radius[2] = intensity;
+	light->l.radius[0] = radius;
+	light->l.radius[1] = radius;
+	light->l.radius[2] = radius;
 
 	light->l.color[0] = r;
 	light->l.color[1] = g;
@@ -385,10 +385,13 @@ void RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, 
 	light->isStatic = qfalse;
 	light->additive = qtrue;
 
-	if(light->l.scale <= 0)
+	light->l.scale = intensity;
+#if 0
+	if(light->l.scale <= r_lightScale->value)
 	{
 		light->l.scale = r_lightScale->value;
 	}
+#endif
 }
 
 
@@ -589,4 +592,38 @@ void RE_RenderScene(const refdef_t * fd)
 	r_firstScenePoly = r_numPolys;
 
 	tr.frontEndMsec += ri.Milliseconds() - startTime;
+}
+
+
+// Temp storage for saving view paramters.  Drawing the animated head in the corner
+// was creaming important view info.
+static viewParms_t     g_oldViewParms;
+
+/*
+================
+RE_SaveViewParms
+
+Save out the old render info to a temp place so we don't kill the LOD system
+when we do a second render.
+================
+*/
+void RE_SaveViewParms()
+{
+	// save old viewParms so we can return to it after the mirror view
+	g_oldViewParms = tr.viewParms;
+}
+
+
+/*
+================
+RE_RestoreViewParms
+
+Restore the old render info so we don't kill the LOD system
+when we do a second render.
+================
+*/
+void RE_RestoreViewParms()
+{
+	// This was killing the LOD computation
+	tr.viewParms = g_oldViewParms;
 }
