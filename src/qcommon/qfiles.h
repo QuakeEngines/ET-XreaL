@@ -41,8 +41,9 @@ If you have questions concerning this license or the applicable additional terms
 #define SHADER_MAX_TRIANGLES (SHADER_MAX_INDEXES / 3)
 
 
-// the maximum size of game reletive pathnames
-#define MAX_QPATH       64
+//
+// RB: DON'T USE MAX_QPATH HERE SO WE CAN INCREASE IT !!
+//
 
 /*
 ========================================================================
@@ -147,7 +148,7 @@ typedef struct md3Frame_s
 
 typedef struct md3Tag_s
 {
-	char            name[MAX_QPATH];	// tag name
+	char            name[64];	// tag name
 	vec3_t          origin;
 	vec3_t          axis[3];
 } md3Tag_t;
@@ -166,7 +167,7 @@ typedef struct
 {
 	int             ident;		//
 
-	char            name[MAX_QPATH];	// polyset name
+	char            name[64];	// polyset name
 
 	int             flags;
 	int             numFrames;	// all surfaces in a model should have the same
@@ -186,7 +187,7 @@ typedef struct
 
 typedef struct
 {
-	char            name[MAX_QPATH];
+	char            name[64];
 	int             shaderIndex;	// for in-game use
 } md3Shader_t;
 
@@ -211,7 +212,7 @@ typedef struct
 	int             ident;
 	int             version;
 
-	char            name[MAX_QPATH];	// model name
+	char            name[64];	// model name
 
 	int             flags;
 
@@ -251,7 +252,7 @@ typedef struct
 
 typedef struct
 {
-	char            filename[MAX_QPATH];
+	char            filename[64];
 	int             start;
 	int             count;
 } tagHeaderExt_t;
@@ -280,7 +281,7 @@ typedef struct
 
 typedef struct
 {
-	char            name[MAX_QPATH];	// tag name
+	char            name[64];	// tag name
 } mdcTagName_t;
 
 #define MDC_TAG_ANGLE_SCALE ( 360.0 / 32700.0 )
@@ -308,7 +309,7 @@ typedef struct
 {
 	int             ident;		//
 
-	char            name[MAX_QPATH];	// polyset name
+	char            name[64];	// polyset name
 
 	int             flags;
 	int             numCompFrames;	// all surfaces in a model should have the same
@@ -336,7 +337,7 @@ typedef struct
 	int             ident;
 	int             version;
 
-	char            name[MAX_QPATH];	// model name
+	char            name[64];	// model name
 
 	int             flags;
 
@@ -392,8 +393,8 @@ typedef struct
 {
 	int             ident;
 
-	char            name[MAX_QPATH];	// polyset name
-	char            shader[MAX_QPATH];
+	char            name[64];	// polyset name
+	char            shader[64];
 	int             shaderIndex;	// for in-game use
 
 	int             ofsHeader;	// this will be a negative number
@@ -441,7 +442,7 @@ typedef struct
 	int             ident;
 	int             version;
 
-	char            name[MAX_QPATH];	// model name
+	char            name[64];	// model name
 
 	// frames and bones are shared by all levels of detail
 	int             numFrames;
@@ -500,8 +501,8 @@ typedef struct
 {
 	int             ident;
 
-	char            name[MAX_QPATH];	// polyset name
-	char            shader[MAX_QPATH];
+	char            name[64];	// polyset name
+	char            shader[64];
 	int             shaderIndex;	// for in-game use
 
 	int             minLod;
@@ -560,7 +561,7 @@ typedef struct
 
 typedef struct
 {
-	char            name[MAX_QPATH];	// name of tag
+	char            name[64];	// name of tag
 	float           torsoWeight;
 	int             boneIndex;	// our index in the bones
 } mdsTag_t;
@@ -569,7 +570,7 @@ typedef struct
 
 typedef struct
 {
-	char            name[MAX_QPATH];	// name of bone
+	char            name[64];	// name of bone
 	int             parent;		// not sure if this is required, no harm throwing it in
 	float           torsoWeight;	// scale torso rotation about torsoParent by this
 	float           parentDist;
@@ -581,7 +582,7 @@ typedef struct
 	int             ident;
 	int             version;
 
-	char            name[MAX_QPATH];	// model name
+	char            name[64];	// model name
 
 	float           lodScale;
 	float           lodBias;
@@ -648,8 +649,8 @@ typedef struct
 {
 	int             ident;
 
-	char            name[MAX_QPATH];	// polyset name
-	char            shader[MAX_QPATH];
+	char            name[64];	// polyset name
+	char            shader[64];
 	int             shaderIndex;	// for in-game use
 
 	int             minLod;
@@ -690,7 +691,7 @@ typedef struct
 } mdmLOD_t;
 
 /*typedef struct {
-	char		name[MAX_QPATH];	// name of tag
+	char		name[64];	// name of tag
 	float		torsoWeight;
 	int			boneIndex;			// our index in the bones
 
@@ -703,7 +704,7 @@ typedef struct
 // Tags always only have one parent bone
 typedef struct
 {
-	char            name[MAX_QPATH];	// name of tag
+	char            name[64];	// name of tag
 	vec3_t          axis[3];
 
 	int             boneIndex;
@@ -720,8 +721,8 @@ typedef struct
 	int             ident;
 	int             version;
 
-	char            name[MAX_QPATH];	// model name
-/*	char		bonesfile[MAX_QPATH];	// bone file
+	char            name[64];	// model name
+/*	char		bonesfile[64];	// bone file
 
 #ifdef UTILS
 	int			skel;
@@ -789,7 +790,7 @@ typedef struct
 
 typedef struct
 {
-	char            name[MAX_QPATH];	// name of bone
+	char            name[64];	// name of bone
 	int             parent;		// not sure if this is required, no harm throwing it in
 	float           torsoWeight;	// scale torso rotation about torsoParent by this
 	float           parentDist;
@@ -801,7 +802,7 @@ typedef struct
 	int             ident;
 	int             version;
 
-	char            name[MAX_QPATH];	// model name
+	char            name[64];	// model name
 
 	// bones are shared by all levels of detail
 	int             numFrames;
@@ -927,8 +928,6 @@ typedef struct
 } axAnimationKey_t;
 
 
-
-
 /*
 ==============================================================================
 
@@ -937,11 +936,13 @@ typedef struct
 ==============================================================================
 */
 
-
-#define BSP_IDENT   ( ( 'P' << 24 ) + ( 'S' << 16 ) + ( 'B' << 8 ) + 'I' )
-// little-endian "IBSP"
-
-#define BSP_VERSION         47
+#if defined(COMPAT_ET)
+#define BSP_IDENT	(('P'<<24)+('S'<<16)+('B'<<8)+'I') // little-endian "IBSP"
+#define BSP_VERSION			47
+#else
+#define BSP_IDENT	(('P'<<24)+('S'<<16)+('B'<<8)+'X')  // little-endian "XBSP"
+#define BSP_VERSION			48
+#endif
 
 
 // there shouldn't be any problem with increasing these values at the
@@ -1030,7 +1031,7 @@ typedef struct
 
 typedef struct
 {
-	char            shader[MAX_QPATH];
+	char            shader[64];
 	int             surfaceFlags;
 	int             contentFlags;
 } dshader_t;
@@ -1081,11 +1082,29 @@ typedef struct
 
 typedef struct
 {
-	char            shader[MAX_QPATH];
+	char            shader[64];
 	int             brushNum;
 	int             visibleSide;	// the brush side that ray tests need to clip against (-1 == none)
 } dfog_t;
 
+// light grid
+#if defined(COMPAT_ET)
+typedef struct
+{
+	byte            ambient[3];
+	byte            directed[3];
+	byte            latLong[2];
+} dgridPoint_t;
+#else
+typedef struct
+{
+	float           ambient[3];
+	float           directed[3];
+	byte            latLong[2];
+} dgridPoint_t;
+#endif
+
+#if defined(COMPAT_ET)
 typedef struct
 {
 	vec3_t          xyz;
@@ -1094,6 +1113,18 @@ typedef struct
 	vec3_t          normal;
 	byte            color[4];
 } drawVert_t;
+#else
+typedef struct
+{
+	float           xyz[3];
+	float           st[2];
+	float           lightmap[2];
+	float           normal[3];
+	float			paintColor[4];
+	float           lightColor[4];
+	float			lightDirection[3];
+} drawVert_t;
+#endif
 
 typedef enum
 {
