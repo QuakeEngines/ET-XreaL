@@ -1076,17 +1076,26 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 #if defined(COMPAT_ET)
 static float FatPackU(float input, int lightmapnum)
 {
-	int             x = lightmapnum % tr.fatLightmapStep;
+	if(tr.fatLightmapSize > 0)
+	{
+		int             x = lightmapnum % tr.fatLightmapStep;
 
-	return (input / ((float)tr.fatLightmapStep)) + ((1.0 / ((float)tr.fatLightmapStep)) * (float)x);
+		return (input / ((float)tr.fatLightmapStep)) + ((1.0 / ((float)tr.fatLightmapStep)) * (float)x);
+	}
 
+	return input;
 }
 
 static float FatPackV(float input, int lightmapnum)
 {
-	int             y = lightmapnum / ((float)tr.fatLightmapStep);
+	if(tr.fatLightmapSize > 0)
+	{
+		int             y = lightmapnum / ((float)tr.fatLightmapStep);
 
-	return (input / ((float)tr.fatLightmapStep)) + ((1.0 / ((float)tr.fatLightmapStep)) * (float)y);
+		return (input / ((float)tr.fatLightmapStep)) + ((1.0 / ((float)tr.fatLightmapStep)) * (float)y);
+	}
+
+	return input;
 }
 #endif
 
