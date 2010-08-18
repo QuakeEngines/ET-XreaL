@@ -1505,7 +1505,7 @@ static int MergeInteractionBounds(const matrix_t lightViewProjectionMatrix, inte
 			VectorCopy(srf->bounds[0], worldBounds[0]);
 			VectorCopy(srf->bounds[1], worldBounds[1]);
 		}
-		else if(*surface == SF_MDX)
+		else if(*surface == SF_MDV)
 		{
 			//Tess_AddCube(vec3_origin, entity->localBounds[0], entity->localBounds[1], lightColor);
 		}
@@ -9601,7 +9601,7 @@ static void RB_RenderDebugUtils()
 				srfVBOMesh_t   *srf = (srfVBOMesh_t *) surface;
 				Tess_AddCube(vec3_origin, srf->bounds[0], srf->bounds[1], lightColor);
 			}
-			else if(*surface == SF_MDX)
+			else if(*surface == SF_MDV)
 			{
 				Tess_AddCube(vec3_origin, entity->localBounds[0], entity->localBounds[1], lightColor);
 			}

@@ -2443,9 +2443,11 @@ void R_AddEntitySurfaces(void)
 			case RT_PORTALSURFACE:
 				break;			// don't draw anything
 			case RT_SPRITE:
+			case RT_SPLASH:
 			case RT_BEAM:
 			case RT_LIGHTNING:
 			case RT_RAIL_CORE:
+			case RT_RAIL_CORE_TAPER:
 			case RT_RAIL_RINGS:
 				// self blood sprites, talk balloons, etc should not be drawn in the primary
 				// view.  We can't just do this check for all entities, because md3
@@ -2473,6 +2475,10 @@ void R_AddEntitySurfaces(void)
 					{
 						case MOD_MESH:
 							R_AddMDVSurfaces(ent);
+							break;
+
+						case MOD_MDM:
+							R_MDM_AddAnimSurfaces(ent);
 							break;
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
@@ -2565,6 +2571,10 @@ void R_AddEntityInteractions(trRefLight_t * light)
 					{
 						case MOD_MESH:
 							R_AddMDVInteractions(ent, light);
+							break;
+
+						case MOD_MDM:
+							// TODO:
 							break;
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)

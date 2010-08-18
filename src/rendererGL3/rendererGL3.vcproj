@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tr_animation_mdm.c"
+				>
+			</File>
+			<File
 				RelativePath=".\tr_backend.c"
 				>
 			</File>

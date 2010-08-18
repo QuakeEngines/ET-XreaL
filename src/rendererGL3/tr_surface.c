@@ -637,7 +637,36 @@ void Tess_InstantQuad(vec4_t quadVerts[4])
 #endif
 }
 
+/*
+==============
+Tess_SurfaceSplash
+==============
+*/
+static void Tess_SurfaceSplash(void)
+{
+	vec3_t          left, up;
+	float           radius;
+	vec4_t          color;
 
+	GLimp_LogComment("--- Tess_SurfaceSplash ---\n");
+
+	// calculate the xyz locations for the four corners
+	radius = backEnd.currentEntity->e.radius;
+
+	VectorSet(left, -radius, 0, 0);
+	VectorSet(up, 0, radius, 0);
+	if(backEnd.viewParms.isMirror)
+	{
+		VectorSubtract(vec3_origin, left, left);
+	}
+
+	color[0] = backEnd.currentEntity->e.shaderRGBA[0] * (1.0 / 255.0);
+	color[1] = backEnd.currentEntity->e.shaderRGBA[1] * (1.0 / 255.0);
+	color[2] = backEnd.currentEntity->e.shaderRGBA[2] * (1.0 / 255.0);
+	color[3] = backEnd.currentEntity->e.shaderRGBA[3] * (1.0 / 255.0);
+
+	Tess_AddQuadStamp(backEnd.currentEntity->e.origin, left, up, color);
+}
 
 /*
 ==============
@@ -872,40 +901,40 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 		VectorCopy(backEnd.currentLight->transformed, lightOrigin);
 
 		// decide which triangles face the light
-		sh.numFacing = 0;
+		shadowState.numFacing = 0;
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
 			d = DotProduct(tri->plane, lightOrigin) - tri->plane[3];
 
 			if(tess.surfaceShader->cullType == CT_TWO_SIDED || (d > 0 && tess.surfaceShader->cullType != CT_BACK_SIDED))
 			{
-				sh.facing[i] = qtrue;
-				sh.numFacing++;
+				shadowState.facing[i] = qtrue;
+				shadowState.numFacing++;
 			}
 			else
 			{
-				sh.facing[i] = qfalse;
+				shadowState.facing[i] = qfalse;
 			}
 		}
 
 		if(backEnd.currentEntity->needZFail)
 		{
-			Tess_CheckOverflow(srf->numVerts * 2, sh.numFacing * (6 + 2) * 3);
+			Tess_CheckOverflow(srf->numVerts * 2, shadowState.numFacing * (6 + 2) * 3);
 		}
 		else
 		{
-			Tess_CheckOverflow(srf->numVerts * 2, sh.numFacing * 6 * 3);
+			Tess_CheckOverflow(srf->numVerts * 2, shadowState.numFacing * 6 * 3);
 		}
 
 		// set up indices for silhouette edges
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
-			if(!sh.facing[i])
+			if(!shadowState.facing[i])
 			{
 				continue;
 			}
 
-			if((tri->neighbors[0] < 0) || (!sh.facing[tri->neighbors[0]]))
+			if((tri->neighbors[0] < 0) || (!shadowState.facing[tri->neighbors[0]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[1];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[0];
@@ -918,7 +947,7 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[1] < 0) || (!sh.facing[tri->neighbors[1]]))
+			if((tri->neighbors[1] < 0) || (!shadowState.facing[tri->neighbors[1]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[2];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[1];
@@ -931,7 +960,7 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[2] < 0) || (!sh.facing[tri->neighbors[2]]))
+			if((tri->neighbors[2] < 0) || (!shadowState.facing[tri->neighbors[2]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[0];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[2];
@@ -950,7 +979,7 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 		{
 			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 			{
-				if(!sh.facing[i])
+				if(!shadowState.facing[i])
 				{
 					continue;
 				}
@@ -1107,40 +1136,40 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 		VectorCopy(backEnd.currentLight->transformed, lightOrigin);
 
 		// decide which triangles face the light
-		sh.numFacing = 0;
+		shadowState.numFacing = 0;
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
 			d = DotProduct(tri->plane, lightOrigin) - tri->plane[3];
 
 			if(tess.surfaceShader->cullType == CT_TWO_SIDED || (d > 0 && tess.surfaceShader->cullType != CT_BACK_SIDED))
 			{
-				sh.facing[i] = qtrue;
-				sh.numFacing++;
+				shadowState.facing[i] = qtrue;
+				shadowState.numFacing++;
 			}
 			else
 			{
-				sh.facing[i] = qfalse;
+				shadowState.facing[i] = qfalse;
 			}
 		}
 
 		if(backEnd.currentEntity->needZFail)
 		{
-			Tess_CheckOverflow(srf->numVerts * 2, sh.numFacing * (6 + 2) * 3);
+			Tess_CheckOverflow(srf->numVerts * 2, shadowState.numFacing * (6 + 2) * 3);
 		}
 		else
 		{
-			Tess_CheckOverflow(srf->numVerts * 2, sh.numFacing * 6 * 3);
+			Tess_CheckOverflow(srf->numVerts * 2, shadowState.numFacing * 6 * 3);
 		}
 
 		// set up indices for silhouette edges
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
-			if(!sh.facing[i])
+			if(!shadowState.facing[i])
 			{
 				continue;
 			}
 
-			if((tri->neighbors[0] < 0) || (!sh.facing[tri->neighbors[0]]))
+			if((tri->neighbors[0] < 0) || (!shadowState.facing[tri->neighbors[0]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[1];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[0];
@@ -1153,7 +1182,7 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[1] < 0) || (!sh.facing[tri->neighbors[1]]))
+			if((tri->neighbors[1] < 0) || (!shadowState.facing[tri->neighbors[1]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[2];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[1];
@@ -1166,7 +1195,7 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[2] < 0) || (!sh.facing[tri->neighbors[2]]))
+			if((tri->neighbors[2] < 0) || (!shadowState.facing[tri->neighbors[2]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[0];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[2];
@@ -1185,7 +1214,7 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 		{
 			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 			{
-				if(!sh.facing[i])
+				if(!shadowState.facing[i])
 				{
 					continue;
 				}
@@ -1341,40 +1370,40 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 		VectorCopy(backEnd.currentLight->transformed, lightOrigin);
 
 		// decide which triangles face the light
-		sh.numFacing = 0;
+		shadowState.numFacing = 0;
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
 			d = DotProduct(tri->plane, lightOrigin) - tri->plane[3];
 
 			if(tess.surfaceShader->cullType == CT_TWO_SIDED || (d > 0 && tess.surfaceShader->cullType != CT_BACK_SIDED))
 			{
-				sh.facing[i] = qtrue;
-				sh.numFacing++;
+				shadowState.facing[i] = qtrue;
+				shadowState.numFacing++;
 			}
 			else
 			{
-				sh.facing[i] = qfalse;
+				shadowState.facing[i] = qfalse;
 			}
 		}
 
 		if(backEnd.currentEntity->needZFail)
 		{
-			Tess_CheckOverflow(srf->numVerts * 2, sh.numFacing * (6 + 2) * 3);
+			Tess_CheckOverflow(srf->numVerts * 2, shadowState.numFacing * (6 + 2) * 3);
 		}
 		else
 		{
-			Tess_CheckOverflow(srf->numVerts * 2, sh.numFacing * 6 * 3);
+			Tess_CheckOverflow(srf->numVerts * 2, shadowState.numFacing * 6 * 3);
 		}
 
 		// set up indices for silhouette edges
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
-			if(!sh.facing[i])
+			if(!shadowState.facing[i])
 			{
 				continue;
 			}
 
-			if((tri->neighbors[0] < 0) || (!sh.facing[tri->neighbors[0]]))
+			if((tri->neighbors[0] < 0) || (!shadowState.facing[tri->neighbors[0]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[1];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[0];
@@ -1387,7 +1416,7 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[1] < 0) || (!sh.facing[tri->neighbors[1]]))
+			if((tri->neighbors[1] < 0) || (!shadowState.facing[tri->neighbors[1]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[2];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[1];
@@ -1400,7 +1429,7 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[2] < 0) || (!sh.facing[tri->neighbors[2]]))
+			if((tri->neighbors[2] < 0) || (!shadowState.facing[tri->neighbors[2]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[0];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[2];
@@ -1419,7 +1448,7 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 		{
 			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 			{
-				if(!sh.facing[i])
+				if(!shadowState.facing[i])
 				{
 					continue;
 				}
@@ -1988,23 +2017,23 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 
 			if(tess.surfaceShader->cullType == CT_TWO_SIDED || (d > 0 && tess.surfaceShader->cullType != CT_BACK_SIDED))
 			{
-				sh.facing[i] = qtrue;
+				shadowState.facing[i] = qtrue;
 			}
 			else
 			{
-				sh.facing[i] = qfalse;
+				shadowState.facing[i] = qfalse;
 			}
 		}
 
 		// set up indices for silhouette edges
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
-			if(!sh.facing[i])
+			if(!shadowState.facing[i])
 			{
 				continue;
 			}
 
-			if((tri->neighbors[0] < 0) || (!sh.facing[tri->neighbors[0]]))
+			if((tri->neighbors[0] < 0) || (!shadowState.facing[tri->neighbors[0]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[1];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[0];
@@ -2017,7 +2046,7 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[1] < 0) || (!sh.facing[tri->neighbors[1]]))
+			if((tri->neighbors[1] < 0) || (!shadowState.facing[tri->neighbors[1]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[2];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[1];
@@ -2030,7 +2059,7 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[2] < 0) || (!sh.facing[tri->neighbors[2]]))
+			if((tri->neighbors[2] < 0) || (!shadowState.facing[tri->neighbors[2]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[0];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[2];
@@ -2049,7 +2078,7 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 		{
 			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 			{
-				if(!sh.facing[i])
+				if(!shadowState.facing[i])
 				{
 					continue;
 				}
@@ -2289,23 +2318,23 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 
 			if(tess.surfaceShader->cullType == CT_TWO_SIDED || (d > 0 && tess.surfaceShader->cullType != CT_BACK_SIDED))
 			{
-				sh.facing[i] = qtrue;
+				shadowState.facing[i] = qtrue;
 			}
 			else
 			{
-				sh.facing[i] = qfalse;
+				shadowState.facing[i] = qfalse;
 			}
 		}
 
 		// set up indices for silhouette edges
 		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 		{
-			if(!sh.facing[i])
+			if(!shadowState.facing[i])
 			{
 				continue;
 			}
 
-			if((tri->neighbors[0] < 0) || (!sh.facing[tri->neighbors[0]]))
+			if((tri->neighbors[0] < 0) || (!shadowState.facing[tri->neighbors[0]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[1];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[0];
@@ -2318,7 +2347,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[1] < 0) || (!sh.facing[tri->neighbors[1]]))
+			if((tri->neighbors[1] < 0) || (!shadowState.facing[tri->neighbors[1]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[2];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[1];
@@ -2331,7 +2360,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 				tess.numIndexes += 6;
 			}
 
-			if((tri->neighbors[2] < 0) || (!sh.facing[tri->neighbors[2]]))
+			if((tri->neighbors[2] < 0) || (!shadowState.facing[tri->neighbors[2]]))
 			{
 				tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[0];
 				tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[2];
@@ -2350,7 +2379,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 		{
 			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
 			{
-				if(!sh.facing[i])
+				if(!shadowState.facing[i])
 				{
 					continue;
 				}
@@ -2653,6 +2682,9 @@ static void Tess_SurfaceEntity(surfaceType_t * surfType)
 
 	switch (backEnd.currentEntity->e.reType)
 	{
+		case RT_SPLASH:
+			Tess_SurfaceSplash();
+			break;
 		case RT_SPRITE:
 			Tess_SurfaceSprite();
 			break;
@@ -2855,6 +2887,8 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfaceTriangles,	// SF_TRIANGLES,
 		(void (*)(void *))Tess_SurfacePolychain,	// SF_POLY,
 		(void (*)(void *))Tess_SurfaceMDX,	// SF_MDX,
+
+		(void (*)(void *))Tess_MDM_SurfaceAnim,	// SF_MDM,
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 		(void (*)(void *))Tess_SurfaceMD5,	// SF_MD5,

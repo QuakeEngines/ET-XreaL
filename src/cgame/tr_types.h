@@ -31,10 +31,12 @@ If you have questions concerning this license or the applicable additional terms
 #define __TR_TYPES_H
 
 
+// XreaL BEGIN
 #define	MAX_REF_LIGHTS		1024
 #define	MAX_REF_ENTITIES	1023		// can't be increased without changing drawsurf bit packing
 #define MAX_BONES      	 	128			// RB: same as MDX_MAX_BONES
 #define MAX_WEIGHTS			4			// GPU vertex skinning limit, never change this without rewriting many GLSL shaders
+// XreaL END
 
 #define MAX_CORONAS     	32			//----(SA)  not really a reason to limit this other than trying to keep a reasonable count
 #define MAX_DLIGHTS     	32			// can't be increased, because bit flags are used on surfaces
@@ -70,8 +72,11 @@ If you have questions concerning this license or the applicable additional terms
 #define RDF_UNDERWATER      ( 1 << 4 )	// so the renderer knows to use underwater fog when the player is underwater
 #define RDF_DRAWINGSKY      ( 1 << 5 )
 #define RDF_SNOOPERVIEW     ( 1 << 6 )	//----(SA)  added
+
+// XreaL BEGIN
 #define RDF_NOCUBEMAP       ( 1 << 7 )	// RB: don't use cubemaps
 #define RDF_NOBLOOM			( 1 << 8 )	// RB: disable bloom. useful for hud models
+// XreaL END
 
 
 typedef struct
@@ -111,6 +116,8 @@ typedef enum
 #define REFLAG_ORIENT_LOD   16	// on LOD switch, align the model to the player's camera
 #define REFLAG_DEAD_LOD     32	// allow the LOD to go lower than recommended
 
+
+// XreaL BEGIN
 
 //#define USE_REFLIGHT 1
 
@@ -154,6 +161,8 @@ typedef struct
 	vec3_t          scale;
 } refSkeleton_t;
 #endif
+
+// XreaL END
 
 typedef struct
 {
@@ -210,6 +219,10 @@ typedef struct
 
 	int             entityNum;	// currentState.number, so we can attach rendering effects to specific entities (Zombie)
 
+
+
+// XreaL BEGIN
+
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	// extra animation information
 	refSkeleton_t   skeleton;
@@ -220,11 +233,15 @@ typedef struct
 	short           noShadowID;
 #endif
 
+// XreaL END
+
 } refEntity_t;
 
 
 // ================================================================================================
 
+
+// XreaL BEGIN
 
 typedef enum
 {
@@ -265,6 +282,8 @@ typedef struct
 	qboolean        inverseShadows;	// don't cast light and draw shadows by darken the scene
 	// this is useful for drawing player shadows with shadow mapping
 } refLight_t;
+
+// XreaL END
 
 // ================================================================================================
 
@@ -378,9 +397,11 @@ typedef enum
 	GLDRV_STANDALONE,			// driver is a non-3Dfx standalone driver
 	GLDRV_VOODOO,				// driver is a 3Dfx standalone driver
 	
-	// RB: added from XreaL
+// XreaL BEGIN
 	GLDRV_OPENGL3,				// new driver system
 	GLDRV_MESA,					// crap
+// XreaL END
+
 } glDriverType_t;
 
 typedef enum
@@ -393,10 +414,12 @@ typedef enum
 	GLHW_RAGEPRO,				// where you can't modulate alpha on alpha textures
 	GLHW_PERMEDIA2,				// where you don't have src*dst
 
-	// RB: added from XreaL
+// XreaL BEGIN
 	GLHW_ATI,					// where you don't have proper GLSL support
 	GLHW_ATI_DX10,				// ATI Radeon HD series DX10 hardware
 	GLHW_NV_DX10				// Geforce 8/9 class DX10 hardware
+// XreaL END
+
 } glHardwareType_t;
 
 typedef struct
@@ -445,7 +468,7 @@ typedef struct
 	qboolean        smpActive;	// dual processor
 } glconfig_t;
 
-
+// XreaL BEGIN
 typedef struct
 {
 	qboolean		ARBTextureCompressionAvailable;
@@ -487,7 +510,7 @@ typedef struct
 
 	qboolean        generateMipmapAvailable;
 } glconfig2_t;
-
+// XreaL END
 
 #if !defined _WIN32
 

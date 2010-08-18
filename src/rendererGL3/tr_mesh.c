@@ -336,7 +336,7 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 			// we will add shadows even if the main object isn't visible in the view
 
 			// projection shadows work fine with personal models
-			if(r_shadows->integer == 2 && (ent->e.renderfx & RF_SHADOW_PLANE) && shader->sort == SS_OPAQUE)
+			if(r_shadows->integer == SHADOWING_PLANAR && (ent->e.renderfx & RF_SHADOW_PLANE) && shader->sort == SS_OPAQUE)
 			{
 				R_AddDrawSurf((void *)surface, tr.projectionShadowShader, -1);
 			}

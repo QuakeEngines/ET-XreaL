@@ -2578,7 +2578,9 @@ typedef enum
 	SF_GRID,
 	SF_TRIANGLES,
 	SF_POLY,
-	SF_MDX,
+	SF_MDV,
+
+	SF_MDM,
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	SF_MD5,
@@ -2679,7 +2681,7 @@ typedef struct
 	int             indexes[SHADER_MAX_INDEXES];
 } shadowState_t;
 
-extern shadowState_t sh;
+extern shadowState_t shadowState;
 
 
 #define	MAX_FACE_POINTS		64
@@ -3299,6 +3301,8 @@ typedef enum
 	MOD_BAD,
 	MOD_BSP,
 	MOD_MESH,
+	MOD_MDM,
+	MOD_MDX,
 	MOD_MD5
 } modtype_t;
 
@@ -3311,6 +3315,8 @@ typedef struct model_s
 	int             dataSize;	// just for listing purposes
 	bspModel_t     *bsp;		// only if type == MOD_BSP
 	mdvModel_t     *mdv[MD3_MAX_LODS];	// only if type == MOD_MESH
+	mdmHeader_t    *mdm;		// only if type == MOD_MDM
+	mdxHeader_t    *mdx;		// only if type == MOD_MDX
 	md5Model_t     *md5;		// only if type == MOD_MD5
 
 	int             numLods;
@@ -4676,8 +4682,6 @@ qhandle_t       RE_RegisterAnimation(const char *name);
 skelAnimation_t *R_GetAnimationByHandle(qhandle_t hAnim);
 void            R_AnimationList_f(void);
 
-void            R_AddMDSSurfaces(trRefEntity_t * ent);
-
 void            R_AddMD5Surfaces(trRefEntity_t * ent);
 void            R_AddMD5Interactions(trRefEntity_t * ent, trRefLight_t * light);
 
@@ -4689,6 +4693,35 @@ int             RE_BlendSkeleton(refSkeleton_t * skel, const refSkeleton_t * ble
 int             RE_AnimNumFrames(qhandle_t hAnim);
 int             RE_AnimFrameRate(qhandle_t hAnim);
 #endif
+
+/*
+=============================================================
+
+ANIMATED MODELS WOLFENSTEIN
+
+=============================================================
+*/
+
+/*
+void            R_MakeAnimModel(model_t * model);
+void            R_AddAnimSurfaces(trRefEntity_t * ent);
+void            RB_SurfaceAnim(mdsSurface_t * surfType);
+int             R_GetBoneTag(orientation_t * outTag, mdsHeader_t * mds, int startTagIndex, const refEntity_t * refent,
+							 const char *tagName);
+							 */
+
+/*
+=============================================================
+
+ANIMATED MODELS WOLF:ET  MDM/MDX
+
+=============================================================
+*/
+
+void            R_MDM_AddAnimSurfaces(trRefEntity_t * ent);
+void            Tess_MDM_SurfaceAnim(mdmSurface_t * surfType);
+int             R_MDM_GetBoneTag(orientation_t * outTag, mdmHeader_t * mdm, int startTagIndex, const refEntity_t * refent,
+								 const char *tagName);
 
 /*
 =============================================================
