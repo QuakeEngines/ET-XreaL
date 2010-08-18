@@ -1084,6 +1084,7 @@ typedef struct shader_s
 	qboolean        polygonOffset;	// set for decals and other items that must be offset
 	float           polygonOffsetValue;
 
+	qboolean		uncompressed;
 	qboolean        noPicMip;	// for images that must always be full resolution
 	filterType_t    filterType;	// for console fonts, 2D elements, etc.
 	wrapType_t      wrapType;

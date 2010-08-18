@@ -1383,6 +1383,7 @@ static qboolean LoadMap(shaderStage_t * stage, char *buffer)
 	int             imageBits = 0;
 	filterType_t    filterType;
 	wrapType_t      wrapType;
+	qboolean		uncompressed;
 	char           *buffer_p = &buffer[0];
 
 	if(!buffer || !buffer[0])
@@ -1437,7 +1438,7 @@ static qboolean LoadMap(shaderStage_t * stage, char *buffer)
 		imageBits |= IF_DISPLACEMAP;
 	}
 
-	if(stage->uncompressed || stage->highQuality || stage->forceHighQuality)
+	if(stage->uncompressed || stage->highQuality || stage->forceHighQuality || shader.uncompressed)
 	{
 		imageBits |= IF_NOCOMPRESSION;
 	}
@@ -2471,7 +2472,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 		}
 		else
 		{
-			ri.Printf(PRINT_WARNING, "WARNING: unknown parameter '%s' in shader '%s'\n", token, shader.name);
+			ri.Printf(PRINT_WARNING, "WARNING: unknown shader stage parameter '%s' in shader '%s'\n", token, shader.name);
 			SkipRestOfLine(text);
 			return qfalse;
 		}
@@ -3747,7 +3748,7 @@ static qboolean ParseShader(char *_text)
 			continue;
 		}
 		// no mip maps
-		else if(!Q_stricmp(token, "nomipmaps"))
+		else if(!Q_stricmp(token, "nomipmap") || !Q_stricmp(token, "nomipmaps"))
 		{
 			shader.filterType = FT_LINEAR;
 			shader.noPicMip = qtrue;
@@ -3757,6 +3758,17 @@ static qboolean ParseShader(char *_text)
 		else if(!Q_stricmp(token, "nopicmip"))
 		{
 			shader.noPicMip = qtrue;
+			continue;
+		}
+		// RF, allow each shader to permit compression if available
+		else if(!Q_stricmp(token, "allowcompress"))
+		{
+			shader.uncompressed = qfalse;
+			continue;
+		}
+		else if(!Q_stricmp(token, "nocompress"))
+		{
+			shader.uncompressed = qtrue;
 			continue;
 		}
 		// polygonOffset
