@@ -150,8 +150,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#version 120\n");
 		}
 
-#if defined(COMPAT_ET)
-		Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef COMPAT_ET\n#define COMPAT_ET 1\n#endif\n");
+#if defined(COMPAT_ET) || defined(COMPAT_ET)
+		Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef COMPAT_Q3A\n#define COMPAT_Q3A 1\n#endif\n");
 #endif
 
 		// HACK: add some macros to avoid extra uniforms and save speed and code maintenance
@@ -2415,7 +2415,7 @@ static void BindLightMap()
 
 	if(tess.lightmapNum >= 0 && (tess.lightmapNum / 2) < tr.lightmaps.currentElements)
 	{
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A)
 		lightmap = tr.fatLightmap;
 #else
 		lightmap = Com_GrowListElement(&tr.lightmaps, tess.lightmapNum / 2);

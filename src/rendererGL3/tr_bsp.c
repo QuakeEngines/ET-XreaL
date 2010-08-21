@@ -892,18 +892,18 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 				{
 					if(i % 2 == 0)
 					{
-						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_DEFAULT, WT_CLAMP);
+						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP);
 						Com_AddToGrowList(&tr.lightmaps, image);
 					}
 					else
 					{
-						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_NORMALMAP | IF_NOCOMPRESSION, FT_DEFAULT, WT_CLAMP);
+						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_NORMALMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP);
 						Com_AddToGrowList(&tr.deluxemaps, image);
 					}
 				}
 				else
 				{
-					image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_DEFAULT, WT_CLAMP);
+					image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP);
 					Com_AddToGrowList(&tr.lightmaps, image);
 				}
 			}
@@ -966,7 +966,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			}
 		}
 	}
-#elif defined(COMPAT_ET)
+#elif defined(COMPAT_Q3A)
 	else
 	{
 		int             i;
@@ -1073,7 +1073,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 #endif
 }
 
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A)
 static float FatPackU(float input, int lightmapnum)
 {
 	if(tr.fatLightmapSize > 0)
@@ -1210,7 +1210,7 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 	}
 	else
 	{
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A)
 		surf->lightmapNum = 0;
 #else
 		surf->lightmapNum = realLightmapNum;
@@ -1263,10 +1263,17 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 			cv->verts[i].lightmap[j] = LittleFloat(verts[i].lightmap[j]);
 		}
 
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A)
 		cv->verts[i].lightmap[0] = FatPackU(LittleFloat(verts[i].lightmap[0]), realLightmapNum);
 		cv->verts[i].lightmap[1] = FatPackV(LittleFloat(verts[i].lightmap[1]), realLightmapNum);
 
+		for(j = 0; j < 4; j++)
+		{
+			cv->verts[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
+		}
+		R_ColorShiftLightingFloats(cv->verts[i].lightColor, cv->verts[i].lightColor);
+
+#elif defined(COMPAT_ET)
 		for(j = 0; j < 4; j++)
 		{
 			cv->verts[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
@@ -1406,7 +1413,7 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 	}
 	else
 	{
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A)
 		surf->lightmapNum = 0;
 #else
 		surf->lightmapNum = realLightmapNum;
@@ -1450,10 +1457,17 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 			points[i].lightmap[j] = LittleFloat(verts[i].lightmap[j]);
 		}
 
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A)
 		points[i].lightmap[0] = FatPackU(LittleFloat(verts[i].lightmap[0]), realLightmapNum);
 		points[i].lightmap[1] = FatPackV(LittleFloat(verts[i].lightmap[1]), realLightmapNum);
 
+		for(j = 0; j < 4; j++)
+		{
+			points[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
+		}
+		R_ColorShiftLightingFloats(points[i].lightColor, points[i].lightColor);
+
+#elif defined(COMPAT_ET)
 		for(j = 0; j < 4; j++)
 		{
 			points[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
@@ -5211,7 +5225,7 @@ void R_LoadLightGrid(lump_t * l)
 
 	for(i = 0; i < numGridPoints; i++, in++, out++)
 	{
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		byte		tmpAmbient[4];
 		byte		tmpDirected[4];
 
@@ -8999,6 +9013,13 @@ void RE_LoadWorldMap(const char *name)
 	// make sure the VBO glState entries are save
 	R_BindNullVBO();
 	R_BindNullIBO();
+
+	//----(SA)  set the sun shader if there is one
+	if(tr.sunShaderName)
+	{
+		tr.sunShader = R_FindShader(tr.sunShaderName, SHADER_3D_STATIC, qtrue);
+	}
+	//----(SA)  end
 
 	// build cubemaps after the necessary vbo stuff is done
 	//R_BuildCubeMaps();

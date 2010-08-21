@@ -71,10 +71,6 @@ typedef unsigned short glIndex_t;
 #define MAX_SHADER_TABLES		1024
 #define MAX_SHADER_STAGES		16
 
-//#define MAX_SHADER_STATES 2048
-#define MAX_STATES_PER_SHADER 32
-#define MAX_STATE_NAME 32
-
 #define MAX_OCCLUSION_QUERIES	4096
 
 #define	MAX_FBOS				64
@@ -1003,6 +999,8 @@ typedef struct
 	expression_t    blurMagnitudeExp;
 
 	expression_t    wrapAroundLightingExp;
+
+	qboolean        isFogged;	// used only for shaders that have fog disabled, so we can enable it for individual stages
 } shaderStage_t;
 
 struct shaderCommands_s;
@@ -1109,8 +1107,6 @@ typedef struct shader_s
 
 	struct shader_s *remappedShader;	// current shader this one is remapped too
 
-	int             shaderStates[MAX_STATES_PER_SHADER];	// index to valid shader states
-
 	struct shader_s *next;
 } shader_t;
 
@@ -1133,15 +1129,6 @@ static ID_INLINE qboolean ShaderRequiresCPUDeforms(const shader_t * shader)
 
 	return qfalse;
 }
-
-typedef struct shaderState_s
-{
-	char            shaderName[MAX_QPATH];	// name of shader this state belongs to
-	char            name[MAX_STATE_NAME];	// name of this state
-	char            stateShader[MAX_QPATH];	// shader this name invokes
-	int             cycleTime;	// time this cycle lasts, <= 0 is forever
-	shader_t       *shader;
-} shaderState_t;
 
 #if 0
 enum
@@ -3621,6 +3608,7 @@ typedef struct
 	shader_t       *projectionShadowShader;
 	shader_t       *flareShader;
 	shader_t       *sunShader;
+	char           *sunShaderName;
 
 	growList_t      lightmaps;
 	growList_t      deluxemaps;

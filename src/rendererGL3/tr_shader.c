@@ -1788,6 +1788,24 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 			ri.Printf(PRINT_WARNING, "WARNING: detail keyword not supported in shader '%s'\n", shader.name);
 			continue;
 		}
+		// ET fog
+		else if(!Q_stricmp(token, "fog"))
+		{
+			token = COM_ParseExt2(text, qfalse);
+			if(token[0] == 0)
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: missing parm for fog in shader '%s'\n", shader.name);
+				continue;
+			}
+			if(!Q_stricmp(token, "on"))
+			{
+				stage->isFogged = qtrue;
+			}
+			else
+			{
+				stage->isFogged = qfalse;
+			}
+		}
 		// blendfunc <srcFactor> <dstFactor>
 		// or blendfunc <add|filter|blend>
 		else if(!Q_stricmp(token, "blendfunc"))
@@ -3880,7 +3898,13 @@ static qboolean ParseShader(char *_text)
 				continue;
 			}
 
-			tr.sunShader = R_FindShader(token, SHADER_3D_STATIC, qtrue);
+			/*
+			RB: don't call tr.sunShader = R_FindShader(token, SHADER_3D_STATIC, qtrue);
+				because it breaks the computation of the current shader
+			*/
+			tokenLen = strlen(token) + 1;
+			tr.sunShaderName = ri.Hunk_Alloc(sizeof(char) * tokenLen, h_low);
+			Q_strncpyz(tr.sunShaderName, token, tokenLen);
 		}
 		// light <value> determines flaring in xmap, not needed here
 		else if(!Q_stricmp(token, "light"))

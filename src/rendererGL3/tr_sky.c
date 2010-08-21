@@ -908,6 +908,9 @@ void Tess_StageIteratorSky(void)
 	// draw the outer skybox
 	if(tess.surfaceShader->sky.outerbox && tess.surfaceShader->sky.outerbox != tr.blackCubeImage)
 	{
+		R_BindVBO(tess.vbo);
+		R_BindIBO(tess.ibo);
+
 		// enable shader, set arrays
 		GL_BindProgram(&tr.skyBoxShader);
 		GL_VertexAttribsState(tr.skyBoxShader.attribs);
