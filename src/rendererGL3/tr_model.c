@@ -3705,7 +3705,7 @@ void R_Modellist_f(void)
 R_GetTag
 ================
 */
-static mdvTag_t *R_GetTag(mdvModel_t * model, int frame, const char *tagName, int startTagIndex, mdvTag_t ** outTag)
+static int R_GetTag(mdvModel_t * model, int frame, const char *tagName, int startTagIndex, mdvTag_t ** outTag)
 {
 	int             i;
 	mdvTag_t       *tag;
@@ -3737,8 +3737,8 @@ RE_LerpTag
 */
 int RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagNameIn, int startIndex)
 {
-	md3Tag_t       *start, *end;
-	md3Tag_t        ustart, uend;
+	mdvTag_t       *start, *end;
+	mdvTag_t        ustart, uend;
 	int             i;
 	float           frontLerp, backLerp;
 	model_t        *model;
@@ -3781,8 +3781,8 @@ int RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagN
 	if(model->type == MOD_MESH)
 	{
 		// old MD3 style
-		retval = R_GetTag((byte *) model->mdv[0], startFrame, tagName, startIndex, &start);
-		retval = R_GetTag((byte *) model->mdv[0], endFrame, tagName, startIndex, &end);
+		retval = R_GetTag(model->mdv[0], startFrame, tagName, startIndex, &start);
+		retval = R_GetTag(model->mdv[0], endFrame, tagName, startIndex, &end);
 
 	}
 /*
