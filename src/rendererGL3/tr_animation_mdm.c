@@ -1767,8 +1767,8 @@ void Tess_MDM_SurfaceAnim(mdmSurface_t * surface)
 	//
 	numVerts = surface->numVerts;
 	v = (mdmVertex_t *) ((byte *) surface + surface->ofsVerts);
-	tempVert = (float *)(tess.xyz[baseVertex]);
-	tempNormal = (float *)(tess.normals[baseVertex]);
+	tempVert = (float *)(&tess.xyz[baseVertex][0]);
+	tempNormal = (float *)(&tess.normals[baseVertex][0]);
 	for(j = 0; j < render_count; j++, tempVert += 4, tempNormal += 4)
 	{
 		mdmWeight_t    *w;
@@ -1781,13 +1781,14 @@ void Tess_MDM_SurfaceAnim(mdmSurface_t * surface)
 			bone = &bones[w->boneIndex];
 			LocalAddScaledMatrixTransformVectorTranslate(w->offset, w->boneWeight, bone->matrix, bone->translation, tempVert);
 		}
+		tempVert[3] = 1;
 
 		LocalMatrixTransformVector(v->normal, bones[v->weights[0].boneIndex].matrix, tempNormal);
 
 		tess.texCoords[baseVertex + j][0] = v->texCoords[0];
 		tess.texCoords[baseVertex + j][1] = v->texCoords[1];
 
-		v = (mdmVertex_t *) & v->weights[v->numWeights];
+		v = (mdmVertex_t *) &v->weights[v->numWeights];
 	}
 
 	DBG_SHOWTIME
