@@ -80,7 +80,7 @@ typedef enum
 #define TRY_PFD_FAIL_HARD   2
 
 //#define   WINDOW_CLASS_NAME   "Wolfenstein"
-#define WINDOW_CLASS_NAME   "Enemy Territory"
+#define WINDOW_CLASS_NAME   "ET:XreaL"
 
 static void     GLW_InitExtensions(void);
 static rserr_t  GLW_SetMode(const char *drivername, int mode, int colorbits, qboolean cdsFullscreen);
@@ -706,7 +706,7 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 
 		g_wvPtr->hWnd = CreateWindowEx(exstyle, WINDOW_CLASS_NAME,
 								   //"Wolfenstein",
-								   "Enemy Territory", stylebits, x, y, w, h, NULL, NULL, g_wvPtr->hInstance, NULL);
+								   "ET:XreaL", stylebits, x, y, w, h, NULL, NULL, g_wvPtr->hInstance, NULL);
 
 		if(!g_wvPtr->hWnd)
 		{

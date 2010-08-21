@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "winres.h"
+#include <winresrc.h>
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -62,7 +62,7 @@ IDI_ICON1               ICON    DISCARDABLE     "wolfet.ico"
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_STRING1             "Enemy Territory"
+IDS_STRING1             "ET:XreaL"
 END
 
 #endif    // English (U.S.) resources

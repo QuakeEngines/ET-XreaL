@@ -1622,6 +1622,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Resource Files"
+			>
+			<File
+				RelativePath=".\win32\winquake.rc"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
