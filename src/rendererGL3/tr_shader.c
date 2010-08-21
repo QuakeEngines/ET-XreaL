@@ -46,6 +46,11 @@ static shader_t shader;
 static texModInfo_t texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS];
 static qboolean deferLoad;
 
+// ydnar: these are here because they are only referenced while parsing a shader
+static char     implicitMap[MAX_QPATH];
+static unsigned implicitStateBits;
+static cullType_t implicitCullType;
+
 /*
 ================
 return a hash value for the filename
@@ -3863,6 +3868,20 @@ static qboolean ParseShader(char *_text)
 			ParseSkyParms(text);
 			continue;
 		}
+		// ET sunshader <name>
+		else if(!Q_stricmp(token, "sunshader"))
+		{
+			int				tokenLen;
+
+			token = COM_ParseExt2(text, qfalse);
+			if(!token[0])
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: missing shader name for 'sunshader'\n");
+				continue;
+			}
+
+			tr.sunShader = R_FindShader(token, SHADER_3D_STATIC, qtrue);
+		}
 		// light <value> determines flaring in xmap, not needed here
 		else if(!Q_stricmp(token, "light"))
 		{
@@ -3933,6 +3952,43 @@ static qboolean ParseShader(char *_text)
 		else if(!Q_stricmp(token, "sort"))
 		{
 			ParseSort(text);
+			continue;
+		}
+		// ydnar: implicit default mapping to eliminate redundant/incorrect explicit shader stages
+		else if(!Q_stricmpn(token, "implicit", 8))
+		{
+			//ri.Printf(PRINT_WARNING, "WARNING: keyword '%s' not supported in shader '%s'\n", token, shader.name);
+			//SkipRestOfLine(text);
+
+			// set implicit mapping state
+			if(!Q_stricmp(token, "implicitBlend"))
+			{
+				implicitStateBits = GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+				implicitCullType = CT_TWO_SIDED;
+			}
+			else if(!Q_stricmp(token, "implicitMask"))
+			{
+				implicitStateBits = GLS_DEPTHMASK_TRUE | GLS_ATEST_GE_128;
+				implicitCullType = CT_TWO_SIDED;
+			}
+			else				// "implicitMap"
+			{
+				implicitStateBits = GLS_DEPTHMASK_TRUE;
+				implicitCullType = CT_FRONT_SIDED;
+			}
+
+			// get image
+			token = COM_ParseExt(text, qfalse);
+			if(token[0] != '\0')
+			{
+				Q_strncpyz(implicitMap, token, sizeof(implicitMap));
+			}
+			else
+			{
+				implicitMap[0] = '-';
+				implicitMap[1] = '\0';
+			}
+
 			continue;
 		}
 		// spectrum
@@ -4039,7 +4095,7 @@ static qboolean ParseShader(char *_text)
 	}
 
 	// ignore shaders that don't have any stages, unless it is a sky or fog
-	if(s == 0 && !shader.forceOpaque && !shader.isSky && !shader.fogVolume)
+	if(s == 0 && !shader.forceOpaque && !shader.isSky && !shader.fogVolume && implicitMap[0] == '\0')
 	{
 		return qfalse;
 	}
@@ -5004,6 +5060,7 @@ pre-lit surfaces.
 shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRawImage)
 {
 	char            strippedName[MAX_QPATH];
+	char            fileName[MAX_QPATH];
 	int             i, hash;
 	char           *shaderText;
 	image_t        *image;
@@ -5049,6 +5106,11 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 		stages[i].bundle[0].texMods = texMods[i];
 	}
 
+	// ydnar: default to no implicit mappings
+	implicitMap[0] = '\0';
+	implicitStateBits = GLS_DEFAULT;
+	implicitCullType = CT_FRONT_SIDED;
+
 	// attempt to define shader from an explicit parameter file
 	shaderText = FindShaderInShaderText(strippedName);
 	if(shaderText)
@@ -5064,14 +5126,39 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 		{
 			// had errors, so use default shader
 			shader.defaultShader = qtrue;
+			sh = FinishShader();
+			return sh;
 		}
-		sh = FinishShader();
-		return sh;
+
+		// ydnar: allow implicit mappings
+		if(implicitMap[0] == '\0')
+		{
+			sh = FinishShader();
+			return sh;
+		}
+	}
+
+	// ydnar: allow implicit mapping ('-' = use shader name)
+	if(implicitMap[0] == '\0' || implicitMap[0] == '-')
+	{
+		Q_strncpyz(fileName, name, sizeof(fileName));
+	}
+	else
+	{
+		Q_strncpyz(fileName, implicitMap, sizeof(fileName));
+	}
+	COM_DefaultExtension(fileName, sizeof(fileName), ".tga");
+
+	// ydnar: implicit shaders were breaking nopicmip/nomipmaps
+	if(!mipRawImage)
+	{
+		//shader.noMipMaps = qtrue;
+		shader.noPicMip = qtrue;
 	}
 
 	// if not defined in the in-memory shader descriptions,
 	// look for a single supported image file
-	image = R_FindImageFile(name, mipRawImage ? IF_NONE : IF_NOPICMIP,
+	image = R_FindImageFile(fileName, mipRawImage ? IF_NONE : IF_NOPICMIP,
 							mipRawImage ? FT_DEFAULT : FT_LINEAR, mipRawImage ? WT_REPEAT : WT_CLAMP);
 	if(!image)
 	{
