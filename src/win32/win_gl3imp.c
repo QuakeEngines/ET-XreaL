@@ -42,11 +42,14 @@ If you have questions concerning this license or the applicable additional terms
 ** related functions that are relevant ONLY to win_glimp.c
 */
 #include <assert.h>
+#include <GL/glew.h>
+
 #include "../rendererGL3/tr_local.h"
 #include "../qcommon/qcommon.h"
 #include "resource.h"
-#include "glw_win.h"
 #include "win_local.h"
+#include <GL/wglew.h>
+#include "glw_win.h"
 
 
 
@@ -83,16 +86,11 @@ typedef enum
 #define WINDOW_CLASS_NAME   "ET:XreaL"
 
 static void     GLW_InitExtensions(void);
-static rserr_t  GLW_SetMode(const char *drivername, int mode, int colorbits, qboolean cdsFullscreen);
+static rserr_t  GLW_SetMode(int mode, int colorbits, qboolean cdsFullscreen);
 
 static WinVars_t* g_wvPtr = NULL;
 
-//
-// function declaration
-//
-void            QGL_EnableLogging(qboolean enable);
-qboolean        QGL_Init(const char *dllname);
-void            QGL_Shutdown(void);
+
 
 //
 // variable declarations
@@ -110,11 +108,11 @@ static qboolean fontbase_init = qfalse;
 /*
 ** GLW_StartDriverAndSetMode
 */
-static qboolean GLW_StartDriverAndSetMode(const char *drivername, int mode, int colorbits, qboolean cdsFullscreen)
+static qboolean GLW_StartDriverAndSetMode(int mode, int colorbits, qboolean cdsFullscreen)
 {
 	rserr_t         err;
 
-	err = GLW_SetMode(drivername, r_mode->integer, colorbits, cdsFullscreen);
+	err = GLW_SetMode(r_mode->integer, colorbits, cdsFullscreen);
 
 	switch (err)
 	{
@@ -148,14 +146,7 @@ static int GLW_ChoosePFD(HDC hDC, PIXELFORMATDESCRIPTOR * pPFD)
 			  (int)pPFD->cStencilBits);
 
 	// count number of PFDs
-	if(glConfig.driverType > GLDRV_ICD)
-	{
-		maxPFD = qwglDescribePixelFormat(hDC, 1, sizeof(PIXELFORMATDESCRIPTOR), &pfds[0]);
-	}
-	else
-	{
-		maxPFD = DescribePixelFormat(hDC, 1, sizeof(PIXELFORMATDESCRIPTOR), &pfds[0]);
-	}
+	maxPFD = DescribePixelFormat(hDC, 1, sizeof(PIXELFORMATDESCRIPTOR), &pfds[0]);
 	if(maxPFD > MAX_PFDS)
 	{
 		ri.Printf(PRINT_WARNING, "...numPFDs > MAX_PFDS (%d > %d)\n", maxPFD, MAX_PFDS);
@@ -167,22 +158,13 @@ static int GLW_ChoosePFD(HDC hDC, PIXELFORMATDESCRIPTOR * pPFD)
 	// grab information
 	for(i = 1; i <= maxPFD; i++)
 	{
-		if(glConfig.driverType > GLDRV_ICD)
-		{
-			qwglDescribePixelFormat(hDC, i, sizeof(PIXELFORMATDESCRIPTOR), &pfds[i]);
-		}
-		else
-		{
-			DescribePixelFormat(hDC, i, sizeof(PIXELFORMATDESCRIPTOR), &pfds[i]);
-		}
+		DescribePixelFormat(hDC, i, sizeof(PIXELFORMATDESCRIPTOR), &pfds[i]);
 	}
 
 	// look for a best match
 	for(i = 1; i <= maxPFD; i++)
 	{
-		//
 		// make sure this has hardware acceleration
-		//
 		if((pfds[i].dwFlags & PFD_GENERIC_FORMAT) != 0)
 		{
 			if(!r_allowSoftwareGL->integer)
@@ -408,36 +390,22 @@ static int GLW_MakeContext(PIXELFORMATDESCRIPTOR * pPFD)
 		}
 		ri.Printf(PRINT_ALL, "...PIXELFORMAT %d selected\n", pixelformat);
 
-		if(glConfig.driverType > GLDRV_ICD)
-		{
-			qwglDescribePixelFormat(glw_state.hDC, pixelformat, sizeof(*pPFD), pPFD);
-			if(qwglSetPixelFormat(glw_state.hDC, pixelformat, pPFD) == FALSE)
-			{
-				ri.Printf(PRINT_ALL, "...qwglSetPixelFormat failed\n");
-				return TRY_PFD_FAIL_SOFT;
-			}
-		}
-		else
-		{
-			DescribePixelFormat(glw_state.hDC, pixelformat, sizeof(*pPFD), pPFD);
+		DescribePixelFormat(glw_state.hDC, pixelformat, sizeof(*pPFD), pPFD);
 
-			if(SetPixelFormat(glw_state.hDC, pixelformat, pPFD) == FALSE)
-			{
-				ri.Printf(PRINT_ALL, "...SetPixelFormat failed\n", glw_state.hDC);
-				return TRY_PFD_FAIL_SOFT;
-			}
+		if(SetPixelFormat(glw_state.hDC, pixelformat, pPFD) == FALSE)
+		{
+			ri.Printf(PRINT_ALL, "...SetPixelFormat failed\n", glw_state.hDC);
+			return TRY_PFD_FAIL_SOFT;
 		}
 
 		glw_state.pixelFormatSet = qtrue;
 	}
 
-	//
 	// startup the OpenGL subsystem by creating a context and making it current
-	//
 	if(!glw_state.hGLRC)
 	{
 		ri.Printf(PRINT_ALL, "...creating GL context: ");
-		if((glw_state.hGLRC = qwglCreateContext(glw_state.hDC)) == 0)
+		if((glw_state.hGLRC = wglCreateContext(glw_state.hDC)) == 0)
 		{
 			ri.Printf(PRINT_ALL, "failed\n");
 
@@ -446,9 +414,9 @@ static int GLW_MakeContext(PIXELFORMATDESCRIPTOR * pPFD)
 		ri.Printf(PRINT_ALL, "succeeded\n");
 
 		ri.Printf(PRINT_ALL, "...making context current: ");
-		if(!qwglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
+		if(!wglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
 		{
-			qwglDeleteContext(glw_state.hGLRC);
+			wglDeleteContext(glw_state.hGLRC);
 			glw_state.hGLRC = NULL;
 			ri.Printf(PRINT_ALL, "failed\n");
 			return TRY_PFD_FAIL_HARD;
@@ -466,7 +434,7 @@ static int GLW_MakeContext(PIXELFORMATDESCRIPTOR * pPFD)
 ** - get a DC if one doesn't exist
 ** - create an HGLRC if one doesn't exist
 */
-static qboolean GLW_InitDriver(const char *drivername, int colorbits)
+static qboolean GLW_InitDriver(int colorbits)
 {
 	int             tpfd;
 	int             depthbits, stencilbits;
@@ -474,9 +442,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 
 	ri.Printf(PRINT_ALL, "Initializing OpenGL driver\n");
 
-	//
 	// get a DC for our window if we don't already have one allocated
-	//
 	if(glw_state.hDC == NULL)
 	{
 		ri.Printf(PRINT_ALL, "...getting DC: ");
@@ -494,9 +460,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 		colorbits = glw_state.desktopBitsPixel;
 	}
 
-	//
 	// implicitly assume Z-buffer depth == desktop color depth
-	//
 	if(r_depthbits->integer == 0)
 	{
 		if(colorbits > 16)
@@ -513,9 +477,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 		depthbits = r_depthbits->integer;
 	}
 
-	//
 	// do not allow stencil if Z-buffer depth likely won't contain it
-	//
 	stencilbits = r_stencilbits->integer;
 	if(depthbits < 24)
 	{
@@ -526,9 +488,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 	// make two attempts to set the PIXELFORMAT
 	//
 
-	//
 	// first attempt: r_colorbits, depthbits, and r_stencilbits
-	//
 	if(!glw_state.pixelFormatSet)
 	{
 		GLW_CreatePFD(&pfd, colorbits, depthbits, stencilbits, r_stereo->integer);
@@ -540,9 +500,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 				return qfalse;
 			}
 
-			//
 			// punt if we've already tried the desktop bit depth and no stencil bits
-			//
 			if((r_colorbits->integer == glw_state.desktopBitsPixel) && (stencilbits == 0))
 			{
 				ReleaseDC(g_wvPtr->hWnd, glw_state.hDC);
@@ -553,9 +511,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 				return qfalse;
 			}
 
-			//
 			// second attempt: desktop's color bits and no stencil
-			//
 			if(colorbits > glw_state.desktopBitsPixel)
 			{
 				colorbits = glw_state.desktopBitsPixel;
@@ -601,7 +557,7 @@ static qboolean GLW_InitDriver(const char *drivername, int colorbits)
 ** Responsible for creating the Win32 window and initializing the OpenGL driver.
 */
 #define WINDOW_STYLE    ( WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE )
-static qboolean GLW_CreateWindow(const char *drivername, int width, int height, int colorbits, qboolean cdsFullscreen)
+static qboolean GLW_CreateWindow(int width, int height, int colorbits, qboolean cdsFullscreen)
 {
 	RECT            r;
 	cvar_t         *vid_xpos, *vid_ypos;
@@ -609,9 +565,7 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 	int             x, y, w, h;
 	int             exstyle;
 
-	//
 	// register the window class if necessary
-	//
 	if(!g_wvPtr->classRegistered)
 	{
 		WNDCLASS        wc;
@@ -640,20 +594,16 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 		ri.Printf(PRINT_ALL, "...registered window class\n");
 	}
 
-	//
 	// create the HWND if one does not already exist
-	//
 	if(!g_wvPtr->hWnd)
 	{
-		//
 		// compute width and height
-		//
 		r.left = 0;
 		r.top = 0;
 		r.right = width;
 		r.bottom = height;
 
-		if(cdsFullscreen || !Q_stricmp(_3DFX_DRIVER_NAME, drivername))
+		if(cdsFullscreen)
 		{
 			exstyle = WS_EX_TOPMOST;
 			stylebits = WS_POPUP | WS_VISIBLE | WS_SYSMENU;
@@ -668,7 +618,7 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 		w = r.right - r.left;
 		h = r.bottom - r.top;
 
-		if(cdsFullscreen || !Q_stricmp(_3DFX_DRIVER_NAME, drivername))
+		if(cdsFullscreen)
 		{
 			x = 0;
 			y = 0;
@@ -722,7 +672,7 @@ static qboolean GLW_CreateWindow(const char *drivername, int width, int height, 
 		ri.Printf(PRINT_ALL, "...window already present, CreateWindowEx skipped\n");
 	}
 
-	if(!GLW_InitDriver(drivername, colorbits))
+	if(!GLW_InitDriver(colorbits))
 	{
 		ShowWindow(g_wvPtr->hWnd, SW_HIDE);
 		DestroyWindow(g_wvPtr->hWnd);
@@ -768,16 +718,14 @@ static void PrintCDSError(int value)
 /*
 ** GLW_SetMode
 */
-static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboolean cdsFullscreen)
+static rserr_t GLW_SetMode(int mode, int colorbits, qboolean cdsFullscreen)
 {
 	HDC             hDC;
 	const char     *win_fs[] = { "W", "FS" };
 	int             cdsRet;
 	DEVMODE         dm;
 
-	//
 	// print out informational messages
-	//
 	ri.Printf(PRINT_ALL, "...setting mode %d:", mode);
 	if(!R_GetModeInfo(&glConfig.vidWidth, &glConfig.vidHeight, &glConfig.windowAspect, mode))
 	{
@@ -786,18 +734,14 @@ static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboo
 	}
 	ri.Printf(PRINT_ALL, " %d %d %s\n", glConfig.vidWidth, glConfig.vidHeight, win_fs[cdsFullscreen]);
 
-	//
 	// check our desktop attributes
-	//
 	hDC = GetDC(GetDesktopWindow());
 	glw_state.desktopBitsPixel = GetDeviceCaps(hDC, BITSPIXEL);
 	glw_state.desktopWidth = GetDeviceCaps(hDC, HORZRES);
 	glw_state.desktopHeight = GetDeviceCaps(hDC, VERTRES);
 	ReleaseDC(GetDesktopWindow(), hDC);
 
-	//
 	// verify desktop bit depth
-	//
 	if(glConfig.driverType != GLDRV_VOODOO)
 	{
 		if(glw_state.desktopBitsPixel < 15 || glw_state.desktopBitsPixel == 24)
@@ -863,23 +807,20 @@ static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboo
 			ri.Printf(PRINT_ALL, "...using desktop display depth of %d\n", glw_state.desktopBitsPixel);
 		}
 
-		//
 		// if we're already in fullscreen then just create the window
-		//
 		if(glw_state.cdsFullscreen)
 		{
 			ri.Printf(PRINT_ALL, "...already fullscreen, avoiding redundant CDS\n");
 
-			if(!GLW_CreateWindow(drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue))
+			if(!GLW_CreateWindow(glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue))
 			{
 				ri.Printf(PRINT_ALL, "...restoring display settings\n");
 				ChangeDisplaySettings(0, 0);
 				return RSERR_INVALID_MODE;
 			}
 		}
-		//
+
 		// need to call CDS
-		//
 		else
 		{
 			ri.Printf(PRINT_ALL, "...calling CDS: ");
@@ -890,7 +831,7 @@ static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboo
 			{
 				ri.Printf(PRINT_ALL, "ok\n");
 
-				if(!GLW_CreateWindow(drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue))
+				if(!GLW_CreateWindow(glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue))
 				{
 					ri.Printf(PRINT_ALL, "...restoring display settings\n");
 					ChangeDisplaySettings(0, 0);
@@ -931,7 +872,7 @@ static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboo
 				if(modeNum != -1 && (cdsRet = ChangeDisplaySettings(&devmode, CDS_FULLSCREEN)) == DISP_CHANGE_SUCCESSFUL)
 				{
 					ri.Printf(PRINT_ALL, " ok\n");
-					if(!GLW_CreateWindow(drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue))
+					if(!GLW_CreateWindow(glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue))
 					{
 						ri.Printf(PRINT_ALL, "...restoring display settings\n");
 						ChangeDisplaySettings(0, 0);
@@ -951,7 +892,7 @@ static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboo
 
 					glw_state.cdsFullscreen = qfalse;
 					glConfig.isFullscreen = qfalse;
-					if(!GLW_CreateWindow(drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qfalse))
+					if(!GLW_CreateWindow(glConfig.vidWidth, glConfig.vidHeight, colorbits, qfalse))
 					{
 						return RSERR_INVALID_MODE;
 					}
@@ -968,15 +909,13 @@ static rserr_t GLW_SetMode(const char *drivername, int mode, int colorbits, qboo
 		}
 
 		glw_state.cdsFullscreen = qfalse;
-		if(!GLW_CreateWindow(drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qfalse))
+		if(!GLW_CreateWindow(glConfig.vidWidth, glConfig.vidHeight, colorbits, qfalse))
 		{
 			return RSERR_INVALID_MODE;
 		}
 	}
 
-	//
 	// success, now check display frequency, although this won't be valid on Voodoo(2)
-	//
 	memset(&dm, 0, sizeof(dm));
 	dm.dmSize = sizeof(dm);
 	if(EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm))
@@ -997,37 +936,39 @@ static void GLW_InitExtensions(void)
 {
 	ri.Printf(PRINT_ALL, "Initializing OpenGL extensions\n");
 
-	// GL_ARB_multitexture
-	qglActiveTextureARB = NULL;
-	//if(Q_stristr(glConfig.extensions_string, "GL_ARB_multitexture"))
+	// WGL_EXT_swap_control
+	if(WGLEW_EXT_swap_control)
 	{
-		qglActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC) qwglGetProcAddress("glActiveTextureARB");
-		if(qglActiveTextureARB)
-		{
-			qglGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &glConfig.maxActiveTextures);
+		ri.Printf(PRINT_ALL, "...using WGL_EXT_swap_control\n");
+		r_swapInterval->modified = qtrue;	// force a set next frame
+	}
+	else
+	{
+		ri.Printf(PRINT_ALL, "...WGL_EXT_swap_control not found\n");
+	}
 
-			if(glConfig.maxActiveTextures > 1)
-			{
-				ri.Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
-			}
-			else
-			{
-				qglActiveTextureARB = NULL;
-				ri.Error(ERR_VID_FATAL, "...not using GL_ARB_multitexture, < 2 texture units\n");
-			}
+	// GL_ARB_multitexture
+	if(GLEW_ARB_multitexture)
+	{
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &glConfig.maxActiveTextures);
+
+		if(glConfig.maxActiveTextures > 1)
+		{
+			ri.Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
+		}
+		else
+		{
+			ri.Error(ERR_VID_FATAL, "...not using GL_ARB_multitexture, < 2 texture units\n");
 		}
 	}
-	/*
-	   else
-	   {
-	   ri.Error(ERR_VID_FATAL, "...GL_ARB_multitexture not found\n");
-	   }
-	 */
-
+	else
+	{
+		ri.Error(ERR_VID_FATAL, "...GL_ARB_multitexture not found\n");
+	}
 	
 
 	// GL_ARB_depth_texture
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_depth_texture"))
+	if(GLEW_ARB_depth_texture)
 	{
 		ri.Printf(PRINT_ALL, "...using GL_ARB_depth_texture\n");
 	}
@@ -1037,9 +978,9 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_texture_cube_map
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_texture_cube_map"))
+	if(GLEW_ARB_texture_cube_map)
 	{
-		qglGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, &glConfig2.maxCubeMapTextureSize);
+		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, &glConfig2.maxCubeMapTextureSize);
 		ri.Printf(PRINT_ALL, "...using GL_ARB_texture_cube_map\n");
 	}
 	else
@@ -1048,20 +989,8 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_vertex_program
-	qglVertexAttrib4fARB = NULL;
-	qglVertexAttrib4fvARB = NULL;
-	qglVertexAttribPointerARB = NULL;
-	qglEnableVertexAttribArrayARB = NULL;
-	qglDisableVertexAttribArrayARB = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_vertex_program"))
+	if(GLEW_ARB_vertex_program)
 	{
-		qglVertexAttrib4fARB = (PFNGLVERTEXATTRIB4FARBPROC) qwglGetProcAddress("glVertexAttrib4fARB");
-		qglVertexAttrib4fvARB = (PFNGLVERTEXATTRIB4FVARBPROC) qwglGetProcAddress("glVertexAttrib4fvARB");
-		qglVertexAttribPointerARB = (PFNGLVERTEXATTRIBPOINTERARBPROC) qwglGetProcAddress("glVertexAttribPointerARB");
-		qglEnableVertexAttribArrayARB =
-			(PFNGLENABLEVERTEXATTRIBARRAYARBPROC) qwglGetProcAddress("glEnableVertexAttribArrayARB");
-		qglDisableVertexAttribArrayARB =
-			(PFNGLDISABLEVERTEXATTRIBARRAYARBPROC) qwglGetProcAddress("glDisableVertexAttribArrayARB");
 		ri.Printf(PRINT_ALL, "...using GL_ARB_vertex_program\n");
 	}
 	else
@@ -1070,26 +999,8 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_vertex_buffer_object
-	qglBindBufferARB = NULL;
-	qglDeleteBuffersARB = NULL;
-	qglGenBuffersARB = NULL;
-	qglIsBufferARB = NULL;
-	qglBufferDataARB = NULL;
-	qglBufferSubDataARB = NULL;
-	qglGetBufferSubDataARB = NULL;
-	qglGetBufferParameterivARB = NULL;
-	qglGetBufferPointervARB = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_vertex_buffer_object"))
+	if(GLEW_ARB_vertex_buffer_object)
 	{
-		qglBindBufferARB = (PFNGLBINDBUFFERARBPROC) qwglGetProcAddress("glBindBufferARB");
-		qglDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) qwglGetProcAddress("glDeleteBuffersARB");
-		qglGenBuffersARB = (PFNGLGENBUFFERSARBPROC) qwglGetProcAddress("glGenBuffersARB");
-		qglIsBufferARB = (PFNGLISBUFFERARBPROC) qwglGetProcAddress("glIsBufferARB");
-		qglBufferDataARB = (PFNGLBUFFERDATAARBPROC) qwglGetProcAddress("glBufferDataARB");
-		qglBufferSubDataARB = (PFNGLBUFFERSUBDATAARBPROC) qwglGetProcAddress("glBufferSubDataARB");
-		qglGetBufferSubDataARB = (PFNGLGETBUFFERSUBDATAARBPROC) qwglGetProcAddress("glGetBufferSubDataARB");
-		qglGetBufferParameterivARB = (PFNGLGETBUFFERPARAMETERIVARBPROC) qwglGetProcAddress("glGetBufferParameterivARB");
-		qglGetBufferPointervARB = (PFNGLGETBUFFERPOINTERVARBPROC) qwglGetProcAddress("glGetBufferPointervARB");
 		ri.Printf(PRINT_ALL, "...using GL_ARB_vertex_buffer_object\n");
 	}
 	else
@@ -1100,28 +1011,12 @@ static void GLW_InitExtensions(void)
 	// GL_ARB_occlusion_query
 	glConfig2.occlusionQueryAvailable = qfalse;
 	glConfig2.occlusionQueryBits = 0;
-	qglGenQueriesARB = NULL;
-	qglDeleteQueriesARB = NULL;
-	qglIsQueryARB = NULL;
-	qglBeginQueryARB = NULL;
-	qglEndQueryARB = NULL;
-	qglGetQueryivARB = NULL;
-	qglGetQueryObjectivARB = NULL;
-	qglGetQueryObjectuivARB = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_occlusion_query"))
+	if(GLEW_ARB_occlusion_query)
 	{
 		if(r_ext_occlusion_query->value)
 		{
-			qglGenQueriesARB = (PFNGLGENQUERIESARBPROC) qwglGetProcAddress("glGenQueriesARB");
-			qglDeleteQueriesARB = (PFNGLDELETEQUERIESARBPROC) qwglGetProcAddress("glDeleteQueriesARB");
-			qglIsQueryARB = (PFNGLISQUERYARBPROC) qwglGetProcAddress("glIsQueryARB");
-			qglBeginQueryARB = (PFNGLBEGINQUERYARBPROC) qwglGetProcAddress("glBeginQueryARB");
-			qglEndQueryARB = (PFNGLENDQUERYARBPROC) qwglGetProcAddress("glEndQueryARB");
-			qglGetQueryivARB = (PFNGLGETQUERYIVARBPROC) qwglGetProcAddress("glGetQueryivARB");
-			qglGetQueryObjectivARB = (PFNGLGETQUERYOBJECTIVARBPROC) qwglGetProcAddress("glGetQueryObjectivARB");
-			qglGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVARBPROC) qwglGetProcAddress("glGetQueryObjectuivARB");
 			glConfig2.occlusionQueryAvailable = qtrue;
-			qglGetQueryivARB(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &glConfig2.occlusionQueryBits);
+			glGetQueryivARB(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &glConfig2.occlusionQueryBits);
 			ri.Printf(PRINT_ALL, "...using GL_ARB_occlusion_query\n");
 		}
 		else
@@ -1135,82 +1030,8 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_shader_objects
-	qglDeleteObjectARB = NULL;
-	qglGetHandleARB = NULL;
-	qglDetachObjectARB = NULL;
-	qglCreateShaderObjectARB = NULL;
-	qglShaderSourceARB = NULL;
-	qglCompileShaderARB = NULL;
-	qglCreateProgramObjectARB = NULL;
-	qglAttachObjectARB = NULL;
-	qglLinkProgramARB = NULL;
-	qglUseProgramObjectARB = NULL;
-	qglValidateProgramARB = NULL;
-	qglUniform1fARB = NULL;
-	qglUniform2fARB = NULL;
-	qglUniform3fARB = NULL;
-	qglUniform4fARB = NULL;
-	qglUniform1iARB = NULL;
-	qglUniform2iARB = NULL;
-	qglUniform3iARB = NULL;
-	qglUniform4iARB = NULL;
-	qglUniform2fvARB = NULL;
-	qglUniform3fvARB = NULL;
-	qglUniform4fvARB = NULL;
-	qglUniform2ivARB = NULL;
-	qglUniform3ivARB = NULL;
-	qglUniform4ivARB = NULL;
-	qglUniformMatrix2fvARB = NULL;
-	qglUniformMatrix3fvARB = NULL;
-	qglUniformMatrix4fvARB = NULL;
-	qglGetObjectParameterfvARB = NULL;
-	qglGetObjectParameterivARB = NULL;
-	qglGetInfoLogARB = NULL;
-	qglGetAttachedObjectsARB = NULL;
-	qglGetUniformLocationARB = NULL;
-	qglGetActiveUniformARB = NULL;
-	qglGetUniformfvARB = NULL;
-	qglGetUniformivARB = NULL;
-	qglGetShaderSourceARB = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_shader_objects"))
+	if(GLEW_ARB_shader_objects)
 	{
-		qglDeleteObjectARB = (PFNGLDELETEOBJECTARBPROC) qwglGetProcAddress("glDeleteObjectARB");
-		qglGetHandleARB = (PFNGLGETHANDLEARBPROC) qwglGetProcAddress("glGetHandleARB");
-		qglDetachObjectARB = (PFNGLDETACHOBJECTARBPROC) qwglGetProcAddress("glDetachObjectARB");
-		qglCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC) qwglGetProcAddress("glCreateShaderObjectARB");
-		qglShaderSourceARB = (PFNGLSHADERSOURCEARBPROC) qwglGetProcAddress("glShaderSourceARB");
-		qglCompileShaderARB = (PFNGLCOMPILESHADERARBPROC) qwglGetProcAddress("glCompileShaderARB");
-		qglCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC) qwglGetProcAddress("glCreateProgramObjectARB");
-		qglAttachObjectARB = (PFNGLATTACHOBJECTARBPROC) qwglGetProcAddress("glAttachObjectARB");
-		qglLinkProgramARB = (PFNGLLINKPROGRAMARBPROC) qwglGetProcAddress("glLinkProgramARB");
-		qglUseProgramObjectARB = (PFNGLUSEPROGRAMOBJECTARBPROC) qwglGetProcAddress("glUseProgramObjectARB");
-		qglValidateProgramARB = (PFNGLVALIDATEPROGRAMARBPROC) qwglGetProcAddress("glValidateProgramARB");
-		qglUniform1fARB = (PFNGLUNIFORM1FARBPROC) qwglGetProcAddress("glUniform1fARB");
-		qglUniform2fARB = (PFNGLUNIFORM2FARBPROC) qwglGetProcAddress("glUniform2fARB");
-		qglUniform3fARB = (PFNGLUNIFORM3FARBPROC) qwglGetProcAddress("glUniform3fARB");
-		qglUniform4fARB = (PFNGLUNIFORM4FARBPROC) qwglGetProcAddress("glUniform4fARB");
-		qglUniform1iARB = (PFNGLUNIFORM1IARBPROC) qwglGetProcAddress("glUniform1iARB");
-		qglUniform2iARB = (PFNGLUNIFORM2IARBPROC) qwglGetProcAddress("glUniform2iARB");
-		qglUniform3iARB = (PFNGLUNIFORM3IARBPROC) qwglGetProcAddress("glUniform3iARB");
-		qglUniform4iARB = (PFNGLUNIFORM4IARBPROC) qwglGetProcAddress("glUniform4iARB");
-		qglUniform2fvARB = (PFNGLUNIFORM2FVARBPROC) qwglGetProcAddress("glUniform2fvARB");
-		qglUniform3fvARB = (PFNGLUNIFORM3FVARBPROC) qwglGetProcAddress("glUniform3fvARB");
-		qglUniform4fvARB = (PFNGLUNIFORM4FVARBPROC) qwglGetProcAddress("glUniform4fvARB");
-		qglUniform2ivARB = (PFNGLUNIFORM2IVARBPROC) qwglGetProcAddress("glUniform2ivARB");
-		qglUniform3ivARB = (PFNGLUNIFORM3IVARBPROC) qwglGetProcAddress("glUniform3ivARB");
-		qglUniform4ivARB = (PFNGLUNIFORM4IVARBPROC) qwglGetProcAddress("glUniform4ivARB");
-		qglUniformMatrix2fvARB = (PFNGLUNIFORMMATRIX2FVARBPROC) qwglGetProcAddress("glUniformMatrix2fvARB");
-		qglUniformMatrix3fvARB = (PFNGLUNIFORMMATRIX3FVARBPROC) qwglGetProcAddress("glUniformMatrix3fvARB");
-		qglUniformMatrix4fvARB = (PFNGLUNIFORMMATRIX4FVARBPROC) qwglGetProcAddress("glUniformMatrix4fvARB");
-		qglGetObjectParameterfvARB = (PFNGLGETOBJECTPARAMETERFVARBPROC) qwglGetProcAddress("glGetObjectParameterfvARB");
-		qglGetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC) qwglGetProcAddress("glGetObjectParameterivARB");
-		qglGetInfoLogARB = (PFNGLGETINFOLOGARBPROC) qwglGetProcAddress("glGetInfoLogARB");
-		qglGetAttachedObjectsARB = (PFNGLGETATTACHEDOBJECTSARBPROC) qwglGetProcAddress("glGetAttachedObjectsARB");
-		qglGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC) qwglGetProcAddress("glGetUniformLocationARB");
-		qglGetActiveUniformARB = (PFNGLGETACTIVEUNIFORMARBPROC) qwglGetProcAddress("glGetActiveUniformARB");
-		qglGetUniformfvARB = (PFNGLGETUNIFORMFVARBPROC) qwglGetProcAddress("glGetUniformfvARB");
-		qglGetUniformivARB = (PFNGLGETUNIFORMIVARBPROC) qwglGetProcAddress("glGetUniformivARB");
-		qglGetShaderSourceARB = (PFNGLGETSHADERSOURCEARBPROC) qwglGetProcAddress("glGetShaderSourceARB");
 		ri.Printf(PRINT_ALL, "...using GL_ARB_shader_objects\n");
 	}
 	else
@@ -1219,16 +1040,13 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_vertex_shader
-	qglBindAttribLocationARB = NULL;
-	qglGetActiveAttribARB = NULL;
-	qglGetAttribLocationARB = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_vertex_shader"))
+	if(GLEW_ARB_vertex_shader)
 	{
 		int				reservedComponents;
 
-		qglGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &glConfig2.maxVertexUniforms);
-		qglGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, &glConfig2.maxVaryingFloats);
-		qglGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &glConfig2.maxVertexAttribs);
+		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &glConfig2.maxVertexUniforms);
+		glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, &glConfig2.maxVaryingFloats);
+		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &glConfig2.maxVertexAttribs);
 
 		reservedComponents = 16 * 10; // approximation how many uniforms we have besides the bone matrices
 
@@ -1244,9 +1062,6 @@ static void GLW_InitExtensions(void)
 		glConfig2.maxVertexSkinningBones = (int) Q_bound(0.0, (Q_max(glConfig2.maxVertexUniforms - reservedComponents, 0) / 16), MAX_BONES);
 		glConfig2.vboVertexSkinningAvailable = r_vboVertexSkinning->integer && ((glConfig2.maxVertexSkinningBones >= 12) ? qtrue : qfalse);
 
-		qglBindAttribLocationARB = (PFNGLBINDATTRIBLOCATIONARBPROC) qwglGetProcAddress("glBindAttribLocationARB");
-		qglGetActiveAttribARB = (PFNGLGETACTIVEATTRIBARBPROC) qwglGetProcAddress("glGetActiveAttribARB");
-		qglGetAttribLocationARB = (PFNGLGETATTRIBLOCATIONARBPROC) qwglGetProcAddress("glGetAttribLocationARB");
 		ri.Printf(PRINT_ALL, "...using GL_ARB_vertex_shader\n");
 	}
 	else
@@ -1255,7 +1070,7 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_fragment_shader
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_fragment_shader"))
+	if(GLEW_ARB_fragment_shader)
 	{
 		ri.Printf(PRINT_ALL, "...using GL_ARB_fragment_shader\n");
 	}
@@ -1265,9 +1080,9 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_shading_language_100
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_shading_language_100"))
+	if(GLEW_ARB_shading_language_100)
 	{
-		Q_strncpyz(glConfig2.shadingLanguageVersion, (char*)qglGetString(GL_SHADING_LANGUAGE_VERSION_ARB),
+		Q_strncpyz(glConfig2.shadingLanguageVersion, (char*)glGetString(GL_SHADING_LANGUAGE_VERSION_ARB),
 				   sizeof(glConfig2.shadingLanguageVersion));
 		ri.Printf(PRINT_ALL, "...using GL_ARB_shading_language_100\n");
 	}
@@ -1278,7 +1093,7 @@ static void GLW_InitExtensions(void)
 
 	// GL_ARB_texture_non_power_of_two
 	glConfig2.textureNPOTAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_texture_non_power_of_two"))
+	if(GLEW_ARB_texture_non_power_of_two)
 	{
 		if(r_ext_texture_non_power_of_two->integer)
 		{
@@ -1297,13 +1112,12 @@ static void GLW_InitExtensions(void)
 
 	// GL_ARB_draw_buffers
 	glConfig2.drawBuffersAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_draw_buffers"))
+	if(GLEW_ARB_draw_buffers)
 	{
-		qglGetIntegerv(GL_MAX_DRAW_BUFFERS_ARB, &glConfig2.maxDrawBuffers);
+		glGetIntegerv(GL_MAX_DRAW_BUFFERS_ARB, &glConfig2.maxDrawBuffers);
 
 		if(r_ext_draw_buffers->integer)
 		{
-			qglDrawBuffersARB = (PFNGLDRAWBUFFERSARBPROC) qwglGetProcAddress("glDrawBuffersARB");
 			glConfig2.drawBuffersAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_ARB_draw_buffers\n");
 		}
@@ -1319,7 +1133,7 @@ static void GLW_InitExtensions(void)
 
 	// GL_ARB_half_float_pixel
 	glConfig2.textureHalfFloatAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_half_float_pixel"))
+	if(GLEW_ARB_half_float_pixel)
 	{
 		if(r_ext_half_float_pixel->integer)
 		{
@@ -1338,7 +1152,7 @@ static void GLW_InitExtensions(void)
 
 	// GL_ARB_texture_float
 	glConfig2.textureFloatAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_texture_float"))
+	if(GLEW_ARB_texture_float)
 	{
 		if(r_ext_texture_float->integer)
 		{
@@ -1357,24 +1171,10 @@ static void GLW_InitExtensions(void)
 
 	// GL_ARB_texture_compression
 	glConfig.textureCompression = TC_NONE;
-	qglCompressedTexImage3DARB = NULL;
-	qglCompressedTexImage2DARB = NULL;
-	qglCompressedTexImage1DARB = NULL;
-	qglCompressedTexSubImage3DARB = NULL;
-	qglCompressedTexSubImage2DARB = NULL;
-	qglCompressedTexSubImage1DARB = NULL;
-	qglGetCompressedTexImageARB = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_texture_compression"))
+	if(GLEW_ARB_texture_compression)
 	{
 		if(r_ext_texture_compression->integer)
 		{
-			qglCompressedTexImage3DARB = qwglGetProcAddress("glCompressedTexImage3DARB");
-			qglCompressedTexImage2DARB = qwglGetProcAddress("glCompressedTexImage2DARB");
-			qglCompressedTexImage1DARB = qwglGetProcAddress("glCompressedTexImage1DARB");
-			qglCompressedTexSubImage3DARB = qwglGetProcAddress("glCompressedTexSubImage3DARB");
-			qglCompressedTexSubImage2DARB = qwglGetProcAddress("glCompressedTexSubImage2DARB");
-			qglCompressedTexSubImage1DARB = qwglGetProcAddress("glCompressedTexSubImage1DARB");
-			qglGetCompressedTexImageARB = qwglGetProcAddress("glGetCompressedTexImageARB");
 			glConfig2.ARBTextureCompressionAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_ARB_texture_compression\n");
 		}
@@ -1389,19 +1189,11 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_ARB_vertex_array_object
-	qglBindVertexArray = NULL;
-	qglDeleteVertexArrays = NULL;
-	qglGenVertexArrays = NULL;
-	qglIsVertexArray = NULL;
 	glConfig2.vertexArrayObjectAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_ARB_vertex_array_object"))
+	if(GLEW_ARB_vertex_array_object)
 	{
 		if(r_ext_vertex_array_object->integer)
 		{
-			qglBindVertexArray = qwglGetProcAddress("glBindVertexArray");
-			qglDeleteVertexArrays = qwglGetProcAddress("glDeleteVertexArrays");
-			qglGenVertexArrays = qwglGetProcAddress("glGenVertexArrays");
-			qglIsVertexArray = qwglGetProcAddress("glIsVertexArray");
 			glConfig2.vertexArrayObjectAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_ARB_vertex_array_object\n");
 		}
@@ -1416,7 +1208,7 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_EXT_texture_compression_s3tc
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_texture_compression_s3tc"))
+	if(GLEW_EXT_texture_compression_s3tc)
 	{
 		if(r_ext_texture_compression->integer)
 		{
@@ -1435,12 +1227,10 @@ static void GLW_InitExtensions(void)
 
 	// GL_EXT_texture3D
 	glConfig2.texture3DAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_texture3D"))
+	if(GLEW_EXT_texture3D)
 	{
 		//if(r_ext_texture3d->value)
 		{
-			qglTexImage3DEXT = qwglGetProcAddress("glTexImage3DEXT");
-			qglTexSubImage3DEXT = qwglGetProcAddress("glTexSubImage3DEXT");
 			glConfig2.texture3DAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_EXT_texture3D\n");
 		}
@@ -1458,7 +1248,7 @@ static void GLW_InitExtensions(void)
 
 	// GL_EXT_stencil_wrap
 	glConfig2.stencilWrapAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_stencil_wrap"))
+	if(GLEW_EXT_stencil_wrap)
 	{
 		if(r_ext_stencil_wrap->value)
 		{
@@ -1477,9 +1267,9 @@ static void GLW_InitExtensions(void)
 
 	// GL_EXT_texture_filter_anisotropic
 	glConfig2.textureAnisotropyAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_texture_filter_anisotropic"))
+	if(GLEW_EXT_texture_filter_anisotropic)
 	{
-		qglGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig2.maxTextureAnisotropy);
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig2.maxTextureAnisotropy);
 
 		if(r_ext_texture_filter_anisotropic->value)
 		{
@@ -1497,12 +1287,10 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_EXT_stencil_two_side
-	qglActiveStencilFaceEXT = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_stencil_two_side"))
+	if(GLEW_EXT_stencil_two_side)
 	{
 		if(r_ext_stencil_two_side->value)
 		{
-			qglActiveStencilFaceEXT = (void (APIENTRY *) (GLenum))qwglGetProcAddress("glActiveStencilFaceEXT");
 			ri.Printf(PRINT_ALL, "...using GL_EXT_stencil_two_side\n");
 		}
 		else
@@ -1516,12 +1304,10 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_EXT_depth_bounds_test
-	qglDepthBoundsEXT = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_depth_bounds_test"))
+	if(GLEW_EXT_depth_bounds_test)
 	{
 		if(r_ext_depth_bounds_test->value)
 		{
-			qglDepthBoundsEXT = (PFNGLDEPTHBOUNDSEXTPROC) qwglGetProcAddress("glDepthBoundsEXT");
 			ri.Printf(PRINT_ALL, "...using GL_EXT_depth_bounds_test\n");
 		}
 		else
@@ -1536,52 +1322,13 @@ static void GLW_InitExtensions(void)
 
 	// GL_EXT_framebuffer_object
 	glConfig2.framebufferObjectAvailable = qfalse;
-	qglIsRenderbufferEXT = NULL;
-	qglBindRenderbufferEXT = NULL;
-	qglDeleteRenderbuffersEXT = NULL;
-	qglGenRenderbuffersEXT = NULL;
-	qglRenderbufferStorageEXT = NULL;
-	qglGetRenderbufferParameterivEXT = NULL;
-	qglIsFramebufferEXT = NULL;
-	qglBindFramebufferEXT = NULL;
-	qglDeleteFramebuffersEXT = NULL;
-	qglGenFramebuffersEXT = NULL;
-	qglCheckFramebufferStatusEXT = NULL;
-	qglFramebufferTexture1DEXT = NULL;
-	qglFramebufferTexture2DEXT = NULL;
-	qglFramebufferTexture3DEXT = NULL;
-	qglFramebufferRenderbufferEXT = NULL;
-	qglGetFramebufferAttachmentParameterivEXT = NULL;
-	qglGenerateMipmapEXT = NULL;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_framebuffer_object"))
+	if(GLEW_EXT_framebuffer_object)
 	{
-		qglGetIntegerv(GL_MAX_RENDERBUFFER_SIZE_EXT, &glConfig2.maxRenderbufferSize);
-		qglGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &glConfig2.maxColorAttachments);
+		glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE_EXT, &glConfig2.maxRenderbufferSize);
+		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &glConfig2.maxColorAttachments);
 
 		if(r_ext_framebuffer_object->value)
 		{
-			qglIsRenderbufferEXT = (PFNGLISRENDERBUFFEREXTPROC) qwglGetProcAddress("glIsRenderbufferEXT");
-			qglBindRenderbufferEXT = (PFNGLBINDRENDERBUFFEREXTPROC) qwglGetProcAddress("glBindRenderbufferEXT");
-			qglDeleteRenderbuffersEXT = (PFNGLDELETERENDERBUFFERSEXTPROC) qwglGetProcAddress("glDeleteRenderbuffersEXT");
-			qglGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC) qwglGetProcAddress("glGenRenderbuffersEXT");
-			qglRenderbufferStorageEXT = (PFNGLRENDERBUFFERSTORAGEEXTPROC) qwglGetProcAddress("glRenderbufferStorageEXT");
-			qglGetRenderbufferParameterivEXT =
-				(PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC) qwglGetProcAddress("glGetRenderbufferParameterivEXT");
-			qglIsFramebufferEXT = (PFNGLISFRAMEBUFFEREXTPROC) qwglGetProcAddress("glIsFramebufferEXT");
-			qglBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC) qwglGetProcAddress("glBindFramebufferEXT");
-			qglDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC) qwglGetProcAddress("glDeleteFramebuffersEXT");
-			qglGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC) qwglGetProcAddress("glGenFramebuffersEXT");
-			qglCheckFramebufferStatusEXT =
-				(PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC) qwglGetProcAddress("glCheckFramebufferStatusEXT");
-			qglFramebufferTexture1DEXT = (PFNGLFRAMEBUFFERTEXTURE1DEXTPROC) qwglGetProcAddress("glFramebufferTexture1DEXT");
-			qglFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC) qwglGetProcAddress("glFramebufferTexture2DEXT");
-			qglFramebufferTexture3DEXT = (PFNGLFRAMEBUFFERTEXTURE3DEXTPROC) qwglGetProcAddress("glFramebufferTexture3DEXT");
-			qglFramebufferRenderbufferEXT =
-				(PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC) qwglGetProcAddress("glFramebufferRenderbufferEXT");
-			qglGetFramebufferAttachmentParameterivEXT =
-				(PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)
-				qwglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-			qglGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC) qwglGetProcAddress("glGenerateMipmapEXT");
 			glConfig2.framebufferObjectAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_EXT_framebuffer_object\n");
 		}
@@ -1597,7 +1344,7 @@ static void GLW_InitExtensions(void)
 
 	// GL_EXT_packed_depth_stencil
 	glConfig2.framebufferPackedDepthStencilAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_packed_depth_stencil") && glConfig.driverType != GLDRV_MESA)
+	if(GLEW_EXT_packed_depth_stencil && glConfig.driverType != GLDRV_MESA)
 	{
 		if(r_ext_packed_depth_stencil->integer)
 		{
@@ -1616,11 +1363,10 @@ static void GLW_InitExtensions(void)
 
 	// GL_EXT_framebuffer_blit
 	glConfig2.framebufferBlitAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXT_framebuffer_blit"))
+	if(GLEW_EXT_framebuffer_blit)
 	{
 		if(r_ext_framebuffer_blit->integer)
 		{
-			qglBlitFramebufferEXT = qwglGetProcAddress("glBlitFramebufferEXT");
 			glConfig2.framebufferBlitAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_EXT_framebuffer_blit\n");
 		}
@@ -1635,8 +1381,9 @@ static void GLW_InitExtensions(void)
 	}
 
 	// GL_EXTX_framebuffer_mixed_formats
+	/*
 	glConfig2.framebufferMixedFormatsAvailable = qfalse;
-	if(Q_stristr(glConfig.extensions_string, "GL_EXTX_framebuffer_mixed_formats"))
+	if(GLEW_EXTX_framebuffer_mixed_formats)
 	{
 		if(r_extx_framebuffer_mixed_formats->integer)
 		{
@@ -1652,16 +1399,13 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Printf(PRINT_ALL, "...GL_EXTX_framebuffer_mixed_formats not found\n");
 	}
+	*/
 
 	// GL_ATI_separate_stencil
-	qglStencilFuncSeparateATI = NULL;
-	qglStencilOpSeparateATI = NULL;
-	if(strstr(glConfig.extensions_string, "GL_ATI_separate_stencil"))
+	if(GLEW_ATI_separate_stencil)
 	{
 		if(r_ext_separate_stencil->value)
 		{
-			qglStencilFuncSeparateATI = (void *)qwglGetProcAddress("glStencilFuncSeparateATI");
-			qglStencilOpSeparateATI = (void *)qwglGetProcAddress("glStencilOpSeparateATI");
 			ri.Printf(PRINT_ALL, "...using GL_ATI_separate_stencil\n");
 		}
 		else
@@ -1691,18 +1435,6 @@ static void GLW_InitExtensions(void)
 	else
 	{
 		ri.Printf(PRINT_ALL, "...GL_SGIS_generate_mipmap not found\n");
-	}
-
-	// WGL_EXT_swap_control
-	qwglSwapIntervalEXT = (BOOL(WINAPI *) (int))qwglGetProcAddress("wglSwapIntervalEXT");
-	if(qwglSwapIntervalEXT)
-	{
-		ri.Printf(PRINT_ALL, "...using WGL_EXT_swap_control\n");
-		r_swapInterval->modified = qtrue;	// force a set next frame
-	}
-	else
-	{
-		ri.Printf(PRINT_ALL, "...WGL_EXT_swap_control not found\n");
 	}
 }
 
@@ -1749,88 +1481,33 @@ static qboolean GLW_CheckOSVersion(void)
 	return qtrue;
 }
 
-/*
-** GLW_LoadOpenGL
-**
-** GLimp_win.c internal function that attempts to load and use
-** a specific OpenGL DLL.
-*/
-static qboolean GLW_LoadOpenGL(const char *drivername)
+
+static void GLW_StartOpenGL()
 {
-	char            buffer[1024];
-	qboolean        cdsFullscreen;
+	GLenum			glewResult;
 
-	Q_strncpyz(buffer, drivername, sizeof(buffer));
-	Q_strlwr(buffer);
+	glConfig.driverType = GLDRV_ICD;
 
-	// determine if we're on a standalone driver
-	if(strstr(buffer, "opengl32") != 0 || r_maskMinidriver->integer)
+	// create the window and set up the context
+	if(!GLW_StartDriverAndSetMode(r_mode->integer, r_colorbits->integer, r_fullscreen->integer))
 	{
-		glConfig.driverType = GLDRV_ICD;
-	}
-	else
-	{
-		glConfig.driverType = GLDRV_STANDALONE;
-
-		ri.Printf(PRINT_ALL, "...assuming '%s' is a standalone driver\n", drivername);
-
-		if(strstr(buffer, _3DFX_DRIVER_NAME))
+		// if we're on a 24/32-bit desktop and we're going fullscreen on an ICD,
+		// try it again but with a 16-bit desktop
+		if(r_colorbits->integer != 16 || r_fullscreen->integer != qtrue || r_mode->integer != 3)
 		{
-			glConfig.driverType = GLDRV_VOODOO;
-		}
-	}
-
-	// disable the 3Dfx splash screen
-	_putenv("FX_GLIDE_NO_SPLASH=0");
-
-	// load the driver and bind our function pointers to it
-	if(QGL_Init(buffer))
-	{
-#if 0
-// FIXME: newer 3Dfx drivers means this can go away
-		if(!Q_stricmp(buffer, _3DFX_DRIVER_NAME))
-		{
-			cdsFullscreen = qfalse;
-		}
-		else
-#endif
-		{
-			cdsFullscreen = r_fullscreen->integer;
-		}
-
-		// create the window and set up the context
-		if(!GLW_StartDriverAndSetMode(drivername, r_mode->integer, r_colorbits->integer, cdsFullscreen))
-		{
-			// if we're on a 24/32-bit desktop and we're going fullscreen on an ICD,
-			// try it again but with a 16-bit desktop
-			if(glConfig.driverType == GLDRV_ICD)
+			if(!GLW_StartDriverAndSetMode(3, 16, qtrue))
 			{
-				if(r_colorbits->integer != 16 || cdsFullscreen != qtrue || r_mode->integer != 3)
-				{
-					if(!GLW_StartDriverAndSetMode(drivername, 3, 16, qtrue))
-					{
-						goto fail;
-					}
-				}
-			}
-			else
-			{
-				goto fail;
+				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem");
 			}
 		}
-
-		if(glConfig.driverType == GLDRV_VOODOO)
-		{
-			glConfig.isFullscreen = qtrue;
-		}
-
-		return qtrue;
 	}
-  fail:
 
-	QGL_Shutdown();
-
-	return qfalse;
+	glewResult = glewInit();
+	if(GLEW_OK != glewResult)
+	{
+		// glewInit failed, something is seriously wrong
+		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem: %s", glewGetErrorString(glewResult));
+	}
 }
 
 /*
@@ -1845,9 +1522,9 @@ void GLimp_EndFrame(void)
 
 		if(!glConfig.stereoEnabled)
 		{						// why?
-			if(qwglSwapIntervalEXT)
+			if(WGLEW_EXT_swap_control)
 			{
-				qwglSwapIntervalEXT(r_swapInterval->integer);
+				wglSwapIntervalEXT(r_swapInterval->integer);
 			}
 		}
 	}
@@ -1856,9 +1533,9 @@ void GLimp_EndFrame(void)
 	// don't flip if drawing to front buffer
 	if(Q_stricmp(r_drawBuffer->string, "GL_FRONT") != 0)
 	{
-		if(glConfig.driverType > GLDRV_ICD)
+		if((glConfig.driverType > GLDRV_ICD) && WGLEW_EXT_swap_control)
 		{
-			if(!qwglSwapBuffers(glw_state.hDC))
+			if(!SwapBuffers(glw_state.hDC))
 			{
 				ri.Error(ERR_VID_FATAL, "GLimp_EndFrame() - SwapBuffers() failed!\n");
 			}
@@ -1870,69 +1547,9 @@ void GLimp_EndFrame(void)
 	}
 
 	// check logging
-	QGL_EnableLogging(r_logFile->integer);
+	//QGL_EnableLogging(r_logFile->integer);
 }
 
-
-extern qboolean GlideIsValid(void);
-static void GLW_StartOpenGL(void)
-{
-	qboolean        attemptedOpenGL32 = qfalse;
-	qboolean        attempted3Dfx = qfalse;
-
-	ri.Cvar_Set("r_glDriver", OPENGL_DRIVER_NAME);
-
-	if(!GLW_LoadOpenGL(r_glDriver->string))
-	{
-		if(!Q_stricmp(r_glDriver->string, OPENGL_DRIVER_NAME))
-		{
-			attemptedOpenGL32 = qtrue;
-		}
-		else if(!Q_stricmp(r_glDriver->string, _3DFX_DRIVER_NAME))
-		{
-			attempted3Dfx = qtrue;
-		}
-
-		if(!attempted3Dfx)
-		{
-			attempted3Dfx = qtrue;
-			if(GLW_LoadOpenGL(_3DFX_DRIVER_NAME))
-			{
-				ri.Cvar_Set("r_glDriver", _3DFX_DRIVER_NAME);
-				r_glDriver->modified = qfalse;
-			}
-			else
-			{
-				if(!attemptedOpenGL32)
-				{
-					if(!GLW_LoadOpenGL(OPENGL_DRIVER_NAME))
-					{
-						ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n");
-					}
-					ri.Cvar_Set("r_glDriver", OPENGL_DRIVER_NAME);
-					r_glDriver->modified = qfalse;
-				}
-				else
-				{
-					ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n");
-				}
-			}
-		}
-		else if(!attemptedOpenGL32)
-		{
-			attemptedOpenGL32 = qtrue;
-			if(GLW_LoadOpenGL(OPENGL_DRIVER_NAME))
-			{
-				ri.Cvar_Set("r_glDriver", OPENGL_DRIVER_NAME);
-				r_glDriver->modified = qfalse;
-			}
-			else
-			{
-				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n");
-			}
-		}
-	}
-}
 
 /*
 ** GLimp_Init
@@ -1979,15 +1596,15 @@ void GLimp_Init(void)
 	GLW_StartOpenGL();
 
 	// get our config strings
-	Q_strncpyz(glConfig.vendor_string, qglGetString(GL_VENDOR), sizeof(glConfig.vendor_string));
-	Q_strncpyz(glConfig.renderer_string, qglGetString(GL_RENDERER), sizeof(glConfig.renderer_string));
-	Q_strncpyz(glConfig.version_string, qglGetString(GL_VERSION), sizeof(glConfig.version_string));
-	Q_strncpyz(glConfig.extensions_string, qglGetString(GL_EXTENSIONS), sizeof(glConfig.extensions_string));
+	Q_strncpyz(glConfig.vendor_string, glGetString(GL_VENDOR), sizeof(glConfig.vendor_string));
+	Q_strncpyz(glConfig.renderer_string, glGetString(GL_RENDERER), sizeof(glConfig.renderer_string));
+	Q_strncpyz(glConfig.version_string, glGetString(GL_VERSION), sizeof(glConfig.version_string));
+	Q_strncpyz(glConfig.extensions_string, glGetString(GL_EXTENSIONS), sizeof(glConfig.extensions_string));
 	// TTimo - safe check
-	if(strlen(qglGetString(GL_EXTENSIONS)) >= sizeof(glConfig.extensions_string))
+	if(strlen(glGetString(GL_EXTENSIONS)) >= sizeof(glConfig.extensions_string))
 	{
 		Com_Printf(S_COLOR_YELLOW "WARNNING: GL extensions string too long (%d), truncated to %d\n",
-				   strlen(qglGetString(GL_EXTENSIONS)), sizeof(glConfig.extensions_string));
+				   strlen(glGetString(GL_EXTENSIONS)), sizeof(glConfig.extensions_string));
 	}
 
 	// chipset specific configuration
@@ -2076,7 +1693,6 @@ void GLimp_Init(void)
 	ri.Cvar_Set("r_lastValidRenderer", glConfig.renderer_string);
 
 	GLW_InitExtensions();
-	WG_CheckHardwareGamma();
 }
 
 /*
@@ -2092,7 +1708,7 @@ void GLimp_Shutdown(void)
 	int             retVal;
 
 	// FIXME: Brian, we need better fallbacks from partially initialized failures
-	if(!qwglMakeCurrent)
+	if(!wglMakeCurrent)
 	{
 		return;
 	}
@@ -2103,9 +1719,9 @@ void GLimp_Shutdown(void)
 	WG_RestoreGamma();
 
 	// set current context to NULL
-	if(qwglMakeCurrent)
+	if(wglMakeCurrent)
 	{
-		retVal = qwglMakeCurrent(NULL, NULL) != 0;
+		retVal = wglMakeCurrent(NULL, NULL) != 0;
 
 		ri.Printf(PRINT_ALL, "...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal]);
 	}
@@ -2113,7 +1729,7 @@ void GLimp_Shutdown(void)
 	// delete HGLRC
 	if(glw_state.hGLRC)
 	{
-		retVal = qwglDeleteContext(glw_state.hGLRC) != 0;
+		retVal = wglDeleteContext(glw_state.hGLRC) != 0;
 		ri.Printf(PRINT_ALL, "...deleting GL context: %s\n", success[retVal]);
 		glw_state.hGLRC = NULL;
 	}
@@ -2152,7 +1768,7 @@ void GLimp_Shutdown(void)
 	}
 
 	// shutdown QGL subsystem
-	QGL_Shutdown();
+	//QGL_Shutdown();
 
 	memset(&glConfig, 0, sizeof(glConfig));
 	memset(&glState, 0, sizeof(glState));
@@ -2191,7 +1807,7 @@ void GLimp_RenderThreadWrapper(void)
 	glimpRenderThread();
 
 	// unbind the context before we die
-	qwglMakeCurrent(glw_state.hDC, NULL);
+	wglMakeCurrent(glw_state.hDC, NULL);
 }
 
 /*
@@ -2232,7 +1848,7 @@ void           *GLimp_RendererSleep(void)
 {
 	void           *data;
 
-	if(!qwglMakeCurrent(glw_state.hDC, NULL))
+	if(!wglMakeCurrent(glw_state.hDC, NULL))
 	{
 		wglErrors++;
 	}
@@ -2244,7 +1860,7 @@ void           *GLimp_RendererSleep(void)
 
 	WaitForSingleObject(renderCommandsEvent, INFINITE);
 
-	if(!qwglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
+	if(!wglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
 	{
 		wglErrors++;
 	}
@@ -2265,7 +1881,7 @@ void GLimp_FrontEndSleep(void)
 {
 	WaitForSingleObject(renderCompletedEvent, INFINITE);
 
-	if(!qwglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
+	if(!wglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
 	{
 		wglErrors++;
 	}
@@ -2276,7 +1892,7 @@ void GLimp_WakeRenderer(void *data)
 {
 	smpData = data;
 
-	if(!qwglMakeCurrent(glw_state.hDC, NULL))
+	if(!wglMakeCurrent(glw_state.hDC, NULL))
 	{
 		wglErrors++;
 	}

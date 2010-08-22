@@ -149,12 +149,12 @@ void GL_TextureMode(const char *string)
 			GL_Bind(image);
 
 			// set texture filter
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 			// set texture anisotropy
 			if(glConfig2.textureAnisotropyAvailable)
-				qglTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
+				glTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 		}
 	}
 }
@@ -1316,26 +1316,26 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 		if(image->filterType == FT_DEFAULT && glConfig2.generateMipmapAvailable)
 		{
 			// raynorpat: if hardware mipmap generation is available, use it
-			//qglHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);	// make sure its nice
-			qglTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-			qglTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	// default to trilinear
+			//glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);	// make sure its nice
+			glTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+			glTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	// default to trilinear
 		}
 
 		switch (image->type)
 		{
 			case GL_TEXTURE_CUBE_MAP_ARB:
-				qglTexImage2D(target + i, 0, internalFormat, scaledWidth, scaledHeight, 0, format, GL_UNSIGNED_BYTE,
+				glTexImage2D(target + i, 0, internalFormat, scaledWidth, scaledHeight, 0, format, GL_UNSIGNED_BYTE,
 							  scaledBuffer);
 				break;
 
 			default:
 				if(image->bits & IF_PACKED_DEPTH24_STENCIL8)
 				{
-					qglTexImage2D(target, 0, internalFormat, scaledWidth, scaledHeight, 0, format, GL_UNSIGNED_INT_24_8_EXT, NULL);
+					glTexImage2D(target, 0, internalFormat, scaledWidth, scaledHeight, 0, format, GL_UNSIGNED_INT_24_8_EXT, NULL);
 				}
 				else
 				{
-					qglTexImage2D(target, 0, internalFormat, scaledWidth, scaledHeight, 0, format, GL_UNSIGNED_BYTE, scaledBuffer);
+					glTexImage2D(target, 0, internalFormat, scaledWidth, scaledHeight, 0, format, GL_UNSIGNED_BYTE, scaledBuffer);
 				}
 				break;
 		}
@@ -1377,12 +1377,12 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 					switch (image->type)
 					{
 						case GL_TEXTURE_CUBE_MAP_ARB:
-							qglTexImage2D(target + i, mipLevel, internalFormat, mipWidth, mipHeight, 0, format, GL_UNSIGNED_BYTE,
+							glTexImage2D(target + i, mipLevel, internalFormat, mipWidth, mipHeight, 0, format, GL_UNSIGNED_BYTE,
 										  scaledBuffer);
 							break;
 
 						default:
-							qglTexImage2D(target, mipLevel, internalFormat, mipWidth, mipHeight, 0, format, GL_UNSIGNED_BYTE,
+							glTexImage2D(target, mipLevel, internalFormat, mipWidth, mipHeight, 0, format, GL_UNSIGNED_BYTE,
 										  scaledBuffer);
 							break;
 					}
@@ -1399,26 +1399,26 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 		case FT_DEFAULT:
 			// set texture anisotropy
 			if(glConfig2.textureAnisotropyAvailable)
-				qglTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
+				glTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 			break;
 
 		case FT_LINEAR:
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
 
 		case FT_NEAREST:
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			break;
 
 		default:
 			ri.Printf(PRINT_WARNING, "WARNING: unknown filter type for image '%s'\n", image->name);
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
 	}
 
@@ -1428,36 +1428,36 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 	switch (image->wrapType)
 	{
 		case WT_REPEAT:
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			break;
 
 		case WT_CLAMP:
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			break;
 
 		case WT_EDGE_CLAMP:
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			break;
 
 		case WT_ZERO_CLAMP:
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			qglTexParameterfv(image->type, GL_TEXTURE_BORDER_COLOR, zeroClampBorder);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			glTexParameterfv(image->type, GL_TEXTURE_BORDER_COLOR, zeroClampBorder);
 			break;
 
 		case WT_ALPHA_ZERO_CLAMP:
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			qglTexParameterfv(image->type, GL_TEXTURE_BORDER_COLOR, alphaZeroClampBorder);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			glTexParameterfv(image->type, GL_TEXTURE_BORDER_COLOR, alphaZeroClampBorder);
 			break;
 
 		default:
 			ri.Printf(PRINT_WARNING, "WARNING: unknown wrap type for image '%s'\n", image->name);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			break;
 	}
 
@@ -1494,7 +1494,7 @@ image_t        *R_AllocImage(const char *name, qboolean linkIntoHashTable)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglGenTextures(1, &image->texnum);
+	glGenTextures(1, &image->texnum);
 #endif
 
 	Com_AddToGrowList(&tr.images, image);
@@ -1552,7 +1552,7 @@ image_t        *R_CreateImage(const char *name,
 	// TODO
 #else
 	//GL_Unbind();
-	qglBindTexture(image->type, 0);
+	glBindTexture(image->type, 0);
 #endif
 
 	return image;
@@ -1597,7 +1597,7 @@ image_t        *R_CreateCubeImage(const char *name,
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglBindTexture(image->type, 0);
+	glBindTexture(image->type, 0);
 #endif
 
 	return image;
@@ -3347,7 +3347,7 @@ void R_ShutdownImages(void)
 #if defined(USE_D3D10)
 		// TODO
 #else
-		qglDeleteTextures(1, &image->texnum);
+		glDeleteTextures(1, &image->texnum);
 #endif
 	}
 
@@ -3355,19 +3355,19 @@ void R_ShutdownImages(void)
 	// TODO
 #else
 	Com_Memset(glState.currenttextures, 0, sizeof(glState.currenttextures));
-	if(qglBindTexture)
+	if(glBindTexture)
 	{
-		if(qglActiveTextureARB)
+		if(glActiveTextureARB)
 		{
 			for(i = 8 - 1; i >= 0; i--)
 			{
 				GL_SelectTexture(i);
-				qglBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 		}
 		else
 		{
-			qglBindTexture(GL_TEXTURE_2D, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
 #endif

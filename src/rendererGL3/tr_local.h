@@ -42,7 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <SDL_syswm.h>
 #include <SDL_thread.h>
 #else
-#include "qgl.h"
+#include <GL/glew.h>
 #endif
 
 
@@ -1490,7 +1490,7 @@ static ID_INLINE void GLSL_SetUniform_ColorTextureMatrix(shaderProgram_t * progr
 	MatrixCopy(m, program->t_ColorTextureMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ColorTextureMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_ColorTextureMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_DiffuseTextureMatrix(shaderProgram_t * program, const matrix_t m)
@@ -1502,7 +1502,7 @@ static ID_INLINE void GLSL_SetUniform_DiffuseTextureMatrix(shaderProgram_t * pro
 	MatrixCopy(m, program->t_DiffuseTextureMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_DiffuseTextureMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_DiffuseTextureMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_NormalTextureMatrix(shaderProgram_t * program, const matrix_t m)
@@ -1514,7 +1514,7 @@ static ID_INLINE void GLSL_SetUniform_NormalTextureMatrix(shaderProgram_t * prog
 	MatrixCopy(m, program->t_NormalTextureMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_NormalTextureMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_NormalTextureMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_SpecularTextureMatrix(shaderProgram_t * program, const matrix_t m)
@@ -1526,7 +1526,7 @@ static ID_INLINE void GLSL_SetUniform_SpecularTextureMatrix(shaderProgram_t * pr
 	MatrixCopy(m, program->t_SpecularTextureMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_SpecularTextureMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_SpecularTextureMatrix, 1, GL_FALSE, m);
 }
 
 
@@ -1571,7 +1571,7 @@ static ID_INLINE void GLSL_SetUniform_AlphaTest(shaderProgram_t * program, uint3
 	program->t_AlphaTest = value;
 #endif
 
-	qglUniform1iARB(program->u_AlphaTest, value);
+	glUniform1iARB(program->u_AlphaTest, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ViewOrigin(shaderProgram_t * program, const vec3_t v)
@@ -1590,7 +1590,7 @@ static ID_INLINE void GLSL_SetUniform_ViewOrigin(shaderProgram_t * program, cons
 	}
 #endif
 
-	qglUniform3fARB(program->u_ViewOrigin, v[0], v[1], v[2]);
+	glUniform3fARB(program->u_ViewOrigin, v[0], v[1], v[2]);
 }
 
 static ID_INLINE void GLSL_SetUniform_TCGen_Environment(shaderProgram_t * program, qboolean value)
@@ -1609,7 +1609,7 @@ static ID_INLINE void GLSL_SetUniform_TCGen_Environment(shaderProgram_t * progra
 	}
 #endif
 
-	qglUniform1iARB(program->u_TCGen_Environment, value);
+	glUniform1iARB(program->u_TCGen_Environment, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_DeformGen(shaderProgram_t * program, deformGen_t value)
@@ -1628,7 +1628,7 @@ static ID_INLINE void GLSL_SetUniform_DeformGen(shaderProgram_t * program, defor
 	}
 #endif
 
-	qglUniform1iARB(program->u_DeformGen, value);
+	glUniform1iARB(program->u_DeformGen, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_DeformWave(shaderProgram_t * program, const waveForm_t * wf)
@@ -1651,7 +1651,7 @@ static ID_INLINE void GLSL_SetUniform_DeformWave(shaderProgram_t * program, cons
 	}
 #endif
 
-	qglUniform4fARB(program->u_DeformWave, v[0], v[1], v[2], v[3]);
+	glUniform4fARB(program->u_DeformWave, v[0], v[1], v[2], v[3]);
 }
 
 static ID_INLINE void GLSL_SetUniform_DeformBulge(shaderProgram_t * program, const deformStage_t * ds)
@@ -1674,7 +1674,7 @@ static ID_INLINE void GLSL_SetUniform_DeformBulge(shaderProgram_t * program, con
 	}
 #endif
 
-	qglUniform3fARB(program->u_DeformBulge, v[0], v[1], v[2]);
+	glUniform3fARB(program->u_DeformBulge, v[0], v[1], v[2]);
 }
 
 static ID_INLINE void GLSL_SetUniform_DeformSpread(shaderProgram_t * program, float value)
@@ -1693,7 +1693,7 @@ static ID_INLINE void GLSL_SetUniform_DeformSpread(shaderProgram_t * program, fl
 	}
 #endif
 
-	qglUniform1fARB(program->u_DeformSpread, value);
+	glUniform1fARB(program->u_DeformSpread, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ColorGen(shaderProgram_t * program, colorGen_t value)
@@ -1723,7 +1723,7 @@ static ID_INLINE void GLSL_SetUniform_ColorGen(shaderProgram_t * program, colorG
 	program->t_ColorGen = floatValue;
 #endif
 
-	qglUniform1fARB(program->u_ColorGen, floatValue);
+	glUniform1fARB(program->u_ColorGen, floatValue);
 #else
 #if defined(USE_UNIFORM_FIREWALL)
 	if(program->t_ColorGen == value)
@@ -1739,7 +1739,7 @@ static ID_INLINE void GLSL_SetUniform_ColorGen(shaderProgram_t * program, colorG
 	}
 #endif
 
-	qglUniform1iARB(program->u_ColorGen, value);
+	glUniform1iARB(program->u_ColorGen, value);
 #endif
 }
 
@@ -1770,7 +1770,7 @@ static ID_INLINE void GLSL_SetUniform_AlphaGen(shaderProgram_t * program, alphaG
 	program->t_AlphaGen = floatValue;
 #endif
 
-	qglUniform1fARB(program->u_AlphaGen, floatValue);
+	glUniform1fARB(program->u_AlphaGen, floatValue);
 
 #else
 #if defined(USE_UNIFORM_FIREWALL)
@@ -1787,7 +1787,7 @@ static ID_INLINE void GLSL_SetUniform_AlphaGen(shaderProgram_t * program, alphaG
 	}
 #endif
 
-	qglUniform1iARB(program->u_AlphaGen, value);
+	glUniform1iARB(program->u_AlphaGen, value);
 #endif
 }
 
@@ -1807,7 +1807,7 @@ static ID_INLINE void GLSL_SetUniform_Color(shaderProgram_t * program, const vec
 	}
 #endif
 
-	qglUniform4fARB(program->u_Color, v[0], v[1], v[2], v[3]);
+	glUniform4fARB(program->u_Color, v[0], v[1], v[2], v[3]);
 }
 
 static ID_INLINE void GLSL_SetUniform_AmbientColor(shaderProgram_t * program, const vec3_t v)
@@ -1826,7 +1826,7 @@ static ID_INLINE void GLSL_SetUniform_AmbientColor(shaderProgram_t * program, co
 	}
 #endif
 
-	qglUniform3fARB(program->u_AmbientColor, v[0], v[1], v[2]);
+	glUniform3fARB(program->u_AmbientColor, v[0], v[1], v[2]);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightDir(shaderProgram_t * program, const vec3_t v)
@@ -1845,7 +1845,7 @@ static ID_INLINE void GLSL_SetUniform_LightDir(shaderProgram_t * program, const 
 	}
 #endif
 
-	qglUniform3fARB(program->u_LightDir, v[0], v[1], v[2]);
+	glUniform3fARB(program->u_LightDir, v[0], v[1], v[2]);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightOrigin(shaderProgram_t * program, const vec3_t v)
@@ -1864,7 +1864,7 @@ static ID_INLINE void GLSL_SetUniform_LightOrigin(shaderProgram_t * program, con
 	}
 #endif
 
-	qglUniform3fARB(program->u_LightOrigin, v[0], v[1], v[2]);
+	glUniform3fARB(program->u_LightOrigin, v[0], v[1], v[2]);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightColor(shaderProgram_t * program, const vec3_t v)
@@ -1883,7 +1883,7 @@ static ID_INLINE void GLSL_SetUniform_LightColor(shaderProgram_t * program, cons
 	}
 #endif
 
-	qglUniform3fARB(program->u_LightColor, v[0], v[1], v[2]);
+	glUniform3fARB(program->u_LightColor, v[0], v[1], v[2]);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightRadius(shaderProgram_t * program, float value)
@@ -1902,7 +1902,7 @@ static ID_INLINE void GLSL_SetUniform_LightRadius(shaderProgram_t * program, flo
 	}
 #endif
 
-	qglUniform1fARB(program->u_LightRadius, value);
+	glUniform1fARB(program->u_LightRadius, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightParallel(shaderProgram_t * program, qboolean value)
@@ -1921,7 +1921,7 @@ static ID_INLINE void GLSL_SetUniform_LightParallel(shaderProgram_t * program, q
 	}
 #endif
 
-	qglUniform1iARB(program->u_LightParallel, value);
+	glUniform1iARB(program->u_LightParallel, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightScale(shaderProgram_t * program, float value)
@@ -1948,7 +1948,7 @@ static ID_INLINE void GLSL_SetUniform_LightScale(shaderProgram_t * program, floa
 	}
 #endif
 
-	qglUniform1fARB(program->u_LightScale, value);
+	glUniform1fARB(program->u_LightScale, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightWrapAround(shaderProgram_t * program, float value)
@@ -1967,7 +1967,7 @@ static ID_INLINE void GLSL_SetUniform_LightWrapAround(shaderProgram_t * program,
 	}
 #endif
 
-	qglUniform1fARB(program->u_LightWrapAround, value);
+	glUniform1fARB(program->u_LightWrapAround, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_LightAttenuationMatrix(shaderProgram_t * program, const matrix_t m)
@@ -1979,7 +1979,7 @@ static ID_INLINE void GLSL_SetUniform_LightAttenuationMatrix(shaderProgram_t * p
 	MatrixCopy(m, program->t_LightAttenuationMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_LightAttenuationMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_LightAttenuationMatrix, 1, GL_FALSE, m);
 }
 
 /*
@@ -1991,7 +1991,7 @@ static ID_INLINE void GLSL_SetUniform_LightFrustum(shaderProgram_t * program, ve
 		return;
 #endif
 
-	qglUniform4fvARB(tr.deferredLightingShader_DBS_omni.u_LightFrustum, 6, &lightFrustum[0][0]);
+	glUniform4fvARB(tr.deferredLightingShader_DBS_omni.u_LightFrustum, 6, &lightFrustum[0][0]);
 }
 */
 
@@ -2030,7 +2030,7 @@ static ID_INLINE void GLSL_SetUniform_ShadowMatrix(shaderProgram_t * program, ma
 	}
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ShadowMatrix, MAX_SHADOWMAPS, GL_FALSE, &m[0][0]);
+	glUniformMatrix4fvARB(program->u_ShadowMatrix, MAX_SHADOWMAPS, GL_FALSE, &m[0][0]);
 }
 
 static ID_INLINE void GLSL_SetUniform_ShadowCompare(shaderProgram_t * program, qboolean value)
@@ -2049,7 +2049,7 @@ static ID_INLINE void GLSL_SetUniform_ShadowCompare(shaderProgram_t * program, q
 	}
 #endif
 
-	qglUniform1iARB(program->u_ShadowCompare, value);
+	glUniform1iARB(program->u_ShadowCompare, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ShadowTexelSize(shaderProgram_t * program, float value)
@@ -2068,7 +2068,7 @@ static ID_INLINE void GLSL_SetUniform_ShadowTexelSize(shaderProgram_t * program,
 	}
 #endif
 
-	qglUniform1fARB(program->u_ShadowTexelSize, value);
+	glUniform1fARB(program->u_ShadowTexelSize, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ShadowBlur(shaderProgram_t * program, float value)
@@ -2087,7 +2087,7 @@ static ID_INLINE void GLSL_SetUniform_ShadowBlur(shaderProgram_t * program, floa
 	}
 #endif
 
-	qglUniform1fARB(program->u_ShadowBlur, value);
+	glUniform1fARB(program->u_ShadowBlur, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ShadowParallelSplitDistances(shaderProgram_t * program, const vec4_t v)
@@ -2106,7 +2106,7 @@ static ID_INLINE void GLSL_SetUniform_ShadowParallelSplitDistances(shaderProgram
 	}
 #endif
 
-	qglUniform4fARB(program->u_ShadowParallelSplitDistances, v[0], v[1], v[2], v[3]);
+	glUniform4fARB(program->u_ShadowParallelSplitDistances, v[0], v[1], v[2], v[3]);
 }
 
 static ID_INLINE void GLSL_SetUniform_RefractionIndex(shaderProgram_t * program, float value)
@@ -2125,7 +2125,7 @@ static ID_INLINE void GLSL_SetUniform_RefractionIndex(shaderProgram_t * program,
 	}
 #endif
 
-	qglUniform1fARB(program->u_RefractionIndex, value);
+	glUniform1fARB(program->u_RefractionIndex, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ParallaxMapping(shaderProgram_t * program, qboolean value)
@@ -2144,7 +2144,7 @@ static ID_INLINE void GLSL_SetUniform_ParallaxMapping(shaderProgram_t * program,
 	}
 #endif
 
-	qglUniform1iARB(program->u_ParallaxMapping, value);
+	glUniform1iARB(program->u_ParallaxMapping, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_DepthScale(shaderProgram_t * program, float value)
@@ -2163,7 +2163,7 @@ static ID_INLINE void GLSL_SetUniform_DepthScale(shaderProgram_t * program, floa
 	}
 #endif
 
-	qglUniform1fARB(program->u_DepthScale, value);
+	glUniform1fARB(program->u_DepthScale, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_PortalClipping(shaderProgram_t * program, qboolean value)
@@ -2182,7 +2182,7 @@ static ID_INLINE void GLSL_SetUniform_PortalClipping(shaderProgram_t * program, 
 	}
 #endif
 
-	qglUniform1iARB(program->u_PortalClipping, value);
+	glUniform1iARB(program->u_PortalClipping, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_PortalPlane(shaderProgram_t * program, const vec4_t v)
@@ -2201,7 +2201,7 @@ static ID_INLINE void GLSL_SetUniform_PortalPlane(shaderProgram_t * program, con
 	}
 #endif
 
-	qglUniform4fARB(program->u_PortalPlane, v[0], v[1], v[2], v[3]);
+	glUniform4fARB(program->u_PortalPlane, v[0], v[1], v[2], v[3]);
 }
 
 static ID_INLINE void GLSL_SetUniform_PortalRange(shaderProgram_t * program, float value)
@@ -2220,7 +2220,7 @@ static ID_INLINE void GLSL_SetUniform_PortalRange(shaderProgram_t * program, flo
 	}
 #endif
 
-	qglUniform1fARB(program->u_PortalRange, value);
+	glUniform1fARB(program->u_PortalRange, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_ModelMatrix(shaderProgram_t * program, const matrix_t m)
@@ -2249,7 +2249,7 @@ static ID_INLINE void GLSL_SetUniform_ModelMatrix(shaderProgram_t * program, con
 	}
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ModelMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_ModelMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_ViewMatrix(shaderProgram_t * program, const matrix_t m)
@@ -2261,7 +2261,7 @@ static ID_INLINE void GLSL_SetUniform_ViewMatrix(shaderProgram_t * program, cons
 	MatrixCopy(m, program->t_ViewMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ViewMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_ViewMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_ModelViewMatrix(shaderProgram_t * program, const matrix_t m)
@@ -2273,7 +2273,7 @@ static ID_INLINE void GLSL_SetUniform_ModelViewMatrix(shaderProgram_t * program,
 	MatrixCopy(m, program->t_ModelViewMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ModelViewMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_ModelViewMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_ModelViewMatrixTranspose(shaderProgram_t * program, const matrix_t m)
@@ -2285,7 +2285,7 @@ static ID_INLINE void GLSL_SetUniform_ModelViewMatrixTranspose(shaderProgram_t *
 	MatrixCopy(m, program->t_ModelViewMatrixTranspose);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ModelViewMatrixTranspose, 1, GL_TRUE, m);
+	glUniformMatrix4fvARB(program->u_ModelViewMatrixTranspose, 1, GL_TRUE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_ProjectionMatrix(shaderProgram_t * program, const matrix_t m)
@@ -2297,7 +2297,7 @@ static ID_INLINE void GLSL_SetUniform_ProjectionMatrix(shaderProgram_t * program
 	MatrixCopy(m, program->t_ProjectionMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ProjectionMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_ProjectionMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_ProjectionMatrixTranspose(shaderProgram_t * program, const matrix_t m)
@@ -2309,7 +2309,7 @@ static ID_INLINE void GLSL_SetUniform_ProjectionMatrixTranspose(shaderProgram_t 
 	MatrixCopy(m, program->t_ProjectionMatrixTranspose);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ProjectionMatrixTranspose, 1, GL_TRUE, m);
+	glUniformMatrix4fvARB(program->u_ProjectionMatrixTranspose, 1, GL_TRUE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_ModelViewProjectionMatrix(shaderProgram_t * program, const matrix_t m)
@@ -2338,7 +2338,7 @@ static ID_INLINE void GLSL_SetUniform_ModelViewProjectionMatrix(shaderProgram_t 
 	}
 #endif
 
-	qglUniformMatrix4fvARB(program->u_ModelViewProjectionMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_ModelViewProjectionMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_UnprojectMatrix(shaderProgram_t * program, const matrix_t m)
@@ -2350,7 +2350,7 @@ static ID_INLINE void GLSL_SetUniform_UnprojectMatrix(shaderProgram_t * program,
 	MatrixCopy(m, program->t_UnprojectMatrix);
 #endif
 
-	qglUniformMatrix4fvARB(program->u_UnprojectMatrix, 1, GL_FALSE, m);
+	glUniformMatrix4fvARB(program->u_UnprojectMatrix, 1, GL_FALSE, m);
 }
 
 static ID_INLINE void GLSL_SetUniform_VertexSkinning(shaderProgram_t * program, qboolean value)
@@ -2369,7 +2369,7 @@ static ID_INLINE void GLSL_SetUniform_VertexSkinning(shaderProgram_t * program, 
 	}
 #endif
 
-	qglUniform1iARB(program->u_VertexSkinning, value);
+	glUniform1iARB(program->u_VertexSkinning, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_Time(shaderProgram_t * program, float value)
@@ -2388,7 +2388,7 @@ static ID_INLINE void GLSL_SetUniform_Time(shaderProgram_t * program, float valu
 	}
 #endif
 
-	qglUniform1fARB(program->u_Time, value);
+	glUniform1fARB(program->u_Time, value);
 }
 
 // *INDENT-ON*
@@ -3895,7 +3895,6 @@ extern cvar_t  *r_colorMipLevels;	// development aid to see texture mip usage
 extern cvar_t  *r_picmip;		// controls picmip values
 extern cvar_t  *r_finish;
 extern cvar_t  *r_drawBuffer;
-extern cvar_t  *r_glDriver;
 extern cvar_t  *r_swapInterval;
 extern cvar_t  *r_textureMode;
 extern cvar_t  *r_offsetFactor;

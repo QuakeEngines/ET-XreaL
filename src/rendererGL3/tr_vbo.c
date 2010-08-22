@@ -78,12 +78,12 @@ VBO_t          *R_CreateVBO(const char *name, byte * vertexes, int vertexesSize,
 
 	vbo->vertexesSize = vertexesSize;
 
-	qglGenBuffersARB(1, &vbo->vertexesVBO);
+	glGenBuffersARB(1, &vbo->vertexesVBO);
 
-	qglBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
-	qglBufferDataARB(GL_ARRAY_BUFFER_ARB, vertexesSize, vertexes, glUsage);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, vertexesSize, vertexes, glUsage);
 
-	qglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	GL_CheckErrors();
 
@@ -312,12 +312,12 @@ VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * vert
 
 	vbo->vertexesSize = dataSize;
 
-	qglGenBuffersARB(1, &vbo->vertexesVBO);
+	glGenBuffersARB(1, &vbo->vertexesVBO);
 
-	qglBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
-	qglBufferDataARB(GL_ARRAY_BUFFER_ARB, dataSize, data, glUsage);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, dataSize, data, glUsage);
 
-	qglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	GL_CheckErrors();
 
@@ -371,12 +371,12 @@ IBO_t          *R_CreateIBO(const char *name, byte * indexes, int indexesSize, v
 
 	ibo->indexesSize = indexesSize;
 
-	qglGenBuffersARB(1, &ibo->indexesVBO);
+	glGenBuffersARB(1, &ibo->indexesVBO);
 
-	qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
-	qglBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexesSize, indexes, glUsage);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexesSize, indexes, glUsage);
 
-	qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
 	GL_CheckErrors();
 
@@ -452,12 +452,12 @@ IBO_t          *R_CreateIBO2(const char *name, int numTriangles, srfTriangle_t *
 
 	ibo->indexesSize = indexesSize;
 
-	qglGenBuffersARB(1, &ibo->indexesVBO);
+	glGenBuffersARB(1, &ibo->indexesVBO);
 
-	qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
-	qglBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexesSize, indexes, glUsage);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexesSize, indexes, glUsage);
 
-	qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
 	GL_CheckErrors();
 
@@ -495,7 +495,7 @@ void R_BindVBO(VBO_t * vbo)
 		glState.currentVBO = vbo;
 		glState.vertexAttribPointersSet = 0;
 
-		qglBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
 
 		backEnd.pc.c_vboVertexBuffers++;
 	}
@@ -516,7 +516,7 @@ void R_BindNullVBO(void)
 #else
 	if(glState.currentVBO)
 	{
-		qglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glState.currentVBO = NULL;
 	}
 
@@ -549,7 +549,7 @@ void R_BindIBO(IBO_t * ibo)
 #else
 	if(glState.currentIBO != ibo)
 	{
-		qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
 
 		glState.currentIBO = ibo;
 
@@ -572,7 +572,7 @@ void R_BindNullIBO(void)
 #else
 	if(glState.currentIBO)
 	{
-		qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		glState.currentIBO = NULL;
 		glState.vertexAttribPointersSet = 0;
 	}
@@ -659,7 +659,7 @@ void R_ShutdownVBOs(void)
 #else
 		if(vbo->vertexesVBO)
 		{
-			qglDeleteBuffersARB(1, &vbo->vertexesVBO);
+			glDeleteBuffersARB(1, &vbo->vertexesVBO);
 		}
 #endif
 	}
@@ -673,7 +673,7 @@ void R_ShutdownVBOs(void)
 #else
 		if(ibo->indexesVBO)
 		{
-			qglDeleteBuffersARB(1, &ibo->indexesVBO);
+			glDeleteBuffersARB(1, &ibo->indexesVBO);
 		}
 #endif
 	}
@@ -695,7 +695,7 @@ void R_ShutdownVBOs(void)
 #else
 				if(ibo->indexesVBO)
 				{
-					qglDeleteBuffersARB(1, &ibo->indexesVBO);
+					glDeleteBuffersARB(1, &ibo->indexesVBO);
 				}
 #endif
 			}

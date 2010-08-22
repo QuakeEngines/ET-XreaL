@@ -436,7 +436,7 @@ static void R_UploadEncodedImageDirect(GLenum target, int level, GLenum format, 
 	int             x, y;
 	byte            block[4][4][4];	//y, x, rgba
 
-	qglTexImage2D(target, level, int_fmat, width, height, 0, GL_RGBA, GL_BYTE, NULL);
+	glTexImage2D(target, level, int_fmat, width, height, 0, GL_RGBA, GL_BYTE, NULL);
 
 	//decode the data
 	for(y = 0; y < height; y += 4)
@@ -452,7 +452,7 @@ static void R_UploadEncodedImageDirect(GLenum target, int level, GLenum format, 
 				uh = 4;
 
 			decoder(block, x, y, format, width, height, data);
-			qglTexSubImage2D(target, level, x, y, uw, uh, GL_RGBA, GL_UNSIGNED_BYTE, block);
+			glTexSubImage2D(target, level, x, y, uw, uh, GL_RGBA, GL_UNSIGNED_BYTE, block);
 		}
 	}
 }
@@ -464,7 +464,7 @@ static void R_UploadCompressedImage2D(image_t * img, GLenum target, int level, G
 
 	if(glConfig2.ARBTextureCompressionAvailable && glConfig.textureCompression == TC_S3TC)
 	{
-		qglCompressedTexImage2DARB(target, level, format, width, height, 0, size, data);
+		glCompressedTexImage2DARB(target, level, format, width, height, 0, size, data);
 		return;
 	}
 
@@ -542,7 +542,7 @@ static void R_UploadImage2D(image_t * img, GLenum target, int level, GLenum int_
 		return;
 	}
 */
-	qglTexImage2D(target, level, int_fmat, width, height, 0, format, type, data);
+	glTexImage2D(target, level, int_fmat, width, height, 0, format, type, data);
 }
 
 image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits, filterType_t filterType, wrapType_t wrapType)
@@ -923,11 +923,11 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 		GL_Bind(ret);
 
 		if(filterType == FT_DEFAULT && mipLevels == 1 && glConfig2.generateMipmapAvailable)
-			qglTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+			glTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 
 		for(i = 0; i < mipLevels; i++)
 		{
-			qglTexImage3DEXT(GL_TEXTURE_3D_EXT, i, internal_format, w, h, d, 0, format, type, mipOffsets[i]);
+			glTexImage3DEXT(GL_TEXTURE_3D_EXT, i, internal_format, w, h, d, 0, format, type, mipOffsets[i]);
 
 			w >>= 1;
 			if(w == 0)
@@ -986,7 +986,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 			mipOffsets[ i ] += shift
 
 		if(filterType == FT_DEFAULT && mipLevels == 1 && glConfig2.generateMipmapAvailable)
-			qglTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+			glTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 
 		//the faces are stored in the order +x, -x, +y, -y, +z, -z
 		//but there may be missing faces in the sequence which we cannot upload
@@ -1060,7 +1060,7 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 		GL_Bind(ret);
 
 		if(filterType == FT_DEFAULT && mipLevels == 1)
-			qglTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+			glTexParameteri(ret->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 
 		for(i = 0; i < mipLevels; i++)
 		{
@@ -1094,26 +1094,26 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 		case FT_DEFAULT:
 			// set texture anisotropy
 			if(glConfig2.textureAnisotropyAvailable)
-				qglTexParameterf(ret->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
+				glTexParameterf(ret->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 
-			qglTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			qglTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			glTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			glTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 			break;
 
 		case FT_LINEAR:
-			qglTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			qglTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
 
 		case FT_NEAREST:
-			qglTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			qglTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			break;
 
 		default:
 			ri.Printf(PRINT_WARNING, "WARNING: unknown filter type for image '%s'\n", ret->name);
-			qglTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			qglTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(ret->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(ret->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
 	}
 
@@ -1124,43 +1124,43 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 	switch (wrapType)
 	{
 		case WT_REPEAT:
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			break;
 
 		case WT_CLAMP:
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			break;
 
 		case WT_EDGE_CLAMP:
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			break;
 
 		case WT_ZERO_CLAMP:
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			qglTexParameterfv(ret->type, GL_TEXTURE_BORDER_COLOR, zeroClampBorder);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			glTexParameterfv(ret->type, GL_TEXTURE_BORDER_COLOR, zeroClampBorder);
 			break;
 
 		case WT_ALPHA_ZERO_CLAMP:
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			qglTexParameterfv(ret->type, GL_TEXTURE_BORDER_COLOR, alphaZeroClampBorder);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			glTexParameterfv(ret->type, GL_TEXTURE_BORDER_COLOR, alphaZeroClampBorder);
 			break;
 
 		default:
 			ri.Printf(PRINT_WARNING, "WARNING: unknown wrap type for image '%s'\n", ret->name);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			qglTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			break;
 	}
 
 	GL_CheckErrors();
 
 	//GL_Unbind();
-	qglBindTexture(ret->type, 0);
+	glBindTexture(ret->type, 0);
 
   ret_error:
 	return ret;

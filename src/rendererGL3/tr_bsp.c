@@ -778,31 +778,31 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 					image->uploadWidth = width;
 					image->uploadHeight = height;
 
-					qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F_ARB, width, height, 0, GL_RGB, GL_HALF_FLOAT_ARB, hdrImage);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F_ARB, width, height, 0, GL_RGB, GL_HALF_FLOAT_ARB, hdrImage);
 
 					if(glConfig2.generateMipmapAvailable)
 					{
-						//qglHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);    // make sure its nice
-						qglTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-						qglTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);   // default to trilinear
+						//glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);    // make sure its nice
+						glTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+						glTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);   // default to trilinear
 					}
 
 #if 0
 					if(glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10)
 					{
-						qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-						qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+						glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+						glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 					}
 					else
 #endif
 					{
-						qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-						qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+						glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+						glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 					}
-					qglTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
-					qglTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
+					glTexParameterf(image->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
+					glTexParameterf(image->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-					qglBindTexture(image->type, 0);
+					glBindTexture(image->type, 0);
 
 					GL_CheckErrors();
 
@@ -5001,7 +5001,7 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 		InitLink(&out->occlusionQuery2, out);
 		//QueueInit(&node->multiQuery);
 
-		qglGenQueriesARB(MAX_VIEWS, out->occlusionQueryObjects);
+		glGenQueriesARB(MAX_VIEWS, out->occlusionQueryObjects);
 
 		tess.numIndexes = 0;
 		tess.numVertexes = 0;
@@ -8834,7 +8834,7 @@ void R_BuildCubeMaps(void)
 
 		R_UploadImage((const byte **)tr.cubeTemp, 6, cubeProbe->cubemap);
 
-		qglBindTexture(cubeProbe->cubemap->type, 0);
+		glBindTexture(cubeProbe->cubemap->type, 0);
 #endif
 	}
 	ri.Printf(PRINT_ALL, "\n");

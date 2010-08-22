@@ -37,14 +37,14 @@ qboolean R_CheckFBO(const FBO_t * fbo)
 	int             code;
 	int             id;
 
-	qglGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &id);
-	qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->frameBuffer);
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &id);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->frameBuffer);
 
-	code = qglCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	code = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 
 	if(code == GL_FRAMEBUFFER_COMPLETE_EXT)
 	{
-		qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, id);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, id);
 		return qtrue;
 	}
 
@@ -95,7 +95,7 @@ qboolean R_CheckFBO(const FBO_t * fbo)
 			break;
 	}
 
-	qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, id);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, id);
 
 	return qfalse;
 #endif
@@ -140,7 +140,7 @@ FBO_t          *R_CreateFBO(const char *name, int width, int height)
 	fbo->width = width;
 	fbo->height = height;
 
-	qglGenFramebuffersEXT(1, &fbo->frameBuffer);
+	glGenFramebuffersEXT(1, &fbo->frameBuffer);
 
 	return fbo;
 #endif
@@ -180,13 +180,13 @@ void R_CreateFBOColorBuffer(FBO_t * fbo, int format, int index)
 
 	absent = fbo->colorBuffers[index] == 0;
 	if(absent)
-		qglGenRenderbuffersEXT(1, &fbo->colorBuffers[index]);
+		glGenRenderbuffersEXT(1, &fbo->colorBuffers[index]);
 
-	qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->colorBuffers[index]);
-	qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, format, fbo->width, fbo->height);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->colorBuffers[index]);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, format, fbo->width, fbo->height);
 
 	if(absent)
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, GL_RENDERBUFFER_EXT,
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, GL_RENDERBUFFER_EXT,
 									  fbo->colorBuffers[index]);
 
 	GL_CheckErrors();
@@ -216,13 +216,13 @@ void R_CreateFBODepthBuffer(FBO_t * fbo, int format)
 
 	absent = fbo->depthBuffer == 0;
 	if(absent)
-		qglGenRenderbuffersEXT(1, &fbo->depthBuffer);
+		glGenRenderbuffersEXT(1, &fbo->depthBuffer);
 
-	qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->depthBuffer);
-	qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, fbo->depthFormat, fbo->width, fbo->height);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->depthBuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, fbo->depthFormat, fbo->width, fbo->height);
 
 	if(absent)
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->depthBuffer);
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->depthBuffer);
 
 	GL_CheckErrors();
 #endif
@@ -253,14 +253,14 @@ void R_CreateFBOStencilBuffer(FBO_t * fbo, int format)
 
 	absent = fbo->stencilBuffer == 0;
 	if(absent)
-		qglGenRenderbuffersEXT(1, &fbo->stencilBuffer);
+		glGenRenderbuffersEXT(1, &fbo->stencilBuffer);
 
-	qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->stencilBuffer);
-	qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, fbo->stencilFormat, fbo->width, fbo->height);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->stencilBuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, fbo->stencilFormat, fbo->width, fbo->height);
 	GL_CheckErrors();
 
 	if(absent)
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->stencilBuffer);
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->stencilBuffer);
 
 	GL_CheckErrors();
 #endif
@@ -288,17 +288,17 @@ void R_CreateFBOPackedDepthStencilBuffer(FBO_t * fbo, int format)
 
 	absent = fbo->packedDepthStencilBuffer == 0;
 	if(absent)
-		qglGenRenderbuffersEXT(1, &fbo->packedDepthStencilBuffer);
+		glGenRenderbuffersEXT(1, &fbo->packedDepthStencilBuffer);
 
-	qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->packedDepthStencilBuffer);
-	qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, fbo->packedDepthStencilFormat, fbo->width, fbo->height);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->packedDepthStencilBuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, fbo->packedDepthStencilFormat, fbo->width, fbo->height);
 	GL_CheckErrors();
 
 	if(absent)
 	{
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  fbo->packedDepthStencilBuffer);
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  fbo->packedDepthStencilBuffer);
 	}
 
@@ -323,7 +323,7 @@ void R_AttachFBOTexture1D(int texId, int index)
 		return;
 	}
 
-	qglFramebufferTexture1DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, GL_TEXTURE_1D, texId, 0);
+	glFramebufferTexture1DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, GL_TEXTURE_1D, texId, 0);
 #endif
 }
 
@@ -349,7 +349,7 @@ void R_AttachFBOTexture2D(int target, int texId, int index)
 		return;
 	}
 
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, target, texId, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, target, texId, 0);
 #endif
 }
 
@@ -369,7 +369,7 @@ void R_AttachFBOTexture3D(int texId, int index, int zOffset)
 		return;
 	}
 
-	qglFramebufferTexture3DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, GL_TEXTURE_3D_EXT, texId, 0, zOffset);
+	glFramebufferTexture3DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + index, GL_TEXTURE_3D_EXT, texId, 0, zOffset);
 #endif
 }
 
@@ -383,7 +383,7 @@ void R_AttachFBOTextureDepth(int texId)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texId, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texId, 0);
 #endif
 }
 
@@ -397,8 +397,8 @@ void R_AttachFBOTexturePackedDepthStencil(int texId)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texId, 0);
-	qglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, texId, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texId, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, texId, 0);
 #endif
 }
 
@@ -426,20 +426,20 @@ void R_BindFBO(FBO_t * fbo)
 
 	if(glState.currentFBO != fbo)
 	{
-		qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->frameBuffer);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->frameBuffer);
 
 		/*
 		   if(fbo->colorBuffers[0])
 		   {
-		   qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->colorBuffers[0]);
+		   glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->colorBuffers[0]);
 		   }
 		 */
 
 		/*
 		   if(fbo->depthBuffer)
 		   {
-		   qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->depthBuffer);
-		   qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->depthBuffer);
+		   glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo->depthBuffer);
+		   glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->depthBuffer);
 		   }
 		 */
 
@@ -465,8 +465,8 @@ void R_BindNullFBO(void)
 
 	if(glState.currentFBO)
 	{
-		qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 		glState.currentFBO = NULL;
 	}
 #endif
@@ -565,7 +565,7 @@ void R_InitFBOs(void)
 		if(r_normalMapping->integer)
 		{
 			// enable all attachments as draw buffers
-			qglDrawBuffersARB(3, drawbuffers);
+			glDrawBuffersARB(3, drawbuffers);
 
 			R_CreateFBOColorBuffer(tr.geometricRenderFBO, GL_RGBA, 0);
 			R_AttachFBOTexture2D(GL_TEXTURE_2D, tr.deferredDiffuseFBOImage->texnum, 0);
@@ -579,7 +579,7 @@ void R_InitFBOs(void)
 		else
 		{
 			// only enable diffuse + normal
-			qglDrawBuffersARB(2, drawbuffers);
+			glDrawBuffersARB(2, drawbuffers);
 
 			R_CreateFBOColorBuffer(tr.geometricRenderFBO, GL_RGBA, 0);
 			R_AttachFBOTexture2D(GL_TEXTURE_2D, tr.deferredDiffuseFBOImage->texnum, 0);
@@ -592,10 +592,10 @@ void R_InitFBOs(void)
 		tr.geometricRenderFBO->depthFormat = tr.deferredRenderFBO->depthFormat;
 		tr.geometricRenderFBO->depthBuffer = tr.deferredRenderFBO->depthBuffer;
 
-		//qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthBuffer);
-		//qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthFormat, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height);
+		//glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthBuffer);
+		//glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthFormat, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height);
 
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  tr.geometricRenderFBO->depthBuffer);
 
 		if(glConfig2.framebufferPackedDepthStencilAvailable)
@@ -675,10 +675,10 @@ void R_InitFBOs(void)
 		tr.geometricRenderFBO->depthFormat = tr.deferredRenderFBO->depthFormat;
 		tr.geometricRenderFBO->depthBuffer = tr.deferredRenderFBO->depthBuffer;
 
-		//qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthBuffer);
-		//qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthFormat, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height);
+		//glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthBuffer);
+		//glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthFormat, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height);
 
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  tr.geometricRenderFBO->depthBuffer);
 
 		if(glConfig2.framebufferPackedDepthStencilAvailable)
@@ -707,10 +707,10 @@ void R_InitFBOs(void)
 		tr.lightRenderFBO->depthFormat = tr.deferredRenderFBO->depthFormat;
 		tr.lightRenderFBO->depthBuffer = tr.deferredRenderFBO->depthBuffer;
 
-		//qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthBuffer);
-		//qglRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthFormat, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height);
+		//glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthBuffer);
+		//glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, tr.deferredRenderFBO->depthFormat, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height);
 
-		qglFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
+		glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
 									  tr.lightRenderFBO->depthBuffer);
 
 		if(glConfig2.framebufferPackedDepthStencilAvailable)
@@ -1051,17 +1051,17 @@ void R_ShutdownFBOs(void)
 		for(j = 0; j < glConfig2.maxColorAttachments; j++)
 		{
 			if(fbo->colorBuffers[j])
-				qglDeleteRenderbuffersEXT(1, &fbo->colorBuffers[j]);
+				glDeleteRenderbuffersEXT(1, &fbo->colorBuffers[j]);
 		}
 
 		if(fbo->depthBuffer)
-			qglDeleteRenderbuffersEXT(1, &fbo->depthBuffer);
+			glDeleteRenderbuffersEXT(1, &fbo->depthBuffer);
 
 		if(fbo->stencilBuffer)
-			qglDeleteRenderbuffersEXT(1, &fbo->stencilBuffer);
+			glDeleteRenderbuffersEXT(1, &fbo->stencilBuffer);
 
 		if(fbo->frameBuffer)
-			qglDeleteFramebuffersEXT(1, &fbo->frameBuffer);
+			glDeleteFramebuffersEXT(1, &fbo->frameBuffer);
 #endif
 	}
 }

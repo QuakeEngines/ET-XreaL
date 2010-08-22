@@ -1141,7 +1141,7 @@ qboolean R_AddLightInteraction(trRefLight_t * light, surfaceType_t * surface, sh
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(r_shadows->integer == 3 && qglDepthBoundsEXT)
+	if(r_shadows->integer == 3 && glDepthBoundsEXT)
 	{
 		ia->depthNear = light->depthNear;
 		ia->depthFar = light->depthFar;
@@ -1535,7 +1535,7 @@ void R_SetupLightDepthBounds(trRefLight_t * light)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(r_shadows->integer == 3 && qglDepthBoundsEXT)
+	if(r_shadows->integer == 3 && glDepthBoundsEXT)
 	{
 		tr.pc.c_depthBoundsTestsRejected++;
 

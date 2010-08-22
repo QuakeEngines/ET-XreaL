@@ -43,8 +43,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\ft2\include;..\sdl\include;..\zlib"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;BUILD_FREETYPE;FT2_BUILD_LIBRARY"
+				AdditionalIncludeDirectories="..\ft2\include;..\sdl\include;..\zlib;..\glew\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=""
@@ -69,6 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="opengl32.lib"
 				OutputFile="../../rendererGL3.dll"
 				ModuleDefinitionFile="rendererGL3.def"
 				GenerateDebugInformation="true"
@@ -125,8 +126,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\freetype\include;..\sdl\include;..\zlib"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;BUILD_FREETYPE;FT2_BUILD_LIBRARY"
+				AdditionalIncludeDirectories="..\freetype\include;..\sdl\include;..\zlib;..\glew\include"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="false"
@@ -152,6 +153,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="opengl32.lib"
 				OutputFile="../../rendererGL3.dll"
 				ModuleDefinitionFile="rendererGL3.def"
 			/>
@@ -337,25 +339,13 @@
 				RelativePath="..\win32\win_gl3imp.c"
 				>
 			</File>
-			<File
-				RelativePath="..\win32\win_qgl3.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
 			<File
-				RelativePath=".\glext.h"
-				>
-			</File>
-			<File
 				RelativePath="..\game\q_shared.h"
-				>
-			</File>
-			<File
-				RelativePath=".\qgl.h"
 				>
 			</File>
 			<File
@@ -1118,6 +1108,30 @@
 					RelativePath="..\openexr\toFloat.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="glew"
+				>
+				<Filter
+					Name="Header Files"
+					>
+					<File
+						RelativePath="..\glew\include\GL\glew.h"
+						>
+					</File>
+					<File
+						RelativePath="..\glew\include\GL\wglew.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Source Files"
+					>
+					<File
+						RelativePath="..\glew\src\glew.c"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

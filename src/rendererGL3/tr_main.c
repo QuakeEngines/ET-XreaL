@@ -3072,23 +3072,23 @@ void R_DebugAxis(const vec3_t origin, const matrix_t transformMatrix)
 	VectorMA(origin, 16, up, up);
 
 	// draw axis
-	qglLineWidth(3);
-	qglBegin(GL_LINES);
+	glLineWidth(3);
+	glBegin(GL_LINES);
 
-	qglColor3f(1, 0, 0);
-	qglVertex3fv(origin);
-	qglVertex3fv(forward);
+	glColor3f(1, 0, 0);
+	glVertex3fv(origin);
+	glVertex3fv(forward);
 
-	qglColor3f(0, 1, 0);
-	qglVertex3fv(origin);
-	qglVertex3fv(left);
+	glColor3f(0, 1, 0);
+	glVertex3fv(origin);
+	glVertex3fv(left);
 
-	qglColor3f(0, 0, 1);
-	qglVertex3fv(origin);
-	qglVertex3fv(up);
+	glColor3f(0, 0, 1);
+	glVertex3fv(origin);
+	glVertex3fv(up);
 
-	qglEnd();
-	qglLineWidth(1);
+	glEnd();
+	glLineWidth(1);
 #endif
 }
 
@@ -3122,23 +3122,23 @@ void R_DebugBoundingBox(const vec3_t origin, const vec3_t mins, const vec3_t max
 		corners[4 + i][2] = origin[2] + mins[2];
 
 	// draw bounding box
-	qglBegin(GL_LINES);
-	qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, color);
+	glBegin(GL_LINES);
+	glVertexAttrib4fvARB(ATTR_INDEX_COLOR, color);
 	for(i = 0; i < 4; i++)
 	{
 		// top plane
-		qglVertex3fv(corners[i]);
-		qglVertex3fv(corners[(i + 1) & 3]);
+		glVertex3fv(corners[i]);
+		glVertex3fv(corners[(i + 1) & 3]);
 
 		// bottom plane
-		qglVertex3fv(corners[4 + i]);
-		qglVertex3fv(corners[4 + ((i + 1) & 3)]);
+		glVertex3fv(corners[4 + i]);
+		glVertex3fv(corners[4 + ((i + 1) & 3)]);
 
 		// vertical lines
-		qglVertex3fv(corners[i]);
-		qglVertex3fv(corners[4 + i]);
+		glVertex3fv(corners[i]);
+		glVertex3fv(corners[4 + i]);
 	}
-	qglEnd();
+	glEnd();
 #endif
 }
 
@@ -3157,25 +3157,25 @@ void R_DebugPolygon(int color, int numPoints, float *points)
 	GL_State(GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
 
 	// draw solid shade
-	qglColor3f(color & 1, (color >> 1) & 1, (color >> 2) & 1);
-	qglBegin(GL_POLYGON);
+	glColor3f(color & 1, (color >> 1) & 1, (color >> 2) & 1);
+	glBegin(GL_POLYGON);
 	for(i = 0; i < numPoints; i++)
 	{
-		qglVertex3fv(points + i * 3);
+		glVertex3fv(points + i * 3);
 	}
-	qglEnd();
+	glEnd();
 
 	// draw wireframe outline
 	GL_State(GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-	qglDepthRange(0, 0);
-	qglColor3f(1, 1, 1);
-	qglBegin(GL_POLYGON);
+	glDepthRange(0, 0);
+	glColor3f(1, 1, 1);
+	glBegin(GL_POLYGON);
 	for(i = 0; i < numPoints; i++)
 	{
-		qglVertex3fv(points + i * 3);
+		glVertex3fv(points + i * 3);
 	}
-	qglEnd();
-	qglDepthRange(0, 1);
+	glEnd();
+	glDepthRange(0, 1);
 #endif
 }
 
@@ -3189,20 +3189,20 @@ void R_DebugText(const vec3_t org, float r, float g, float b, const char *text, 
 #if 0
 	if(neverOcclude)
 	{
-		qglDepthRange(0, 0);	// never occluded
+		glDepthRange(0, 0);	// never occluded
 
 	}
-	qglColor3f(r, g, b);
-	qglRasterPos3fv(org);
-	qglPushAttrib(GL_LIST_BIT);
-	qglListBase(gl_NormalFontBase);
-	qglCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
-	qglListBase(0);
-	qglPopAttrib();
+	glColor3f(r, g, b);
+	glRasterPos3fv(org);
+	glPushAttrib(GL_LIST_BIT);
+	glListBase(gl_NormalFontBase);
+	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
+	glListBase(0);
+	glPopAttrib();
 
 	if(neverOcclude)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 #endif
 }

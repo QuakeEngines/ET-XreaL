@@ -56,7 +56,7 @@ void GL_Bind(image_t * image)
 	{
 		image->frameUsed = tr.frameCount;
 		glState.currenttextures[glState.currenttmu] = texnum;
-		qglBindTexture(image->type, texnum);
+		glBindTexture(image->type, texnum);
 	}
 }
 
@@ -64,7 +64,7 @@ void GL_Unbind()
 {
 	GLimp_LogComment("--- GL_Unbind() ---\n");
 
-	qglBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void BindAnimatedImage(textureBundle_t * bundle)
@@ -121,23 +121,23 @@ void GL_TextureFilter(image_t * image, filterType_t filterType)
 	{
 			/*
 			   case FT_DEFAULT:
-			   qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			   qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			   glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			   glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 			   // set texture anisotropy
 			   if(glConfig2.textureAnisotropyAvailable)
-			   qglTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
+			   glTexParameterf(image->type, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 			   break;
 			 */
 
 		case FT_LINEAR:
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
 
 		case FT_NEAREST:
-			qglTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			qglTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameterf(image->type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(image->type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			break;
 
 		default:
@@ -161,7 +161,7 @@ void GL_BindProgram(shaderProgram_t * program)
 
 	if(glState.currentProgram != program)
 	{
-		qglUseProgramObjectARB(program->program);
+		glUseProgramObjectARB(program->program);
 		glState.currentProgram = program;
 	}
 }
@@ -175,7 +175,7 @@ void GL_BindNullProgram(void)
 
 	if(glState.currentProgram)
 	{
-		qglUseProgramObjectARB(0);
+		glUseProgramObjectARB(0);
 		glState.currentProgram = NULL;
 	}
 }
@@ -189,7 +189,7 @@ void GL_SelectTexture(int unit)
 
 	if(unit >= 0 && unit <= 31)
 	{
-		qglActiveTextureARB(GL_TEXTURE0_ARB + unit);
+		glActiveTextureARB(GL_TEXTURE0_ARB + unit);
 
 		if(r_logFile->integer)
 		{
@@ -211,7 +211,7 @@ void GL_BlendFunc(GLenum sfactor, GLenum dfactor)
 		glState.blendSrc = sfactor;
 		glState.blendDst = dfactor;
 
-		qglBlendFunc(sfactor, dfactor);
+		glBlendFunc(sfactor, dfactor);
 	}
 }
 
@@ -224,7 +224,7 @@ void GL_ClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 		glState.clearColorBlue = blue;
 		glState.clearColorAlpha = alpha;
 
-		qglClearColor(red, green, blue, alpha);
+		glClearColor(red, green, blue, alpha);
 	}
 }
 
@@ -234,7 +234,7 @@ void GL_ClearDepth(GLclampd depth)
 	{
 		glState.clearDepth = depth;
 
-		qglClearDepth(depth);
+		glClearDepth(depth);
 	}
 }
 
@@ -244,7 +244,7 @@ void GL_ClearStencil(GLint s)
 	{
 		glState.clearStencil = s;
 
-		qglClearStencil(s);
+		glClearStencil(s);
 	}
 }
 
@@ -257,7 +257,7 @@ void GL_ColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alph
 		glState.colorMaskBlue = blue;
 		glState.colorMaskAlpha = alpha;
 
-		qglColorMask(red, green, blue, alpha);
+		glColorMask(red, green, blue, alpha);
 	}
 }
 
@@ -267,7 +267,7 @@ void GL_CullFace(GLenum mode)
 	{
 		glState.cullFace = mode;
 
-		qglCullFace(mode);
+		glCullFace(mode);
 	}
 }
 
@@ -277,7 +277,7 @@ void GL_DepthFunc(GLenum func)
 	{
 		glState.depthFunc = func;
 
-		qglDepthFunc(func);
+		glDepthFunc(func);
 	}
 }
 
@@ -287,7 +287,7 @@ void GL_DepthMask(GLboolean flag)
 	{
 		glState.depthMask = flag;
 
-		qglDepthMask(flag);
+		glDepthMask(flag);
 	}
 }
 
@@ -297,7 +297,7 @@ void GL_DrawBuffer(GLenum mode)
 	{
 		glState.drawBuffer = mode;
 
-		qglDrawBuffer(mode);
+		glDrawBuffer(mode);
 	}
 }
 
@@ -307,7 +307,7 @@ void GL_FrontFace(GLenum mode)
 	{
 		glState.frontFace = mode;
 
-		qglFrontFace(mode);
+		glFrontFace(mode);
 	}
 }
 
@@ -369,7 +369,7 @@ void GL_PolygonMode(GLenum face, GLenum mode)
 		glState.polygonFace = face;
 		glState.polygonMode = mode;
 
-		qglPolygonMode(face, mode);
+		glPolygonMode(face, mode);
 	}
 }
 
@@ -382,7 +382,7 @@ void GL_Scissor(GLint x, GLint y, GLsizei width, GLsizei height)
 		glState.scissorWidth = width;
 		glState.scissorHeight = height;
 
-		qglScissor(x, y, width, height);
+		glScissor(x, y, width, height);
 	}
 }
 
@@ -395,7 +395,7 @@ void GL_Viewport(GLint x, GLint y, GLsizei width, GLsizei height)
 		glState.viewportWidth = width;
 		glState.viewportHeight = height;
 
-		qglViewport(x, y, width, height);
+		glViewport(x, y, width, height);
 	}
 }
 
@@ -411,11 +411,11 @@ void GL_Cull(int cullType)
 
 	if(cullType == CT_TWO_SIDED)
 	{
-		qglDisable(GL_CULL_FACE);
+		glDisable(GL_CULL_FACE);
 	}
 	else
 	{
-		qglEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 
 		if(cullType == CT_BACK_SIDED)
 		{
@@ -446,7 +446,7 @@ void GL_Cull(int cullType)
 	}
 #else
 	glState.faceCulling = CT_TWO_SIDED;
-	qglDisable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 #endif
 }
 
@@ -557,12 +557,12 @@ void GL_State(uint32_t stateBits)
 					break;
 			}
 
-			qglEnable(GL_BLEND);
+			glEnable(GL_BLEND);
 			GL_BlendFunc(srcFactor, dstFactor);
 		}
 		else
 		{
-			qglDisable(GL_BLEND);
+			glDisable(GL_BLEND);
 		}
 	}
 
@@ -613,11 +613,11 @@ void GL_State(uint32_t stateBits)
 	{
 		if(stateBits & GLS_DEPTHTEST_DISABLE)
 		{
-			qglDisable(GL_DEPTH_TEST);
+			glDisable(GL_DEPTH_TEST);
 		}
 		else
 		{
-			qglEnable(GL_DEPTH_TEST);
+			glEnable(GL_DEPTH_TEST);
 		}
 	}
 
@@ -628,24 +628,24 @@ void GL_State(uint32_t stateBits)
 	   switch (stateBits & GLS_ATEST_BITS)
 	   {
 	   case 0:
-	   qglDisable(GL_ALPHA_TEST);
+	   glDisable(GL_ALPHA_TEST);
 	   break;
 	   case GLS_ATEST_GT_0:
-	   qglEnable(GL_ALPHA_TEST);
-	   qglAlphaFunc(GL_GREATER, 0.0f);
+	   glEnable(GL_ALPHA_TEST);
+	   glAlphaFunc(GL_GREATER, 0.0f);
 	   break;
 	   case GLS_ATEST_LT_80:
-	   qglEnable(GL_ALPHA_TEST);
-	   qglAlphaFunc(GL_LESS, 0.5f);
+	   glEnable(GL_ALPHA_TEST);
+	   glAlphaFunc(GL_LESS, 0.5f);
 	   break;
 	   case GLS_ATEST_GE_80:
-	   qglEnable(GL_ALPHA_TEST);
-	   qglAlphaFunc(GL_GEQUAL, 0.5f);
+	   glEnable(GL_ALPHA_TEST);
+	   glAlphaFunc(GL_GEQUAL, 0.5f);
 	   break;
 	   case GLS_ATEST_GT_CUSTOM:
 	   // FIXME
-	   qglEnable(GL_ALPHA_TEST);
-	   qglAlphaFunc(GL_GREATER, 0.5f);
+	   glEnable(GL_ALPHA_TEST);
+	   glAlphaFunc(GL_GREATER, 0.5f);
 	   break;
 	   default:
 	   assert(0);
@@ -659,11 +659,11 @@ void GL_State(uint32_t stateBits)
 	{
 		if(stateBits & GLS_STENCILTEST_ENABLE)
 		{
-			qglEnable(GL_STENCIL_TEST);
+			glEnable(GL_STENCIL_TEST);
 		}
 		else
 		{
-			qglDisable(GL_STENCIL_TEST);
+			glDisable(GL_STENCIL_TEST);
 		}
 	}
 
@@ -692,17 +692,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_POSITION )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_POSITION )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_POSITION);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_POSITION);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_POSITION )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_POSITION )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_POSITION);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_POSITION);
 		}
 	}
 
@@ -712,17 +712,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_TEXCOORD )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_TEXCOORD )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD0);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD0);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_TEXCOORD )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_TEXCOORD )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD0);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD0);
 		}
 	}
 
@@ -732,17 +732,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_LIGHTCOORD )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_LIGHTCOORD )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD1);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD1);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_LIGHTCOORD )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_LIGHTCOORD )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD1);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_TEXCOORD1);
 		}
 	}
 
@@ -752,17 +752,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_TANGENT )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_TANGENT )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_TANGENT);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_TANGENT);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_TANGENT )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_TANGENT )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_TANGENT);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_TANGENT);
 		}
 	}
 
@@ -772,17 +772,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_BINORMAL )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_BINORMAL )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_BINORMAL);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_BINORMAL);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_BINORMAL )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_BINORMAL )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_BINORMAL);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_BINORMAL);
 		}
 	}
 
@@ -792,17 +792,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_NORMAL )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_NORMAL )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_NORMAL);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_NORMAL);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_NORMAL )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_NORMAL )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_NORMAL);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_NORMAL);
 		}
 	}
 
@@ -812,17 +812,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_COLOR )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_COLOR )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_COLOR);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_COLOR);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_COLOR )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_COLOR )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_COLOR);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_COLOR);
 		}
 	}
 
@@ -832,17 +832,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_PAINTCOLOR )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_PAINTCOLOR )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_PAINTCOLOR);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_PAINTCOLOR);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_PAINTCOLOR )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_PAINTCOLOR )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_PAINTCOLOR);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_PAINTCOLOR);
 		}
 	}
 
@@ -852,17 +852,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_LIGHTDIRECTION )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_LIGHTDIRECTION )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_LIGHTDIRECTION);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_LIGHTDIRECTION);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_LIGHTDIRECTION )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_LIGHTDIRECTION )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_LIGHTDIRECTION);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_LIGHTDIRECTION);
 		}
 	}
 
@@ -872,17 +872,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_BONE_INDEXES )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_BONE_INDEXES )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_BONE_INDEXES);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_BONE_INDEXES);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_BONE_INDEXES )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_BONE_INDEXES )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_BONE_INDEXES);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_BONE_INDEXES);
 		}
 	}
 
@@ -892,17 +892,17 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglEnableVertexAttribArrayARB( ATTR_INDEX_BONE_WEIGHTS )\n");
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_BONE_WEIGHTS )\n");
 			}
-			qglEnableVertexAttribArrayARB(ATTR_INDEX_BONE_WEIGHTS);
+			glEnableVertexAttribArrayARB(ATTR_INDEX_BONE_WEIGHTS);
 		}
 		else
 		{
 			if(r_logFile->integer)
 			{
-				GLimp_LogComment("qglDisableVertexAttribArrayARB( ATTR_INDEX_BONE_WEIGHTS )\n");
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_BONE_WEIGHTS )\n");
 			}
-			qglDisableVertexAttribArrayARB(ATTR_INDEX_BONE_WEIGHTS);
+			glDisableVertexAttribArrayARB(ATTR_INDEX_BONE_WEIGHTS);
 		}
 	}
 
@@ -930,10 +930,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_POSITION )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_POSITION )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_POSITION, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ));
+		glVertexAttribPointerARB(ATTR_INDEX_POSITION, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ));
 		glState.vertexAttribPointersSet |= ATTR_POSITION;
 	}
 
@@ -941,10 +941,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_TEXCOORD )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_TEXCOORD )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_TEXCOORD0, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsTexCoords));
+		glVertexAttribPointerARB(ATTR_INDEX_TEXCOORD0, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsTexCoords));
 		glState.vertexAttribPointersSet |= ATTR_TEXCOORD;
 	}
 
@@ -952,10 +952,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_LIGHTCOORD )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_LIGHTCOORD )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_TEXCOORD1, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsLightCoords));
+		glVertexAttribPointerARB(ATTR_INDEX_TEXCOORD1, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsLightCoords));
 		glState.vertexAttribPointersSet |= ATTR_LIGHTCOORD;
 	}
 
@@ -963,10 +963,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_TANGENT )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_TANGENT )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_TANGENT, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents));
+		glVertexAttribPointerARB(ATTR_INDEX_TANGENT, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents));
 		glState.vertexAttribPointersSet |= ATTR_TANGENT;
 	}
 
@@ -974,10 +974,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_BINORMAL )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_BINORMAL )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_BINORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals));
+		glVertexAttribPointerARB(ATTR_INDEX_BINORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals));
 		glState.vertexAttribPointersSet |= ATTR_BINORMAL;
 	}
 
@@ -985,10 +985,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_NORMAL )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_NORMAL )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_NORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals));
+		glVertexAttribPointerARB(ATTR_INDEX_NORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals));
 		glState.vertexAttribPointersSet |= ATTR_NORMAL;
 	}
 
@@ -996,10 +996,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_COLOR )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_COLOR )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_COLOR, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsColors));
+		glVertexAttribPointerARB(ATTR_INDEX_COLOR, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsColors));
 		glState.vertexAttribPointersSet |= ATTR_COLOR;
 	}
 
@@ -1007,10 +1007,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_PAINTCOLOR )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_PAINTCOLOR )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_PAINTCOLOR, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsPaintColors));
+		glVertexAttribPointerARB(ATTR_INDEX_PAINTCOLOR, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsPaintColors));
 		glState.vertexAttribPointersSet |= ATTR_PAINTCOLOR;
 	}
 
@@ -1018,10 +1018,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_LIGHTDIRECTION )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_LIGHTDIRECTION )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_LIGHTDIRECTION, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsLightDirections));
+		glVertexAttribPointerARB(ATTR_INDEX_LIGHTDIRECTION, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsLightDirections));
 		glState.vertexAttribPointersSet |= ATTR_LIGHTDIRECTION;
 	}
 
@@ -1029,10 +1029,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_BONE_INDEXES )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_BONE_INDEXES )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_BONE_INDEXES, 4, GL_INT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsBoneIndexes));
+		glVertexAttribPointerARB(ATTR_INDEX_BONE_INDEXES, 4, GL_INT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsBoneIndexes));
 		glState.vertexAttribPointersSet |= ATTR_BONE_INDEXES;
 	}
 
@@ -1040,10 +1040,10 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 	{
 		if(r_logFile->integer)
 		{
-			GLimp_LogComment("qglVertexAttribPointerARB( ATTR_INDEX_BONE_WEIGHTS )\n");
+			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_BONE_WEIGHTS )\n");
 		}
 
-		qglVertexAttribPointerARB(ATTR_INDEX_BONE_WEIGHTS, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsBoneWeights));
+		glVertexAttribPointerARB(ATTR_INDEX_BONE_WEIGHTS, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsBoneWeights));
 		glState.vertexAttribPointersSet |= ATTR_BONE_WEIGHTS;
 	}
 }
@@ -1069,7 +1069,7 @@ static void RB_Hyperspace(void)
 
 	c = (backEnd.refdef.time & 255) / 255.0f;
 	GL_ClearColor(c, c, c, 1);
-	qglClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	backEnd.isHyperspace = qtrue;
 }
@@ -1120,7 +1120,7 @@ static void RB_SetGL2D(void)
 	GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA);
 
 	GL_Cull(CT_TWO_SIDED);
-	qglDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_PLANE0);
 
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds();
@@ -1229,11 +1229,11 @@ static void RB_RenderDrawSurfaces(qboolean opaque, qboolean depthFill)
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -1255,7 +1255,7 @@ static void RB_RenderDrawSurfaces(qboolean opaque, qboolean depthFill)
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	GL_CheckErrors();
@@ -1391,7 +1391,7 @@ static void Render_lightVolume(interaction_t * ia)
 			{
 				// depth texture is not bound to a FBO
 				GL_Bind(tr.depthRenderImage);
-				qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 			}
 
 			// bind u_AttenuationMapXY
@@ -1655,7 +1655,7 @@ static void RB_RenderInteractions()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -1743,11 +1743,11 @@ static void RB_RenderInteractions()
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -1846,7 +1846,7 @@ static void RB_RenderInteractions()
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	// reset scissor
@@ -1857,7 +1857,7 @@ static void RB_RenderInteractions()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_forwardLightingTime = endTime - startTime;
 	}
@@ -1893,7 +1893,7 @@ static void RB_RenderInteractionsStencilShadowed()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -1906,9 +1906,9 @@ static void RB_RenderInteractionsStencilShadowed()
 	drawShadows = qtrue;
 
 	/*
-	   if(qglActiveStencilFaceEXT)
+	   if(glActiveStencilFaceEXT)
 	   {
-	   qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+	   glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 	   }
 	 */
 
@@ -1942,16 +1942,16 @@ static void RB_RenderInteractionsStencilShadowed()
 				GL_Scissor(ia->scissorX, ia->scissorY, ia->scissorWidth, ia->scissorHeight);
 
 				// set depth test to reduce fillrate
-				if(qglDepthBoundsEXT)
+				if(glDepthBoundsEXT)
 				{
 					if(!ia->noDepthBoundsTest)
 					{
-						qglEnable(GL_DEPTH_BOUNDS_TEST_EXT);
-						qglDepthBoundsEXT(ia->depthNear, ia->depthFar);
+						glEnable(GL_DEPTH_BOUNDS_TEST_EXT);
+						glDepthBoundsEXT(ia->depthNear, ia->depthFar);
 					}
 					else
 					{
-						qglDisable(GL_DEPTH_BOUNDS_TEST_EXT);
+						glDisable(GL_DEPTH_BOUNDS_TEST_EXT);
 					}
 				}
 
@@ -1963,18 +1963,18 @@ static void RB_RenderInteractionsStencilShadowed()
 					GL_ClearStencil(128);
 
 					// reset stencil buffer
-					qglClear(GL_STENCIL_BUFFER_BIT);
+					glClear(GL_STENCIL_BUFFER_BIT);
 
 					// use less compare as depthfunc
 					// don't write to the color buffer or depth buffer
 					// enable stencil testing for this light
 					GL_State(GLS_DEPTHFUNC_LESS | GLS_COLORMASK_BITS | GLS_STENCILTEST_ENABLE);
 
-					qglStencilFunc(GL_ALWAYS, 128, 255);
-					qglStencilMask(255);
+					glStencilFunc(GL_ALWAYS, 128, 255);
+					glStencilMask(255);
 
-					qglEnable(GL_POLYGON_OFFSET_FILL);
-					qglPolygonOffset(r_shadowOffsetFactor->value, r_shadowOffsetUnits->value);
+					glEnable(GL_POLYGON_OFFSET_FILL);
+					glPolygonOffset(r_shadowOffsetFactor->value, r_shadowOffsetUnits->value);
 
 					// enable shadow volume extrusion shader
 					GL_BindProgram(&tr.shadowExtrudeShader);
@@ -1986,30 +1986,30 @@ static void RB_RenderInteractionsStencilShadowed()
 
 				if(!light->l.noShadows)
 				{
-					qglStencilFunc(GL_EQUAL, 128, 255);
+					glStencilFunc(GL_EQUAL, 128, 255);
 				}
 				else
 				{
 					// don't consider shadow volumes
-					qglStencilFunc(GL_ALWAYS, 128, 255);
+					glStencilFunc(GL_ALWAYS, 128, 255);
 				}
 
 				/*
-				   if(qglActiveStencilFaceEXT)
+				   if(glActiveStencilFaceEXT)
 				   {
-				   qglActiveStencilFaceEXT(GL_BACK);
-				   qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				   glActiveStencilFaceEXT(GL_BACK);
+				   glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-				   qglActiveStencilFaceEXT(GL_FRONT);
-				   qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				   glActiveStencilFaceEXT(GL_FRONT);
+				   glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				   }
 				   else
 				 */
 				{
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				}
 
-				//qglDisable(GL_POLYGON_OFFSET_FILL);
+				//glDisable(GL_POLYGON_OFFSET_FILL);
 
 				// disable shadow volume extrusion shader
 				GL_BindProgram(NULL);
@@ -2148,11 +2148,11 @@ static void RB_RenderInteractionsStencilShadowed()
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -2279,7 +2279,7 @@ static void RB_RenderInteractionsStencilShadowed()
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	// reset scissor clamping
@@ -2287,15 +2287,15 @@ static void RB_RenderInteractionsStencilShadowed()
 			   backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight);
 
 	// reset depth clamping
-	if(qglDepthBoundsEXT)
+	if(glDepthBoundsEXT)
 	{
-		qglDisable(GL_DEPTH_BOUNDS_TEST_EXT);
+		glDisable(GL_DEPTH_BOUNDS_TEST_EXT);
 	}
 
 	/*
-	   if(qglActiveStencilFaceEXT)
+	   if(glActiveStencilFaceEXT)
 	   {
-	   qglDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+	   glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 	   }
 	 */
 
@@ -2303,7 +2303,7 @@ static void RB_RenderInteractionsStencilShadowed()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_forwardLightingTime = endTime - startTime;
 	}
@@ -2349,7 +2349,7 @@ static void RB_RenderInteractionsShadowMapped()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -2455,7 +2455,7 @@ static void RB_RenderInteractionsShadowMapped()
 							GL_Viewport(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 							GL_Scissor(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							switch (cubeSide)
 							{
@@ -2567,7 +2567,7 @@ static void RB_RenderInteractionsShadowMapped()
 							GL_Viewport(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 							GL_Scissor(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							GL_LoadProjectionMatrix(light->projectionMatrix);
 							break;
@@ -2609,7 +2609,7 @@ static void RB_RenderInteractionsShadowMapped()
 							GL_Viewport(0, 0, shadowMapResolutions[splitFrustumIndex], shadowMapResolutions[splitFrustumIndex]);
 							GL_Scissor(0, 0, shadowMapResolutions[splitFrustumIndex], shadowMapResolutions[splitFrustumIndex]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							#if 1
 							VectorCopy(tr.sunDirection, lightDirection);
@@ -3294,11 +3294,11 @@ static void RB_RenderInteractionsShadowMapped()
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -3504,7 +3504,7 @@ static void RB_RenderInteractionsShadowMapped()
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	// reset scissor clamping
@@ -3518,7 +3518,7 @@ static void RB_RenderInteractionsShadowMapped()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_forwardLightingTime = endTime - startTime;
 	}
@@ -3538,7 +3538,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -3618,11 +3618,11 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -3644,7 +3644,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	// disable offscreen rendering
@@ -3654,7 +3654,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_deferredGBufferTime = endTime - startTime;
 	}
@@ -3686,7 +3686,7 @@ void RB_RenderInteractionsDeferred()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -3710,16 +3710,16 @@ void RB_RenderInteractionsDeferred()
 		// update normal render image
 		GL_SelectTexture(0);
 		GL_Bind(tr.deferredNormalFBOImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredNormalFBOImage->uploadWidth, tr.deferredNormalFBOImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredNormalFBOImage->uploadWidth, tr.deferredNormalFBOImage->uploadHeight);
 
 		// update depth render image
 		GL_SelectTexture(1);
 		GL_Bind(tr.depthRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 #endif
 
 		GL_ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		qglClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	else
 	{
@@ -3774,15 +3774,15 @@ void RB_RenderInteractionsDeferred()
 				GL_ClearStencil(128);
 
 				// reset stencil buffer
-				qglClear(GL_STENCIL_BUFFER_BIT);
+				glClear(GL_STENCIL_BUFFER_BIT);
 
 				// use less compare as depthfunc
 				// don't write to the color buffer or depth buffer
 				// enable stencil testing for this light
 				GL_State(GLS_DEPTHFUNC_LESS | GLS_COLORMASK_BITS | GLS_STENCILTEST_ENABLE);
 
-				qglStencilFunc(GL_ALWAYS, 128, 255);
-				qglStencilMask(255);
+				glStencilFunc(GL_ALWAYS, 128, 255);
+				glStencilMask(255);
 
 				if(light->isStatic && light->frustumVBO && light->frustumIBO)
 				{
@@ -3915,67 +3915,67 @@ void RB_RenderInteractionsDeferred()
 					//GL_State(GLS_DEPTHMASK_TRUE);
 			#if 0
 					GL_Cull(CT_FRONT_SIDED);
-					//qglColor4f(1.0f, 1.0f, 0.7f, 0.05f);
-					qglVertexAttrib4fARB(ATTR_INDEX_COLOR, 1.0f, 0.0f, 0.0f, 0.05f);
+					//glColor4f(1.0f, 1.0f, 0.7f, 0.05f);
+					glVertexAttrib4fARB(ATTR_INDEX_COLOR, 1.0f, 0.0f, 0.0f, 0.05f);
 					Tess_DrawElements();
 			#endif
 
 			#if 0
 					GL_Cull(CT_BACK_SIDED);
-					qglVertexAttrib4fARB(ATTR_INDEX_COLOR, 0.0f, 1.0f, 0.0f, 0.05f);
+					glVertexAttrib4fARB(ATTR_INDEX_COLOR, 0.0f, 1.0f, 0.0f, 0.05f);
 					Tess_DrawElements();
 			#endif
 
 			#if 1
 					GL_State(GLS_DEPTHFUNC_LESS | GLS_POLYMODE_LINE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA);
 					GL_Cull(CT_TWO_SIDED);
-					//qglVertexAttrib4fARB(ATTR_INDEX_COLOR, 0.0f, 0.0f, 1.0f, 0.05f);
+					//glVertexAttrib4fARB(ATTR_INDEX_COLOR, 0.0f, 0.0f, 1.0f, 0.05f);
 					Tess_DrawElements();
 			#endif
 				}
 				else
 				{
-					if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig2.stencilWrapAvailable)
+					if(GLEW_ATI_separate_stencil && glConfig2.stencilWrapAvailable)
 					{
 						GL_Cull(CT_TWO_SIDED);
 
-						qglStencilFuncSeparateATI(GL_ALWAYS, GL_ALWAYS, 0, (GLuint) ~ 0);
+						glStencilFuncSeparateATI(GL_ALWAYS, GL_ALWAYS, 0, (GLuint) ~ 0);
 
-						qglStencilOpSeparateATI(GL_BACK, GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
-						qglStencilOpSeparateATI(GL_FRONT, GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
+						glStencilOpSeparateATI(GL_BACK, GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
+						glStencilOpSeparateATI(GL_FRONT, GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 
 						Tess_DrawElements();
 					}
-					else if(qglActiveStencilFaceEXT)
+					else if(GLEW_EXT_stencil_two_side)
 					{
 						// render both sides at once
 						GL_Cull(CT_TWO_SIDED);
 
-						qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+						glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
-						qglActiveStencilFaceEXT(GL_BACK);
+						glActiveStencilFaceEXT(GL_BACK);
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
 						}
 
-						qglActiveStencilFaceEXT(GL_FRONT);
+						glActiveStencilFaceEXT(GL_FRONT);
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
 						}
 
 						Tess_DrawElements();
 
-						qglDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+						glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 					}
 					else
 					{
@@ -3985,11 +3985,11 @@ void RB_RenderInteractionsDeferred()
 						// increment the stencil value on zfail
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
 						}
 
 						Tess_DrawElements();
@@ -4000,11 +4000,11 @@ void RB_RenderInteractionsDeferred()
 						// decrement the stencil value on zfail
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
 						}
 
 						Tess_DrawElements();
@@ -4015,20 +4015,20 @@ void RB_RenderInteractionsDeferred()
 
 				GLimp_LogComment("--- Rendering lighting ---\n");
 
-				qglStencilFunc(GL_NOTEQUAL, 128, 255);
+				glStencilFunc(GL_NOTEQUAL, 128, 255);
 
 
-				if(qglActiveStencilFaceEXT)
+				if(glActiveStencilFaceEXT)
 				{
-					qglActiveStencilFaceEXT(GL_BACK);
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glActiveStencilFaceEXT(GL_BACK);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-					qglActiveStencilFaceEXT(GL_FRONT);
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glActiveStencilFaceEXT(GL_FRONT);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				}
 				else
 				{
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				}
 
 				// build world to light space matrix
@@ -4361,7 +4361,7 @@ void RB_RenderInteractionsDeferred()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_deferredLightingTime = endTime - startTime;
 	}
@@ -4408,7 +4408,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -4442,16 +4442,16 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 		// update normal render image
 		GL_SelectTexture(0);
 		GL_Bind(tr.deferredNormalFBOImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredNormalFBOImage->uploadWidth, tr.deferredNormalFBOImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredNormalFBOImage->uploadWidth, tr.deferredNormalFBOImage->uploadHeight);
 
 		// update depth render image
 		GL_SelectTexture(1);
 		GL_Bind(tr.depthRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 #endif
 
 		GL_ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		qglClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	else
 	{
@@ -4541,7 +4541,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							GL_Viewport(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 							GL_Scissor(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							switch (cubeSide)
 							{
@@ -4653,7 +4653,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							GL_Viewport(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 							GL_Scissor(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							GL_LoadProjectionMatrix(light->projectionMatrix);
 							break;
@@ -4692,7 +4692,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							GL_Viewport(0, 0, shadowMapResolutions[splitFrustumIndex], shadowMapResolutions[splitFrustumIndex]);
 							GL_Scissor(0, 0, shadowMapResolutions[splitFrustumIndex], shadowMapResolutions[splitFrustumIndex]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 #if 1
@@ -5422,15 +5422,15 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 				GL_ClearStencil(128);
 
 				// reset stencil buffer
-				qglClear(GL_STENCIL_BUFFER_BIT);
+				glClear(GL_STENCIL_BUFFER_BIT);
 
 				// use less compare as depthfunc
 				// don't write to the color buffer or depth buffer
 				// enable stencil testing for this light
 				GL_State(GLS_DEPTHFUNC_LESS | GLS_COLORMASK_BITS | GLS_STENCILTEST_ENABLE);
 
-				qglStencilFunc(GL_ALWAYS, 128, 255);
-				qglStencilMask(255);
+				glStencilFunc(GL_ALWAYS, 128, 255);
+				glStencilMask(255);
 
 #if 1
 				if(light->isStatic && light->frustumVBO && light->frustumIBO)
@@ -5568,47 +5568,47 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 				}
 				else
 				{
-					if(qglStencilFuncSeparateATI && qglStencilOpSeparateATI && glConfig2.stencilWrapAvailable)
+					if(GLEW_ATI_separate_stencil && glConfig2.stencilWrapAvailable)
 					{
 						GL_Cull(CT_TWO_SIDED);
 
-						qglStencilFuncSeparateATI(GL_ALWAYS, GL_ALWAYS, 0, (GLuint) ~ 0);
+						glStencilFuncSeparateATI(GL_ALWAYS, GL_ALWAYS, 0, (GLuint) ~ 0);
 
-						qglStencilOpSeparateATI(GL_BACK, GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
-						qglStencilOpSeparateATI(GL_FRONT, GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
+						glStencilOpSeparateATI(GL_BACK, GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
+						glStencilOpSeparateATI(GL_FRONT, GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 
 						Tess_DrawElements();
 					}
-					else if(qglActiveStencilFaceEXT)
+					else if(GLEW_EXT_stencil_two_side)
 					{
 						// render both sides at once
 						GL_Cull(CT_TWO_SIDED);
 
-						qglEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+						glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
-						qglActiveStencilFaceEXT(GL_BACK);
+						glActiveStencilFaceEXT(GL_BACK);
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
 						}
 
-						qglActiveStencilFaceEXT(GL_FRONT);
+						glActiveStencilFaceEXT(GL_FRONT);
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
 						}
 
 						Tess_DrawElements();
 
-						qglDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+						glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 					}
 					else
 					{
@@ -5618,11 +5618,11 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						// increment the stencil value on zfail
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
 						}
 
 						Tess_DrawElements();
@@ -5633,11 +5633,11 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						// decrement the stencil value on zfail
 						if(glConfig2.stencilWrapAvailable)
 						{
-							qglStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP);
 						}
 						else
 						{
-							qglStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+							glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
 						}
 
 						Tess_DrawElements();
@@ -5648,19 +5648,19 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 
 				GLimp_LogComment("--- Rendering lighting ---\n");
 
-				qglStencilFunc(GL_NOTEQUAL, 128, 255);
+				glStencilFunc(GL_NOTEQUAL, 128, 255);
 
-				if(qglActiveStencilFaceEXT)
+				if(glActiveStencilFaceEXT)
 				{
-					qglActiveStencilFaceEXT(GL_BACK);
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glActiveStencilFaceEXT(GL_BACK);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-					qglActiveStencilFaceEXT(GL_FRONT);
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glActiveStencilFaceEXT(GL_FRONT);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				}
 				else
 				{
-					qglStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				}
 
 				GL_CheckErrors();
@@ -6458,11 +6458,11 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -6628,7 +6628,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	// reset scissor clamping
@@ -6642,7 +6642,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_deferredLightingTime = endTime - startTime;
 	}
@@ -6687,7 +6687,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		startTime = ri.Milliseconds();
 	}
 
@@ -6719,7 +6719,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 		R_BindNullFBO();
 		GL_SelectTexture(0);
 		GL_Bind(tr.depthRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 	}
 
 
@@ -6803,7 +6803,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 							GL_Viewport(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 							GL_Scissor(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							switch (cubeSide)
 							{
@@ -6946,7 +6946,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 							GL_Viewport(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 							GL_Scissor(0, 0, shadowMapResolutions[light->shadowLOD], shadowMapResolutions[light->shadowLOD]);
 
-							qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+							glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 							GL_LoadProjectionMatrix(light->projectionMatrix);
 							break;
@@ -7292,11 +7292,11 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 			{
 				if(depthRange)
 				{
-					qglDepthRange(0, 0.3);
+					glDepthRange(0, 0.3);
 				}
 				else
 				{
-					qglDepthRange(0, 1);
+					glDepthRange(0, 1);
 				}
 				oldDepthRange = depthRange;
 			}
@@ -7425,7 +7425,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 	GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	if(depthRange)
 	{
-		qglDepthRange(0, 1);
+		glDepthRange(0, 1);
 	}
 
 	// reset scissor clamping
@@ -7439,7 +7439,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 
 	if(r_speeds->integer == 9)
 	{
-		qglFinish();
+		glFinish();
 		endTime = ri.Milliseconds();
 		backEnd.pc.c_deferredLightingTime = endTime - startTime;
 	}
@@ -7471,7 +7471,7 @@ void RB_RenderScreenSpaceAmbientOcclusion(qboolean deferred)
 	GL_State(GLS_DEPTHTEST_DISABLE);	// | GLS_DEPTHMASK_TRUE);
 	GL_Cull(CT_TWO_SIDED);
 
-	qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+	glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 	// set uniforms
 	/*
@@ -7499,18 +7499,18 @@ void RB_RenderScreenSpaceAmbientOcclusion(qboolean deferred)
 	   MatrixCopy(backEnd.viewParms.projectionMatrix, projectMatrix);
 	   MatrixInverse(projectMatrix);
 
-	   qglUniform3fARB(tr.screenSpaceAmbientOcclusionShader.u_ViewOrigin, viewOrigin[0], viewOrigin[1], viewOrigin[2]);
-	   qglUniform3fvARB(tr.screenSpaceAmbientOcclusionShader.u_SSAOJitter, 32, &jitter[0][0]);
-	   qglUniform1fARB(tr.screenSpaceAmbientOcclusionShader.u_SSAORadius, r_screenSpaceAmbientOcclusionRadius->value);
+	   glUniform3fARB(tr.screenSpaceAmbientOcclusionShader.u_ViewOrigin, viewOrigin[0], viewOrigin[1], viewOrigin[2]);
+	   glUniform3fvARB(tr.screenSpaceAmbientOcclusionShader.u_SSAOJitter, 32, &jitter[0][0]);
+	   glUniform1fARB(tr.screenSpaceAmbientOcclusionShader.u_SSAORadius, r_screenSpaceAmbientOcclusionRadius->value);
 
-	   qglUniformMatrix4fvARB(tr.screenSpaceAmbientOcclusionShader.u_UnprojectMatrix, 1, GL_FALSE, backEnd.viewParms.unprojectionMatrix);
-	   qglUniformMatrix4fvARB(tr.screenSpaceAmbientOcclusionShader.u_ProjectMatrix, 1, GL_FALSE, projectMatrix);
+	   glUniformMatrix4fvARB(tr.screenSpaceAmbientOcclusionShader.u_UnprojectMatrix, 1, GL_FALSE, backEnd.viewParms.unprojectionMatrix);
+	   glUniformMatrix4fvARB(tr.screenSpaceAmbientOcclusionShader.u_ProjectMatrix, 1, GL_FALSE, projectMatrix);
 	 */
 
 	// capture current color buffer for u_CurrentMap
 	GL_SelectTexture(0);
 	GL_Bind(tr.currentRenderImage);
-	qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
 
 	// bind u_DepthMap
 	GL_SelectTexture(1);
@@ -7521,7 +7521,7 @@ void RB_RenderScreenSpaceAmbientOcclusion(qboolean deferred)
 	else
 	{
 		GL_Bind(tr.depthRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 	}
 
 	// set 2D virtual screen size
@@ -7564,7 +7564,7 @@ void RB_RenderDepthOfField()
 	GL_State(GLS_DEPTHTEST_DISABLE);	// | GLS_DEPTHMASK_TRUE);
 	GL_Cull(CT_TWO_SIDED);
 
-	qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+	glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 	// set uniforms
 
@@ -7582,7 +7582,7 @@ void RB_RenderDepthOfField()
 	else
 	{
 		GL_Bind(tr.currentRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
 	}
 
 	// bind u_DepthMap
@@ -7600,7 +7600,7 @@ void RB_RenderDepthOfField()
 	{
 		// depth texture is not bound to a FBO
 		GL_Bind(tr.depthRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 	}
 
 	// set 2D virtual screen size
@@ -7651,7 +7651,7 @@ void RB_RenderUniformFog()
 	GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE_MINUS_SRC_ALPHA | GLS_DSTBLEND_SRC_ALPHA);
 	GL_Cull(CT_TWO_SIDED);
 
-	qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+	glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 	// set uniforms
 	VectorCopy(backEnd.viewParms.orientation.origin, viewOrigin);	// in world space
@@ -7668,8 +7668,8 @@ void RB_RenderUniformFog()
 	}
 
 	GLSL_SetUniform_ViewOrigin(&tr.uniformFogShader, viewOrigin);
-	qglUniform1fARB(tr.uniformFogShader.u_FogDensity, fogDensity);
-	qglUniform3fARB(tr.uniformFogShader.u_FogColor, fogColor[0], fogColor[1], fogColor[2]);
+	glUniform1fARB(tr.uniformFogShader.u_FogDensity, fogDensity);
+	glUniform3fARB(tr.uniformFogShader.u_FogColor, fogColor[0], fogColor[1], fogColor[2]);
 	GLSL_SetUniform_UnprojectMatrix(&tr.uniformFogShader, backEnd.viewParms.unprojectionMatrix);
 
 	// bind u_DepthMap
@@ -7687,7 +7687,7 @@ void RB_RenderUniformFog()
 	{
 		// depth texture is not bound to a FBO
 		GL_Bind(tr.depthRenderImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
 	}
 
 	// set 2D virtual screen size
@@ -7760,15 +7760,15 @@ void RB_RenderBloom()
 
 					// calculation from: Perceptual Effects in Real-time Tone Mapping - Krawczyk et al.
 					key = 1.03 - 2.0 / (2.0 + log10f(backEnd.hdrAverageLuminance + 1.0f));
-					qglUniform1fARB(tr.contrastShader.u_HDRKey, key);
+					glUniform1fARB(tr.contrastShader.u_HDRKey, key);
 				}
 				else
 				{
-					qglUniform1fARB(tr.contrastShader.u_HDRKey, r_hdrKey->value);
+					glUniform1fARB(tr.contrastShader.u_HDRKey, r_hdrKey->value);
 				}
 
-				qglUniform1fARB(tr.contrastShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
-				qglUniform1fARB(tr.contrastShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
+				glUniform1fARB(tr.contrastShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
+				glUniform1fARB(tr.contrastShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
 			}
 
 			GL_SelectTexture(0);
@@ -7782,15 +7782,15 @@ void RB_RenderBloom()
 
 				// calculation from: Perceptual Effects in Real-time Tone Mapping - Krawczyk et al.
 				key = 1.03 - 2.0 / (2.0 + log10f(backEnd.hdrAverageLuminance + 1.0f));
-				qglUniform1fARB(tr.contrastShader.u_HDRKey, key);
+				glUniform1fARB(tr.contrastShader.u_HDRKey, key);
 			}
 			else
 			{
-				qglUniform1fARB(tr.contrastShader.u_HDRKey, r_hdrKey->value);
+				glUniform1fARB(tr.contrastShader.u_HDRKey, r_hdrKey->value);
 			}
 
-			qglUniform1fARB(tr.contrastShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
-			qglUniform1fARB(tr.contrastShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
+			glUniform1fARB(tr.contrastShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
+			glUniform1fARB(tr.contrastShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
 
 			GL_SelectTexture(0);
 			GL_Bind(tr.downScaleFBOImage_quarter);
@@ -7800,13 +7800,13 @@ void RB_RenderBloom()
 			GL_SelectTexture(0);
 			//GL_Bind(tr.downScaleFBOImage_quarter);
 			GL_Bind(tr.currentRenderImage);
-			qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth,
+			glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth,
 												 tr.currentRenderImage->uploadHeight);
 		}
 
 		R_BindFBO(tr.contrastRenderFBO);
 		GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		qglClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		// draw viewport
 		Tess_InstantQuad(backEnd.viewParms.viewportVerts);
@@ -7817,7 +7817,7 @@ void RB_RenderBloom()
 		GL_BindProgram(&tr.bloomShader);
 
 		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.bloomShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
-		qglUniform1fARB(tr.bloomShader.u_BlurMagnitude, r_bloomBlur->value);
+		glUniform1fARB(tr.bloomShader.u_BlurMagnitude, r_bloomBlur->value);
 #endif
 		for(i = 0; i < 2; i++)
 		{
@@ -7826,7 +7826,7 @@ void RB_RenderBloom()
 				R_BindFBO(tr.bloomRenderFBO[(j + 1) % 2]);
 
 				GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-				qglClear(GL_COLOR_BUFFER_BIT);
+				glClear(GL_COLOR_BUFFER_BIT);
 
 				GL_State(GLS_DEPTHTEST_DISABLE);
 
@@ -7846,14 +7846,14 @@ void RB_RenderBloom()
 				{
 					GL_BindProgram(&tr.blurXShader);
 
-					qglUniform1fARB(tr.blurXShader.u_BlurMagnitude, r_bloomBlur->value);
+					glUniform1fARB(tr.blurXShader.u_BlurMagnitude, r_bloomBlur->value);
 					GLSL_SetUniform_ModelViewProjectionMatrix(&tr.blurXShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 				}
 				else
 				{
 					GL_BindProgram(&tr.blurYShader);
 
-					qglUniform1fARB(tr.blurYShader.u_BlurMagnitude, r_bloomBlur->value);
+					glUniform1fARB(tr.blurYShader.u_BlurMagnitude, r_bloomBlur->value);
 					GLSL_SetUniform_ModelViewProjectionMatrix(&tr.blurYShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 				}
 
@@ -7869,7 +7869,7 @@ void RB_RenderBloom()
 
 				GL_BindProgram(&tr.screenShader);
 				GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 				GLSL_SetUniform_ModelViewProjectionMatrix(&tr.screenShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
@@ -7885,7 +7885,7 @@ void RB_RenderBloom()
 #endif
 				GL_BindProgram(&tr.screenShader);
 				GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 				GLSL_SetUniform_ModelViewProjectionMatrix(&tr.screenShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
@@ -7898,7 +7898,7 @@ void RB_RenderBloom()
 
 				GL_BindProgram(&tr.screenShader);
 				GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 				GLSL_SetUniform_ModelViewProjectionMatrix(&tr.screenShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
@@ -7912,7 +7912,7 @@ void RB_RenderBloom()
 
 				GL_BindProgram(&tr.screenShader);
 				GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 				GLSL_SetUniform_ModelViewProjectionMatrix(&tr.screenShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
@@ -7956,11 +7956,11 @@ void RB_RenderRotoscope(void)
 	GL_BindProgram(&tr.rotoscopeShader);
 
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.rotoscopeShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
-	qglUniform1fARB(tr.rotoscopeShader.u_BlurMagnitude, r_bloomBlur->value);
+	glUniform1fARB(tr.rotoscopeShader.u_BlurMagnitude, r_bloomBlur->value);
 
 	GL_SelectTexture(0);
 	GL_Bind(tr.currentRenderImage);
-	qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
 
 	// draw viewport
 	Tess_InstantQuad(backEnd.viewParms.viewportVerts);
@@ -7996,7 +7996,7 @@ void RB_CameraPostFX(void)
 	GL_BindProgram(&tr.cameraEffectsShader);
 
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.cameraEffectsShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
-	//qglUniform1fARB(tr.cameraEffectsShader.u_BlurMagnitude, r_bloomBlur->value);
+	//glUniform1fARB(tr.cameraEffectsShader.u_BlurMagnitude, r_bloomBlur->value);
 
 	// bind u_CurrentMap
 	GL_SelectTexture(0);
@@ -8005,9 +8005,9 @@ void RB_CameraPostFX(void)
 	if(glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 	{
 		// copy depth of the main context to deferredRenderFBO
-		qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-		qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
-		qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
+		glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 							   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 							   GL_COLOR_BUFFER_BIT,
 							   GL_NEAREST);
@@ -8015,7 +8015,7 @@ void RB_CameraPostFX(void)
 	else
 	*/
 	{
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.occlusionRenderFBOImage->uploadWidth, tr.occlusionRenderFBOImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.occlusionRenderFBOImage->uploadWidth, tr.occlusionRenderFBOImage->uploadHeight);
 	}
 
 	// bind u_GrainMap
@@ -8056,8 +8056,8 @@ static void RB_CalculateAdaptation()
 	R_BindFBO(tr.downScaleFBO_64x64);
 
 	// read back the contents
-//	qglFinish();
-	qglReadPixels(0, 0, 64, 64, GL_RGBA, GL_FLOAT, image);
+//	glFinish();
+	glReadPixels(0, 0, 64, 64, GL_RGBA, GL_FLOAT, image);
 
 	sum = 0.0f;
 	maxLuminance = 0.0f;
@@ -8164,22 +8164,22 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 
 			// calculation from: Perceptual Effects in Real-time Tone Mapping - Krawczyk et al.
 			key = 1.03 - 2.0 / (2.0 + log10f(backEnd.hdrAverageLuminance + 1.0f));
-			qglUniform1fARB(tr.toneMappingShader.u_HDRKey, key);
+			glUniform1fARB(tr.toneMappingShader.u_HDRKey, key);
 		}
 		else
 		{
-			qglUniform1fARB(tr.toneMappingShader.u_HDRKey, r_hdrKey->value);
+			glUniform1fARB(tr.toneMappingShader.u_HDRKey, r_hdrKey->value);
 		}
 
-		qglUniform1fARB(tr.toneMappingShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
-		qglUniform1fARB(tr.toneMappingShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
+		glUniform1fARB(tr.toneMappingShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
+		glUniform1fARB(tr.toneMappingShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
 
 		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.toneMappingShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 	}
 	else
 	{
 		GL_BindProgram(&tr.screenShader);
-		qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+		glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -8257,7 +8257,7 @@ void RB_RenderDeferredHDRResultToFrameBuffer()
 	{
 		GL_BindProgram(&tr.screenShader);
 
-		qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+		glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
 
 		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.screenShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 	}
@@ -8271,15 +8271,15 @@ void RB_RenderDeferredHDRResultToFrameBuffer()
 
 			// calculation from: Perceptual Effects in Real-time Tone Mapping - Krawczyk et al.
 			key = 1.03 - 2.0 / (2.0 + log10f(backEnd.hdrAverageLuminance + 1.0f));
-			qglUniform1fARB(tr.toneMappingShader.u_HDRKey, key);
+			glUniform1fARB(tr.toneMappingShader.u_HDRKey, key);
 		}
 		else
 		{
-			qglUniform1fARB(tr.toneMappingShader.u_HDRKey, r_hdrKey->value);
+			glUniform1fARB(tr.toneMappingShader.u_HDRKey, r_hdrKey->value);
 		}
 
-		qglUniform1fARB(tr.toneMappingShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
-		qglUniform1fARB(tr.toneMappingShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
+		glUniform1fARB(tr.toneMappingShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
+		glUniform1fARB(tr.toneMappingShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
 
 		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.toneMappingShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 	}
@@ -8468,17 +8468,17 @@ static void IssueLightOcclusionQuery(link_t * queue, trRefLight_t * light, qbool
 		GL_CheckErrors();
 
 		// begin the occlusion query
-		qglBeginQueryARB(GL_SAMPLES_PASSED, light->occlusionQueryObject);
+		glBeginQueryARB(GL_SAMPLES_PASSED, light->occlusionQueryObject);
 
 		GL_CheckErrors();
 
 		RenderLightOcclusionVolume(light);
 
 		// end the query
-		qglEndQueryARB(GL_SAMPLES_PASSED);
+		glEndQueryARB(GL_SAMPLES_PASSED);
 
 #if 1
-		if(!qglIsQueryARB(light->occlusionQueryObject))
+		if(!glIsQueryARB(light->occlusionQueryObject))
 		{
 			ri.Error(ERR_FATAL, "IssueLightOcclusionQuery: light %i has no occlusion query object in slot %i: %i", light - tr.world->lights, backEnd.viewParms.viewCount, light->occlusionQueryObject);
 		}
@@ -8529,7 +8529,7 @@ static void IssueLightMultiOcclusionQueries(link_t * multiQueue, link_t * indivi
 		// begin the occlusion query
 		GL_CheckErrors();
 
-		qglBeginQueryARB(GL_SAMPLES_PASSED, multiQueryLight->occlusionQueryObject);
+		glBeginQueryARB(GL_SAMPLES_PASSED, multiQueryLight->occlusionQueryObject);
 
 		GL_CheckErrors();
 
@@ -8548,12 +8548,12 @@ static void IssueLightMultiOcclusionQueries(link_t * multiQueue, link_t * indivi
 		backEnd.pc.c_occlusionQueriesMulti++;
 
 		// end the query
-		qglEndQueryARB(GL_SAMPLES_PASSED);
+		glEndQueryARB(GL_SAMPLES_PASSED);
 
 		GL_CheckErrors();
 
 #if 0
-		if(!qglIsQueryARB(multiQueryNode->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+		if(!glIsQueryARB(multiQueryNode->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 		{
 			ri.Error(ERR_FATAL, "IssueMultiOcclusionQueries: node %i has no occlusion query object in slot %i: %i", multiQueryNode - tr.world->nodes, backEnd.viewParms.viewCount, multiQueryNode->occlusionQueryObjects[backEnd.viewParms.viewCount]);
 		}
@@ -8580,12 +8580,12 @@ static qboolean LightOcclusionResultAvailable(trRefLight_t *light)
 
 	if(light->occlusionQueryObject > 0)
 	{
-		qglFinish();
+		glFinish();
 
 		available = 0;
-		//if(qglIsQueryARB(light->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+		//if(glIsQueryARB(light->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 		{
-			qglGetQueryObjectivARB(light->occlusionQueryObject, GL_QUERY_RESULT_AVAILABLE_ARB, &available);
+			glGetQueryObjectivARB(light->occlusionQueryObject, GL_QUERY_RESULT_AVAILABLE_ARB, &available);
 			GL_CheckErrors();
 		}
 
@@ -8605,10 +8605,10 @@ static void GetLightOcclusionQueryResult(trRefLight_t *light)
 
 	if(light->occlusionQueryObject > 0)
 	{
-		qglFinish();
+		glFinish();
 
 #if 0
-		if(!qglIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+		if(!glIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 		{
 			ri.Error(ERR_FATAL, "GetOcclusionQueryResult: node %i has no occlusion query object in slot %i: %i", node - tr.world->nodes, backEnd.viewParms.viewCount, node->occlusionQueryObjects[backEnd.viewParms.viewCount]);
 		}
@@ -8617,16 +8617,16 @@ static void GetLightOcclusionQueryResult(trRefLight_t *light)
 		available = 0;
 		while(!available)
 		{
-			//if(qglIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+			//if(glIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 			{
-				qglGetQueryObjectivARB(light->occlusionQueryObject, GL_QUERY_RESULT_AVAILABLE_ARB, &available);
+				glGetQueryObjectivARB(light->occlusionQueryObject, GL_QUERY_RESULT_AVAILABLE_ARB, &available);
 				//GL_CheckErrors();
 			}
 		}
 
 		backEnd.pc.c_occlusionQueriesAvailable++;
 
-		qglGetQueryObjectivARB(light->occlusionQueryObject, GL_QUERY_RESULT, &ocSamples);
+		glGetQueryObjectivARB(light->occlusionQueryObject, GL_QUERY_RESULT, &ocSamples);
 
 		//ri.Printf(PRINT_ALL, "GetOcclusionQueryResult(%i): available = %i, samples = %i\n", node - tr.world->nodes, available, ocSamples);
 
@@ -8690,11 +8690,11 @@ void RB_RenderLightOcclusionQueries()
 		growList_t      invisibleList;
 		int             startTime = 0, endTime = 0;
 
-		qglVertexAttrib4fARB(ATTR_INDEX_COLOR, 1.0f, 0.0f, 0.0f, 0.05f);
+		glVertexAttrib4fARB(ATTR_INDEX_COLOR, 1.0f, 0.0f, 0.0f, 0.05f);
 
 		if(r_speeds->integer == 7)
 		{
-			qglFinish();
+			glFinish();
 			startTime = ri.Milliseconds();
 		}
 
@@ -8854,7 +8854,7 @@ void RB_RenderLightOcclusionQueries()
 
 		if(r_speeds->integer == 7)
 		{
-			qglFinish();
+			glFinish();
 			endTime = ri.Milliseconds();
 			backEnd.pc.c_occlusionQueriesResponseTime = endTime - startTime;
 
@@ -8938,7 +8938,7 @@ void RB_RenderLightOcclusionQueries()
 
 		if(r_speeds->integer == 7)
 		{
-			qglFinish();
+			glFinish();
 			endTime = ri.Milliseconds();
 			backEnd.pc.c_occlusionQueriesFetchTime = endTime - startTime;
 		}
@@ -8994,7 +8994,7 @@ void RB_RenderBspOcclusionQueries()
 			node = (bspNode_t *) l->data;
 
 			// begin the occlusion query
-			qglBeginQueryARB(GL_SAMPLES_PASSED, node->occlusionQueryObjects[backEnd.viewParms.viewCount]);
+			glBeginQueryARB(GL_SAMPLES_PASSED, node->occlusionQueryObjects[backEnd.viewParms.viewCount]);
 
 			R_BindVBO(node->volumeVBO);
 			R_BindIBO(node->volumeIBO);
@@ -9008,10 +9008,10 @@ void RB_RenderBspOcclusionQueries()
 
 			// end the query
 			// don't read back immediately so that we give the query time to be ready
-			qglEndQueryARB(GL_SAMPLES_PASSED);
+			glEndQueryARB(GL_SAMPLES_PASSED);
 
 #if 0
-			if(!qglIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+			if(!glIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 			{
 				ri.Error(ERR_FATAL, "node %i has no occlusion query object in slot %i: %i", j, 0, node->occlusionQueryObjects[backEnd.viewParms.viewCount]);
 			}
@@ -9042,7 +9042,7 @@ void RB_CollectBspOcclusionQueries()
 		int             avCount;
 		GLint           available;
 
-		qglFinish();
+		glFinish();
 
 		ocCount = 0;
 		sentinel = &tr.occlusionQueryList;
@@ -9050,7 +9050,7 @@ void RB_CollectBspOcclusionQueries()
 		{
 			node = (bspNode_t *) l->data;
 
-			if(qglIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+			if(glIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 			{
 				ocCount++;
 			}
@@ -9068,9 +9068,9 @@ void RB_CollectBspOcclusionQueries()
 				if(node->issueOcclusionQuery)
 				{
 					available = 0;
-					if(qglIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+					if(glIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 					{
-						qglGetQueryObjectivARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount], GL_QUERY_RESULT_AVAILABLE_ARB, &available);
+						glGetQueryObjectivARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount], GL_QUERY_RESULT_AVAILABLE_ARB, &available);
 						GL_CheckErrors();
 					}
 
@@ -9093,9 +9093,9 @@ void RB_CollectBspOcclusionQueries()
 			node = (bspNode_t *) l->data;
 
 			available = 0;
-			if(qglIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
+			if(glIsQueryARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount]))
 			{
-				qglGetQueryObjectivARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount], GL_QUERY_RESULT_AVAILABLE_ARB, &available);
+				glGetQueryObjectivARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount], GL_QUERY_RESULT_AVAILABLE_ARB, &available);
 				GL_CheckErrors();
 			}
 
@@ -9104,7 +9104,7 @@ void RB_CollectBspOcclusionQueries()
 				backEnd.pc.c_occlusionQueriesAvailable++;
 
 				// get the object and store it in the occlusion bits for the light
-				qglGetQueryObjectivARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount], GL_QUERY_RESULT, &node->occlusionQuerySamples[backEnd.viewParms.viewCount]);
+				glGetQueryObjectivARB(node->occlusionQueryObjects[backEnd.viewParms.viewCount], GL_QUERY_RESULT, &node->occlusionQuerySamples[backEnd.viewParms.viewCount]);
 
 				if(node->occlusionQuerySamples[backEnd.viewParms.viewCount] <= 0)
 				{
@@ -9224,31 +9224,31 @@ static void RB_RenderDebugUtils()
 
 				/*
 				// draw axis
-				qglBegin(GL_LINES);
+				glBegin(GL_LINES);
 
 				// draw orientation
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorRed);
-				qglVertex3fv(vec3_origin);
-				qglVertex3fv(forward);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorRed);
+				glVertex3fv(vec3_origin);
+				glVertex3fv(forward);
 
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorGreen);
-				qglVertex3fv(vec3_origin);
-				qglVertex3fv(left);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorGreen);
+				glVertex3fv(vec3_origin);
+				glVertex3fv(left);
 
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorBlue);
-				qglVertex3fv(vec3_origin);
-				qglVertex3fv(up);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorBlue);
+				glVertex3fv(vec3_origin);
+				glVertex3fv(up);
 
 				// draw special vectors
-				qglVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorYellow);
-				qglVertex3fv(vec3_origin);
+				glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorYellow);
+				glVertex3fv(vec3_origin);
 				VectorSubtract(light->origin, backEnd.orientation.origin, tmp);
 				light->transformed[0] = DotProduct(tmp, backEnd.orientation.axis[0]);
 				light->transformed[1] = DotProduct(tmp, backEnd.orientation.axis[1]);
 				light->transformed[2] = DotProduct(tmp, backEnd.orientation.axis[2]);
-				qglVertex3fv(light->transformed);
+				glVertex3fv(light->transformed);
 
-				qglEnd();
+				glEnd();
 				*/
 
 #if 1
@@ -10007,7 +10007,7 @@ static void RB_RenderDebugUtils()
 				Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 				Tess_InstantQuad(quadVerts);
 			}
-			else if(r_shadows->integer == 3 && qglDepthBoundsEXT)
+			else if(r_shadows->integer == 3 && glDepthBoundsEXT)
 			{
 				if(ia->noDepthBoundsTest)
 				{
@@ -10271,8 +10271,8 @@ static void RB_RenderDebugUtils()
 
 			if(node->contents != -1)
 			{
-				qglEnable(GL_POLYGON_OFFSET_FILL);
-				qglPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+				glEnable(GL_POLYGON_OFFSET_FILL);
+				glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 			}
 
 			R_BindVBO(node->volumeVBO);
@@ -10290,7 +10290,7 @@ static void RB_RenderDebugUtils()
 
 			if(node->contents != -1)
 			{
-				qglDisable(GL_POLYGON_OFFSET_FILL);
+				glDisable(GL_POLYGON_OFFSET_FILL);
 			}
 		}
 
@@ -10335,7 +10335,7 @@ static void RB_RenderView(void)
 		// sync with gl if needed
 		if(r_finish->integer == 1 && !glState.finishCalled)
 		{
-			qglFinish();
+			glFinish();
 			glState.finishCalled = qtrue;
 		}
 		if(r_finish->integer == 0)
@@ -10364,7 +10364,7 @@ static void RB_RenderView(void)
 			clearBits |= GL_COLOR_BUFFER_BIT;
 			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
 		}
-		qglClear(clearBits);
+		glClear(clearBits);
 
 		R_BindFBO(tr.geometricRenderFBO);
 		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
@@ -10377,15 +10377,15 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy color of the main context to deferredRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
 			}
 		}
-		qglClear(clearBits);
+		glClear(clearBits);
 
 #else
 		if(glConfig2.framebufferObjectAvailable)
@@ -10401,7 +10401,7 @@ static void RB_RenderView(void)
 			clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
 			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
 		}
-		qglClear(clearBits);
+		glClear(clearBits);
 #endif
 
 		if((backEnd.refdef.rdflags & RDF_HYPERSPACE))
@@ -10460,7 +10460,7 @@ static void RB_RenderView(void)
 		// update light render image
 		GL_SelectTexture(0);
 		GL_Bind(tr.lightRenderFBOImage);
-		qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.lightRenderFBOImage->uploadWidth, tr.lightRenderFBOImage->uploadHeight);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.lightRenderFBOImage->uploadWidth, tr.lightRenderFBOImage->uploadHeight);
 
 		// restore color buffer
 #if 1
@@ -10486,7 +10486,7 @@ static void RB_RenderView(void)
 
 			GL_SelectTexture(0);
 			GL_Bind(tr.currentRenderImage);
-			qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
+			glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
 
 			// draw viewport
 			Tess_InstantQuad(backEnd.viewParms.viewportVerts);
@@ -10501,7 +10501,7 @@ static void RB_RenderView(void)
 
 		if(r_speeds->integer == 9)
 		{
-			qglFinish();
+			glFinish();
 			startTime = ri.Milliseconds();
 		}
 
@@ -10515,7 +10515,7 @@ static void RB_RenderView(void)
 
 		if(r_speeds->integer == 9)
 		{
-			qglFinish();
+			glFinish();
 			endTime = ri.Milliseconds();
 			backEnd.pc.c_forwardLightingTime = endTime - startTime;
 		}
@@ -10530,7 +10530,7 @@ static void RB_RenderView(void)
 
 		if(r_speeds->integer == 9)
 		{
-			qglFinish();
+			glFinish();
 			endTime = ri.Milliseconds();
 			backEnd.pc.c_forwardTranslucentTime = endTime - startTime;
 		}
@@ -10558,16 +10558,16 @@ static void RB_RenderView(void)
 		{
 			if(glConfig2.framebufferBlitAvailable)
 			{
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_LINEAR);
 
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, 64, 64,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_LINEAR);
@@ -10585,9 +10585,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_LINEAR);
@@ -10602,9 +10602,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy main context to portalRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
@@ -10633,9 +10633,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
 									   0, 0, tr.portalRenderFBO->width, tr.portalRenderFBO->height,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
@@ -10645,7 +10645,7 @@ static void RB_RenderView(void)
 				// capture current color buffer
 				GL_SelectTexture(0);
 				GL_Bind(tr.portalRenderImage);
-				qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
+				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
 			}
 #else
 #if 0
@@ -10653,9 +10653,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy main context to portalRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
@@ -10666,7 +10666,7 @@ static void RB_RenderView(void)
 				// capture current color buffer
 				GL_SelectTexture(0);
 				GL_Bind(tr.portalRenderImage);
-				qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
+				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
 			}
 #endif
 			backEnd.pc.c_portals++;
@@ -10683,7 +10683,7 @@ static void RB_RenderView(void)
 		// sync with gl if needed
 		if(r_finish->integer == 1 && !glState.finishCalled)
 		{
-			qglFinish();
+			glFinish();
 			glState.finishCalled = qtrue;
 		}
 		if(r_finish->integer == 0)
@@ -10703,7 +10703,7 @@ static void RB_RenderView(void)
 
 		// clear frame buffer objects
 		R_BindFBO(tr.deferredRenderFBO);
-		//qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		clearBits = GL_DEPTH_BUFFER_BIT;
 
@@ -10718,7 +10718,7 @@ static void RB_RenderView(void)
 			clearBits |= GL_COLOR_BUFFER_BIT;
 			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
 		}
-		qglClear(clearBits);
+		glClear(clearBits);
 
 		R_BindFBO(tr.geometricRenderFBO);
 		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
@@ -10731,15 +10731,15 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy color of the main context to deferredRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
 			}
 		}
-		qglClear(clearBits);
+		glClear(clearBits);
 
 		if((backEnd.refdef.rdflags & RDF_HYPERSPACE))
 		{
@@ -10813,16 +10813,16 @@ static void RB_RenderView(void)
 		{
 			if(glConfig2.framebufferBlitAvailable)
 			{
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_LINEAR);
 
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, 64, 64,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_LINEAR);
@@ -10839,9 +10839,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_LINEAR);
@@ -10865,9 +10865,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
 									   0, 0, tr.portalRenderFBO->width, tr.portalRenderFBO->height,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
@@ -10877,7 +10877,7 @@ static void RB_RenderView(void)
 				// capture current color buffer
 				GL_SelectTexture(0);
 				GL_Bind(tr.portalRenderImage);
-				qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
+				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
 			}
 			backEnd.pc.c_portals++;
 		}
@@ -10894,7 +10894,7 @@ static void RB_RenderView(void)
 		// sync with gl if needed
 		if(r_finish->integer == 1 && !glState.finishCalled)
 		{
-			qglFinish();
+			glFinish();
 			glState.finishCalled = qtrue;
 		}
 		if(r_finish->integer == 0)
@@ -10939,15 +10939,15 @@ static void RB_RenderView(void)
 			if(HDR_ENABLED())
 			{
 				// copy color of the main context to deferredRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
 			}
 		}
-		qglClear(clearBits);
+		glClear(clearBits);
 
 		if((backEnd.refdef.rdflags & RDF_HYPERSPACE))
 		{
@@ -10968,7 +10968,7 @@ static void RB_RenderView(void)
 
 		if(r_speeds->integer == 9)
 		{
-			qglFinish();
+			glFinish();
 			startTime = ri.Milliseconds();
 		}
 
@@ -10986,7 +10986,7 @@ static void RB_RenderView(void)
 
 		if(r_speeds->integer == 9)
 		{
-			qglFinish();
+			glFinish();
 			endTime = ri.Milliseconds();
 			backEnd.pc.c_forwardAmbientTime = endTime - startTime;
 		}
@@ -11027,16 +11027,16 @@ static void RB_RenderView(void)
 		{
 			if(glConfig2.framebufferBlitAvailable)
 			{
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_LINEAR);
 
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, 64, 64,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_LINEAR);
@@ -11057,9 +11057,9 @@ static void RB_RenderView(void)
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_NEAREST);
@@ -11106,9 +11106,9 @@ static void RB_RenderView(void)
 			if(r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
 				                       0, 0, tr.portalRenderFBO->width, tr.portalRenderFBO->height,
 				                       GL_COLOR_BUFFER_BIT,
 				                       GL_NEAREST);
@@ -11118,9 +11118,9 @@ static void RB_RenderView(void)
 			else if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
 			{
 				// copy main context to portalRenderFBO
-				qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
+				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
@@ -11131,7 +11131,7 @@ static void RB_RenderView(void)
 				// capture current color buffer
 				GL_SelectTexture(0);
 				GL_Bind(tr.portalRenderImage);
-				qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
+				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
 			}
 			backEnd.pc.c_portals++;
 		}
@@ -11140,9 +11140,9 @@ static void RB_RenderView(void)
 		if(r_dynamicBspOcclusionCulling->integer)
 		{
 			// copy depth of the main context to deferredRenderFBO
-			qglBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-			qglBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
-			qglBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
+			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
+			glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 								   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 								   GL_DEPTH_BUFFER_BIT,
 								   GL_NEAREST);
@@ -11160,11 +11160,11 @@ static void RB_RenderView(void)
 
 		// need to convert Y axis
 #if 0
-		qglReadPixels(0, 0, tr.refdef.pixelTargetWidth, tr.refdef.pixelTargetHeight, GL_RGBA, GL_UNSIGNED_BYTE, tr.refdef.pixelTarget);
+		glReadPixels(0, 0, tr.refdef.pixelTargetWidth, tr.refdef.pixelTargetHeight, GL_RGBA, GL_UNSIGNED_BYTE, tr.refdef.pixelTarget);
 #else
-		// Bugfix: drivers absolutely hate running in high res and using qglReadPixels near the top or bottom edge.
+		// Bugfix: drivers absolutely hate running in high res and using glReadPixels near the top or bottom edge.
 		// Soo.. lets do it in the middle.
-		qglReadPixels(glConfig.vidWidth / 2, glConfig.vidHeight / 2, tr.refdef.pixelTargetWidth, tr.refdef.pixelTargetHeight, GL_RGBA,
+		glReadPixels(glConfig.vidWidth / 2, glConfig.vidHeight / 2, tr.refdef.pixelTargetWidth, tr.refdef.pixelTargetHeight, GL_RGBA,
 					  GL_UNSIGNED_BYTE, tr.refdef.pixelTarget);
 #endif
 
@@ -11210,12 +11210,12 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 	R_SyncRenderThread();
 
 	// we definately want to sync every frame for the cinematics
-	qglFinish();
+	glFinish();
 
 	start = end = 0;
 	if(r_speeds->integer)
 	{
-		qglFinish();
+		glFinish();
 		start = ri.Milliseconds();
 	}
 
@@ -11234,8 +11234,8 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 
 	RB_SetGL2D();
 
-	qglVertexAttrib4fARB(ATTR_INDEX_NORMAL, 0, 0, 1, 1);
-	qglVertexAttrib4fARB(ATTR_INDEX_COLOR, tr.identityLight, tr.identityLight, tr.identityLight, 1);
+	glVertexAttrib4fARB(ATTR_INDEX_NORMAL, 0, 0, 1, 1);
+	glVertexAttrib4fARB(ATTR_INDEX_COLOR, tr.identityLight, tr.identityLight, tr.identityLight, 1);
 
 	GL_BindProgram(&tr.genericSingleShader);
 
@@ -11263,13 +11263,13 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
 
-		qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	}
 	else
 	{
@@ -11277,28 +11277,28 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 		{
 			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 			// it and don't try and do a texture compression
-			qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
 	}
 
 	if(r_speeds->integer)
 	{
-		qglFinish();
+		glFinish();
 		end = ri.Milliseconds();
-		ri.Printf(PRINT_ALL, "qglTexSubImage2D %i, %i: %i msec\n", cols, rows, end - start);
+		ri.Printf(PRINT_ALL, "glTexSubImage2D %i, %i: %i msec\n", cols, rows, end - start);
 	}
 
 	/*
-	   qglBegin(GL_QUADS);
-	   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0.5f / cols, 0.5f / rows, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, (cols - 0.5f) / cols, 0.5f / rows, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, (cols - 0.5f) / cols, (rows - 0.5f) / rows, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y + h, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0.5f / cols, (rows - 0.5f) / rows, 0, 1);
-	   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y + h, 0, 1);
-	   qglEnd();
+	   glBegin(GL_QUADS);
+	   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0.5f / cols, 0.5f / rows, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, (cols - 0.5f) / cols, 0.5f / rows, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, (cols - 0.5f) / cols, (rows - 0.5f) / rows, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y + h, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0.5f / cols, (rows - 0.5f) / rows, 0, 1);
+	   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y + h, 0, 1);
+	   glEnd();
 	 */
 
 	tess.numVertexes = 0;
@@ -11371,14 +11371,14 @@ void RE_UploadCinematic(int w, int h, int cols, int rows, const byte * data, int
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
 
-		qglTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		qglTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colorBlack);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colorBlack);
 	}
 	else
 	{
@@ -11386,7 +11386,7 @@ void RE_UploadCinematic(int w, int h, int cols, int rows, const byte * data, int
 		{
 			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 			// it and don't try and do a texture compression
-			qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		}
 	}
 
@@ -11808,7 +11808,7 @@ const void     *RB_DrawBuffer(const void *data)
 	{
 //      GL_ClearColor(1, 0, 0.5, 1);
 		GL_ClearColor(0, 0, 0, 1);
-		qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	return (const void *)(cmd + 1);
@@ -11839,9 +11839,9 @@ void RB_ShowImages(void)
 		RB_SetGL2D();
 	}
 
-	qglClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	qglFinish();
+	glFinish();
 
 	GL_BindProgram(&tr.genericSingleShader);
 	GL_Cull(CT_TWO_SIDED);
@@ -11897,20 +11897,20 @@ void RB_ShowImages(void)
 		Tess_InstantQuad(quadVerts);
 
 		/*
-		   qglBegin(GL_QUADS);
-		   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0, 0, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 1, 0, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 1, 1, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y + h, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0, 1, 0, 1);
-		   qglVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y + h, 0, 1);
-		   qglEnd();
+		   glBegin(GL_QUADS);
+		   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0, 0, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 1, 0, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 1, 1, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x + w, y + h, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_TEXCOORD0, 0, 1, 0, 1);
+		   glVertexAttrib4fARB(ATTR_INDEX_POSITION, x, y + h, 0, 1);
+		   glEnd();
 		 */
 	}
 
-	qglFinish();
+	glFinish();
 
 	end = ri.Milliseconds();
 	ri.Printf(PRINT_ALL, "%i msec to draw all images\n", end - start);
@@ -11950,7 +11950,7 @@ const void     *RB_SwapBuffers(const void *data)
 		unsigned char  *stencilReadback;
 
 		stencilReadback = ri.Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight);
-		qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencilReadback);
+		glReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencilReadback);
 
 		for(i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++)
 		{
@@ -11964,7 +11964,7 @@ const void     *RB_SwapBuffers(const void *data)
 
 	if(!glState.finishCalled)
 	{
-		qglFinish();
+		glFinish();
 	}
 
 	GLimp_LogComment("***************** RB_SwapBuffers *****************\n\n\n");
@@ -11991,11 +11991,11 @@ const void     *RB_RenderToTexture(const void *data)
 	cmd = (const renderToTextureCommand_t *)data;
 
 	GL_Bind(cmd->image);
-	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
-	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
-	qglTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-	qglCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, cmd->x, cmd->y, cmd->w, cmd->h, 0);
-//  qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cmd->x, cmd->y, cmd->w, cmd->h );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, cmd->x, cmd->y, cmd->w, cmd->h, 0);
+//  glCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cmd->x, cmd->y, cmd->w, cmd->h );
 
 	return (const void *)(cmd + 1);
 }
@@ -12014,7 +12014,7 @@ const void     *RB_Finish(const void *data)
 
 	cmd = (const renderFinishCommand_t *)data;
 
-	qglFinish();
+	glFinish();
 
 	return (const void *)(cmd + 1);
 }

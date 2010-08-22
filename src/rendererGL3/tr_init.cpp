@@ -122,7 +122,6 @@ cvar_t         *r_depthbits;
 cvar_t         *r_colorbits;
 cvar_t         *r_stereo;
 
-cvar_t         *r_glDriver;
 cvar_t         *r_drawBuffer;
 cvar_t         *r_uiFullScreen;
 cvar_t         *r_shadows;
@@ -349,7 +348,7 @@ static void InitOpenGL(void)
 		Q_strlwr(renderer_buffer);
 
 		// OpenGL driver constants
-		qglGetIntegerv(GL_MAX_TEXTURE_SIZE, &temp);
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &temp);
 		glConfig.maxTextureSize = temp;
 
 		// stubbed or broken drivers may have reported 0...
@@ -392,7 +391,7 @@ void GL_CheckErrors_(const char *filename, int line)
 		return;
 	}
 
-	err = qglGetError();
+	err = glGetError();
 	if(err == GL_NO_ERROR)
 	{
 		return;
@@ -553,7 +552,7 @@ static void RB_TakeScreenshot(int x, int y, int width, int height, char *fileNam
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer + 18);
+	glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer + 18);
 #endif
 
 	// swap rgb to bgr
@@ -590,7 +589,7 @@ static void RB_TakeScreenshotJPEG(int x, int y, int width, int height, char *fil
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 #endif
 
 	// gamma correct
@@ -619,7 +618,7 @@ static void RB_TakeScreenshotPNG(int x, int y, int width, int height, char *file
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #endif
 
 	// gamma correct
@@ -774,7 +773,7 @@ the menu system, sampled down from full screen distorted images
 	buffer[14] = 128;
 	buffer[16] = 24;			// pixel size
 
-	qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source);
+	glReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source);
 
 	// resample from source
 	xScale = glConfig.vidWidth / 512.0f;
@@ -988,7 +987,7 @@ const void     *RB_TakeVideoFrameCmd(const void *data)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	qglReadPixels(0, 0, cmd->width, cmd->height, GL_RGBA, GL_UNSIGNED_BYTE, cmd->captureBuffer);
+	glReadPixels(0, 0, cmd->width, cmd->height, GL_RGBA, GL_UNSIGNED_BYTE, cmd->captureBuffer);
 #endif
 
 	// gamma correct
@@ -1041,13 +1040,13 @@ void GL_SetDefaultState(void)
 	GL_CullFace(GL_FRONT);
 
 	glState.faceCulling = CT_TWO_SIDED;
-	qglDisable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 
-	qglVertexAttrib4fARB(ATTR_INDEX_COLOR, 1, 1, 1, 1);
+	glVertexAttrib4fARB(ATTR_INDEX_COLOR, 1, 1, 1, 1);
 
 	// initialize downstream texture units if we're running
 	// in a multitexture environment
-	if(qglActiveTextureARB)
+	if(GLEW_ARB_multisample)
 	{
 		for(i = glConfig.maxActiveTextures - 1; i >= 0; i--)
 		{
@@ -1055,9 +1054,9 @@ void GL_SetDefaultState(void)
 			GL_TextureMode(r_textureMode->string);
 
 			if(i != 0)
-				qglDisable(GL_TEXTURE_2D);
+				glDisable(GL_TEXTURE_2D);
 			else
-				qglEnable(GL_TEXTURE_2D);
+				glEnable(GL_TEXTURE_2D);
 		}
 	}
 
@@ -1069,16 +1068,16 @@ void GL_SetDefaultState(void)
 	glState.vertexAttribPointersSet = 0;
 
 	glState.currentProgram = 0;
-	qglUseProgramObjectARB(0);
+	glUseProgramObjectARB(0);
 
-	qglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-	qglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	glState.currentVBO = NULL;
 	glState.currentIBO = NULL;
 
 	// the vertex array is always enabled, but the color and texture
 	// arrays are enabled and disabled around the compiled vertex array call
-	qglEnableVertexAttribArrayARB(ATTR_INDEX_POSITION);
+	glEnableVertexAttribArrayARB(ATTR_INDEX_POSITION);
 
 	/*
 	   OpenGL 3.0 spec: E.1. PROFILES AND DEPRECATED FEATURES OF OPENGL 3.0 405
@@ -1090,8 +1089,8 @@ void GL_SetDefaultState(void)
 
 	if(glConfig2.framebufferObjectAvailable)
 	{
-		qglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		qglBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 		glState.currentFBO = NULL;
 	}
 
@@ -1105,15 +1104,15 @@ void GL_SetDefaultState(void)
 	   GL_DRAW_BUFFER2_ARB,
 	   GL_DRAW_BUFFER3_ARB};
 
-	   qglDrawBuffersARB(4, drawbuffers);
+	   glDrawBuffersARB(4, drawbuffers);
 	   }
 	 */
 
 	GL_PolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	GL_DepthMask(GL_TRUE);
-	qglDisable(GL_DEPTH_TEST);
-	qglEnable(GL_SCISSOR_TEST);
-	qglDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_SCISSOR_TEST);
+	glDisable(GL_BLEND);
 
 	glState.stackIndex = 0;
 	for(i = 0; i < MAX_GLSTACK; i++)
@@ -1270,8 +1269,6 @@ R_Register
 void R_Register(void)
 {
 	// latched and archived variables
-	r_glDriver = ri.Cvar_Get("r_glDriver", OPENGL_DRIVER_NAME, CVAR_ARCHIVE | CVAR_LATCH | CVAR_UNSAFE);
-
 	r_ext_texture_compression = ri.Cvar_Get("r_ext_texture_compression", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_ext_occlusion_query = ri.Cvar_Get("r_ext_occlusion_query", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_ext_texture_non_power_of_two = ri.Cvar_Get("r_ext_texture_non_power_of_two", "1", CVAR_CHEAT | CVAR_LATCH);
@@ -1375,7 +1372,7 @@ void R_Register(void)
 	r_drawSun = ri.Cvar_Get("r_drawSun", "0", CVAR_ARCHIVE);
 	r_finish = ri.Cvar_Get("r_finish", "0", CVAR_CHEAT);
 	r_textureMode = ri.Cvar_Get("r_textureMode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
-	r_swapInterval = ri.Cvar_Get("r_swapInterval", "0", CVAR_ARCHIVE | CVAR_LATCH);
+	r_swapInterval = ri.Cvar_Get("r_swapInterval", "0", CVAR_ARCHIVE);
 	r_gamma = ri.Cvar_Get("r_gamma", "1", CVAR_ARCHIVE);
 	r_facePlaneCull = ri.Cvar_Get("r_facePlaneCull", "1", CVAR_ARCHIVE);
 
@@ -1929,10 +1926,10 @@ void R_Init(void)
 #if !defined(USE_D3D10)
 	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
 	 {
-		qglGenQueriesARB(MAX_OCCLUSION_QUERIES, tr.occlusionQueryObjects);
+		glGenQueriesARB(MAX_OCCLUSION_QUERIES, tr.occlusionQueryObjects);
 	 }
 
-	err = qglGetError();
+	err = glGetError();
 	if(err != GL_NO_ERROR)
 	{
 		ri.Error(ERR_FATAL, "R_Init() - glGetError() failed = 0x%x\n", err);
@@ -1983,7 +1980,7 @@ void RE_Shutdown(qboolean destroyWindow)
 #if !defined(USE_D3D10)
 		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
 		{
-			qglDeleteQueriesARB(MAX_OCCLUSION_QUERIES, tr.occlusionQueryObjects);
+			glDeleteQueriesARB(MAX_OCCLUSION_QUERIES, tr.occlusionQueryObjects);
 
 			if(tr.world)
 			{
@@ -1995,7 +1992,7 @@ void RE_Shutdown(qboolean destroyWindow)
 				{
 					node = &tr.world->nodes[j];
 
-					qglDeleteQueriesARB(MAX_VIEWS, node->occlusionQueryObjects);
+					glDeleteQueriesARB(MAX_VIEWS, node->occlusionQueryObjects);
 				}
 
 				/*
@@ -2003,7 +2000,7 @@ void RE_Shutdown(qboolean destroyWindow)
 				{
 					light = &tr.world->lights[j];
 
-					qglDeleteQueriesARB(MAX_VIEWS, light->occlusionQueryObjects);
+					glDeleteQueriesARB(MAX_VIEWS, light->occlusionQueryObjects);
 				}
 				*/
 			}

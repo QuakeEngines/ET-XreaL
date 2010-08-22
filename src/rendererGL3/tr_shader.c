@@ -4209,7 +4209,7 @@ static void CollapseStages(void)
 		return;
 	}
 #else
-	if(!qglActiveTextureARB || !r_collapseStages->integer)
+	if(!glActiveTextureARB || !r_collapseStages->integer)
 	{
 		return;
 	}
