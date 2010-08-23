@@ -2163,6 +2163,15 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 		return NULL;
 	}
 
+#if defined(COMPAT_ET)
+	if(bits & IF_LIGHTMAP)
+	{
+		R_ProcessLightmap(&pic, 4, width, height, &pic);
+
+		bits |= IF_NOCOMPRESSION;
+	}
+#endif
+
 #if 0
 	//if(r_tryCachedDDSImages->integer && !(bits & IF_NOCOMPRESSION) && Q_strncasecmp(name, "fonts", 5))
 	{

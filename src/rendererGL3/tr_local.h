@@ -1257,7 +1257,9 @@ enum
 	ATTR_BONE_INDEXES = BIT(9),
 	ATTR_BONE_WEIGHTS = BIT(10),
 
-	ATTR_DEFAULT = ATTR_POSITION,
+	// FIXME XBSP format with ATTR_LIGHTDIRECTION and ATTR_PAINTCOLOR
+	ATTR_DEFAULT = ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_COLOR,
+
 	ATTR_BITS =	ATTR_POSITION |
 				ATTR_TEXCOORD |
 				ATTR_LIGHTCOORD |
@@ -4215,6 +4217,7 @@ qhandle_t       RE_GetShaderFromModel(qhandle_t modelid, int surfnum, int withli
 //----(SA) end
 
 qboolean        R_GetEntityToken(char *buffer, int size);
+float           R_ProcessLightmap(byte ** pic, int in_padding, int width, int height, byte ** pic_out);	// Arnout
 
 model_t        *R_AllocModel(void);
 

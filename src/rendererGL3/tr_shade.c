@@ -2437,12 +2437,12 @@ static void BindLightMap()
 {
 	image_t        *lightmap;
 
-	if(tess.lightmapNum >= 0 && (tess.lightmapNum / 2) < tr.lightmaps.currentElements)
+	if(tess.lightmapNum >= 0 && tess.lightmapNum < tr.lightmaps.currentElements)
 	{
 #if defined(COMPAT_Q3A)
 		lightmap = tr.fatLightmap;
 #else
-		lightmap = Com_GrowListElement(&tr.lightmaps, tess.lightmapNum / 2);
+		lightmap = Com_GrowListElement(&tr.lightmaps, tess.lightmapNum);
 #endif
 	}
 	else
@@ -2468,9 +2468,9 @@ static void BindDeluxeMap()
 {
 	image_t        *deluxemap;
 
-	if(tess.lightmapNum >= 0 && (tess.lightmapNum / 2) < tr.deluxemaps.currentElements)
+	if(tess.lightmapNum >= 0 && tess.lightmapNum < tr.deluxemaps.currentElements)
 	{
-		deluxemap = Com_GrowListElement(&tr.deluxemaps, tess.lightmapNum / 2);
+		deluxemap = Com_GrowListElement(&tr.deluxemaps, tess.lightmapNum);
 	}
 	else
 	{
@@ -5427,7 +5427,7 @@ void Tess_StageIteratorGeneric()
 	if(!glState.currentVBO || !glState.currentIBO || glState.currentVBO == tess.vbo || glState.currentIBO == tess.ibo)
 	{
 		// Tr3B: FIXME analyze required vertex attribs by the current material
-		Tess_UpdateVBOs(0);
+		Tess_UpdateVBOs(ATTR_DEFAULT);
 	}
 
 	if(tess.surfaceShader->fogVolume)
@@ -5488,7 +5488,7 @@ void Tess_StageIteratorGeneric()
 				{
 					if(r_precomputedLighting->integer || r_vertexLighting->integer)
 					{
-						if(!r_vertexLighting->integer && tess.lightmapNum >= 0 && (tess.lightmapNum / 2) < tr.lightmaps.currentElements)
+						if(!r_vertexLighting->integer && tess.lightmapNum >= 0 && tess.lightmapNum < tr.lightmaps.currentElements)
 						{
 							if(tr.worldDeluxeMapping && r_normalMapping->integer)
 							{
@@ -5588,6 +5588,9 @@ void Tess_StageIteratorGeneric()
 			default:
 				break;
 		}
+
+		if(r_showLightMaps->integer && pStage->type == ST_LIGHTMAP)
+			break;
 	}
 
 	// reset polygon offset
@@ -5618,7 +5621,7 @@ void Tess_StageIteratorGBuffer()
 	if(!glState.currentVBO || !glState.currentIBO || glState.currentVBO == tess.vbo || glState.currentIBO == tess.ibo)
 	{
 		// Tr3B: FIXME analyze required vertex attribs by the current material
-		Tess_UpdateVBOs(0);
+		Tess_UpdateVBOs(ATTR_DEFAULT);
 	}
 
 #if 0
@@ -5698,7 +5701,7 @@ void Tess_StageIteratorGBuffer()
 					R_BindFBO(tr.deferredRenderFBO);
 					if(r_precomputedLighting->integer || r_vertexLighting->integer)
 					{
-						if(!r_vertexLighting->integer && tess.lightmapNum >= 0 && (tess.lightmapNum / 2) < tr.lightmaps.currentElements)
+						if(!r_vertexLighting->integer && tess.lightmapNum >= 0 && tess.lightmapNum < tr.lightmaps.currentElements)
 						{
 							if(tr.worldDeluxeMapping && r_normalMapping->integer)
 							{
