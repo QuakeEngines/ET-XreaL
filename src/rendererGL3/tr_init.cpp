@@ -344,6 +344,8 @@ static void InitOpenGL(void)
 
 		GLimp_Init();
 
+		GL_CheckErrors();
+
 		strcpy(renderer_buffer, glConfig.renderer_string);
 		Q_strlwr(renderer_buffer);
 
@@ -358,14 +360,19 @@ static void InitOpenGL(void)
 		}
 	}
 
+	GL_CheckErrors();
+
 	// init command buffers and SMP
 	R_InitCommandBuffers();
+	GL_CheckErrors();
 
 	// print info
 	GfxInfo_f();
+	GL_CheckErrors();
 
 	// set default state
 	GL_SetDefaultState();
+	GL_CheckErrors();
 }
 #endif
 
@@ -374,8 +381,7 @@ static void InitOpenGL(void)
 GL_CheckErrors
 ==================
 */
-#if !defined(USE_D3D10)
-void GL_CheckErrors_(const char *filename, int line)
+void GL_CheckErrors_(const char *fileName, int line)
 {
 	int             err;
 	char            s[128];
@@ -428,9 +434,8 @@ void GL_CheckErrors_(const char *filename, int line)
 			break;
 	}
 
-	ri.Error(ERR_FATAL, "caught OpenGL error: %s in file %s line %i", s, filename, line);
+	ri.Error(ERR_FATAL, "caught OpenGL error: %s in file %s line %i", s, fileName, line);
 }
-#endif
 
 
 /*
@@ -1022,7 +1027,6 @@ const void     *RB_TakeVideoFrameCmd(const void *data)
 /*
 ** GL_SetDefaultState
 */
-#if !defined(USE_D3D10)
 void GL_SetDefaultState(void)
 {
 	int             i;
@@ -1042,23 +1046,31 @@ void GL_SetDefaultState(void)
 	glState.faceCulling = CT_TWO_SIDED;
 	glDisable(GL_CULL_FACE);
 
+	GL_CheckErrors();
+
 	glVertexAttrib4fARB(ATTR_INDEX_COLOR, 1, 1, 1, 1);
+
+	GL_CheckErrors();
 
 	// initialize downstream texture units if we're running
 	// in a multitexture environment
-	if(GLEW_ARB_multisample)
+	if(GLEW_ARB_multitexture)
 	{
 		for(i = glConfig.maxActiveTextures - 1; i >= 0; i--)
 		{
 			GL_SelectTexture(i);
 			GL_TextureMode(r_textureMode->string);
 
+			/*
 			if(i != 0)
 				glDisable(GL_TEXTURE_2D);
 			else
 				glEnable(GL_TEXTURE_2D);
+			*/
 		}
 	}
+
+	GL_CheckErrors();
 
 	GL_DepthFunc(GL_LEQUAL);
 
@@ -1074,6 +1086,8 @@ void GL_SetDefaultState(void)
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	glState.currentVBO = NULL;
 	glState.currentIBO = NULL;
+
+	GL_CheckErrors();
 
 	// the vertex array is always enabled, but the color and texture
 	// arrays are enabled and disabled around the compiled vertex array call
@@ -1114,6 +1128,8 @@ void GL_SetDefaultState(void)
 	glEnable(GL_SCISSOR_TEST);
 	glDisable(GL_BLEND);
 
+	GL_CheckErrors();
+
 	glState.stackIndex = 0;
 	for(i = 0; i < MAX_GLSTACK; i++)
 	{
@@ -1122,7 +1138,6 @@ void GL_SetDefaultState(void)
 		MatrixIdentity(glState.modelViewProjectionMatrix[i]);
 	}
 }
-#endif
 
 
 
@@ -1159,7 +1174,7 @@ void GfxInfo_f(void)
 	ri.Printf(PRINT_ALL, "GL_SHADING_LANGUAGE_VERSION_ARB: %s\n", glConfig2.shadingLanguageVersion);
 
 	ri.Printf(PRINT_ALL, "GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB %d\n", glConfig2.maxVertexUniforms);
-	ri.Printf(PRINT_ALL, "GL_MAX_VARYING_FLOATS_ARB %d\n", glConfig2.maxVaryingFloats);
+//	ri.Printf(PRINT_ALL, "GL_MAX_VARYING_FLOATS_ARB %d\n", glConfig2.maxVaryingFloats);
 	ri.Printf(PRINT_ALL, "GL_MAX_VERTEX_ATTRIBS_ARB %d\n", glConfig2.maxVertexAttribs);
 
 	if(glConfig2.occlusionQueryAvailable)
@@ -1211,7 +1226,31 @@ void GfxInfo_f(void)
 
 	if(glConfig.driverType == GLDRV_OPENGL3)
 	{
-		ri.Printf(PRINT_ALL, "Using OpenGL 3.1 context\n");
+		int				contextFlags, profile;
+
+		ri.Printf(PRINT_ALL, S_COLOR_ORANGE "Using OpenGL 3.x context\n");
+
+		// check if we have a core-profile
+		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+		if(profile == GL_CONTEXT_CORE_PROFILE_BIT)
+		{
+			ri.Printf(PRINT_ALL, S_COLOR_GREEN "Having a core profile\n");
+		}
+		else
+		{
+			ri.Printf(PRINT_ALL, S_COLOR_RED "Having a compatibility profile\n");
+		}
+		
+		// check if context is forward compatible
+		glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
+		if(contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)
+		{
+			ri.Printf(PRINT_ALL, S_COLOR_GREEN "Context is forward compatible\n");
+		}
+		else
+		{
+			ri.Printf(PRINT_ALL, S_COLOR_RED "Context is NOT forward compatible\n");
+		}
 	}
 
 	if(glConfig.hardwareType == GLHW_ATI)

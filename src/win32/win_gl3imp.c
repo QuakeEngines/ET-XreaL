@@ -842,9 +842,7 @@ static rserr_t GLW_SetMode(int mode, int colorbits, qboolean cdsFullscreen)
 			}
 			else
 			{
-				//
 				// the exact mode failed, so scan EnumDisplaySettings for the next largest mode
-				//
 				DEVMODE         devmode;
 				int             modeNum;
 
@@ -947,6 +945,8 @@ static void GLW_InitExtensions(void)
 		ri.Printf(PRINT_ALL, "...WGL_EXT_swap_control not found\n");
 	}
 
+	GL_CheckErrors();
+
 	// GL_ARB_multitexture
 	if(GLEW_ARB_multitexture)
 	{
@@ -987,6 +987,7 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Error(ERR_VID_FATAL, "...GL_ARB_texture_cube_map not found\n");
 	}
+	GL_CheckErrors();
 
 	// GL_ARB_vertex_program
 	if(GLEW_ARB_vertex_program)
@@ -1028,6 +1029,7 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Printf(PRINT_ALL, "...GL_ARB_occlusion_query not found\n");
 	}
+	GL_CheckErrors();
 
 	// GL_ARB_shader_objects
 	if(GLEW_ARB_shader_objects)
@@ -1044,9 +1046,10 @@ static void GLW_InitExtensions(void)
 	{
 		int				reservedComponents;
 
-		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &glConfig2.maxVertexUniforms);
-		glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, &glConfig2.maxVaryingFloats);
-		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &glConfig2.maxVertexAttribs);
+		GL_CheckErrors();
+		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &glConfig2.maxVertexUniforms); GL_CheckErrors();
+		//glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, &glConfig2.maxVaryingFloats); GL_CheckErrors();
+		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &glConfig2.maxVertexAttribs); GL_CheckErrors();
 
 		reservedComponents = 16 * 10; // approximation how many uniforms we have besides the bone matrices
 
@@ -1068,6 +1071,7 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Error(ERR_VID_FATAL, "...GL_ARB_vertex_shader not found\n");
 	}
+	GL_CheckErrors();
 
 	// GL_ARB_fragment_shader
 	if(GLEW_ARB_fragment_shader)
@@ -1090,6 +1094,7 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Printf(ERR_VID_FATAL, "...GL_ARB_shading_language_100 not found\n");
 	}
+	GL_CheckErrors();
 
 	// GL_ARB_texture_non_power_of_two
 	glConfig2.textureNPOTAvailable = qfalse;
@@ -1285,6 +1290,7 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Printf(PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n");
 	}
+	GL_CheckErrors();
 
 	// GL_EXT_stencil_two_side
 	if(GLEW_EXT_stencil_two_side)
@@ -1341,6 +1347,7 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Printf(PRINT_ALL, "...GL_EXT_framebuffer_object not found\n");
 	}
+	GL_CheckErrors();
 
 	// GL_EXT_packed_depth_stencil
 	glConfig2.framebufferPackedDepthStencilAvailable = qfalse;
@@ -1482,6 +1489,189 @@ static qboolean GLW_CheckOSVersion(void)
 }
 
 
+static void GLDebugCallback(unsigned int source, unsigned int type, unsigned int id,
+							unsigned int severity, int length,
+							const char* message, void* userParam)
+{
+
+	// DebugOutputToFile(source, type, id, severity, message);
+
+	{
+
+		/*
+             char debSource[16], debType[20], debSev[5];
+
+             if(source == GL_DEBUG_SOURCE_API_ARB)
+
+                    strcpy(debSource, "OpenGL");
+
+             else if(source == GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB)
+
+                    strcpy(debSource, "Windows");
+
+             else if(source == GL_DEBUG_SOURCE_SHADER_COMPILER_ARB)
+
+                    strcpy(debSource, "Shader Compiler");
+
+             else if(source == GL_DEBUG_SOURCE_THIRD_PARTY_ARB)
+
+                    strcpy(debSource, "Third Party");
+
+             else if(source == GL_DEBUG_SOURCE_APPLICATION_ARB)
+
+                    strcpy(debSource, "Application");
+
+             else if(source == GL_DEBUG_SOURCE_OTHER_ARB)
+
+                    strcpy(debSource, "Other");
+
+ 
+
+             if(type == GL_DEBUG_TYPE_ERROR_ARB)
+
+                    strcpy(debType, "Error");
+
+             else if(type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB)
+
+                    strcpy(debType, "Deprecated behavior");
+
+             else if(type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB)
+
+                    strcpy(debType, "Undefined behavior");
+
+             else if(type == GL_DEBUG_TYPE_PORTABILITY_ARB)
+
+                    strcpy(debType, "Portability");
+
+             else if(type == GL_DEBUG_TYPE_PERFORMANCE_ARB)
+
+                    strcpy(debType, "Performance");
+
+             else if(type == GL_DEBUG_TYPE_OTHER_ARB)
+
+                    strcpy(debType, "Other");
+
+ 
+
+             if(severity == GL_DEBUG_SEVERITY_HIGH_ARB)
+
+                    strcpy(debSev, "High");
+
+             else if(severity == GL_DEBUG_SEVERITY_MEDIUM_ARB)
+
+                    strcpy(debSev, "Medium");
+
+             else if(severity == GL_DEBUG_SEVERITY_LOW_ARB)
+
+                    strcpy(debSev, "Low");
+		*/
+ 
+
+			// ri.Error(ERR_FATAL, "OpenGL Error: Source:%s\tType:%s\tID:%d\tSeverity:%s\tMessage:%s\n", debSource,debType,id,debSev,message);
+		 ri.Error(ERR_FATAL, "OpenGL Error: Message:%s\n", message);
+
+
+             //fclose(f);
+
+       }
+}
+
+static void GLW_InitOpenGL3xContext()
+{
+#if 1
+#define USE_GL_MAJOR 3
+#define USE_GL_MINOR 2
+
+	int				retVal;
+	const char     *success[] = { "failed", "success" };
+
+	// try to initialize an OpenGL 3.x context
+	if(WGLEW_ARB_create_context || wglewIsSupported("WGL_ARB_create_context"))
+	{
+		//if(!g_wvPtr->openGL3ContextCreated)
+		{
+			int             attribs[] =
+			{
+				WGL_CONTEXT_MAJOR_VERSION_ARB, USE_GL_MAJOR,
+				WGL_CONTEXT_MINOR_VERSION_ARB, USE_GL_MINOR,
+				WGL_CONTEXT_FLAGS_ARB,
+				WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,// | WGL_CONTEXT_DEBUG_BIT_ARB,
+				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+				0
+			};
+
+			// set current context to NULL
+			//if(wglMakeCurrent)
+			{
+				retVal = wglMakeCurrent(NULL, NULL) != 0;
+
+				ri.Printf(PRINT_ALL, "...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal]);
+			}
+
+			// delete HGLRC
+			if(glw_state.hGLRC)
+			{
+				retVal = wglDeleteContext(glw_state.hGLRC) != 0;
+				ri.Printf(PRINT_ALL, "...deleting standard GL context: %s\n", success[retVal]);
+				glw_state.hGLRC = NULL;
+			}
+
+			ri.Printf(PRINT_ALL, "...initializing OpenGL %i.%i context...", USE_GL_MAJOR, USE_GL_MINOR);
+
+	#if 1
+			glw_state.hGLRC = wglCreateContextAttribsARB(glw_state.hDC, 0, attribs);
+	#else
+			g_wvPtr->hGLRC = wglCreateContextAttribsARB(glw_state.hDC, g_wvPtr->hGLRC, attribs);
+	#endif
+
+			if(wglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
+			{
+				//g_wvPtr->openGL3ContextCreated = qtrue;
+
+				ri.Printf(PRINT_ALL, " done\n");
+				glConfig.driverType = GLDRV_OPENGL3;
+
+				/*
+				if(GLEW_ARB_debug_output)
+				{
+					glDebugMessageCallbackARB(GLDebugCallback, NULL);
+				}
+				*/
+			}
+			else
+			{
+				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context", USE_GL_MAJOR, USE_GL_MINOR);
+			}
+		}
+		/*
+		else
+		{
+			// set current context to NULL
+			retVal = wglMakeCurrent(NULL, NULL) != 0;
+			ri.Printf(PRINT_ALL, "...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal]);
+
+			// delete HGLRC
+			if(glw_state.hGLRC)
+			{
+				retVal = wglDeleteContext(glw_state.hGLRC) != 0;
+				ri.Printf(PRINT_ALL, "...deleting standard GL context: %s\n", success[retVal]);
+				glw_state.hGLRC = NULL;
+			}
+
+			if(!wglMakeCurrent(glw_state.hDC, g_wvPtr->hGLRC))
+			{
+				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not reactivate OpenGL %i.%i context", USE_GL_MAJOR, USE_GL_MINOR);
+			}
+		}
+		*/
+	}
+	else
+	{
+		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context: no WGL_ARB_create_context", USE_GL_MAJOR, USE_GL_MINOR);
+	}
+#endif
+}
+
 static void GLW_StartOpenGL()
 {
 	GLenum			glewResult;
@@ -1508,6 +1698,12 @@ static void GLW_StartOpenGL()
 		// glewInit failed, something is seriously wrong
 		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem: %s", glewGetErrorString(glewResult));
 	}
+	else
+	{
+		ri.Printf(PRINT_ALL, "Using GLEW %s\n", glewGetString(GLEW_VERSION));
+	}
+
+	GLW_InitOpenGL3xContext();
 }
 
 /*
@@ -1595,10 +1791,14 @@ void GLimp_Init(void)
 	// load appropriate DLL and initialize subsystem
 	GLW_StartOpenGL();
 
+	GL_CheckErrors();
+
 	// get our config strings
 	Q_strncpyz(glConfig.vendor_string, glGetString(GL_VENDOR), sizeof(glConfig.vendor_string));
 	Q_strncpyz(glConfig.renderer_string, glGetString(GL_RENDERER), sizeof(glConfig.renderer_string));
 	Q_strncpyz(glConfig.version_string, glGetString(GL_VERSION), sizeof(glConfig.version_string));
+
+#if 0
 	Q_strncpyz(glConfig.extensions_string, glGetString(GL_EXTENSIONS), sizeof(glConfig.extensions_string));
 	// TTimo - safe check
 	if(strlen(glGetString(GL_EXTENSIONS)) >= sizeof(glConfig.extensions_string))
@@ -1606,10 +1806,15 @@ void GLimp_Init(void)
 		Com_Printf(S_COLOR_YELLOW "WARNNING: GL extensions string too long (%d), truncated to %d\n",
 				   strlen(glGetString(GL_EXTENSIONS)), sizeof(glConfig.extensions_string));
 	}
+#else
+	
+#endif
 
 	// chipset specific configuration
 	Q_strncpyz(buf, glConfig.renderer_string, sizeof(buf));
 	Q_strlwr(buf);
+
+	GL_CheckErrors();
 
 	//
 	// NOTE: if changing cvars, do it within this block.  This allows them
@@ -1692,6 +1897,8 @@ void GLimp_Init(void)
 
 	ri.Cvar_Set("r_lastValidRenderer", glConfig.renderer_string);
 
+	GL_CheckErrors();
+
 	GLW_InitExtensions();
 }
 
@@ -1708,10 +1915,12 @@ void GLimp_Shutdown(void)
 	int             retVal;
 
 	// FIXME: Brian, we need better fallbacks from partially initialized failures
+	/*
 	if(!wglMakeCurrent)
 	{
 		return;
 	}
+	*/
 
 	ri.Printf(PRINT_ALL, "Shutting down OpenGL subsystem\n");
 
@@ -1719,13 +1928,23 @@ void GLimp_Shutdown(void)
 	WG_RestoreGamma();
 
 	// set current context to NULL
-	if(wglMakeCurrent)
+	//if(wglMakeCurrent)
 	{
 		retVal = wglMakeCurrent(NULL, NULL) != 0;
 
 		ri.Printf(PRINT_ALL, "...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal]);
 	}
 
+#if 0
+	// delete HGLRC
+	if(g_wvPtr->hGLRC)
+	{
+		retVal = wglDeleteContext(g_wvPtr->hGLRC) != 0;
+		ri.Printf(PRINT_ALL, "...deleting GL context: %s\n", success[retVal]);
+		g_wvPtr->hGLRC = NULL;
+		g_wvPtr->openGL3ContextCreated = qfalse;
+	}
+#else
 	// delete HGLRC
 	if(glw_state.hGLRC)
 	{
@@ -1733,6 +1952,7 @@ void GLimp_Shutdown(void)
 		ri.Printf(PRINT_ALL, "...deleting GL context: %s\n", success[retVal]);
 		glw_state.hGLRC = NULL;
 	}
+#endif
 
 	// release DC
 	if(glw_state.hDC)

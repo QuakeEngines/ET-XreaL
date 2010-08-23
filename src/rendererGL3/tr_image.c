@@ -103,7 +103,6 @@ long GenerateImageHashValue(const char *fname)
 GL_TextureMode
 ===============
 */
-#if !defined(USE_D3D10)
 void GL_TextureMode(const char *string)
 {
 	int             i;
@@ -158,7 +157,6 @@ void GL_TextureMode(const char *string)
 		}
 	}
 }
-#endif // defined(USE_D3D10)
 
 /*
 ===============

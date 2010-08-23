@@ -97,6 +97,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 	GLint           compiled;
 	GLhandleARB     shader;
 
+	GL_CheckErrors();
+
 	if(shaderType == GL_VERTEX_SHADER_ARB)
 	{
 		Com_sprintf(filename, sizeof(filename), "glsl/%s_vp.glsl", name);
@@ -114,6 +116,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 	}
 
 	shader = glCreateShaderObjectARB(shaderType);
+
+	GL_CheckErrors();
 
 	{
 		static char     bufferExtra[32000];
@@ -144,6 +148,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "out vec4 out_Color;\n");
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#define gl_FragColor out_Color\n");
 			}
+
+			Q_strcat(bufferExtra, sizeof(bufferExtra), "#define textureCube texture\n");
 		}
 		else
 		{
@@ -509,6 +515,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 	// compile shader
 	glCompileShaderARB(shader);
 
+	GL_CheckErrors();
+
 	// check if shader compiled
 	glGetObjectParameterivARB(shader, GL_OBJECT_COMPILE_STATUS_ARB, &compiled);
 	if(!compiled)
@@ -530,6 +538,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 	glDeleteObjectARB(shader);
 
 	ri.FS_FreeFile(buffer);
+
+	GL_CheckErrors();
 }
 
 static void GLSL_LinkProgram(GLhandleARB program)
@@ -656,10 +666,14 @@ void GLSL_InitGPUShaders(void)
 	// make sure the render thread is stopped
 	R_SyncRenderThread();
 
+	GL_CheckErrors();
+
 	startTime = ri.Milliseconds();
 
 	// single texture rendering
 	GLSL_InitGPUShader(&tr.genericSingleShader, "genericSingle", ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR, qtrue);
+
+	GL_CheckErrors();
 
 	tr.genericSingleShader.u_ColorMap = glGetUniformLocationARB(tr.genericSingleShader.program, "u_ColorMap");
 	tr.genericSingleShader.u_ColorTextureMatrix =
@@ -719,6 +733,12 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_SpecularTextureMatrix");
 	tr.vertexLightingShader_DBS_entity.u_AlphaTest =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_AlphaTest");
+	tr.vertexLightingShader_DBS_entity.u_DeformGen =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformGen");
+	tr.vertexLightingShader_DBS_entity.u_DeformWave =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformWave");
+	tr.vertexLightingShader_DBS_entity.u_DeformSpread =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformSpread");
 	tr.vertexLightingShader_DBS_entity.u_ViewOrigin =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ViewOrigin");
 	tr.vertexLightingShader_DBS_entity.u_AmbientColor =
@@ -739,6 +759,8 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ModelMatrix");
 	tr.vertexLightingShader_DBS_entity.u_ModelViewProjectionMatrix =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ModelViewProjectionMatrix");
+	tr.vertexLightingShader_DBS_entity.u_Time =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_Time");
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
 		tr.vertexLightingShader_DBS_entity.u_VertexSkinning =

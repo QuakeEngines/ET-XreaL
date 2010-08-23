@@ -1465,6 +1465,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// RB: the window class should be registered only one time
 	g_wv.classRegistered = qfalse;
+//	g_wv.hGLRC = NULL;
+//	g_wv.openGL3ContextCreated = qfalse;
 
 	g_wv.hInstance = hInstance;
 	Q_strncpyz(sys_cmdline, lpCmdLine, sizeof(sys_cmdline));

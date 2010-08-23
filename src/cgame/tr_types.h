@@ -481,7 +481,7 @@ typedef struct
 	char            shadingLanguageVersion[MAX_STRING_CHARS];
 
 	int             maxVertexUniforms;
-	int             maxVaryingFloats;
+//	int             maxVaryingFloats;
 	int             maxVertexAttribs;
 	qboolean        vboVertexSkinningAvailable;
 	int				maxVertexSkinningBones;

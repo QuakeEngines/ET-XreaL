@@ -109,6 +109,9 @@ extern          "C"
 		unsigned        sysMsgTime;
 
 		qboolean		classRegistered;
+
+//		HGLRC           hGLRC;		// handle to GL rendering context
+//		qboolean		openGL3ContextCreated;
 	} WinVars_t;
 
 	extern WinVars_t g_wv;
