@@ -291,6 +291,9 @@ cvar_t         *r_bloomBlur;
 cvar_t         *r_bloomPasses;
 cvar_t         *r_rotoscope;
 cvar_t         *r_cameraPostFX;
+cvar_t         *r_cameraVignette;
+cvar_t         *r_cameraFilmGrain;
+cvar_t         *r_cameraFilmGrainScale;
 
 
 static void AssertCvarRange(cvar_t * cv, float minVal, float maxVal, qboolean shouldBeIntegral)
@@ -1479,7 +1482,10 @@ void R_Register(void)
 	r_bloomBlur = ri.Cvar_Get("r_bloomBlur", "7.0", CVAR_CHEAT);
 	r_bloomPasses = ri.Cvar_Get("r_bloomPasses", "1", CVAR_CHEAT);
 	r_rotoscope = ri.Cvar_Get("r_rotoscope", "0", CVAR_ARCHIVE);
-	r_cameraPostFX = ri.Cvar_Get("r_cameraPostFX", "0", CVAR_ARCHIVE);
+	r_cameraPostFX = ri.Cvar_Get("r_cameraPostFX", "1", CVAR_ARCHIVE);
+	r_cameraVignette = ri.Cvar_Get("r_cameraVignette", "0", CVAR_ARCHIVE);
+	r_cameraFilmGrain = ri.Cvar_Get("r_cameraFilmGrain", "1", CVAR_ARCHIVE);
+	r_cameraFilmGrainScale = ri.Cvar_Get("r_cameraFilmGrainScale", "3", CVAR_ARCHIVE);
 
 	// temporary variables that can change at any time
 	r_showImages = ri.Cvar_Get("r_showImages", "0", CVAR_TEMP);

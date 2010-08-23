@@ -1919,6 +1919,7 @@ void GLSL_InitGPUShaders(void)
 	tr.cameraEffectsShader.u_VignetteMap = glGetUniformLocationARB(tr.cameraEffectsShader.program, "u_VignetteMap");
 	//tr.cameraEffectsShader.u_BlurMagnitude = glGetUniformLocationARB(tr.cameraEffectsShader.program, "u_BlurMagnitude");
 	tr.cameraEffectsShader.u_ModelViewProjectionMatrix = glGetUniformLocationARB(tr.cameraEffectsShader.program, "u_ModelViewProjectionMatrix");
+	tr.cameraEffectsShader.u_ColorTextureMatrix = glGetUniformLocationARB(tr.cameraEffectsShader.program, "u_ColorTextureMatrix");
 
 	glUseProgramObjectARB(tr.cameraEffectsShader.program);
 	glUniform1iARB(tr.cameraEffectsShader.u_CurrentMap, 0);

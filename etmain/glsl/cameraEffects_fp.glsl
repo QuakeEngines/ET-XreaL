@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2009-2010 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 uniform sampler2D	u_CurrentMap;
 uniform sampler2D	u_GrainMap;
 uniform sampler2D	u_VignetteMap;
+
+varying vec2		var_Tex;
 
 void	main()
 {
@@ -52,8 +54,9 @@ void	main()
 	color.rgb *= vignette.rgb; 
 	
 	// add grain
-	vec4 grain = texture2D(u_GrainMap, st * vec2(3.0, 3.0));
+	vec4 grain = texture2D(u_GrainMap, var_Tex);
 	color.rgb = (color.rgb + (grain.rgb * vec3(0.035, 0.065, 0.09))) + (color.rgb * (grain.rgb * vec3(0.035, 0.065, 0.09)));
+	//color.rgb = grain.rgb;
 
 	gl_FragColor = color;
 }

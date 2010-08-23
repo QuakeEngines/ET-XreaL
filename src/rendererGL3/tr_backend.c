@@ -7974,6 +7974,7 @@ void RB_RenderRotoscope(void)
 void RB_CameraPostFX(void)
 {
 	matrix_t        ortho;
+	matrix_t		grain;
 
 	GLimp_LogComment("--- RB_CameraPostFX ---\n");
 
@@ -7998,6 +7999,17 @@ void RB_CameraPostFX(void)
 	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.cameraEffectsShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 	//glUniform1fARB(tr.cameraEffectsShader.u_BlurMagnitude, r_bloomBlur->value);
 
+	MatrixIdentity(grain);
+
+	MatrixMultiplyScale(grain, r_cameraFilmGrainScale->value, r_cameraFilmGrainScale->value, 0);
+	MatrixMultiplyTranslation(grain, backEnd.refdef.floatTime * 10, backEnd.refdef.floatTime * 10, 0);
+	
+	MatrixMultiplyTranslation(grain, 0.5, 0.5, 0.0);
+	MatrixMultiplyZRotation(grain, backEnd.refdef.floatTime * (random() * 7));
+	MatrixMultiplyTranslation(grain, -0.5, -0.5, 0.0);
+
+	GLSL_SetUniform_ColorTextureMatrix(&tr.cameraEffectsShader, grain);
+
 	// bind u_CurrentMap
 	GL_SelectTexture(0);
 	GL_Bind(tr.occlusionRenderFBOImage);
@@ -8021,10 +8033,18 @@ void RB_CameraPostFX(void)
 	// bind u_GrainMap
 	GL_SelectTexture(1);
 	GL_Bind(tr.grainImage);
+	//GL_Bind(tr.defaultImage);
 
 	// bind u_VignetteMap
 	GL_SelectTexture(2);
-	GL_Bind(tr.vignetteImage);
+	if(r_cameraVignette->integer)
+	{
+		GL_Bind(tr.vignetteImage);
+	}
+	else
+	{
+		GL_Bind(tr.whiteImage);
+	}
 
 	// draw viewport
 	Tess_InstantQuad(backEnd.viewParms.viewportVerts);
