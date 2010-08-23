@@ -478,7 +478,14 @@ static qboolean GLW_InitDriver(int colorbits)
 	}
 
 	// do not allow stencil if Z-buffer depth likely won't contain it
-	stencilbits = r_stencilbits->integer;
+	if(r_stencilbits->integer == 0)
+	{
+		stencilbits = 8;
+	}
+	else
+	{
+		stencilbits = r_stencilbits->integer;
+	}
 	if(depthbits < 24)
 	{
 		stencilbits = 0;
@@ -1576,14 +1583,15 @@ static void GLDebugCallback(unsigned int source, unsigned int type, unsigned int
        }
 }
 
+
+
 static void GLW_InitOpenGL3xContext()
 {
-#if 1
-#define USE_GL_MAJOR 3
-#define USE_GL_MINOR 2
-
 	int				retVal;
 	const char     *success[] = { "failed", "success" };
+
+	if(!r_glCoreProfile->integer)
+		return;
 
 	// try to initialize an OpenGL 3.x context
 	if(WGLEW_ARB_create_context || wglewIsSupported("WGL_ARB_create_context"))
@@ -1592,8 +1600,8 @@ static void GLW_InitOpenGL3xContext()
 		{
 			int             attribs[] =
 			{
-				WGL_CONTEXT_MAJOR_VERSION_ARB, USE_GL_MAJOR,
-				WGL_CONTEXT_MINOR_VERSION_ARB, USE_GL_MINOR,
+				WGL_CONTEXT_MAJOR_VERSION_ARB, r_glMinMajorVersion->integer,
+				WGL_CONTEXT_MINOR_VERSION_ARB, r_glMinMinorVersion->integer,
 				WGL_CONTEXT_FLAGS_ARB,
 				WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,// | WGL_CONTEXT_DEBUG_BIT_ARB,
 				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -1601,12 +1609,8 @@ static void GLW_InitOpenGL3xContext()
 			};
 
 			// set current context to NULL
-			//if(wglMakeCurrent)
-			{
-				retVal = wglMakeCurrent(NULL, NULL) != 0;
-
-				ri.Printf(PRINT_ALL, "...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal]);
-			}
+			retVal = wglMakeCurrent(glw_state.hDC, NULL) != 0;
+			ri.Printf(PRINT_ALL, "...wglMakeCurrent( %p, %p ): %s\n", glw_state.hDC, NULL, success[retVal]);
 
 			// delete HGLRC
 			if(glw_state.hGLRC)
@@ -1616,13 +1620,10 @@ static void GLW_InitOpenGL3xContext()
 				glw_state.hGLRC = NULL;
 			}
 
-			ri.Printf(PRINT_ALL, "...initializing OpenGL %i.%i context...", USE_GL_MAJOR, USE_GL_MINOR);
+			ri.Printf(PRINT_ALL, "...initializing OpenGL %i.%i context ", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
 
-	#if 1
 			glw_state.hGLRC = wglCreateContextAttribsARB(glw_state.hDC, 0, attribs);
-	#else
-			g_wvPtr->hGLRC = wglCreateContextAttribsARB(glw_state.hDC, g_wvPtr->hGLRC, attribs);
-	#endif
+			//g_wvPtr->hGLRC = wglCreateContextAttribsARB(glw_state.hDC, g_wvPtr->hGLRC, attribs);
 
 			if(wglMakeCurrent(glw_state.hDC, glw_state.hGLRC))
 			{
@@ -1640,7 +1641,7 @@ static void GLW_InitOpenGL3xContext()
 			}
 			else
 			{
-				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context", USE_GL_MAJOR, USE_GL_MINOR);
+				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
 			}
 		}
 		/*
@@ -1660,16 +1661,15 @@ static void GLW_InitOpenGL3xContext()
 
 			if(!wglMakeCurrent(glw_state.hDC, g_wvPtr->hGLRC))
 			{
-				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not reactivate OpenGL %i.%i context", USE_GL_MAJOR, USE_GL_MINOR);
+				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not reactivate OpenGL %i.%i context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
 			}
 		}
 		*/
 	}
 	else
 	{
-		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context: no WGL_ARB_create_context", USE_GL_MAJOR, USE_GL_MINOR);
+		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context: no WGL_ARB_create_context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
 	}
-#endif
 }
 
 static void GLW_StartOpenGL()
@@ -1927,42 +1927,28 @@ void GLimp_Shutdown(void)
 	// restore gamma.  We do this first because 3Dfx's extension needs a valid OGL subsystem
 	WG_RestoreGamma();
 
-	// set current context to NULL
-	//if(wglMakeCurrent)
-	{
-		retVal = wglMakeCurrent(NULL, NULL) != 0;
-
-		ri.Printf(PRINT_ALL, "...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal]);
-	}
-
-#if 0
-	// delete HGLRC
-	if(g_wvPtr->hGLRC)
-	{
-		retVal = wglDeleteContext(g_wvPtr->hGLRC) != 0;
-		ri.Printf(PRINT_ALL, "...deleting GL context: %s\n", success[retVal]);
-		g_wvPtr->hGLRC = NULL;
-		g_wvPtr->openGL3ContextCreated = qfalse;
-	}
-#else
-	// delete HGLRC
-	if(glw_state.hGLRC)
-	{
-		retVal = wglDeleteContext(glw_state.hGLRC) != 0;
-		ri.Printf(PRINT_ALL, "...deleting GL context: %s\n", success[retVal]);
-		glw_state.hGLRC = NULL;
-	}
-#endif
-
 	// release DC
 	if(glw_state.hDC)
 	{
+		// delete HGLRC
+		if(glw_state.hGLRC)
+		{
+			// set current context to NULL
+			retVal = wglMakeCurrent(glw_state.hDC, NULL) != 0;
+			ri.Printf(PRINT_ALL, "...wglMakeCurrent( %p, %p ): %s\n", glw_state.hDC, NULL, success[retVal]);
+
+			retVal = wglDeleteContext(glw_state.hGLRC) != 0;
+			ri.Printf(PRINT_ALL, "...deleting GL context: %s\n", success[retVal]);
+			glw_state.hGLRC = NULL;
+		}
+
 		retVal = ReleaseDC(g_wvPtr->hWnd, glw_state.hDC) != 0;
 		ri.Printf(PRINT_ALL, "...releasing DC: %s\n", success[retVal]);
 		glw_state.hDC = NULL;
 	}
 
 	// destroy window
+#if 1
 	if(g_wvPtr->hWnd)
 	{
 		ri.Printf(PRINT_ALL, "...destroying window\n");
@@ -1971,6 +1957,7 @@ void GLimp_Shutdown(void)
 		g_wvPtr->hWnd = NULL;
 		glw_state.pixelFormatSet = qfalse;
 	}
+#endif
 
 	// close the r_logFile
 	if(glw_state.log_fp)

@@ -40,6 +40,10 @@ float           displayAspect = 0.0f;
 
 static void     GfxInfo_f(void);
 
+cvar_t         *r_glCoreProfile;
+cvar_t         *r_glMinMajorVersion;
+cvar_t         *r_glMinMinorVersion;
+
 cvar_t         *r_flares;
 cvar_t         *r_flareSize;
 cvar_t         *r_flareFade;
@@ -1307,6 +1311,10 @@ R_Register
 */
 void R_Register(void)
 {
+	r_glCoreProfile = ri.Cvar_Get("r_glCoreProfile", "0", CVAR_INIT);
+	r_glMinMajorVersion = ri.Cvar_Get("r_glMinMajorVersion", "3", CVAR_LATCH);
+	r_glMinMinorVersion = ri.Cvar_Get("r_glMinMinorVersion", "2", CVAR_LATCH);
+
 	// latched and archived variables
 	r_ext_texture_compression = ri.Cvar_Get("r_ext_texture_compression", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_ext_occlusion_query = ri.Cvar_Get("r_ext_occlusion_query", "1", CVAR_CHEAT | CVAR_LATCH);

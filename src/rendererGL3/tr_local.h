@@ -3802,6 +3802,10 @@ extern float    displayAspect;	// FIXME
 //
 // cvars
 //
+extern cvar_t  *r_glCoreProfile;
+extern cvar_t  *r_glMinMajorVersion;
+extern cvar_t  *r_glMinMinorVersion;
+
 extern cvar_t  *r_flares;		// light flares
 extern cvar_t  *r_flareSize;
 extern cvar_t  *r_flareFade;
