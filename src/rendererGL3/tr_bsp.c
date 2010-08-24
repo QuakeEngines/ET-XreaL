@@ -6587,7 +6587,7 @@ static int UpdateLightTriangles(const srfVert_t * verts, int numTriangles, srfTr
 		VectorCopy(verts[tri->indexes[1]].xyz, pos[1]);
 		VectorCopy(verts[tri->indexes[2]].xyz, pos[2]);
 
-		if(PlaneFromPoints(tri->plane, pos[0], pos[1], pos[2], qtrue))
+		if(PlaneFromPoints(tri->plane, pos[0], pos[1], pos[2]))
 		{
 			tri->degenerated = qfalse;
 
@@ -8491,7 +8491,6 @@ void R_BuildCubeMaps(void)
 #if 1
 	int             i, j, k;
 	int             ii, jj;
-	//int             cl;
 	refdef_t        rf;
 	qboolean        flipx;
 	qboolean        flipy;
@@ -8507,7 +8506,7 @@ void R_BuildCubeMaps(void)
 	int             fileBufX = 0;
 	int             fileBufY = 0;
 
-	//bspCluster_t   *cluster;
+	//
 
 	//int             distance = 512;
 	//qboolean        bad;
@@ -8534,37 +8533,57 @@ void R_BuildCubeMaps(void)
 #if 0
 	if(tr.world->vis)
 	{
-		for(cl = 0; cl < tr.world->numClusters; cl++)
+		bspCluster_t   *cluster;
+
+		for(i = 0; i < tr.world->numClusters; i++)
 		{
-			cluster = &tr.world->clusters[cl];
+			cluster = &tr.world->clusters[i];
 
 			// check to see if this is a shit location
-			if(CM_PointContents(cluster->origin, 0) == CONTENTS_SOLID)
+			if(ri.CM_PointContents(cluster->origin, 0) == CONTENTS_SOLID)
 				continue;
 
-			// check to see if we're too close to an existing probe
-			bad = qfalse;
-			for(i = 0; i < tr.cubeProbes.currentElements; i++)
+			if(FindVertexInHashTable(tr.cubeHashTable, cluster->origin, 256) == NULL)
 			{
-				cubeProbe = Com_GrowListElement(&tr.cubeProbes, i);
-
-				if(Distance(cubeProbe->origin, cluster->origin) < distance)
-				{
-					bad = qtrue;
-					break;
-				}
-			}
-
-			if(bad == qfalse)
-			{
-				cubeProbe = ri.Hunk_Alloc(sizeof(*cubeProbe), h_low);
+				cubeProbe = ri.Hunk_Alloc(sizeof(*cubeProbe), h_high);
 				Com_AddToGrowList(&tr.cubeProbes, cubeProbe);
 
 				VectorCopy(cluster->origin, cubeProbe->origin);
 
-				// FIXME
-				//if(tr.cubeProbes.currentElements >= 128)
-				//  break;
+				AddVertexToHashTable(tr.cubeHashTable, cubeProbe->origin, cubeProbe);
+
+				//gridPoint = tr.world->lightGridData + pos[0] * gridStep[0] + pos[1] * gridStep[1] + pos[2] * gridStep[2];
+
+				// TODO connect cubeProbe with gridPoint
+			}
+		}
+	}
+#elif 1
+	{
+		bspNode_t      *node;
+
+		for(i = 0; i < tr.world->numnodes; i++)
+		{
+			node = &tr.world->nodes[i];
+
+			// check to see if this is a shit location
+			if(node->contents == CONTENTS_NODE)
+				continue;
+
+			if(node->area == -1)
+			{
+				// location is in the void
+				continue;
+			}
+
+			if(FindVertexInHashTable(tr.cubeHashTable, node->origin, 256) == NULL)
+			{
+				cubeProbe = ri.Hunk_Alloc(sizeof(*cubeProbe), h_high);
+				Com_AddToGrowList(&tr.cubeProbes, cubeProbe);
+
+				VectorCopy(node->origin, cubeProbe->origin);
+
+				AddVertexToHashTable(tr.cubeHashTable, cubeProbe->origin, cubeProbe);
 			}
 		}
 	}
@@ -8646,7 +8665,7 @@ void R_BuildCubeMaps(void)
 
 		if(tr.cubeProbes.currentElements > 10 &&  ((j % (tr.cubeProbes.currentElements / 10)) == 0))
 		{
-			ri.Printf(PRINT_ALL, "%i\%", progress);
+			ri.Printf(PRINT_ALL, "%i", progress);
 			progress += 10;
 		}
 		else if(tr.cubeProbes.currentElements > 100 &&  ((j % (tr.cubeProbes.currentElements / 100)) == 0))
