@@ -5191,6 +5191,12 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 		return FinishShader();
 	}
 
+	// set implicit cull type
+	if(implicitCullType && !shader.cullType)
+	{
+		shader.cullType = implicitCullType;
+	}
+
 	// create the default shading commands
 	switch (shader.type)
 	{
@@ -5212,7 +5218,7 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 			stages[0].bundle[0].image[0] = image;
 			stages[0].active = qtrue;
 			stages[0].rgbGen = CGEN_IDENTITY_LIGHTING;
-			stages[0].stateBits = GLS_DEFAULT;
+			stages[0].stateBits = implicitStateBits;
 			break;
 		}
 
@@ -5223,7 +5229,7 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 			stages[0].bundle[0].image[0] = image;
 			stages[0].active = qtrue;
 			stages[0].rgbGen = CGEN_VERTEX;
-			stages[0].stateBits = GLS_DEFAULT;
+			stages[0].stateBits = implicitStateBits;
 			break;
 		}
 
