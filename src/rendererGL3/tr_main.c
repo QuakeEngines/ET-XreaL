@@ -304,8 +304,10 @@ void R_CalcTangentSpaceFast(vec3_t tangent, vec3_t binormal, vec3_t normal,
 	// Gram-Schmidt orthogonalize
 		//tangent[a] = (t - n * Dot(n, t)).Normalize();
 	VectorMA(tangent, -DotProduct(faceNormal, tangent), faceNormal, tangent);
-	VectorNormalize(tangent);
+	VectorNormalizeFast(tangent);
 #endif
+
+	VectorCopy(faceNormal, normal);
 }
 
 /*
