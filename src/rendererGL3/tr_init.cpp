@@ -100,7 +100,7 @@ cvar_t         *r_compressNormalMaps;
 cvar_t         *r_heatHazeFix;
 cvar_t         *r_noMarksOnTrisurfs;
 
-cvar_t         *r_ext_texture_compression;
+cvar_t         *r_ext_compressed_textures;
 cvar_t         *r_ext_occlusion_query;
 cvar_t         *r_ext_texture_non_power_of_two;
 cvar_t         *r_ext_draw_buffers;
@@ -1319,7 +1319,7 @@ void R_Register(void)
 	r_glMinMinorVersion = ri.Cvar_Get("r_glMinMinorVersion", "2", CVAR_LATCH);
 
 	// latched and archived variables
-	r_ext_texture_compression = ri.Cvar_Get("r_ext_texture_compression", "1", CVAR_ARCHIVE | CVAR_LATCH);
+	r_ext_compressed_textures = ri.Cvar_Get("r_ext_compressed_textures", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_ext_occlusion_query = ri.Cvar_Get("r_ext_occlusion_query", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_ext_texture_non_power_of_two = ri.Cvar_Get("r_ext_texture_non_power_of_two", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_ext_draw_buffers = ri.Cvar_Get("r_ext_draw_buffers", "1", CVAR_CHEAT | CVAR_LATCH);

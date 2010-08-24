@@ -1185,7 +1185,7 @@ static void GLW_InitExtensions(void)
 	glConfig.textureCompression = TC_NONE;
 	if(GLEW_ARB_texture_compression)
 	{
-		if(r_ext_texture_compression->integer)
+		if(r_ext_compressed_textures->integer)
 		{
 			glConfig2.ARBTextureCompressionAvailable = qtrue;
 			ri.Printf(PRINT_ALL, "...using GL_ARB_texture_compression\n");
@@ -1222,7 +1222,7 @@ static void GLW_InitExtensions(void)
 	// GL_EXT_texture_compression_s3tc
 	if(GLEW_EXT_texture_compression_s3tc)
 	{
-		if(r_ext_texture_compression->integer)
+		if(r_ext_compressed_textures->integer)
 		{
 			glConfig.textureCompression = TC_S3TC;
 			ri.Printf(PRINT_ALL, "...using GL_EXT_texture_compression_s3tc\n");
