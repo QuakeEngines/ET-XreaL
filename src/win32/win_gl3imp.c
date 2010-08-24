@@ -1450,6 +1450,16 @@ static void GLW_InitExtensions(void)
 	{
 		ri.Printf(PRINT_ALL, "...GL_SGIS_generate_mipmap not found\n");
 	}
+
+	// GL_GREMEDY_string_marker
+	if(GLEW_GREMEDY_string_marker)
+	{
+		ri.Printf(PRINT_ALL, "...using GL_GREMEDY_string_marker\n");
+	}
+	else
+	{
+		ri.Printf(PRINT_ALL, "...GL_GREMEDY_string_marker not found\n");
+	}
 }
 
 /*
@@ -1988,9 +1998,9 @@ void GLimp_Shutdown(void)
 */
 void GLimp_LogComment(char *comment)
 {
-	if(glw_state.log_fp)
+	if(GLEW_GREMEDY_string_marker)
 	{
-		fprintf(glw_state.log_fp, "%s", comment);
+		glStringMarkerGREMEDY(strlen(comment), comment);
 	}
 }
 
