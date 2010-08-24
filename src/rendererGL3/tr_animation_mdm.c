@@ -1793,6 +1793,69 @@ void Tess_MDM_SurfaceAnim(mdmSurface_t * surface)
 	}
 
 	DBG_SHOWTIME
+
+	// calc tangent spaces
+	if(!tess.skipTangentSpaces)
+	{
+		int             i;
+		float          *v;
+		const float    *v0, *v1, *v2;
+		const float    *t0, *t1, *t2;
+		vec3_t          tangent;
+		vec3_t          binormal;
+		vec3_t          normal;
+		int            *indices;
+		int				numIndexes;
+	
+
+		for(i = 0; i < render_count; i++)
+		{
+			VectorClear(tess.tangents[tess.numVertexes + i]);
+			VectorClear(tess.binormals[tess.numVertexes + i]);
+			VectorClear(tess.normals[tess.numVertexes + i]);
+		}
+
+		numIndexes = tess.numIndexes - oldIndexes;
+		for(i = 0, indices = tess.indexes + oldIndexes; i < numIndexes; i += 3, indices += 3)
+		{
+			v0 = tess.xyz[indices[0]];
+			v1 = tess.xyz[indices[1]];
+			v2 = tess.xyz[indices[2]];
+
+			t0 = tess.texCoords[indices[0]];
+			t1 = tess.texCoords[indices[1]];
+			t2 = tess.texCoords[indices[2]];
+
+			R_CalcTangentSpaceFast(tangent, binormal, normal, v0, v1, v2, t0, t1, t2);
+
+			for(j = 0; j < 3; j++)
+			{
+				v = tess.tangents[indices[j]];
+				VectorAdd(v, tangent, v);
+
+				v = tess.binormals[indices[j]];
+				VectorAdd(v, binormal, v);
+
+				v = tess.normals[indices[j]];
+				VectorAdd(v, normal, v);
+			}
+		}
+
+		for(i = 0; i < render_count; i++)
+		{
+			VectorNormalizeFast(tess.tangents[baseVertex + i]);
+			VectorNormalizeFast(tess.binormals[baseVertex + i]);
+			VectorNormalizeFast(tess.normals[baseVertex + i]);
+		}
+
+		// TEST
+		/*
+		for(i = 0; i < numVertexes; i++)
+		{
+			VectorSet(tess.normals[tess.numVertexes + i], 0, 0, 1);
+		}
+		*/
+	}
 	
 #if 0
 	if (r_showSkeleton->integer)
