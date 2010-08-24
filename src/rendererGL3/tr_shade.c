@@ -2788,8 +2788,9 @@ static void Render_vertexLighting_DBS_entity(int stage)
 	vec4_t          lightColor;
 	uint32_t 		attribBits = ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL;
 	uint32_t		stateBits;
-
 	shaderStage_t  *pStage = tess.surfaceStages[stage];
+
+	GLimp_LogComment("--- Render_vertexLighting_DBS_entity ---\n");
 
 	stateBits = pStage->stateBits;
 
@@ -2937,8 +2938,9 @@ static void Render_vertexLighting_DBS_world(int stage)
 {
 	vec3_t          viewOrigin;
 	uint32_t		stateBits;
-
 	shaderStage_t  *pStage = tess.surfaceStages[stage];
+
+	GLimp_LogComment("--- Render_vertexLighting_DBS_world ---\n");
 
 	stateBits = pStage->stateBits;
 
@@ -4713,6 +4715,8 @@ static void Render_heatHaze(int stage)
 		FBO_t          *previousFBO;
 		uint32_t        stateBits;
 
+		GLimp_LogComment("--- HEATHAZE FIX BEGIN ---\n");
+
 		// capture current color buffer for u_CurrentMap
 		/*
 		GL_SelectTexture(0);
@@ -4810,6 +4814,8 @@ static void Render_heatHaze(int stage)
 		R_BindFBO(previousFBO);
 
 		GL_CheckErrors();
+
+		GLimp_LogComment("--- HEATHAZE FIX END ---\n");
 	}
 
 	// remove alpha test

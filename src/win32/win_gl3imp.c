@@ -1998,9 +1998,14 @@ void GLimp_Shutdown(void)
 */
 void GLimp_LogComment(char *comment)
 {
-	if(GLEW_GREMEDY_string_marker)
+	static char		buf[4096];
+
+	if(r_logFile->integer && GLEW_GREMEDY_string_marker)
 	{
-		glStringMarkerGREMEDY(strlen(comment), comment);
+		// copy string and ensure it has a trailing '\0'
+		Q_strncpyz(buf, comment, sizeof(buf));
+
+		glStringMarkerGREMEDY(strlen(buf), buf);
 	}
 }
 
