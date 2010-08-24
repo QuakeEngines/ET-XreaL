@@ -1059,6 +1059,7 @@ typedef struct shader_s
 
 	qboolean		fogVolume;		// surface encapsulates a fog volume
 	fogParms_t		fogParms;
+	qboolean		noFog;
 
 	qboolean		parallax;		// material has normalmaps suited for parallax mapping
 

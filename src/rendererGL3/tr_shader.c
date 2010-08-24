@@ -1536,6 +1536,19 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				loadMap = qtrue;
 			}
 		}
+		// lightmap <name>
+		else if(!Q_stricmp(token, "lightmap"))
+		{
+			if(!ParseMap(stage, text, buffer, sizeof(buffer)))
+			{
+				//ri.Printf(PRINT_WARNING, "WARNING: ParseMap could not create '%s' in shader '%s'\n", token, shader.name);
+				return qfalse;
+			}
+			else
+			{
+				loadMap = qtrue;
+			}
+		}
 		// remoteRenderMap <int> <int>
 		else if(!Q_stricmp(token, "remoteRenderMap"))
 		{
@@ -3853,7 +3866,7 @@ static qboolean ParseShader(char *_text)
 		// noFog
 		else if(!Q_stricmp(token, "noFog"))
 		{
-			ri.Printf(PRINT_WARNING, "WARNING: noFog keyword not supported in shader '%s'\n", shader.name);
+			shader.noFog = qtrue;
 			continue;
 		}
 		// portal
