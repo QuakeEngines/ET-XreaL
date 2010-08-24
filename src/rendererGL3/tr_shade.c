@@ -2652,7 +2652,7 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 	{
 		// don't just call LogComment, or we will get
 		// a call to va() every frame!
-		GLimp_LogComment(va("--- Tess_Begin( %s, %s, %i, %i, %i ) ---\n", tess.surfaceShader->name, tess.lightShader ? tess.lightShader->name : NULL, tess.skipTangentSpaces, tess.shadowVolume, tess.lightmapNum));
+		GLimp_LogComment(va("--- Tess_Begin( surfaceShader = %s, lightShader = %s, skipTangentSpaces = %i, shadowVolume = %i, lightmap = %i ) ---\n", tess.surfaceShader->name, tess.lightShader ? tess.lightShader->name : NULL, tess.skipTangentSpaces, tess.shadowVolume, tess.lightmapNum));
 	}
 }
 // *INDENT-ON*
@@ -5438,7 +5438,7 @@ void Tess_StageIteratorGeneric()
 	if(!glState.currentVBO || !glState.currentIBO || glState.currentVBO == tess.vbo || glState.currentIBO == tess.ibo)
 	{
 		// Tr3B: FIXME analyze required vertex attribs by the current material
-		Tess_UpdateVBOs(ATTR_DEFAULT);
+		Tess_UpdateVBOs(0);
 	}
 
 	if(tess.surfaceShader->fogVolume)
@@ -5632,7 +5632,7 @@ void Tess_StageIteratorGBuffer()
 	if(!glState.currentVBO || !glState.currentIBO || glState.currentVBO == tess.vbo || glState.currentIBO == tess.ibo)
 	{
 		// Tr3B: FIXME analyze required vertex attribs by the current material
-		Tess_UpdateVBOs(ATTR_DEFAULT);
+		Tess_UpdateVBOs(0);
 	}
 
 #if 0

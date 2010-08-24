@@ -428,7 +428,11 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	GLimp_LogComment("--- Tess_UpdateVBOs ---\n");
+
+	if(r_logFile->integer)
+	{
+		GLimp_LogComment(va("--- Tess_UpdateVBOs( attribBits = %i ) ---\n", attribBits));
+	}
 
 	GL_CheckErrors();
 
@@ -439,111 +443,133 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 
 		GL_CheckErrors();
 
-		if(attribBits & ATTR_BITS)
+		if(!(attribBits & ATTR_BITS))
 		{
-			if(glConfig2.vboVertexSkinningAvailable && tess.vboVertexSkinning)
-				attribBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
-
-			GL_VertexAttribsState(attribBits);
-			//GL_VertexAttribPointers(attribBits);
-
-			if(attribBits & ATTR_POSITION)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsXYZ, tess.numVertexes * sizeof(vec4_t), tess.xyz);
-			}
-
-			if(attribBits & ATTR_TEXCOORD)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsTexCoords, tess.numVertexes * sizeof(vec4_t), tess.texCoords);
-			}
-
-			if(attribBits & ATTR_LIGHTCOORD)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightCoords, tess.numVertexes * sizeof(vec4_t), tess.lightCoords);
-			}
-
-			if(attribBits & ATTR_TANGENT)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsTangents, tess.numVertexes * sizeof(vec4_t), tess.tangents);
-			}
-
-			if(attribBits & ATTR_BINORMAL)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBinormals, tess.numVertexes * sizeof(vec4_t), tess.binormals);
-			}
-
-			if(attribBits & ATTR_NORMAL)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsNormals, tess.numVertexes * sizeof(vec4_t), tess.normals);
-			}
-
-			if(attribBits & ATTR_COLOR)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsColors, tess.numVertexes * sizeof(vec4_t), tess.colors);
-			}
-
-#if !defined(COMPAT_ET)
-			if(attribBits & ATTR_PAINTCOLOR)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsPaintColors, tess.numVertexes * sizeof(vec4_t), tess.paintColors);
-			}
-
-			if(attribBits & ATTR_LIGHTDIRECTION)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightDirections, tess.numVertexes * sizeof(vec4_t), tess.lightDirections);
-			}
-#endif
-			if(attribBits & ATTR_BONE_INDEXES)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneIndexes, tess.numVertexes * sizeof(vec4_t), tess.boneIndexes);
-			}
-
-			if(attribBits & ATTR_BONE_WEIGHTS)
-			{
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneWeights, tess.numVertexes * sizeof(vec4_t), tess.boneWeights);
-			}
-		}
-		else
-		{
-			GL_VertexAttribPointers(ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR);
-
-			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsXYZ, tess.numVertexes * sizeof(vec4_t), tess.xyz);
-			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsTexCoords, tess.numVertexes * sizeof(vec4_t), tess.texCoords);
-			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsNormals, tess.numVertexes * sizeof(vec4_t), tess.normals);
-			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsColors, tess.numVertexes * sizeof(vec4_t), tess.colors);
+			attribBits |= ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR;
 
 			if(backEnd.currentEntity != &backEnd.entity2D)
 			{
-				GL_VertexAttribPointers(ATTR_TANGENT | ATTR_BINORMAL);
-
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsTangents, tess.numVertexes * sizeof(vec4_t), tess.tangents);
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBinormals, tess.numVertexes * sizeof(vec4_t), tess.binormals);
+				attribBits |= ATTR_TANGENT | ATTR_BINORMAL;
 			}
 
 			if(backEnd.currentEntity == &tr.worldEntity)
 			{
 #if defined(COMPAT_ET)
-				GL_VertexAttribPointers(ATTR_LIGHTCOORD);
-
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightCoords, tess.numVertexes * sizeof(vec4_t), tess.lightCoords);
+				attribBits |= ATTR_LIGHTCOORD;
 #else
-				GL_VertexAttribPointers(ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION);
-
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightCoords, tess.numVertexes * sizeof(vec4_t), tess.lightCoords);
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsPaintColors, tess.numVertexes * sizeof(vec4_t), tess.paintColors);
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightDirections, tess.numVertexes * sizeof(vec4_t), tess.lightDirections);
+				attribBits |= ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION);
 #endif
 			}
 
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
+#if 0 //defined(USE_REFENTITY_ANIMATIONSYSTEM)
 			if((backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE) && !tess.vboVertexSkinning)
 			{
-				GL_VertexAttribPointers(ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
-
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneIndexes, tess.numVertexes * sizeof(vec4_t), tess.boneIndexes);
-				glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneWeights, tess.numVertexes * sizeof(vec4_t), tess.boneWeights);
+				attribBits |= ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS;
 			}
 #endif
+		}
+
+		//GL_VertexAttribPointers(attribBits);
+		GL_VertexAttribsState(attribBits);
+
+		if(attribBits & ATTR_POSITION)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_POSITION, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsXYZ, tess.numVertexes * sizeof(vec4_t), tess.xyz);
+		}
+
+		if(attribBits & ATTR_TEXCOORD)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_TEXCOORD, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsTexCoords, tess.numVertexes * sizeof(vec4_t), tess.texCoords);
+		}
+
+		if(attribBits & ATTR_LIGHTCOORD)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_LIGHTCOORD, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightCoords, tess.numVertexes * sizeof(vec4_t), tess.lightCoords);
+		}
+
+		if(attribBits & ATTR_TANGENT)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_TANGENT, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsTangents, tess.numVertexes * sizeof(vec4_t), tess.tangents);
+		}
+
+		if(attribBits & ATTR_BINORMAL)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_BINORMAL, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBinormals, tess.numVertexes * sizeof(vec4_t), tess.binormals);
+		}
+
+		if(attribBits & ATTR_NORMAL)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_NORMAL, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsNormals, tess.numVertexes * sizeof(vec4_t), tess.normals);
+		}
+
+		if(attribBits & ATTR_COLOR)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_COLOR, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsColors, tess.numVertexes * sizeof(vec4_t), tess.colors);
+		}
+
+#if !defined(COMPAT_ET)
+		if(attribBits & ATTR_PAINTCOLOR)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_PAINTCOLOR, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsPaintColors, tess.numVertexes * sizeof(vec4_t), tess.paintColors);
+		}
+
+		if(attribBits & ATTR_LIGHTDIRECTION)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_LIGHTDIRECTION, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightDirections, tess.numVertexes * sizeof(vec4_t), tess.lightDirections);
+		}
+#endif
+		if(attribBits & ATTR_BONE_INDEXES)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_BONE_INDEXES, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneIndexes, tess.numVertexes * sizeof(vec4_t), tess.boneIndexes);
+		}
+
+		if(attribBits & ATTR_BONE_WEIGHTS)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment(va("glBufferSubDataARB( ATTR_BONE_WEIGHTS, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
+			}
+			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneWeights, tess.numVertexes * sizeof(vec4_t), tess.boneWeights);
 		}
 	}
 
@@ -2183,16 +2209,35 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 				{
 					v = tess.tangents[indices[j]];
 					VectorAdd(v, tangent, v);
+
 					v = tess.binormals[indices[j]];
 					VectorAdd(v, binormal, v);
+
 					v = tess.normals[indices[j]];
 					VectorAdd(v, normal, v);
 				}
 			}
 
+#if 1
 			VectorArrayNormalize((vec4_t *) tess.tangents[tess.numVertexes], numVertexes);
 			VectorArrayNormalize((vec4_t *) tess.binormals[tess.numVertexes], numVertexes);
 			VectorArrayNormalize((vec4_t *) tess.normals[tess.numVertexes], numVertexes);
+#else
+			for(i = 0; i < numVertexes; i++)
+			{
+				VectorNormalize(tess.tangents[tess.numVertexes + i]);
+				VectorNormalize(tess.binormals[tess.numVertexes + i]);
+				VectorNormalize(tess.normals[tess.numVertexes + i]);
+			}
+#endif
+
+			// TEST
+			/*
+			for(i = 0; i < numVertexes; i++)
+			{
+				VectorSet(tess.normals[tess.numVertexes + i], 0, 0, 1);
+			}
+			*/
 		}
 
 		tess.numIndexes += numIndexes;

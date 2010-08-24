@@ -1613,6 +1613,7 @@ Tess_MDM_SurfaceAnim
 */
 void Tess_MDM_SurfaceAnim(mdmSurface_t * surface)
 {
+#if 1
 	int             i, j, k;
 	refEntity_t    *refent;
 	int            *boneList;
@@ -2086,6 +2087,7 @@ void Tess_MDM_SurfaceAnim(mdmSurface_t * surface)
 	Com_Printf("\n");
 #endif
 
+#endif // entire function block
 }
 
 /*
