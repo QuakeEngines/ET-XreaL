@@ -8646,9 +8646,15 @@ void R_BuildCubeMaps(void)
 
 		if(tr.cubeProbes.currentElements > 10 &&  ((j % (tr.cubeProbes.currentElements / 10)) == 0))
 		{
-			ri.Printf(PRINT_ALL, "%i...", progress);
+			ri.Printf(PRINT_ALL, "%i\%", progress);
 			progress += 10;
 		}
+		else if(tr.cubeProbes.currentElements > 100 &&  ((j % (tr.cubeProbes.currentElements / 100)) == 0))
+		{
+			ri.Printf(PRINT_ALL, ".");
+			ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
+		}
+		
 
 		VectorCopy(cubeProbe->origin, rf.vieworg);
 

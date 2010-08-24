@@ -737,6 +737,8 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformGen");
 	tr.vertexLightingShader_DBS_entity.u_DeformWave =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformWave");
+	tr.vertexLightingShader_DBS_entity.u_DeformBulge =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformBulge");
 	tr.vertexLightingShader_DBS_entity.u_DeformSpread =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformSpread");
 	tr.vertexLightingShader_DBS_entity.u_ViewOrigin =
@@ -802,6 +804,8 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_DeformGen");
 	tr.vertexLightingShader_DBS_world.u_DeformWave =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_DeformWave");
+	tr.vertexLightingShader_DBS_world.u_DeformBulge =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_DeformBulge");
 	tr.vertexLightingShader_DBS_world.u_DeformSpread =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_DeformSpread");
 	tr.vertexLightingShader_DBS_world.u_ColorGen =

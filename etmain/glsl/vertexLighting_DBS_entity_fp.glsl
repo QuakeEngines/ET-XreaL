@@ -232,6 +232,17 @@ void	main()
 	
 	vec3 L = u_LightDir;
 	
-	gl_FragColor = vec4(diffuse.rgb * (u_AmbientColor + u_LightColor * clamp(dot(N, L), 0.0, 1.0)), diffuse.a);
+	// compute the light term
+#if defined(r_halfLambertLighting)
+	// http://developer.valvesoftware.com/wiki/Half_Lambert
+	float NL = clamp(dot(N, L), 0.0, 1.0) * 0.5 + 0.5;
+	NL *= NL;
+#elif defined(r_WrapAroundLighting)
+	float NL = clamp(dot(N, L) + r_WrapAroundLighting, 0.0, 1.0) / clamp(1.0 + r_WrapAroundLighting, 0.0, 1.0);
+#else
+	float NL = clamp(dot(N, L), 0.0, 1.0);
+#endif
+	
+	gl_FragColor = vec4(diffuse.rgb * (u_AmbientColor + u_LightColor * NL), diffuse.a);
 #endif
 }

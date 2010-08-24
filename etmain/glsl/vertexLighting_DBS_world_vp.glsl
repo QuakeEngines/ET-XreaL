@@ -40,6 +40,7 @@ uniform mat4		u_ModelViewProjectionMatrix;
 
 uniform int			u_DeformGen;
 uniform vec4		u_DeformWave;	// [base amplitude phase freq]
+uniform vec3		u_DeformBulge;	// [width height speed]
 uniform float		u_DeformSpread;
 uniform float		u_Time;
 
@@ -70,7 +71,7 @@ float sawtooth(float x)
 	return x - floor(x);
 }
 
-vec4 DeformPosition(const vec4 pos, const vec3 normal)
+vec4 DeformPosition(const vec4 pos, const vec3 normal, const vec2 st)
 {
 	vec4 deformed = pos;
 	
@@ -123,13 +124,28 @@ vec4 DeformPosition(const vec4 pos, const vec3 normal)
 
 		deformed.xyz += offset;
 	}
+	
+	if(u_DeformGen == DGEN_BULGE)
+	{
+		float bulgeWidth = u_DeformBulge.x;
+		float bulgeHeight = u_DeformBulge.y;
+		float bulgeSpeed = u_DeformBulge.z;
+	
+		float now = u_Time * bulgeSpeed;
+
+		float off = (M_PI * 0.25) * st.x * bulgeWidth + now; 
+		float scale = sin(off) * bulgeHeight;
+		vec3 offset = normal * scale;
+
+		deformed.xyz += offset;
+	}
 
 	return deformed;
 }
 
 void	main()
 {
-	vec4 position = DeformPosition(attr_Position, attr_Normal);
+	vec4 position = DeformPosition(attr_Position, attr_Normal, attr_TexCoord0.st);
 
 	// transform vertex position into homogenous clip-space
 	gl_Position = u_ModelViewProjectionMatrix * position;
