@@ -230,21 +230,28 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 		ent->e.oldframe %= tr.currentModel->mdv[0]->numFrames;
 	}
 
+	// compute LOD
+	if(ent->e.renderfx & RF_FORCENOLOD)
+	{
+		lod = 0;
+	}
+	else
+	{
+		lod = R_ComputeLOD(ent);
+	}
+
 	// Validate the frames so there is no chance of a crash.
 	// This will write directly into the entity structure, so
 	// when the surfaces are rendered, they don't need to be
 	// range checked again.
-	if((ent->e.frame >= tr.currentModel->mdv[0]->numFrames)
-	   || (ent->e.frame < 0) || (ent->e.oldframe >= tr.currentModel->mdv[0]->numFrames) || (ent->e.oldframe < 0))
+	if((ent->e.frame >= tr.currentModel->mdv[lod]->numFrames)
+	   || (ent->e.frame < 0) || (ent->e.oldframe >= tr.currentModel->mdv[lod]->numFrames) || (ent->e.oldframe < 0))
 	{
-		ri.Printf(PRINT_DEVELOPER, "R_AddMDVSurfaces: no such frame %d to %d for '%s'\n",
-				  ent->e.oldframe, ent->e.frame, tr.currentModel->name);
+		ri.Printf(PRINT_DEVELOPER, "R_AddMDVSurfaces: no such frame %d to %d for '%s' (%d)\n",
+				  ent->e.oldframe, ent->e.frame, tr.currentModel->name, tr.currentModel->mdv[lod]->numFrames);
 		ent->e.frame = 0;
 		ent->e.oldframe = 0;
 	}
-
-	// compute LOD
-	lod = R_ComputeLOD(ent);
 
 	model = tr.currentModel->mdv[lod];
 
