@@ -2437,6 +2437,9 @@ typedef struct
 	int             numPolys;
 	struct srfPoly_s *polys;
 
+	int             numPolybuffers;
+	struct srfPolyBuffer_s *polybuffers;
+
 	int             numDrawSurfs;
 	struct drawSurf_s *drawSurfs;
 
@@ -2568,6 +2571,7 @@ typedef enum
 	SF_GRID,
 	SF_TRIANGLES,
 	SF_POLY,
+	SF_POLYBUFFER,
 	SF_MDV,
 
 	SF_MDM,
@@ -2688,6 +2692,13 @@ typedef struct srfPoly_s
 	int16_t         numVerts;
 	polyVert_t     *verts;
 } srfPoly_t;
+
+typedef struct srfPolyBuffer_s
+{
+	surfaceType_t   surfaceType;
+//	int             fogIndex;
+	polyBuffer_t   *pPolyBuffer;
+} srfPolyBuffer_t;
 
 // ydnar: decals
 #define MAX_DECAL_VERTS         10	// worst case is triangle clipped by 6 planes
@@ -4093,6 +4104,7 @@ void            R_AddRailSurfaces(trRefEntity_t * e, qboolean isUnderwater);
 void            R_AddLightningBoltSurfaces(trRefEntity_t * e);
 
 void            R_AddPolygonSurfaces(void);
+void            R_AddPolygonBufferSurfaces(void);
 
 void            R_AddDrawSurf(surfaceType_t * surface, shader_t * shader, int lightmapNum);
 
@@ -4912,6 +4924,7 @@ typedef struct
 
 	srfPoly_t      *polys;		//[MAX_POLYS];
 	polyVert_t     *polyVerts;	//[MAX_POLYVERTS];
+	srfPolyBuffer_t *polybuffers; //[MAX_POLYS];
 
 	renderCommandList_t commands;
 } backEndData_t;

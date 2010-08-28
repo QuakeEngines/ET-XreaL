@@ -37,6 +37,8 @@ static int      r_firstScenePoly;
 
 int				r_numPolyVerts;
 
+int             r_firstScenePolybuffer;
+int             r_numPolybuffers;
 
 /*
 ====================
@@ -71,6 +73,9 @@ void R_ToggleSmpFrame(void)
 	r_firstScenePoly = 0;
 
 	r_numPolyVerts = 0;
+
+	r_numPolybuffers = 0;
+	r_firstScenePolybuffer = 0;
 }
 
 
@@ -118,6 +123,31 @@ void R_AddPolygonSurfaces(void)
 		R_AddDrawSurf((void *)poly, sh, -1);
 	}
 }
+
+/*
+=====================
+R_AddPolygonSurfaces
+
+Adds all the scene's polys into this view's drawsurf list
+=====================
+*/
+void R_AddPolygonBufferSurfaces(void)
+{
+	int             i;
+	shader_t       *sh;
+	srfPolyBuffer_t *polybuffer;
+
+	tr.currentEntity = &tr.worldEntity;
+
+	for(i = 0, polybuffer = tr.refdef.polybuffers; i < tr.refdef.numPolybuffers; i++, polybuffer++)
+	{
+		sh = R_GetShaderByHandle(polybuffer->pPolyBuffer->shader);
+
+		//R_AddDrawSurf((void *)polybuffer, sh, polybuffer->fogIndex, 0, 0);
+		R_AddDrawSurf((void *)polybuffer, sh, -1);
+	}
+}
+
 
 /*
 =====================
@@ -198,20 +228,19 @@ RE_AddPolyBufferToScene
 */
 void RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer)
 {
-#if 0
 	srfPolyBuffer_t *pPolySurf;
-	int             fogIndex;
-	fog_t          *fog;
+//	int             fogIndex;
+//	fog_t          *fog;
 	vec3_t          bounds[2];
 	int             i;
 
-	if(r_numpolybuffers >= MAX_POLYS)
+	if(r_numPolybuffers >= r_maxPolyVerts->integer)
 	{
 		return;
 	}
 
-	pPolySurf = &backEndData[tr.smpFrame]->polybuffers[r_numpolybuffers];
-	r_numpolybuffers++;
+	pPolySurf = &backEndData[tr.smpFrame]->polybuffers[r_numPolybuffers];
+	r_numPolybuffers++;
 
 	pPolySurf->surfaceType = SF_POLYBUFFER;
 	pPolySurf->pPolyBuffer = pPolyBuffer;
@@ -222,6 +251,8 @@ void RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer)
 	{
 		AddPointToBounds(pPolyBuffer->xyz[i], bounds[0], bounds[1]);
 	}
+
+#if 0
 	for(fogIndex = 1; fogIndex < tr.world->numfogs; fogIndex++)
 	{
 		fog = &tr.world->fogs[fogIndex];
@@ -573,6 +604,8 @@ void RE_RenderScene(const refdef_t * fd)
 	tr.refdef.numPolys = r_numPolys - r_firstScenePoly;
 	tr.refdef.polys = &backEndData[tr.smpFrame]->polys[r_firstScenePoly];
 
+	tr.refdef.numPolybuffers = r_numPolybuffers - r_firstScenePolybuffer;
+	tr.refdef.polybuffers = &backEndData[tr.smpFrame]->polybuffers[r_firstScenePolybuffer];	
 	// a single frame may have multiple scenes draw inside it --
 	// a 3D game view, 3D status bar renderings, 3D menus, etc.
 	// They need to be distinguished by the light flare code, because
@@ -641,6 +674,7 @@ void RE_RenderScene(const refdef_t * fd)
 	r_firstSceneEntity = r_numEntities;
 	r_firstSceneLight = r_numLights;
 	r_firstScenePoly = r_numPolys;
+	r_firstScenePolybuffer = r_numPolybuffers;
 
 	tr.frontEndMsec += ri.Milliseconds() - startTime;
 }

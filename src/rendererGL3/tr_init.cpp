@@ -1703,6 +1703,8 @@ void R_Init(void)
 	backEndData[0] = (backEndData_t *) ptr;
 	backEndData[0]->polys = (srfPoly_t *) ((char *)ptr + sizeof(*backEndData[0]));
 	backEndData[0]->polyVerts = (polyVert_t *) ((char *)ptr + sizeof(*backEndData[0]) + sizeof(srfPoly_t) * r_maxPolys->integer);
+	backEndData[0]->polybuffers = (srfPolyBuffer_t *) ((char *)ptr + sizeof(*backEndData[0]) + sizeof(srfPolyBuffer_t) * r_maxPolys->integer);
+	
 	if(r_smp->integer)
 	{
 		ptr = (byte *)
@@ -1712,6 +1714,8 @@ void R_Init(void)
 		backEndData[1]->polys = (srfPoly_t *) ((char *)ptr + sizeof(*backEndData[1]));
 		backEndData[1]->polyVerts =
 			(polyVert_t *) ((char *)ptr + sizeof(*backEndData[1]) + sizeof(srfPoly_t) * r_maxPolys->integer);
+
+		backEndData[1]->polybuffers = (srfPolyBuffer_t *) ((char *)ptr + sizeof(*backEndData[0]) + sizeof(srfPolyBuffer_t) * r_maxPolys->integer);
 	}
 	else
 	{
