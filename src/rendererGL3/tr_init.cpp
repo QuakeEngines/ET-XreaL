@@ -1653,7 +1653,6 @@ void R_Init(void)
 {
 	int             err;
 	int             i;
-	byte           *ptr;
 
 	ri.Printf(PRINT_ALL, "----- R_Init -----\n");
 	
@@ -1697,25 +1696,17 @@ void R_Init(void)
 
 	R_Register();
 
-	ptr = (byte *)
-		ri.Hunk_Alloc(sizeof(*backEndData[0]) + sizeof(srfPoly_t) * r_maxPolys->integer +
-					  sizeof(polyVert_t) * r_maxPolyVerts->integer, h_low);
-	backEndData[0] = (backEndData_t *) ptr;
-	backEndData[0]->polys = (srfPoly_t *) ((char *)ptr + sizeof(*backEndData[0]));
-	backEndData[0]->polyVerts = (polyVert_t *) ((char *)ptr + sizeof(*backEndData[0]) + sizeof(srfPoly_t) * r_maxPolys->integer);
-	backEndData[0]->polybuffers = (srfPolyBuffer_t *) ((char *)ptr + sizeof(*backEndData[0]) + sizeof(srfPolyBuffer_t) * r_maxPolys->integer);
+	backEndData[0] = (backEndData_t *) ri.Hunk_Alloc(sizeof(*backEndData[0]), h_low);
+	backEndData[0]->polys = (srfPoly_t *) ri.Hunk_Alloc(r_maxPolys->integer * sizeof(srfPoly_t), h_low);
+	backEndData[0]->polyVerts = (polyVert_t *) ri.Hunk_Alloc(r_maxPolyVerts->integer * sizeof(polyVert_t), h_low);
+	backEndData[0]->polybuffers = (srfPolyBuffer_t *) ri.Hunk_Alloc(r_maxPolys->integer * sizeof(srfPolyBuffer_t), h_low);
 	
 	if(r_smp->integer)
 	{
-		ptr = (byte *)
-			ri.Hunk_Alloc(sizeof(*backEndData[1]) + sizeof(srfPoly_t) * r_maxPolys->integer +
-						  sizeof(polyVert_t) * r_maxPolyVerts->integer, h_low);
-		backEndData[1] = (backEndData_t *) ptr;
-		backEndData[1]->polys = (srfPoly_t *) ((char *)ptr + sizeof(*backEndData[1]));
-		backEndData[1]->polyVerts =
-			(polyVert_t *) ((char *)ptr + sizeof(*backEndData[1]) + sizeof(srfPoly_t) * r_maxPolys->integer);
-
-		backEndData[1]->polybuffers = (srfPolyBuffer_t *) ((char *)ptr + sizeof(*backEndData[0]) + sizeof(srfPolyBuffer_t) * r_maxPolys->integer);
+		backEndData[1] = (backEndData_t *) ri.Hunk_Alloc(sizeof(*backEndData[1]), h_low);
+		backEndData[1]->polys = (srfPoly_t *) ri.Hunk_Alloc(r_maxPolys->integer * sizeof(srfPoly_t), h_low);
+		backEndData[1]->polyVerts = (polyVert_t *) ri.Hunk_Alloc(r_maxPolyVerts->integer * sizeof(polyVert_t), h_low);
+		backEndData[1]->polybuffers = (srfPolyBuffer_t *) ri.Hunk_Alloc(r_maxPolys->integer * sizeof(srfPolyBuffer_t), h_low);
 	}
 	else
 	{
