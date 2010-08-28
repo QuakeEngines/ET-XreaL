@@ -3081,14 +3081,18 @@ typedef struct
 
 typedef struct
 {
-	char            name[MAX_QPATH];	// tag name
 	float           origin[3];
 	float           axis[3][3];
 } mdvTag_t;
 
 typedef struct
 {
-	short           xyz[3];
+	char            name[MAX_QPATH];	// tag name
+} mdvTagName_t;
+
+typedef struct
+{
+	float           xyz[3];
 } mdvVertex_t;
 
 typedef struct
@@ -3121,6 +3125,9 @@ typedef struct mdvModel_s
 
 	int             numTags;
 	mdvTag_t       *tags;
+
+	int             numTagsNames;
+	mdvTagName_t   *tagNames;
 
 	int             numSurfaces;
 	mdvSurface_t   *surfaces;

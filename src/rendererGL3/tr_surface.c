@@ -1961,8 +1961,8 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 		backlerp = backEnd.currentEntity->e.backlerp;
 	}
 
-	newXyzScale = MD3_XYZ_SCALE * (1.0 - backlerp);
-	oldXyzScale = MD3_XYZ_SCALE * backlerp;
+	newXyzScale = (1.0 - backlerp);
+	oldXyzScale = backlerp;
 
 	if(tess.shadowVolume)
 	{
