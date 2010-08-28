@@ -145,7 +145,7 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 	}
 
 
-	mdvModel->tagNames = tagName = ri.Hunk_Alloc(sizeof(*tag) * (md3Model->numTags), h_low);
+	mdvModel->tagNames = tagName = ri.Hunk_Alloc(sizeof(*tagName) * (md3Model->numTags), h_low);
 
 	md3Tag = (md3Tag_t *) ((byte *) md3Model + md3Model->ofsTags);
 	for(i = 0; i < md3Model->numTags; i++, tagName++, md3Tag++)

@@ -3125,8 +3125,6 @@ typedef struct mdvModel_s
 
 	int             numTags;
 	mdvTag_t       *tags;
-
-	int             numTagsNames;
 	mdvTagName_t   *tagNames;
 
 	int             numSurfaces;

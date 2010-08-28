@@ -430,7 +430,7 @@ qboolean R_LoadMDC(model_t * mod, int lod, void *buffer, int bufferSize, const c
 		AnglesToAxis(angles, tag->axis);
 	}
 
-	mdvModel->tagNames = tagName = ri.Hunk_Alloc(sizeof(*tag) * (mdcModel->numTags), h_low);
+	mdvModel->tagNames = tagName = ri.Hunk_Alloc(sizeof(*tagName) * (mdcModel->numTags), h_low);
 
 	mdcTagName = (mdcTagName_t *) ((byte *) mdcModel + mdcModel->ofsTagNames);
 	for(i = 0; i < mdcModel->numTags; i++, tagName++, mdcTagName++)

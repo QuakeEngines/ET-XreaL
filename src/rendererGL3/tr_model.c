@@ -3071,6 +3071,7 @@ void R_Modellist_f(void)
 				{
 					mdvModel_t			*mdvModel;
 					mdvSurface_t		*mdvSurface;
+					mdvTagName_t		*mdvTagName;
 
 					mdvModel = mod->mdv[j];
 
@@ -3091,6 +3092,12 @@ void R_Modellist_f(void)
 							ri.Printf(PRINT_ALL, "\t\t\tnumTriangles = %i\n", mdvSurface->numTriangles);
 						}
 					}
+
+					ri.Printf(PRINT_ALL, "\t\tnumTags = %i\n", mdvModel->numTags);
+					for(k = 0, mdvTagName = mdvModel->tagNames; k < mdvModel->numTags; k++, mdvTagName++)
+					{
+						ri.Printf(PRINT_ALL, "\t\t\ttagName = '%s'\n", mdvTagName->name);
+					}
 				}
 			}
 		}
@@ -3103,7 +3110,7 @@ void R_Modellist_f(void)
 			total++;
 		}
 
-		total += mod->dataSize;
+		totalDataSize += mod->dataSize;
 	}
 	
 	ri.Printf(PRINT_ALL, " %d.%02d MB total model memory\n", totalDataSize / (1024 * 1024),
@@ -3129,16 +3136,20 @@ R_GetTag
 */
 static int R_GetTag(mdvModel_t * model, int frame, const char *_tagName, int startTagIndex, mdvTag_t ** outTag)
 {
-	int             i, j;
+	int             i;
 	mdvTag_t       *tag;
 	mdvTagName_t   *tagName;
 
-	if(frame >= model->numFrames)
+	// it is possible to have a bad frame while changing models, so don't error
+	frame = Q_bound(0, frame, model->numFrames - 1);
+
+	if(startTagIndex > model->numTags)
 	{
-		// it is possible to have a bad frame while changing models, so don't error
-		frame = model->numFrames - 1;
+		*outTag = NULL;
+		return -1;
 	}
 
+#if 1
 	tag = model->tags + frame * model->numTags;
 	tagName = model->tagNames;
 	for(i = 0; i < model->numTags; i++, tag++, tagName++)
@@ -3149,6 +3160,7 @@ static int R_GetTag(mdvModel_t * model, int frame, const char *_tagName, int sta
 			return i;
 		}
 	}
+#endif
 
 	*outTag = NULL;
 	return -1;
@@ -3162,11 +3174,9 @@ RE_LerpTag
 int RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagNameIn, int startIndex)
 {
 	mdvTag_t       *start, *end;
-	mdvTag_t        ustart, uend;
 	int             i;
 	float           frontLerp, backLerp;
 	model_t        *model;
-	vec3_t          sangles, eangles;
 	char            tagName[MAX_QPATH];	//, *ch;
 	int             retval;
 	qhandle_t       handle;
