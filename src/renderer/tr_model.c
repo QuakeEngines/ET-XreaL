@@ -1864,30 +1864,114 @@ void R_ModelInit(void)
 R_Modellist_f
 ================
 */
-
 void R_Modellist_f(void)
 {
-	int             i, j;
+	int             i, j, k;
 	model_t        *mod;
 	int             total;
-	int             lods;
+	int             totalDataSize;
+	qboolean        showFrames;
+
+	if(!strcmp(ri.Cmd_Argv(1), "frames"))
+	{
+		showFrames = qtrue;
+	}
+	else
+	{
+		showFrames = qfalse;
+	}
 
 	total = 0;
+	totalDataSize = 0;
 	for(i = 1; i < tr.numModels; i++)
 	{
 		mod = tr.models[i];
-		lods = 1;
-		for(j = 1; j < MD3_MAX_LODS; j++)
+		
+		if(mod->type == MOD_MESH)
 		{
-			if(mod->model.md3[j] && mod->model.md3[j] != mod->model.md3[j - 1])
+			for(j = 0; j < MD3_MAX_LODS; j++)
 			{
-				lods++;
+				if(mod->model.md3[j] && mod->model.md3[j] != mod->model.md3[j - 1])
+				{
+					md3Header_t			*header;
+					md3Surface_t		*surf;
+
+					header = mod->model.md3[j];
+
+					total++;
+					ri.Printf(PRINT_ALL, "%d.%02d MB '%s' LOD = %i\n",	mod->dataSize / (1024 * 1024), 
+															(mod->dataSize % (1024 * 1024)) * 100 / (1024 * 1024),
+															mod->name, j);
+
+					if(showFrames && header->numFrames > 1)
+					{	
+						ri.Printf(PRINT_ALL, "\tnumSurfaces = %i\n", header->numSurfaces);
+						ri.Printf(PRINT_ALL, "\tnumFrames = %i\n", header->numFrames);
+						
+						surf = (md3Surface_t *) ((byte *) header + header->ofsSurfaces);
+						for(k = 0; k < header->numSurfaces; k++)
+						{
+							ri.Printf(PRINT_ALL, "\t\tmesh = '%s'\n", surf->name);
+							ri.Printf(PRINT_ALL, "\t\t\tnumVertexes = %i\n", surf->numVerts);
+							ri.Printf(PRINT_ALL, "\t\t\tnumTriangles = %i\n", surf->numTriangles);
+
+							// find the next surface
+							surf = (md3Surface_t *) ((byte *) surf + surf->ofsEnd);
+						}
+					}
+				}
 			}
 		}
-		ri.Printf(PRINT_ALL, "%8i : (%i) %s\n", mod->dataSize, lods, mod->name);
-		total += mod->dataSize;
+		else if(mod->type == MOD_MDC)
+		{
+			for(j = 0; j < MD3_MAX_LODS; j++)
+			{
+				if(mod->model.mdc[j] && mod->model.mdc[j] != mod->model.mdc[j - 1])
+				{
+					mdcHeader_t			*header;
+					mdcSurface_t		*surf;
+
+					header = mod->model.mdc[j];
+
+					total++;
+					ri.Printf(PRINT_ALL, "%d.%02d MB '%s' LOD = %i\n",	mod->dataSize / (1024 * 1024), 
+															(mod->dataSize % (1024 * 1024)) * 100 / (1024 * 1024),
+															mod->name, j);
+
+					if(showFrames && header->numFrames > 1)
+					{
+						ri.Printf(PRINT_ALL, "\tnumSurfaces = %i\n", header->numSurfaces);
+						ri.Printf(PRINT_ALL, "\tnumFrames = %i\n", header->numFrames);
+
+						surf = (mdcSurface_t *) ((byte *) header + header->ofsSurfaces);
+						for(k = 0; k < header->numSurfaces; k++)
+						{
+							ri.Printf(PRINT_ALL, "\t\tmesh = '%s'\n", surf->name);
+							ri.Printf(PRINT_ALL, "\t\t\tnumVertexes = %i\n", surf->numVerts);
+							ri.Printf(PRINT_ALL, "\t\t\tnumTriangles = %i\n", surf->numTriangles);
+
+							// find the next surface
+							surf = (mdcSurface_t *) ((byte *) surf + surf->ofsEnd);
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			ri.Printf(PRINT_ALL, "%d.%02d MB '%s'\n",	mod->dataSize / (1024 * 1024), 
+																(mod->dataSize % (1024 * 1024)) * 100 / (1024 * 1024),
+																mod->name);
+
+			total++;
+		}
+
+		totalDataSize += mod->dataSize;
 	}
-	ri.Printf(PRINT_ALL, "%8i : Total models\n", total);
+
+	ri.Printf(PRINT_ALL, " %d.%02d MB total model memory\n", totalDataSize / (1024 * 1024),
+			  (totalDataSize % (1024 * 1024)) * 100 / (1024 * 1024));
+	ri.Printf(PRINT_ALL, " %i total models\n\n", total);
 
 #if 0							// not working right with new hunk
 	if(tr.world)
