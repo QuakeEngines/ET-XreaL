@@ -2555,9 +2555,11 @@ void R_AddEntityInteractions(trRefLight_t * light)
 			case RT_PORTALSURFACE:
 				break;			// don't draw anything
 			case RT_SPRITE:
+			case RT_SPLASH:
 			case RT_BEAM:
 			case RT_LIGHTNING:
 			case RT_RAIL_CORE:
+			case RT_RAIL_CORE_TAPER:
 			case RT_RAIL_RINGS:
 				break;
 
