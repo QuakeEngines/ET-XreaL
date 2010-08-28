@@ -1,6 +1,6 @@
 Wolfenstein: Enemy Territory GPL source release
 ===============================================
-
+test
 This file contains the following sections:
 
 GENERAL NOTES
