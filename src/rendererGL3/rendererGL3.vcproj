@@ -264,7 +264,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tr_init.cpp"
+				RelativePath=".\tr_init.c"
 				>
 			</File>
 			<File
