@@ -10080,7 +10080,6 @@ static void RB_RenderDebugUtils()
 		GL_PopMatrix();
 	}
 
-#if 1
 	if(r_showCubeProbes->integer)
 	{
 		cubemapProbe_t *cubeProbe;
@@ -10174,7 +10173,120 @@ static void RB_RenderDebugUtils()
 		backEnd.orientation = backEnd.viewParms.world;
 		GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	}
-#endif
+
+	if(r_showLightGrid->integer)
+	{
+		bspGridPoint_t *gridPoint;
+		int             j, k;
+		vec3_t          offset;
+		//vec3_t			angles;
+		//vec3_t          forward, right, up;
+		vec3_t          tmp, tmp2, tmp3;
+		vec_t           length;
+		vec4_t          tetraVerts[4];
+
+		if(tr.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOCUBEMAP))
+		{
+			return;
+		}
+
+		GL_BindProgram(&tr.genericSingleShader);
+		GL_State(GLS_DEFAULT);
+		GL_Cull(CT_TWO_SIDED);
+
+		// set uniforms
+		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
+		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
+		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
+		if(glConfig2.vboVertexSkinningAvailable)
+		{
+			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
+		}
+		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
+		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+
+		// set up the transformation matrix
+		backEnd.orientation = backEnd.viewParms.world;
+		GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
+		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+
+		// bind u_ColorMap
+		GL_SelectTexture(0);
+		GL_Bind(tr.whiteImage);
+		GLSL_SetUniform_ColorTextureMatrix(&tr.genericSingleShader, matrixIdentity);
+
+		GL_CheckErrors();
+
+		tess.numIndexes = 0;
+		tess.numVertexes = 0;
+
+		for(j = 0; j < tr.world->numLightGridPoints; j++)
+		{
+			gridPoint = &tr.world->lightGridData[j];
+
+			if(VectorDistanceSquared(gridPoint->origin, backEnd.viewParms.orientation.origin) > SQR(1024))
+				continue;
+
+			//GLSL_SetUniform_Color(&tr.genericSingleShader, gridPoint->directed);
+
+			// TODO use grid point direction
+			//vectoangles(gridPoint->direction, angles);
+			//AngleVectors(angles, forward, right, up);
+			
+			// 1 simple tetrahedron = 12 vertices
+			if((tess.numVertexes + 24 > SHADER_MAX_VERTEXES) || tess.numIndexes + 24 > SHADER_MAX_INDEXES)
+			{
+				Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
+				Tess_DrawElements();
+
+				tess.numIndexes = 0;
+				tess.numVertexes = 0;
+			}
+
+
+			length = 8;
+			VectorMA(gridPoint->origin, 8, gridPoint->direction, offset);
+			//VectorSubtract(offset, gridPoint->origin, diff);
+			//if((length = VectorNormalize(diff)))
+			
+			{
+				PerpendicularVector(tmp, gridPoint->direction);
+				//VectorCopy(up, tmp);
+
+				VectorScale(tmp, length * 0.1, tmp2);
+				VectorMA(tmp2, length * 0.2, gridPoint->direction, tmp2);
+
+				for(k = 0; k < 3; k++)
+				{
+					RotatePointAroundVector(tmp3, gridPoint->direction, tmp2, k * 120);
+					VectorAdd(tmp3, gridPoint->origin, tmp3);
+					VectorCopy(tmp3, tetraVerts[k]);
+					tetraVerts[k][3] = 1;
+				}
+
+				VectorCopy(gridPoint->origin, tetraVerts[3]);
+				tetraVerts[3][3] = 1;
+				Tess_AddTetrahedron(tetraVerts, gridPoint->directedColor);
+
+				VectorCopy(offset, tetraVerts[3]);
+				tetraVerts[3][3] = 1;
+				Tess_AddTetrahedron(tetraVerts, gridPoint->directedColor);
+			}
+		}
+
+		if(tess.numVertexes || tess.numIndexes)
+		{
+			Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
+			Tess_DrawElements();
+		}
+
+		tess.numIndexes = 0;
+		tess.numVertexes = 0;
+
+		// go back to the world modelview matrix
+		backEnd.orientation = backEnd.viewParms.world;
+		GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
+	}
 
 	if(r_showBspNodes->integer)
 	{

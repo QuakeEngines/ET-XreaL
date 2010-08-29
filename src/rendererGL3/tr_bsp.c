@@ -5254,13 +5254,16 @@ R_LoadLightGrid
 */
 void R_LoadLightGrid(lump_t * l)
 {
-	int             i, j;
+	int             i, j, k;
 	vec3_t          maxs;
-	int             numGridPoints;
 	world_t        *w;
 	float          *wMins, *wMaxs;
 	dgridPoint_t   *in;
-	bspGridPoint_t *out;
+	bspGridPoint_t *gridPoint;
+	int             lat, lng;
+	int             gridStep[3];
+	int             pos[3];
+	float           posFloat[3];
 
 	ri.Printf(PRINT_ALL, "...loading light grid\n");
 
@@ -5280,9 +5283,9 @@ void R_LoadLightGrid(lump_t * l)
 		w->lightGridBounds[i] = (maxs[i] - w->lightGridOrigin[i]) / w->lightGridSize[i] + 1;
 	}
 
-	numGridPoints = w->lightGridBounds[0] * w->lightGridBounds[1] * w->lightGridBounds[2];
+	w->numLightGridPoints = w->lightGridBounds[0] * w->lightGridBounds[1] * w->lightGridBounds[2];
 
-	if(l->filelen != numGridPoints * sizeof(dgridPoint_t))
+	if(l->filelen != w->numLightGridPoints * sizeof(dgridPoint_t))
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: light grid mismatch\n");
 		w->lightGridData = NULL;
@@ -5292,12 +5295,12 @@ void R_LoadLightGrid(lump_t * l)
 	in = (void *)(fileBase + l->fileofs);
 	if(l->filelen % sizeof(*in))
 		ri.Error(ERR_DROP, "LoadMap: funny lump size in %s", s_worldData.name);
-	out = ri.Hunk_Alloc(numGridPoints * sizeof(*out), h_low);
+	gridPoint = ri.Hunk_Alloc(w->numLightGridPoints * sizeof(*gridPoint), h_low);
 
-	w->lightGridData = out;
+	w->lightGridData = gridPoint;
 	//Com_Memcpy(w->lightGridData, (void *)(fileBase + l->fileofs), l->filelen);
 
-	for(i = 0; i < numGridPoints; i++, in++, out++)
+	for(i = 0; i < w->numLightGridPoints; i++, in++, gridPoint++)
 	{
 #if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		byte		tmpAmbient[4];
@@ -5313,45 +5316,80 @@ void R_LoadLightGrid(lump_t * l)
 		tmpDirected[2] = in->directed[2];
 		tmpDirected[3] = 255;
 
+		lat = in->latLong[0];
+		lng = in->latLong[1];
+		lat *= (FUNCTABLE_SIZE / 256);
+		lng *= (FUNCTABLE_SIZE / 256);
+
+		// decode X as cos( lat ) * sin( long )
+		// decode Y as sin( lat ) * sin( long )
+		// decode Z as cos( long )
+
+		gridPoint->direction[0] = tr.sinTable[(lat + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK] * tr.sinTable[lng];
+		gridPoint->direction[1] = tr.sinTable[lat] * tr.sinTable[lng];
+		gridPoint->direction[2] = tr.sinTable[(lng + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK];
+
+
 		R_ColorShiftLightingBytes(tmpAmbient, tmpAmbient);
 		R_ColorShiftLightingBytes(tmpDirected, tmpDirected);
 
 		for(j = 0; j < 3; j++)
 		{
-			out->ambient[j] = tmpAmbient[j] * (1.0f / 255.0f);
-			out->directed[j] = tmpDirected[j] * (1.0f / 255.0f);
+			gridPoint->ambientColor[j] = tmpAmbient[j] * (1.0f / 255.0f);
+			gridPoint->directedColor[j] = tmpDirected[j] * (1.0f / 255.0f);
 		}
 #else
 		for(j = 0; j < 3; j++)
 		{
 
-			out->ambient[j] = LittleFloat(in->ambient[j]);
-			out->directed[j] = LittleFloat(in->directed[j]);
+			gridPoint->ambient[j] = LittleFloat(in->ambient[j]);
+			gridPoint->directed[j] = LittleFloat(in->directed[j]);
 		}
 #endif
 
-		out->ambient[3] = 1.0f;
-		out->directed[3] = 1.0f;
-
-		for(j = 0; j < 2; j++)
-		{
-			out->latLong[j] = in->latLong[j];
-		}
+		gridPoint->ambientColor[3] = 1.0f;
+		gridPoint->directedColor[3] = 1.0f;
 
 #if 0
 		// debug print to see if the XBSP format is correct
 		ri.Printf(PRINT_ALL, "%9d Amb: (%03.1f %03.1f %03.1f) Dir: (%03.1f %03.1f %03.1f)\n",
-			  i, out->ambient[0], out->ambient[1], out->ambient[2], out->directed[0], out->directed[1], out->directed[2]);
+			  i, gridPoint->ambient[0], gridPoint->ambient[1], gridPoint->ambient[2], gridPoint->directed[0], gridPoint->directed[1], gridPoint->directed[2]);
 #endif
 
 #if !defined(COMPAT_ET)
 		// deal with overbright bits
-		R_HDRTonemapLightingColors(out->ambient, out->ambient, qtrue);
-		R_HDRTonemapLightingColors(out->directed, out->directed, qtrue);
+		R_HDRTonemapLightingColors(gridPoint->ambient, out->ambient, qtrue);
+		R_HDRTonemapLightingColors(gridPoint->directed, out->directed, qtrue);
 #endif
 	}
 
-	ri.Printf(PRINT_ALL, "%i light grid points created\n", numGridPoints);
+	// calculate grid point positions
+	gridStep[0] = 1;
+	gridStep[1] = w->lightGridBounds[0];
+	gridStep[2] = w->lightGridBounds[0] * w->lightGridBounds[1];
+
+	for(i = 0; i < w->lightGridBounds[0]; i += 1)
+	{
+		for(j = 0; j < w->lightGridBounds[1]; j += 1)
+		{
+			for(k = 0; k < w->lightGridBounds[2]; k += 1)
+			{
+				pos[0] = i;
+				pos[1] = j;
+				pos[2] = k;
+
+				posFloat[0] = i * w->lightGridSize[0];
+				posFloat[1] = j * w->lightGridSize[1];
+				posFloat[2] = k * w->lightGridSize[2];
+
+				gridPoint = w->lightGridData + pos[0] * gridStep[0] + pos[1] * gridStep[1] + pos[2] * gridStep[2];
+
+				VectorAdd(posFloat, w->lightGridOrigin, gridPoint->origin);
+			}
+		}
+	}
+
+	ri.Printf(PRINT_ALL, "%i light grid points created\n", w->numLightGridPoints);
 }
 
 /*

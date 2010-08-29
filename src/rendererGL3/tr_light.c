@@ -211,8 +211,6 @@ static void R_SetupEntityLightingGrid(trRefEntity_t * ent)
 	for(i = 0; i < 8; i++)
 	{
 		float           factor;
-		int             lat, lng;
-		vec3_t          normal;
 
 		factor = 1.0;
 		gridPoint2 = gridPoint;
@@ -229,35 +227,22 @@ static void R_SetupEntityLightingGrid(trRefEntity_t * ent)
 			}
 		}
 
-		if(!(gridPoint2->ambient[0] + gridPoint2->ambient[1] + gridPoint2->ambient[2]))
+		if(!(gridPoint2->ambientColor[0] + gridPoint2->ambientColor[1] + gridPoint2->ambientColor[2]))
 		{
 			continue;			// ignore samples in walls
 		}
 
 		totalFactor += factor;
 
-		ent->ambientLight[0] += factor * gridPoint2->ambient[0];
-		ent->ambientLight[1] += factor * gridPoint2->ambient[1];
-		ent->ambientLight[2] += factor * gridPoint2->ambient[2];
+		ent->ambientLight[0] += factor * gridPoint2->ambientColor[0];
+		ent->ambientLight[1] += factor * gridPoint2->ambientColor[1];
+		ent->ambientLight[2] += factor * gridPoint2->ambientColor[2];
 
-		ent->directedLight[0] += factor * gridPoint2->directed[0];
-		ent->directedLight[1] += factor * gridPoint2->directed[1];
-		ent->directedLight[2] += factor * gridPoint2->directed[2];
-
-		lat = gridPoint2->latLong[0];
-		lng = gridPoint2->latLong[1];
-		lat *= (FUNCTABLE_SIZE / 256);
-		lng *= (FUNCTABLE_SIZE / 256);
-
-		// decode X as cos( lat ) * sin( long )
-		// decode Y as sin( lat ) * sin( long )
-		// decode Z as cos( long )
-
-		normal[0] = tr.sinTable[(lat + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK] * tr.sinTable[lng];
-		normal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-		normal[2] = tr.sinTable[(lng + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK];
-
-		VectorMA(direction, factor, normal, direction);
+		ent->directedLight[0] += factor * gridPoint2->directedColor[0];
+		ent->directedLight[1] += factor * gridPoint2->directedColor[1];
+		ent->directedLight[2] += factor * gridPoint2->directedColor[2];
+		
+		VectorMA(direction, factor, gridPoint2->direction, direction);
 	}
 
 #if 1
@@ -277,6 +262,18 @@ static void R_SetupEntityLightingGrid(trRefEntity_t * ent)
 		ent->ambientLight[1] = r_forceAmbient->value;
 		ent->ambientLight[2] = r_forceAmbient->value;
 	}
+
+//----(SA)  added
+	// cheats?  check for single player?
+	if(tr.lightGridMulDirected)
+	{
+		VectorScale(ent->directedLight, tr.lightGridMulDirected, ent->directedLight);
+	}
+	if(tr.lightGridMulAmbient)
+	{
+		VectorScale(ent->ambientLight, tr.lightGridMulAmbient, ent->ambientLight);
+	}
+//----(SA)  end
 }
 
 
@@ -384,9 +381,15 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 		}
 	}
 
-#if 0
-	// bonus items and view weapons have a fixed minimum add
-	if((ent->e.renderfx & RF_MINLIGHT) && VectorLength(ent->ambientLight) <= 0)
+#if 1
+	if(ent->e.hilightIntensity)
+	{
+		// level of intensity was set because the item was looked at
+		ent->ambientLight[0] += tr.identityLight * 128 * ent->e.hilightIntensity;
+		ent->ambientLight[1] += tr.identityLight * 128 * ent->e.hilightIntensity;
+		ent->ambientLight[2] += tr.identityLight * 128 * ent->e.hilightIntensity;
+	}
+	else if((ent->e.renderfx & RF_MINLIGHT) && VectorLength(ent->ambientLight) <= 0)
 	{
 		// give everything a minimum light add
 		ent->ambientLight[0] += tr.identityLight * 0.125f;

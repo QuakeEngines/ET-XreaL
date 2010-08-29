@@ -3001,9 +3001,10 @@ typedef struct
 
 typedef struct
 {
-	vec4_t          ambient;
-	vec4_t          directed;
-	byte            latLong[2];
+	vec3_t			origin;
+	vec4_t          ambientColor;
+	vec4_t          directedColor;
+	vec3_t			direction;
 } bspGridPoint_t;
 
 typedef struct
@@ -3056,6 +3057,7 @@ typedef struct
 	vec3_t          lightGridInverseSize;
 	int             lightGridBounds[3];
 	bspGridPoint_t *lightGridData;
+	int				numLightGridPoints;
 
 	int             numLights;
 	trRefLight_t   *lights;
@@ -3747,6 +3749,11 @@ typedef struct
 	vec3_t          sunLight;	// from the sky shader for this level
 	vec3_t          sunDirection;
 
+//----(SA)  added
+	float           lightGridMulAmbient;	// lightgrid multipliers specified in sky shader
+	float           lightGridMulDirected;	//
+//----(SA)  end
+
 	vec3_t          fogColor;
 	float           fogDensity;
 
@@ -4009,6 +4016,7 @@ extern cvar_t  *r_showLightTransforms;
 extern cvar_t  *r_showLightInteractions;
 extern cvar_t  *r_showLightScissors;
 extern cvar_t  *r_showLightBatches;
+extern cvar_t  *r_showLightGrid;
 extern cvar_t  *r_showOcclusionQueries;
 extern cvar_t  *r_showBatches;
 extern cvar_t  *r_showLightMaps;	// render lightmaps only

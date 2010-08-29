@@ -3919,6 +3919,36 @@ static qboolean ParseShader(char *_text)
 			tr.sunShaderName = ri.Hunk_Alloc(sizeof(char) * tokenLen, h_low);
 			Q_strncpyz(tr.sunShaderName, token, tokenLen);
 		}
+//----(SA)  added
+		else if(!Q_stricmp(token, "lightgridmulamb"))
+		{
+			// ambient multiplier for lightgrid
+			token = COM_ParseExt2(text, qfalse);
+			if(!token[0])
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: missing value for 'lightgrid ambient multiplier'\n");
+				continue;
+			}
+			if(atof(token) > 0)
+			{
+				tr.lightGridMulAmbient = atof(token);
+			}
+		}
+		else if(!Q_stricmp(token, "lightgridmuldir"))
+		{	
+			// directional multiplier for lightgrid
+			token = COM_ParseExt2(text, qfalse);
+			if(!token[0])
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: missing value for 'lightgrid directional multiplier'\n");
+				continue;
+			}
+			if(atof(token) > 0)
+			{
+				tr.lightGridMulDirected = atof(token);
+			}
+		}
+//----(SA)  end
 		// light <value> determines flaring in xmap, not needed here
 		else if(!Q_stricmp(token, "light"))
 		{
