@@ -10179,8 +10179,7 @@ static void RB_RenderDebugUtils()
 		bspGridPoint_t *gridPoint;
 		int             j, k;
 		vec3_t          offset;
-		//vec3_t			angles;
-		//vec3_t          forward, right, up;
+		vec3_t			lightDirection;
 		vec3_t          tmp, tmp2, tmp3;
 		vec_t           length;
 		vec4_t          tetraVerts[4];
@@ -10227,11 +10226,7 @@ static void RB_RenderDebugUtils()
 			if(VectorDistanceSquared(gridPoint->origin, backEnd.viewParms.orientation.origin) > SQR(1024))
 				continue;
 
-			//GLSL_SetUniform_Color(&tr.genericSingleShader, gridPoint->directed);
-
-			// TODO use grid point direction
-			//vectoangles(gridPoint->direction, angles);
-			//AngleVectors(angles, forward, right, up);
+			VectorNegate(gridPoint->direction, lightDirection);
 			
 			// 1 simple tetrahedron = 12 vertices
 			if((tess.numVertexes + 24 > SHADER_MAX_VERTEXES) || tess.numIndexes + 24 > SHADER_MAX_INDEXES)
@@ -10245,20 +10240,20 @@ static void RB_RenderDebugUtils()
 
 
 			length = 8;
-			VectorMA(gridPoint->origin, 8, gridPoint->direction, offset);
+			VectorMA(gridPoint->origin, 8, lightDirection, offset);
 			//VectorSubtract(offset, gridPoint->origin, diff);
 			//if((length = VectorNormalize(diff)))
 			
 			{
-				PerpendicularVector(tmp, gridPoint->direction);
+				PerpendicularVector(tmp, lightDirection);
 				//VectorCopy(up, tmp);
 
 				VectorScale(tmp, length * 0.1, tmp2);
-				VectorMA(tmp2, length * 0.2, gridPoint->direction, tmp2);
+				VectorMA(tmp2, length * 0.2, lightDirection, tmp2);
 
 				for(k = 0; k < 3; k++)
 				{
-					RotatePointAroundVector(tmp3, gridPoint->direction, tmp2, k * 120);
+					RotatePointAroundVector(tmp3, lightDirection, tmp2, k * 120);
 					VectorAdd(tmp3, gridPoint->origin, tmp3);
 					VectorCopy(tmp3, tetraVerts[k]);
 					tetraVerts[k][3] = 1;

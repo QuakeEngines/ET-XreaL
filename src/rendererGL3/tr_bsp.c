@@ -5260,7 +5260,7 @@ void R_LoadLightGrid(lump_t * l)
 	float          *wMins, *wMaxs;
 	dgridPoint_t   *in;
 	bspGridPoint_t *gridPoint;
-	int             lat, lng;
+	float           lat, lng;
 	int             gridStep[3];
 	int             pos[3];
 	float           posFloat[3];
@@ -5316,19 +5316,24 @@ void R_LoadLightGrid(lump_t * l)
 		tmpDirected[2] = in->directed[2];
 		tmpDirected[3] = 255;
 
-		lat = in->latLong[0];
-		lng = in->latLong[1];
-		lat *= (FUNCTABLE_SIZE / 256);
-		lng *= (FUNCTABLE_SIZE / 256);
-
+		
+		// standard spherical coordinates to cartesian coordinates conversion
+		
 		// decode X as cos( lat ) * sin( long )
 		// decode Y as sin( lat ) * sin( long )
 		// decode Z as cos( long )
 
-		gridPoint->direction[0] = tr.sinTable[(lat + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK] * tr.sinTable[lng];
-		gridPoint->direction[1] = tr.sinTable[lat] * tr.sinTable[lng];
-		gridPoint->direction[2] = tr.sinTable[(lng + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK];
+		// RB: having a look in NormalToLatLong used by q3map2 shows the order of latLong
 
+		// Lat = 0 at (1,0,0) to 360 (-1,0,0), encoded in 8-bit sine table format
+		// Lng = 0 at (0,0,1) to 180 (0,0,-1), encoded in 8-bit sine table format
+
+		lat = DEG2RAD(in->latLong[1] * (360.0f / 255.0f));
+		lng = DEG2RAD(in->latLong[0] * (360.0f / 255.0f));
+
+		gridPoint->direction[0] = cos(lat) * sin(lng);
+		gridPoint->direction[1] = sin(lat) * sin(lng);
+		gridPoint->direction[2] = cos(lng);
 
 		R_ColorShiftLightingBytes(tmpAmbient, tmpAmbient);
 		R_ColorShiftLightingBytes(tmpDirected, tmpDirected);

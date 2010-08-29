@@ -2815,6 +2815,8 @@ static void Render_vertexLighting_DBS_entity(int stage)
 	//ClampColor(ambientColor);
 	VectorCopy(backEnd.currentEntity->directedLight, lightColor);
 	//ClampColor(directedLight);
+
+	// lightDir = L vector which means surface to light
 	VectorCopy(backEnd.currentEntity->lightDir, lightDir);
 
 	GLSL_SetUniform_AmbientColor(&tr.vertexLightingShader_DBS_entity, ambientColor);
