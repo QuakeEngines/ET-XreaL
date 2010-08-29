@@ -934,9 +934,9 @@ void Tess_SurfacePolybuffer(srfPolyBuffer_t * surf)
 
 	
 	numVertexes = Q_min(surf->pPolyBuffer->numVerts, MAX_PB_VERTS);
-	xyzw = &surf->pPolyBuffer->xyz[0];
-	st = &surf->pPolyBuffer->st[0];
-	color = &surf->pPolyBuffer->color[0];
+	xyzw = surf->pPolyBuffer->xyz;
+	st = surf->pPolyBuffer->st;
+	color = surf->pPolyBuffer->color;
 	for(i = 0; i < surf->pPolyBuffer->numVerts; i++, xyzw += 4, st += 2, color += 4)
 	{
 		VectorCopy(xyzw, tess.xyz[tess.numVertexes + i]);
@@ -955,6 +955,49 @@ void Tess_SurfacePolybuffer(srfPolyBuffer_t * surf)
 	tess.numVertexes += numVertexes;
 }
 
+
+// ydnar: decal surfaces
+void Tess_SurfaceDecal(srfDecal_t * srf)
+{
+	int             i;
+
+	GLimp_LogComment("--- Tess_SurfaceDecal ---\n");
+
+	if(tess.shadowVolume)
+	{
+		return;
+	}
+
+	Tess_CheckOverflow(srf->numVerts, 3 * (srf->numVerts - 2));
+
+	// fan triangles into the tess array
+	for(i = 0; i < srf->numVerts; i++)
+	{
+		VectorCopy(srf->verts[i].xyz, tess.xyz[tess.numVertexes + i]);
+		tess.xyz[tess.numVertexes + i][3] = 1;
+
+		tess.texCoords[tess.numVertexes + i][0] = srf->verts[i].st[0];
+		tess.texCoords[tess.numVertexes + i][1] = srf->verts[i].st[1];
+		tess.texCoords[tess.numVertexes + i][2] = 0;
+		tess.texCoords[tess.numVertexes + i][3] = 1;
+
+		tess.colors[tess.numVertexes + i][0] = srf->verts[i].modulate[0] * (1.0 / 255.0);
+		tess.colors[tess.numVertexes + i][1] = srf->verts[i].modulate[1] * (1.0 / 255.0);
+		tess.colors[tess.numVertexes + i][2] = srf->verts[i].modulate[2] * (1.0 / 255.0);
+		tess.colors[tess.numVertexes + i][3] = srf->verts[i].modulate[3] * (1.0 / 255.0);
+	}
+
+	// generate fan indexes into the tess array
+	for(i = 0; i < srf->numVerts - 2; i++)
+	{
+		tess.indexes[tess.numIndexes + 0] = tess.numVertexes;
+		tess.indexes[tess.numIndexes + 1] = tess.numVertexes + i + 1;
+		tess.indexes[tess.numIndexes + 2] = tess.numVertexes + i + 2;
+		tess.numIndexes += 3;
+	}
+
+	tess.numVertexes += srf->numVerts;
+}
 
 /*
 ==============
@@ -2981,7 +3024,8 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfaceGrid,	// SF_GRID,
 		(void (*)(void *))Tess_SurfaceTriangles,	// SF_TRIANGLES,
 		(void (*)(void *))Tess_SurfacePolychain,	// SF_POLY,
-		(void (*)(void *))Tess_SurfacePolybuffer,	// SF_POLY,
+		(void (*)(void *))Tess_SurfacePolybuffer,	// SF_POLYBUFFER,
+		(void (*)(void *))Tess_SurfaceDecal,	// SF_DECAL
 		(void (*)(void *))Tess_SurfaceMDX,	// SF_MDX,
 
 		(void (*)(void *))Tess_MDM_SurfaceAnim,	// SF_MDM,

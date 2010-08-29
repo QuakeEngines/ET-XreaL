@@ -1263,6 +1263,43 @@ static shader_t *ShaderForShaderNum(int shaderNum)
 	return shader;
 }
 
+
+/*
+SphereFromBounds() - ydnar
+creates a bounding sphere from a bounding box
+*/
+
+static void SphereFromBounds(vec3_t mins, vec3_t maxs, vec3_t origin, float *radius)
+{
+	vec3_t          temp;
+
+	VectorAdd(mins, maxs, origin);
+	VectorScale(origin, 0.5, origin);
+	VectorSubtract(maxs, origin, temp);
+	*radius = VectorLength(temp);
+}
+
+
+
+/*
+FinishGenericSurface() - ydnar
+handles final surface classification
+*/
+
+static void FinishGenericSurface(dsurface_t * ds, srfGeneric_t * gen, vec3_t pt)
+{
+	// set bounding sphere
+	SphereFromBounds(gen->bounds[0], gen->bounds[1], gen->origin, &gen->radius);
+
+	// take the plane normal from the lightmap vector and classify it
+	gen->plane.normal[0] = LittleFloat(ds->lightmapVecs[2][0]);
+	gen->plane.normal[1] = LittleFloat(ds->lightmapVecs[2][1]);
+	gen->plane.normal[2] = LittleFloat(ds->lightmapVecs[2][2]);
+	gen->plane.dist = DotProduct(pt, gen->plane.normal);
+	SetPlaneSignbits(&gen->plane);
+	gen->plane.type = PlaneTypeForNormal(gen->plane.normal);
+}
+
 /*
 ===============
 ParseFace
@@ -1460,6 +1497,9 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 		}
 	}
 #endif
+
+	// finish surface
+	FinishGenericSurface(ds, (srfGeneric_t *) cv, cv->verts[0].xyz);
 }
 
 
@@ -1580,6 +1620,9 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 	VectorScale(bounds[1], 0.5f, grid->lodOrigin);
 	VectorSubtract(bounds[0], grid->lodOrigin, tmpVec);
 	grid->lodRadius = VectorLength(tmpVec);
+
+	// finish surface
+	FinishGenericSurface(ds, (srfGeneric_t *) grid, grid->verts[0].xyz);
 }
 
 
@@ -1793,6 +1836,8 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 	}
 #endif
 
+	// finish surface
+	FinishGenericSurface(ds, (srfGeneric_t *) cv, cv->verts[0].xyz);
 }
 
 /*
@@ -4949,6 +4994,11 @@ static void R_LoadSubmodels(lump_t * l)
 			// Tr3B: add this for limiting VBO surface creation
 			s_worldData.numWorldSurfaces = out->numSurfaces;
 		}
+
+		// ydnar: allocate decal memory
+		j = (i == 0 ? MAX_WORLD_DECALS : MAX_ENTITY_DECALS);
+		out->decals = ri.Hunk_Alloc(j * sizeof(*out->decals), h_low);
+		memset(out->decals, 0, j * sizeof(*out->decals));
 	}
 }
 
@@ -6225,7 +6275,7 @@ static qboolean R_PrecacheFaceInteraction(srfSurfaceFace_t * cv, shader_t * shad
 static int R_PrecacheGridInteraction(srfGridMesh_t * cv, shader_t * shader, trRefLight_t * light)
 {
 	// check if bounds intersect
-	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], cv->meshBounds[0], cv->meshBounds[1]))
+	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], cv->bounds[0], cv->bounds[1]))
 	{
 		return qfalse;
 	}
@@ -6839,7 +6889,7 @@ static void R_CreateVBOLightMeshes(trRefLight_t * light)
 						numLitTriangles = UpdateLightTriangles(s_worldData.verts, srf->numTriangles, s_worldData.triangles + srf->firstTriangle, surface->shader, light);
 						if(numLitTriangles)
 						{
-							BoundsAdd(bounds[0], bounds[1], srf->meshBounds[0], srf->meshBounds[1]);
+							BoundsAdd(bounds[0], bounds[1], srf->bounds[0], srf->bounds[1]);
 						}
 
 						numTriangles += numLitTriangles;
@@ -7190,7 +7240,7 @@ static void R_CreateVBOShadowMeshes(trRefLight_t * light)
 						numLitTriangles = UpdateLightTriangles(s_worldData.verts, srf->numTriangles, s_worldData.triangles + srf->firstTriangle, surface->shader, light);
 						if(numLitTriangles)
 						{
-							BoundsAdd(bounds[0], bounds[1], srf->meshBounds[0], srf->meshBounds[1]);
+							BoundsAdd(bounds[0], bounds[1], srf->bounds[0], srf->bounds[1]);
 						}
 
 						numTriangles += numLitTriangles;
@@ -8140,32 +8190,14 @@ static void R_CalcInteractionCubeSideBits(trRefLight_t * light)
 		{
 			surface = iaCache->surface;
 
-			if(*surface->data == SF_FACE)
+			if(*surface->data == SF_FACE || *surface->data == SF_GRID || *surface->data == SF_TRIANGLES)
 			{
-				srfSurfaceFace_t *face;
+				srfGeneric_t *gen;
 
-				face = (srfSurfaceFace_t *) surface->data;
+				gen = (srfGeneric_t *) surface->data;
 
-				VectorCopy(face->bounds[0], localBounds[0]);
-				VectorCopy(face->bounds[1], localBounds[1]);
-			}
-			else if(*surface->data == SF_GRID)
-			{
-				srfGridMesh_t  *grid;
-
-				grid = (srfGridMesh_t *) surface->data;
-
-				VectorCopy(grid->meshBounds[0], localBounds[0]);
-				VectorCopy(grid->meshBounds[1], localBounds[1]);
-			}
-			else if(*surface->data == SF_TRIANGLES)
-			{
-				srfTriangles_t *tri;
-
-				tri = (srfTriangles_t *) surface->data;
-
-				VectorCopy(tri->bounds[0], localBounds[0]);
-				VectorCopy(tri->bounds[1], localBounds[1]);
+				VectorCopy(gen->bounds[0], localBounds[0]);
+				VectorCopy(gen->bounds[1], localBounds[1]);
 			}
 			else
 			{

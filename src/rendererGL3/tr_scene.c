@@ -40,6 +40,12 @@ int				r_numPolyVerts;
 int             r_firstScenePolybuffer;
 int             r_numPolybuffers;
 
+// ydnar: decals
+int             r_firstSceneDecalProjector;
+int             r_numDecalProjectors;
+int             r_firstSceneDecal;
+int             r_numDecals;
+
 /*
 ====================
 R_ToggleSmpFrame
@@ -76,6 +82,12 @@ void R_ToggleSmpFrame(void)
 
 	r_numPolybuffers = 0;
 	r_firstScenePolybuffer = 0;
+
+	// ydnar: decals
+	r_numDecalProjectors = 0;
+	r_firstSceneDecalProjector = 0;
+	r_numDecals = 0;
+	r_firstSceneDecal = 0;
 }
 
 
@@ -606,6 +618,14 @@ void RE_RenderScene(const refdef_t * fd)
 
 	tr.refdef.numPolybuffers = r_numPolybuffers - r_firstScenePolybuffer;
 	tr.refdef.polybuffers = &backEndData[tr.smpFrame]->polybuffers[r_firstScenePolybuffer];	
+
+	tr.refdef.numDecalProjectors = r_numDecalProjectors - r_firstSceneDecalProjector;
+	tr.refdef.decalProjectors = &backEndData[tr.smpFrame]->decalProjectors[r_firstSceneDecalProjector];
+
+	tr.refdef.numDecals = r_numDecals - r_firstSceneDecal;
+	tr.refdef.decals = &backEndData[tr.smpFrame]->decals[r_firstSceneDecal];
+
+
 	// a single frame may have multiple scenes draw inside it --
 	// a 3D game view, 3D status bar renderings, 3D menus, etc.
 	// They need to be distinguished by the light flare code, because

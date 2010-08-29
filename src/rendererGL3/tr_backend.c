@@ -1473,28 +1473,12 @@ static int MergeInteractionBounds(const matrix_t lightViewProjectionMatrix, inte
 			}
 		}
 
-		if(*surface == SF_FACE)
+		if(*surface == SF_FACE || *surface == SF_GRID || *surface == SF_TRIANGLES)
 		{
-			srfSurfaceFace_t *face = (srfSurfaceFace_t *) surface;
+			srfGeneric_t *gen = (srfGeneric_t *) surface;
 
-			VectorCopy(face->bounds[0], worldBounds[0]);
-			VectorCopy(face->bounds[1], worldBounds[1]);
-		}
-		else if(*surface == SF_GRID)
-		{
-			srfGridMesh_t  *grid = (srfGridMesh_t *) surface;
-
-			VectorCopy(grid->meshBounds[0], worldBounds[0]);
-			VectorCopy(grid->meshBounds[1], worldBounds[1]);
-		}
-		else if(*surface == SF_TRIANGLES)
-		{
-			srfTriangles_t *tri = (srfTriangles_t *) surface;
-
-			//ri.Printf(PRINT_ALL, "merging triangle bounds\n");
-
-			VectorCopy(tri->bounds[0], worldBounds[0]);
-			VectorCopy(tri->bounds[1], worldBounds[1]);
+			VectorCopy(gen->bounds[0], worldBounds[0]);
+			VectorCopy(gen->bounds[1], worldBounds[1]);
 		}
 		else if(*surface == SF_VBO_MESH)
 		{
@@ -9595,26 +9579,12 @@ static void RB_RenderDebugUtils()
 			tess.numVertexes = 0;
 			tess.numIndexes = 0;
 
-			if(*surface == SF_FACE)
+			if(*surface == SF_FACE || *surface == SF_GRID || *surface == SF_TRIANGLES)
 			{
-				srfSurfaceFace_t *face;
+				srfGeneric_t *gen;
 
-				face = (srfSurfaceFace_t *) surface;
-				Tess_AddCube(vec3_origin, face->bounds[0], face->bounds[1], lightColor);
-			}
-			else if(*surface == SF_GRID)
-			{
-				srfGridMesh_t  *grid;
-
-				grid = (srfGridMesh_t *) surface;
-				Tess_AddCube(vec3_origin, grid->meshBounds[0], grid->meshBounds[1], lightColor);
-			}
-			else if(*surface == SF_TRIANGLES)
-			{
-				srfTriangles_t *tri;
-
-				tri = (srfTriangles_t *) surface;
-				Tess_AddCube(vec3_origin, tri->bounds[0], tri->bounds[1], lightColor);
+				gen = (srfGeneric_t *) surface;
+				Tess_AddCube(vec3_origin, gen->bounds[0], gen->bounds[1], lightColor);
 			}
 			else if(*surface == SF_VBO_MESH)
 			{

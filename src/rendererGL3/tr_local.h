@@ -2440,6 +2440,13 @@ typedef struct
 	int             numPolybuffers;
 	struct srfPolyBuffer_s *polybuffers;
 
+	int             decalBits;	// ydnar: optimization
+	int             numDecalProjectors;
+	struct decalProjector_s *decalProjectors;
+
+	int             numDecals;
+	struct srfDecal_s *decals;
+
 	int             numDrawSurfs;
 	struct drawSurf_s *drawSurfs;
 
@@ -2567,13 +2574,16 @@ typedef enum
 {
 	SF_BAD,
 	SF_SKIP,					// ignore
+	
 	SF_FACE,
 	SF_GRID,
 	SF_TRIANGLES,
+	
 	SF_POLY,
 	SF_POLYBUFFER,
-	SF_MDV,
+	SF_DECAL,					// ydnar: decal surfaces
 
+	SF_MDV,
 	SF_MDM,
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
@@ -2746,14 +2756,33 @@ typedef struct
 	qboolean        degenerated;
 } srfTriangle_t;
 
-typedef struct srfGridMesh_s
+// ydnar: normal map drawsurfaces must match this header
+typedef struct srfGeneric_s
 {
 	surfaceType_t   surfaceType;
 
 	// culling information
-	vec3_t          meshBounds[2];
-	vec3_t          localOrigin;
-	float           meshRadius;
+	vec3_t          bounds[2];
+	vec3_t          origin;
+	float           radius;
+	cplane_t        plane;
+
+	// dynamic lighting information
+//	int             dlightBits[SMP_FRAMES];
+}
+srfGeneric_t;
+
+typedef struct srfGridMesh_s
+{
+	// srfGeneric_t BEGIN
+	surfaceType_t   surfaceType;
+
+	vec3_t          bounds[2];
+	vec3_t          origin;
+	float           radius;
+	cplane_t        plane;
+
+	// srfGeneric_t END
 
 	// lod information, which may be different
 	// than the culling information to allow for
@@ -2785,11 +2814,15 @@ typedef struct srfGridMesh_s
 
 typedef struct
 {
+	// srfGeneric_t BEGIN
 	surfaceType_t   surfaceType;
 
-	// culling information
-	cplane_t        plane;
 	vec3_t          bounds[2];
+	vec3_t          origin;
+	float           radius;
+	cplane_t        plane;
+
+	// srfGeneric_t END
 
 	// triangle definitions
 	int             numTriangles;
@@ -2811,10 +2844,15 @@ typedef struct
 // misc_models in maps are turned into direct geometry by xmap
 typedef struct
 {
+	// srfGeneric_t BEGIN
 	surfaceType_t   surfaceType;
 
-	// culling information
 	vec3_t          bounds[2];
+	vec3_t          origin;
+	float           radius;
+	cplane_t        plane;
+
+	// srfGeneric_t END
 
 	// triangle definitions
 	int             numTriangles;
@@ -2900,6 +2938,7 @@ typedef struct bspSurface_s
 	int             lightCount;
 	struct shader_s *shader;
 	int16_t         lightmapNum;	// -1 = no lightmap
+	int16_t			fogIndex;
 
 	surfaceType_t  *data;		// any of srf*_t
 } bspSurface_t;
@@ -2997,6 +3036,9 @@ typedef struct
 
 	uint32_t        numVBOSurfaces;
 	srfVBOMesh_t  **vboSurfaces;
+
+	// ydnar: decals
+	decal_t        *decals;
 } bspModel_t;
 
 typedef struct
@@ -3393,6 +3435,8 @@ typedef struct
 	int				c_occlusionQueriesMulti;
 	int				c_occlusionQueriesSaved;
 	int             c_CHCTime;
+
+	int             c_decalProjectors, c_decalTestSurfaces, c_decalClipSurfaces, c_decalSurfaces, c_decalSurfacesCreated;
 } frontEndCounters_t;
 
 #define FUNCTABLE_SIZE		1024
@@ -4918,6 +4962,13 @@ typedef enum
 } renderCommand_t;
 
 
+// ydnar: max decal projectors per frame, each can generate lots of polys
+#define MAX_DECAL_PROJECTORS    32	// uses bitmasks, don't increase
+#define DECAL_PROJECTOR_MASK    ( MAX_DECAL_PROJECTORS - 1 )
+#define MAX_DECALS              1024
+#define DECAL_MASK              ( MAX_DECALS - 1 )
+
+
 // all of the information needed by the back end must be
 // contained in a backEndData_t.  This entire structure is
 // duplicated so the front and back end can run in parallel
@@ -4933,6 +4984,9 @@ typedef struct
 	srfPoly_t      *polys;		//[MAX_POLYS];
 	polyVert_t     *polyVerts;	//[MAX_POLYVERTS];
 	srfPolyBuffer_t *polybuffers; //[MAX_POLYS];
+
+	decalProjector_t decalProjectors[MAX_DECAL_PROJECTORS];
+	srfDecal_t      decals[MAX_DECALS];
 
 	renderCommandList_t commands;
 } backEndData_t;

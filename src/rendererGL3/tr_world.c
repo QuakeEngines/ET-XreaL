@@ -64,11 +64,11 @@ static qboolean R_CullGrid(srfGridMesh_t * cv)
 
 	if(tr.currentEntity != &tr.worldEntity)
 	{
-		sphereCull = R_CullLocalPointAndRadius(cv->localOrigin, cv->meshRadius);
+		sphereCull = R_CullLocalPointAndRadius(cv->origin, cv->radius);
 	}
 	else
 	{
-		sphereCull = R_CullPointAndRadius(cv->localOrigin, cv->meshRadius);
+		sphereCull = R_CullPointAndRadius(cv->origin, cv->radius);
 	}
 	boxCull = CULL_OUT;
 
@@ -83,7 +83,7 @@ static qboolean R_CullGrid(srfGridMesh_t * cv)
 	{
 		tr.pc.c_sphere_cull_patch_clip++;
 
-		boxCull = R_CullLocalBox(cv->meshBounds);
+		boxCull = R_CullLocalBox(cv->bounds);
 
 		if(boxCull == CULL_OUT)
 		{
@@ -193,8 +193,7 @@ static qboolean R_CullSurface(surfaceType_t * surface, shader_t * shader)
 #endif
 }
 
-// *INDENT-OFF*
-static qboolean R_LightFace(srfSurfaceFace_t * face, trRefLight_t  * light, byte * cubeSideBits)
+static qboolean R_LightSurfaceGeneric(srfGeneric_t * face, trRefLight_t  * light, byte * cubeSideBits)
 {
 	// do a quick AABB cull
 	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], face->bounds[0], face->bounds[1]))
@@ -214,56 +213,6 @@ static qboolean R_LightFace(srfSurfaceFace_t * face, trRefLight_t  * light, byte
 	if(r_cullShadowPyramidFaces->integer)
 	{
 		*cubeSideBits = R_CalcLightCubeSideBits(light, face->bounds);
-	}
-	return qtrue;
-}
-// *INDENT-ON*
-
-static int R_LightGrid(srfGridMesh_t * grid, trRefLight_t * light, byte * cubeSideBits)
-{
-	// do a quick AABB cull
-	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], grid->meshBounds[0], grid->meshBounds[1]))
-	{
-		return qfalse;
-	}
-
-	// do a more expensive and precise light frustum cull
-	if(!r_noLightFrustums->integer)
-	{
-		if(R_CullLightWorldBounds(light, grid->meshBounds) == CULL_OUT)
-		{
-			return qfalse;
-		}
-	}
-
-	if(r_cullShadowPyramidCurves->integer)
-	{
-		*cubeSideBits = R_CalcLightCubeSideBits(light, grid->meshBounds);
-	}
-	return qtrue;
-}
-
-
-static int R_LightTrisurf(srfTriangles_t * tri, trRefLight_t * light, byte * cubeSideBits)
-{
-	// do a quick AABB cull
-	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], tri->bounds[0], tri->bounds[1]))
-	{
-		return qfalse;
-	}
-
-	// do a more expensive and precise light frustum cull
-	if(!r_noLightFrustums->integer)
-	{
-		if(R_CullLightWorldBounds(light, tri->bounds) == CULL_OUT)
-		{
-			return qfalse;
-		}
-	}
-
-	if(r_cullShadowPyramidTriangles->integer)
-	{
-		*cubeSideBits = R_CalcLightCubeSideBits(light, tri->bounds);
 	}
 	return qtrue;
 }
@@ -303,22 +252,17 @@ static void R_AddInteractionSurface(bspSurface_t * surf, trRefLight_t * light)
 	if(surf->shader->isSky || (!surf->shader->interactLight && surf->shader->noShadows))
 		return;
 
-	if(*surf->data == SF_FACE)
+	switch (*surf->data)
 	{
-		intersects = R_LightFace((srfSurfaceFace_t *) surf->data, light, &cubeSideBits);
-	}
-	else if(*surf->data == SF_GRID)
-	{
-		intersects = R_LightGrid((srfGridMesh_t *) surf->data, light, &cubeSideBits);
-	}
-	else if(*surf->data == SF_TRIANGLES)
-	{
-		intersects = R_LightTrisurf((srfTriangles_t *) surf->data, light, &cubeSideBits);
-	}
-	else
-	{
-		intersects = qfalse;
-	}
+		case SF_FACE:
+		case SF_GRID:
+		case SF_TRIANGLES:
+			intersects = R_LightSurfaceGeneric((srfGeneric_t *) surf->data, light, &cubeSideBits);
+			break;
+
+		default:
+			intersects = qfalse;
+	};
 
 	if(intersects)
 	{
@@ -341,8 +285,9 @@ static void R_AddInteractionSurface(bspSurface_t * surf, trRefLight_t * light)
 R_AddWorldSurface
 ======================
 */
-static void R_AddWorldSurface(bspSurface_t * surf)
+static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 {
+	int				i;
 	shader_t       *shader;
 
 	if(surf->viewCount == tr.viewCountNoReset)
@@ -350,6 +295,19 @@ static void R_AddWorldSurface(bspSurface_t * surf)
 	surf->viewCount = tr.viewCountNoReset;
 
 	shader = surf->shader;
+
+	// add decals
+	if(decalBits)
+	{
+		// ydnar: project any decals
+		for(i = 0; i < tr.refdef.numDecalProjectors; i++)
+		{
+			if(decalBits & (1 << i))
+			{
+				R_ProjectDecalOntoSurface(&tr.refdef.decalProjectors[i], surf, &tr.world->models[0]);
+			}
+		}
+	}
 
 	if(r_mergeClusterSurfaces->integer &&
 		!r_dynamicBspOcclusionCulling->integer &&
@@ -483,7 +441,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 R_RecursiveWorldNode
 ================
 */
-static void R_RecursiveWorldNode(bspNode_t * node, int planeBits)
+static void R_RecursiveWorldNode(bspNode_t * node, int planeBits, int decalBits)
 {
 	do
 	{
@@ -525,13 +483,32 @@ static void R_RecursiveWorldNode(bspNode_t * node, int planeBits)
 
 		InsertLink(&node->visChain, &tr.traversalStack);
 
+		// ydnar: cull decals
+		if(decalBits)
+		{
+			int             i;
+
+			for(i = 0; i < tr.refdef.numDecalProjectors; i++)
+			{
+				if(decalBits & (1 << i))
+				{
+					// test decal bounds against node surface bounds
+					if(tr.refdef.decalProjectors[i].shader == NULL ||
+					   !R_TestDecalBoundingBox(&tr.refdef.decalProjectors[i], node->mins, node->maxs))
+					{
+						decalBits &= ~(1 << i);
+					}
+				}
+			}
+		}
+
 		if(node->contents != -1)
 		{
 			break;
 		}
 
 		// recurse down the children, front side first
-		R_RecursiveWorldNode(node->children[0], planeBits);
+		R_RecursiveWorldNode(node->children[0], planeBits, decalBits);
 
 		// tail recurse
 		node = node->children[1];
@@ -580,7 +557,7 @@ static void R_RecursiveWorldNode(bspNode_t * node, int planeBits)
 			// the surface may have already been added if it
 			// spans multiple leafs
 			surf = *mark;
-			R_AddWorldSurface(surf);
+			R_AddWorldSurface(surf, decalBits);
 			mark++;
 		}
 	}
@@ -998,7 +975,7 @@ static void R_UpdateClusterSurfaces()
 						}
 
 						numTriangles += srf->numTriangles;
-						BoundsAdd(bounds[0], bounds[1], srf->meshBounds[0], srf->meshBounds[1]);
+						BoundsAdd(bounds[0], bounds[1], srf->bounds[0], srf->bounds[1]);
 					}
 				}
 				else if(*surface2->data == SF_TRIANGLES)
@@ -1230,7 +1207,7 @@ static void R_MarkLeaves(void)
 }
 
 
-static void DrawLeaf(bspNode_t * node)
+static void DrawLeaf(bspNode_t * node, int decalBits)
 {
 	// leaf node, so add mark surfaces
 	int             c;
@@ -1273,7 +1250,7 @@ static void DrawLeaf(bspNode_t * node)
 		// the surface may have already been added if it
 		// spans multiple leafs
 		surf = *mark;
-		R_AddWorldSurface(surf);
+		R_AddWorldSurface(surf, decalBits);
 		mark++;
 	}
 }
@@ -1308,7 +1285,7 @@ static qboolean InsideViewFrustum(bspNode_t * node, int planeBits)
 
 
 
-static void DrawNode_r(bspNode_t * node, int planeBits)
+static void DrawNode_r(bspNode_t * node, int planeBits, int decalBits)
 {
 	do
 	{
@@ -1357,8 +1334,27 @@ static void DrawNode_r(bspNode_t * node, int planeBits)
 			break;
 		}
 
+		// ydnar: cull decals
+		if(decalBits)
+		{
+			int             i;
+
+			for(i = 0; i < tr.refdef.numDecalProjectors; i++)
+			{
+				if(decalBits & (1 << i))
+				{
+					// test decal bounds against node surface bounds
+					if(tr.refdef.decalProjectors[i].shader == NULL ||
+					   !R_TestDecalBoundingBox(&tr.refdef.decalProjectors[i], node->mins, node->maxs))
+					{
+						decalBits &= ~(1 << i);
+					}
+				}
+			}
+		}
+
 		// recurse down the children, front side first
-		DrawNode_r(node->children[0], planeBits);
+		DrawNode_r(node->children[0], planeBits, decalBits);
 
 		// tail recurse
 		node = node->children[1];
@@ -1627,7 +1623,7 @@ static void PushNode(link_t * traversalStack, bspNode_t * node)
 {
 	if(node->contents != -1)
 	{
-		DrawLeaf(node);
+		DrawLeaf(node, tr.refdef.decalBits);
 	}
 	else
 	{
@@ -2054,7 +2050,7 @@ static void R_CoherentHierachicalCulling()
 
 
 
-
+#if 0
 static void R_RecursiveChainWorldNode(bspNode_t * node, int planeBits)
 {
 	do
@@ -2340,6 +2336,7 @@ static void R_CoherentHierachicalCulling2()
 
 	R_RecursiveChainWorldNode(tr.world->nodes, FRUSTUM_CLIPALL);
 }
+#endif
 
 /*
 =============
@@ -2378,7 +2375,10 @@ void R_AddWorldSurfaces(void)
 		ClearLink(&tr.occlusionQueryList);
 
 		// update visbounds and add surfaces that weren't cached with VBOs
-		R_RecursiveWorldNode(tr.world->nodes, FRUSTUM_CLIPALL);
+		R_RecursiveWorldNode(tr.world->nodes, FRUSTUM_CLIPALL, tr.refdef.decalBits);
+
+		// ydnar: add decal surfaces
+		R_AddDecalSurfaces(tr.world->models);
 	}
 
 	if(r_mergeClusterSurfaces->integer && !r_dynamicBspOcclusionCulling->integer)

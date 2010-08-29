@@ -3285,6 +3285,10 @@ void R_RenderView(viewParms_t * parms)
 
 	R_SetupFrustum();
 
+	// RB: cull decal projects before calling R_AddWorldSurfaces
+	// because it requires the decalBits
+	R_CullDecalProjectors();
+
 	R_AddWorldSurfaces();
 
 	R_AddPolygonSurfaces();
