@@ -209,7 +209,7 @@ void Tess_AddQuadStampExt2(vec4_t quadVerts[4], const vec4_t color, float s1, fl
 
 	GLimp_LogComment("--- Tess_AddQuadStampExt2 ---\n");
 
-//  Tess_CheckOverflow(4, 6);
+	Tess_CheckOverflow(4, 6);
 
 	ndx = tess.numVertexes;
 
@@ -294,6 +294,8 @@ void Tess_AddQuadStamp2WithNormals(vec4_t quadVerts[4], const vec4_t color)
 void Tess_AddTetrahedron(vec4_t tetraVerts[4], const vec4_t color)
 {
 	int             k;
+
+	Tess_CheckOverflow(12, 12);
 
 	// ground triangle
 	for(k = 0; k < 3; k++)

@@ -2606,14 +2606,20 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 					 qboolean shadowVolume,
 					 int lightmapNum)
 {
-	shader_t       *state = (surfaceShader->remappedShader) ? surfaceShader->remappedShader : surfaceShader;
+	shader_t       *state;
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
-	tess.surfaceShader = state;
-
-	tess.surfaceStages = state->stages;
-	tess.numSurfaceStages = state->numStages;
+	
+	// materials are optional
+	if(surfaceShader != NULL)
+	{
+		state = (surfaceShader->remappedShader) ? surfaceShader->remappedShader : surfaceShader;
+	
+		tess.surfaceShader = state;
+		tess.surfaceStages = state->stages;
+		tess.numSurfaceStages = state->numStages;
+	}
 
 	tess.lightShader = lightShader;
 
@@ -5419,6 +5425,28 @@ static void Tess_ComputeTexMatrices(shaderStage_t * pStage)
 }
 
 
+void Tess_StageIteratorDebug()
+{
+	// log this call
+	if(r_logFile->integer)
+	{
+		// don't just call LogComment, or we will get
+		// a call to va() every frame!
+		GLimp_LogComment(va("--- Tess_StageIteratorDebug( %i vertices, %i triangles ) ---\n", tess.numVertexes, tess.numIndexes / 3));
+	}
+
+	GL_CheckErrors();
+
+	if(!glState.currentVBO || !glState.currentIBO || glState.currentVBO == tess.vbo || glState.currentIBO == tess.ibo)
+	{
+		// Tr3B: FIXME analyze required vertex attribs by the current material
+		Tess_UpdateVBOs(0);
+	}
+
+	Tess_DrawElements();
+}
+
+
 void Tess_StageIteratorGeneric()
 {
 	int             stage;
@@ -6551,7 +6579,9 @@ void Tess_End()
 	// call off to shader specific tess end function
 	tess.stageIteratorFunc();
 
-	if(!tess.shadowVolume && (tess.stageIteratorFunc != Tess_StageIteratorShadowFill))
+	if(!tess.shadowVolume && 
+		(tess.stageIteratorFunc != Tess_StageIteratorShadowFill) &&
+		(tess.stageIteratorFunc != Tess_StageIteratorDebug))
 	{
 		// draw debugging stuff
 		if(r_showTris->integer || r_showBatches->integer ||

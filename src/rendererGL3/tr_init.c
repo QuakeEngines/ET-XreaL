@@ -233,6 +233,7 @@ cvar_t         *r_showAreaPortals;
 cvar_t         *r_showCubeProbes;
 cvar_t         *r_showBspNodes;
 cvar_t         *r_showParallelShadowSplits;
+cvar_t         *r_showDecalProjectors;
 
 cvar_t         *r_showDeferredDiffuse;
 cvar_t         *r_showDeferredNormal;
@@ -1612,6 +1613,7 @@ void R_Register(void)
 	r_showCubeProbes = ri.Cvar_Get("r_showCubeProbes", "0", CVAR_CHEAT);
 	r_showBspNodes = ri.Cvar_Get("r_showBspNodes", "0", CVAR_CHEAT);
 	r_showParallelShadowSplits = ri.Cvar_Get("r_showParallelShadowSplits", "0", CVAR_CHEAT);
+	r_showDecalProjectors = ri.Cvar_Get("r_showDecalProjectors", "0", CVAR_CHEAT);
 
 	r_showDeferredDiffuse = ri.Cvar_Get("r_showDeferredDiffuse", "0", CVAR_CHEAT);
 	r_showDeferredNormal = ri.Cvar_Get("r_showDeferredNormal", "0", CVAR_CHEAT);

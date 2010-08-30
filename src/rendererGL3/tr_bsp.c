@@ -5014,17 +5014,53 @@ R_SetParent
 static void R_SetParent(bspNode_t * node, bspNode_t * parent)
 {
 	node->parent = parent;
-	if(node->contents != -1)
+
+
+	if(node->contents != CONTENTS_NODE)
 	{
+		/*
 		node->sameAABBAsParent = VectorCompare(node->mins, parent->mins) && VectorCompare(node->maxs, parent->maxs);
 		if(node->sameAABBAsParent)
 		{
 			//ri.Printf(PRINT_ALL, "node %i has same AABB as their parent\n", node - s_worldData.nodes);
 		}
+		*/
+
+		// add node surfaces to bounds
+		if(node->numMarkSurfaces > 0)
+		{
+			int             c;
+			bspSurface_t  **mark;
+			srfGeneric_t   *gen;
+
+			// add node surfaces to bounds
+			mark = node->markSurfaces;
+			c = node->numMarkSurfaces;
+			while(c--)
+			{
+				gen = (srfGeneric_t *) (**mark).data;
+				if(gen->surfaceType != SF_FACE &&
+				   gen->surfaceType != SF_GRID && gen->surfaceType != SF_TRIANGLES)// && gen->surfaceType != SF_FOLIAGE)
+				{
+					continue;
+				}
+				AddPointToBounds(gen->bounds[0], node->surfMins, node->surfMaxs);
+				AddPointToBounds(gen->bounds[1], node->surfMins, node->surfMaxs);
+				mark++;
+			}
+		}
+
 		return;
 	}
+
 	R_SetParent(node->children[0], node);
 	R_SetParent(node->children[1], node);
+
+	// ydnar: surface bounds
+	AddPointToBounds(node->children[0]->surfMins, node->surfMins, node->surfMaxs);
+	AddPointToBounds(node->children[0]->surfMins, node->surfMins, node->surfMaxs);
+	AddPointToBounds(node->children[1]->surfMins, node->surfMins, node->surfMaxs);
+	AddPointToBounds(node->children[1]->surfMaxs, node->surfMins, node->surfMaxs);
 }
 
 /*
@@ -5070,6 +5106,10 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 			out->maxs[j] = LittleLong(in->maxs[j]);
 		}
 
+		// ydnar: surface bounds
+		VectorCopy(out->mins, out->surfMins);
+		VectorCopy(out->maxs, out->surfMaxs);
+
 		p = LittleLong(in->planeNum);
 		out->plane = s_worldData.planes + p;
 
@@ -5094,6 +5134,9 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 			out->mins[j] = LittleLong(inLeaf->mins[j]);
 			out->maxs[j] = LittleLong(inLeaf->maxs[j]);
 		}
+
+		// ydnar: surface bounds
+		ClearBounds(out->surfMins, out->surfMaxs);
 
 		out->cluster = LittleLong(inLeaf->cluster);
 		out->area = LittleLong(inLeaf->area);

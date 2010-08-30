@@ -9477,6 +9477,8 @@ static void RB_RenderDebugUtils()
 		trRefEntity_t  *entity;
 		surfaceType_t  *surface;
 		vec4_t          lightColor;
+		vec3_t			mins = {-1,-1,-1};
+		vec3_t			maxs = { 1, 1, 1};
 
 		GL_BindProgram(&tr.genericSingleShader);
 		GL_State(GLS_POLYMODE_LINE | GLS_DEPTHTEST_DISABLE);
@@ -9584,7 +9586,27 @@ static void RB_RenderDebugUtils()
 				srfGeneric_t *gen;
 
 				gen = (srfGeneric_t *) surface;
+
+				if(*surface == SF_FACE)
+				{
+					Vector4Copy(colorMdGrey, lightColor);
+				}
+				else if(*surface == SF_GRID)
+				{
+					Vector4Copy(colorCyan, lightColor);
+				}
+				else if(*surface == SF_TRIANGLES)
+				{
+					Vector4Copy(colorMagenta, lightColor);
+				}
+				else
+				{
+					Vector4Copy(colorMdGrey, lightColor);
+				}
+
 				Tess_AddCube(vec3_origin, gen->bounds[0], gen->bounds[1], lightColor);
+
+				Tess_AddCube(gen->origin, mins, maxs, colorWhite);
 			}
 			else if(*surface == SF_VBO_MESH)
 			{
@@ -10059,7 +10081,7 @@ static void RB_RenderDebugUtils()
 		vec3_t			maxs = { 8,  8,  8};
 		vec3_t			viewOrigin;
 
-		if(tr.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOCUBEMAP))
+		if(backEnd.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOCUBEMAP))
 		{
 			return;
 		}
@@ -10154,7 +10176,7 @@ static void RB_RenderDebugUtils()
 		vec_t           length;
 		vec4_t          tetraVerts[4];
 
-		if(tr.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOCUBEMAP))
+		if(backEnd.refdef.rdflags & (RDF_NOWORLDMODEL | RDF_NOCUBEMAP))
 		{
 			return;
 		}
@@ -10186,8 +10208,7 @@ static void RB_RenderDebugUtils()
 
 		GL_CheckErrors();
 
-		tess.numIndexes = 0;
-		tess.numVertexes = 0;
+		Tess_Begin(Tess_StageIteratorDebug, NULL, NULL, qtrue, qfalse, -1);
 
 		for(j = 0; j < tr.world->numLightGridPoints; j++)
 		{
@@ -10197,56 +10218,34 @@ static void RB_RenderDebugUtils()
 				continue;
 
 			VectorNegate(gridPoint->direction, lightDirection);
-			
-			// 1 simple tetrahedron = 12 vertices
-			if((tess.numVertexes + 24 > SHADER_MAX_VERTEXES) || tess.numIndexes + 24 > SHADER_MAX_INDEXES)
-			{
-				Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
-				Tess_DrawElements();
-
-				tess.numIndexes = 0;
-				tess.numVertexes = 0;
-			}
-
 
 			length = 8;
 			VectorMA(gridPoint->origin, 8, lightDirection, offset);
-			//VectorSubtract(offset, gridPoint->origin, diff);
-			//if((length = VectorNormalize(diff)))
 			
+			PerpendicularVector(tmp, lightDirection);
+			//VectorCopy(up, tmp);
+
+			VectorScale(tmp, length * 0.1, tmp2);
+			VectorMA(tmp2, length * 0.2, lightDirection, tmp2);
+
+			for(k = 0; k < 3; k++)
 			{
-				PerpendicularVector(tmp, lightDirection);
-				//VectorCopy(up, tmp);
-
-				VectorScale(tmp, length * 0.1, tmp2);
-				VectorMA(tmp2, length * 0.2, lightDirection, tmp2);
-
-				for(k = 0; k < 3; k++)
-				{
-					RotatePointAroundVector(tmp3, lightDirection, tmp2, k * 120);
-					VectorAdd(tmp3, gridPoint->origin, tmp3);
-					VectorCopy(tmp3, tetraVerts[k]);
-					tetraVerts[k][3] = 1;
-				}
-
-				VectorCopy(gridPoint->origin, tetraVerts[3]);
-				tetraVerts[3][3] = 1;
-				Tess_AddTetrahedron(tetraVerts, gridPoint->directedColor);
-
-				VectorCopy(offset, tetraVerts[3]);
-				tetraVerts[3][3] = 1;
-				Tess_AddTetrahedron(tetraVerts, gridPoint->directedColor);
+				RotatePointAroundVector(tmp3, lightDirection, tmp2, k * 120);
+				VectorAdd(tmp3, gridPoint->origin, tmp3);
+				VectorCopy(tmp3, tetraVerts[k]);
+				tetraVerts[k][3] = 1;
 			}
+
+			VectorCopy(gridPoint->origin, tetraVerts[3]);
+			tetraVerts[3][3] = 1;
+			Tess_AddTetrahedron(tetraVerts, gridPoint->directedColor);
+
+			VectorCopy(offset, tetraVerts[3]);
+			tetraVerts[3][3] = 1;
+			Tess_AddTetrahedron(tetraVerts, gridPoint->directedColor);
 		}
 
-		if(tess.numVertexes || tess.numIndexes)
-		{
-			Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
-			Tess_DrawElements();
-		}
-
-		tess.numIndexes = 0;
-		tess.numVertexes = 0;
+		Tess_End();
 
 		// go back to the world modelview matrix
 		backEnd.orientation = backEnd.viewParms.world;
@@ -10258,7 +10257,7 @@ static void RB_RenderDebugUtils()
 		bspNode_t      *node;
 		link_t		   *l, *sentinel;
 
-		if(tr.refdef.rdflags & (RDF_NOWORLDMODEL))
+		if(backEnd.refdef.rdflags & (RDF_NOWORLDMODEL))
 		{
 			return;
 		}
@@ -10394,6 +10393,74 @@ static void RB_RenderDebugUtils()
 		// go back to the world modelview matrix
 		backEnd.orientation = backEnd.viewParms.world;
 		GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
+	}
+
+	if(r_showDecalProjectors->integer)
+	{
+		int             i;
+		decalProjector_t *dp;
+		srfDecal_t       *srfDecal;
+		vec3_t			mins = {-1,-1,-1};
+		vec3_t			maxs = { 1, 1, 1};
+
+		if(backEnd.refdef.rdflags & (RDF_NOWORLDMODEL))
+		{
+			return;
+		}
+
+		GL_BindProgram(&tr.genericSingleShader);
+		GL_State(GLS_POLYMODE_LINE | GLS_DEPTHTEST_DISABLE);
+		GL_Cull(CT_TWO_SIDED);
+
+		// set uniforms
+		GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
+		GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
+		GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
+		if(glConfig2.vboVertexSkinningAvailable)
+		{
+			GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
+		}
+		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
+		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+
+		// set up the transformation matrix
+		backEnd.orientation = backEnd.viewParms.world;
+		GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
+		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+
+		// bind u_ColorMap
+		GL_SelectTexture(0);
+		GL_Bind(tr.whiteImage);
+		GLSL_SetUniform_ColorTextureMatrix(&tr.genericSingleShader, matrixIdentity);
+
+		GL_CheckErrors();
+
+		Tess_Begin(Tess_StageIteratorDebug, NULL, NULL, qtrue, qfalse, -1);
+
+		for(i = 0, dp = backEnd.refdef.decalProjectors; i < backEnd.refdef.numDecalProjectors; i++, dp++)
+		{
+			if(VectorDistanceSquared(dp->center, backEnd.viewParms.orientation.origin) > SQR(1024))
+				continue;
+
+			Tess_AddCube(dp->center, mins, maxs, colorRed);
+			Tess_AddCube(vec3_origin, dp->mins, dp->maxs, colorBlue);
+		}
+
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+
+		for(i = 0, srfDecal = backEnd.refdef.decals; i < backEnd.refdef.numDecals; i++, srfDecal++)
+		{
+			rb_surfaceTable[SF_DECAL] (srfDecal);
+		}
+
+		glDisable(GL_POLYGON_OFFSET_FILL);
+
+		Tess_End();
+
+		// go back to the world modelview matrix
+		//backEnd.orientation = backEnd.viewParms.world;
+		//GL_LoadModelViewMatrix(backEnd.viewParms.world.modelViewMatrix);
 	}
 
 	GL_CheckErrors();

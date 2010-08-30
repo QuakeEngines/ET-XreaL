@@ -2964,6 +2964,7 @@ typedef struct bspNode_s
 	int             visCounts[MAX_VISCOUNTS];	// node needs to be traversed if current
 	int             lightCount;
 	vec3_t          mins, maxs;	// for bounding box culling
+	vec3_t          surfMins, surfMaxs;	// ydnar: bounding box including surfaces
 	vec3_t			origin;		// center of the bounding box
 	struct bspNode_s *parent;
 
@@ -4069,6 +4070,7 @@ extern cvar_t  *r_showAreaPortals;
 extern cvar_t  *r_showCubeProbes;
 extern cvar_t  *r_showBspNodes;
 extern cvar_t  *r_showParallelShadowSplits;
+extern cvar_t  *r_showDecalProjectors;
 
 extern cvar_t  *r_showDeferredDiffuse;
 extern cvar_t  *r_showDeferredNormal;
@@ -4473,6 +4475,7 @@ void            Tess_CheckOverflow(int verts, int indexes);
 
 void            Tess_ComputeColor(shaderStage_t * pStage);
 
+void            Tess_StageIteratorDebug();
 void            Tess_StageIteratorGeneric();
 void            Tess_StageIteratorGBuffer();
 void            Tess_StageIteratorDepthFill();

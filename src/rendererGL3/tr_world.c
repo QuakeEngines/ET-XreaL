@@ -494,7 +494,7 @@ static void R_RecursiveWorldNode(bspNode_t * node, int planeBits, int decalBits)
 				{
 					// test decal bounds against node surface bounds
 					if(tr.refdef.decalProjectors[i].shader == NULL ||
-					   !R_TestDecalBoundingBox(&tr.refdef.decalProjectors[i], node->mins, node->maxs))
+					   !R_TestDecalBoundingBox(&tr.refdef.decalProjectors[i], node->surfMins, node->surfMaxs))
 					{
 						decalBits &= ~(1 << i);
 					}
@@ -1345,7 +1345,7 @@ static void DrawNode_r(bspNode_t * node, int planeBits, int decalBits)
 				{
 					// test decal bounds against node surface bounds
 					if(tr.refdef.decalProjectors[i].shader == NULL ||
-					   !R_TestDecalBoundingBox(&tr.refdef.decalProjectors[i], node->mins, node->maxs))
+					   !R_TestDecalBoundingBox(&tr.refdef.decalProjectors[i], node->surfMins, node->surfMaxs))
 					{
 						decalBits &= ~(1 << i);
 					}
@@ -2376,10 +2376,10 @@ void R_AddWorldSurfaces(void)
 
 		// update visbounds and add surfaces that weren't cached with VBOs
 		R_RecursiveWorldNode(tr.world->nodes, FRUSTUM_CLIPALL, tr.refdef.decalBits);
-
-		// ydnar: add decal surfaces
-		R_AddDecalSurfaces(tr.world->models);
 	}
+
+	// ydnar: add decal surfaces
+	R_AddDecalSurfaces(tr.world->models);
 
 	if(r_mergeClusterSurfaces->integer && !r_dynamicBspOcclusionCulling->integer)
 	{

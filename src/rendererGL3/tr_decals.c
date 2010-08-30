@@ -716,24 +716,43 @@ projects a decal onto a triangle surface (brush faces, misc_models, metasurfaces
 static void ProjectDecalOntoTriangles(decalProjector_t * dp, bspSurface_t * surf, bspModel_t * bmodel)
 {
 	int             i;
-	srfTriangles_t *srf;
 	srfTriangle_t  *tri;
 	vec3_t          points[2][MAX_DECAL_VERTS];
 
 
-	/* get surface */
-	srf = (srfTriangles_t *) surf->data;
-
-	/* walk triangle list */
-	for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
+	if(*surf->data == SF_FACE)
 	{
-		/* make triangle */
-		VectorCopy(srf->verts[tri->indexes[0]].xyz, points[0][0]);
-		VectorCopy(srf->verts[tri->indexes[1]].xyz, points[0][1]);
-		VectorCopy(srf->verts[tri->indexes[2]].xyz, points[0][2]);
+		/* get surface */
+		srfSurfaceFace_t *srf = (srfSurfaceFace_t *) surf->data;
 
-		/* chop it */
-		ProjectDecalOntoWinding(dp, 3, points, surf, bmodel);
+		/* walk triangle list */
+		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
+		{
+			/* make triangle */
+			VectorCopy(srf->verts[tri->indexes[0]].xyz, points[0][0]);
+			VectorCopy(srf->verts[tri->indexes[1]].xyz, points[0][1]);
+			VectorCopy(srf->verts[tri->indexes[2]].xyz, points[0][2]);
+
+			/* chop it */
+			ProjectDecalOntoWinding(dp, 3, points, surf, bmodel);
+		}
+	}
+	else if(*surf->data == SF_TRIANGLES)
+	{
+		/* get surface */
+		srfTriangles_t *srf = (srfTriangles_t *) surf->data;
+
+		/* walk triangle list */
+		for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
+		{
+			/* make triangle */
+			VectorCopy(srf->verts[tri->indexes[0]].xyz, points[0][0]);
+			VectorCopy(srf->verts[tri->indexes[1]].xyz, points[0][1]);
+			VectorCopy(srf->verts[tri->indexes[2]].xyz, points[0][2]);
+
+			/* chop it */
+			ProjectDecalOntoWinding(dp, 3, points, surf, bmodel);
+		}
 	}
 }
 
@@ -817,6 +836,7 @@ void R_ProjectDecalOntoSurface(decalProjector_t * dp, bspSurface_t * surf, bspMo
 
 	/* test bounding sphere */
 	if(!R_TestDecalBoundingSphere(dp, gen->origin, (gen->radius * gen->radius)))
+//	if(!R_TestDecalBoundingBox(dp, gen->bounds[0], gen->bounds[1]))
 	{
 		return;
 	}
@@ -871,11 +891,11 @@ void R_AddDecalSurface(decal_t * decal)
 	int             i;//, dlightMap;
 	float           fade;
 	srfDecal_t     *srf;
-	srfGeneric_t   *gen;
+//	srfGeneric_t   *gen;
 
 
 	/* early outs */
-	if(decal->shader == NULL || decal->parent->viewCount != tr.viewCount || tr.refdef.numDecals >= MAX_DECALS)
+	if(decal->shader == NULL || decal->parent->viewCount != tr.viewCountNoReset || tr.refdef.numDecals >= MAX_DECALS)
 	{
 		return;
 	}
