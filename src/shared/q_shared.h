@@ -725,8 +725,77 @@ static ID_INLINE long Q_ftol(float f)
 #endif
 }
 
-float           Q_fabs(float f);
-float           Q_rsqrt(float f);	// reciprocal square root
+static ID_INLINE float Q_rsqrt(float number)
+{
+	float           y;
+
+#if idppc
+	float           x = 0.5f * number;
+
+#ifdef __GNUC__
+	asm("frsqrte %0, %1": "=f" (y) : "f" (number));
+#else
+	y = __frsqrte(number);
+#endif
+	return y * (1.5f - (x * y * y));
+
+#elif id386_3dnow && defined __GNUC__
+//#error Q_rqsrt
+	asm volatile
+	(
+												// lo                                   | hi
+	"femms                               \n"
+	"movd           (%%eax),        %%mm0\n"	// in                                   |       -
+	"pfrsqrt        %%mm0,          %%mm1\n"	// 1/sqrt(in)                           | 1/sqrt(in)    (approx)
+	"movq           %%mm1,          %%mm2\n"	// 1/sqrt(in)                           | 1/sqrt(in)    (approx)
+	"pfmul          %%mm1,          %%mm1\n"	// (1/sqrt(in))?                        | (1/sqrt(in))?         step 1
+	"pfrsqit1       %%mm0,          %%mm1\n"	// intermediate                                                 step 2
+	"pfrcpit2       %%mm2,          %%mm1\n"	// 1/sqrt(in) (full 24-bit precision)                           step 3
+	"movd           %%mm1,        (%%edx)\n"
+	"femms                               \n"
+	:
+	:"a" (&number), "d"(&y):"memory"
+	);
+#elif id386_sse && defined __GNUC__
+	asm volatile("rsqrtss %0, %1" : "=x" (y) : "x" (number));
+#elif id386_sse && defined _MSC_VER
+	__asm
+	{
+		rsqrtss xmm0, number
+		movss y, xmm0
+	}
+#else
+	union {
+		float f;
+		int i;
+	} t;
+	float           x2;
+	const float     threehalfs = 1.5F;
+
+	x2 = number * 0.5F;
+	t.f = number;
+	t.i = 0x5f3759df - (t.i >> 1); // what the fuck?
+	y = t.f;
+	y = y * (threehalfs - (x2 * y * y)); // 1st iteration
+#endif
+	return y;
+}
+
+static ID_INLINE float Q_fabs(float x)
+{
+#if idppc && defined __GNUC__
+	float           abs_x;
+
+ 	asm("fabs %0, %1" : "=f" (abs_x) : "f" (x));
+	return abs_x;
+#else
+	floatint_t      tmp;
+
+	tmp.f = x;
+	tmp.i &= 0x7FFFFFFF;
+	return tmp.f;
+#endif
+}
 
 #define SQRTFAST( x ) ( 1.0f / Q_rsqrt( x ) )
 
