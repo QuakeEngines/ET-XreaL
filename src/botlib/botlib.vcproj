@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="botlib"
 	ProjectGUID="{EFA65954-05A8-43C4-B4FE-FAFE8E678AB7}"
 	TargetFrameworkVersion="131072"
@@ -430,11 +430,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\game\q_shared.h"
+				RelativePath="..\shared\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath="..\game\surfaceflags.h"
+				RelativePath="..\shared\surfaceflags.h"
 				>
 			</File>
 		</Filter>

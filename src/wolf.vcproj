@@ -721,11 +721,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\game\q_math.c"
+				RelativePath=".\shared\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath=".\game\q_shared.c"
+				RelativePath=".\shared\q_shared.c"
 				>
 			</File>
 			<File
@@ -962,7 +962,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cgame\cg_public.h"
+				RelativePath=".\shared\cg_public.h"
 				>
 			</File>
 			<File
@@ -986,11 +986,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\game\g_public.h"
+				RelativePath=".\shared\g_public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ui\keycodes.h"
+				RelativePath=".\shared\keycodes.h"
 				>
 			</File>
 			<File
@@ -998,7 +998,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\game\q_shared.h"
+				RelativePath=".\shared\q_shared.h"
 				>
 			</File>
 			<File
@@ -1026,7 +1026,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\game\surfaceflags.h"
+				RelativePath=".\shared\surfaceflags.h"
 				>
 			</File>
 			<File
@@ -1038,11 +1038,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cgame\tr_types.h"
+				RelativePath=".\shared\tr_types.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ui\ui_public.h"
+				RelativePath=".\shared\ui_public.h"
 				>
 			</File>
 			<File

@@ -184,11 +184,11 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="..\game\q_math.c"
+				RelativePath="..\shared\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath="..\game\q_shared.c"
+				RelativePath="..\shared\q_shared.c"
 				>
 			</File>
 			<File
@@ -333,7 +333,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\game\q_shared.h"
+				RelativePath="..\shared\q_shared.h"
 				>
 			</File>
 			<File
@@ -353,7 +353,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\game\surfaceflags.h"
+				RelativePath="..\shared\surfaceflags.h"
 				>
 			</File>
 			<File
@@ -365,7 +365,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\cgame\tr_types.h"
+				RelativePath="..\shared\tr_types.h"
 				>
 			</File>
 			<File

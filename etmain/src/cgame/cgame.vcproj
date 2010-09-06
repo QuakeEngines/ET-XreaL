@@ -436,11 +436,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\game\q_math.c"
+				RelativePath="..\..\..\src\shared\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath="..\game\q_shared.c"
+				RelativePath="..\..\..\src\shared\q_shared.c"
 				>
 			</File>
 			<File
@@ -469,11 +469,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cg_public.h"
+				RelativePath="..\..\..\src\shared\cg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ui\keycodes.h"
+				RelativePath="..\..\..\src\shared\keycodes.h"
 				>
 			</File>
 			<File
@@ -481,15 +481,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\game\q_shared.h"
+				RelativePath="..\..\..\src\shared\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath="..\game\surfaceflags.h"
+				RelativePath="..\..\..\src\shared\surfaceflags.h"
 				>
 			</File>
 			<File
-				RelativePath=".\tr_types.h"
+				RelativePath="..\..\..\src\shared\tr_types.h"
 				>
 			</File>
 			<File
