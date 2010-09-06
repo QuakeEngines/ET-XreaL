@@ -937,6 +937,13 @@ static ID_INLINE int Vector4Compare(const vec4_t v1, const vec4_t v2)
 	return 1;
 }
 
+static ID_INLINE void VectorLerp(const vec3_t from, const vec3_t to, float frac, vec3_t out)
+{
+	out[0] = from[0] + ((to[0] - from[0]) * frac);
+	out[1] = from[1] + ((to[1] - from[1]) * frac);
+	out[2] = from[2] + ((to[2] - from[2]) * frac);
+}
+
 vec_t           VectorLength(const vec3_t v);
 vec_t           VectorLengthSquared(const vec3_t v);
 vec_t           Distance(const vec3_t p1, const vec3_t p2);

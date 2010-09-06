@@ -1063,6 +1063,7 @@ void R_AddMD5Interactions(trRefEntity_t * ent, trRefLight_t * light)
 	}
 
 	// avoid drawing of certain objects
+#if defined(USE_REFENTITY_NOSHADOWID)
 	if(light->l.inverseShadows)
 	{
 		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID != ent->e.noShadowID)))
@@ -1073,6 +1074,7 @@ void R_AddMD5Interactions(trRefEntity_t * ent, trRefLight_t * light)
 		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID == ent->e.noShadowID)))
 			return;
 	}
+#endif
 
 	// don't add third_person objects if not in a portal
 	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal;
