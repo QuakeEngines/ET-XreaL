@@ -1005,9 +1005,9 @@ int BoxOnPlaneSide2 (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 */
 
 // *INDENT-OFF*
-#if !( defined __linux__ && defined __i386__ && !defined C_ONLY )
+#if 1 //!( defined __linux__ && defined __i386__ && !defined C_ONLY )
 
-#if defined __LCC__ || defined C_ONLY || !id386 || __GNUC__
+#if 1 //defined __LCC__ || defined C_ONLY || !id386 || __GNUC__
 
 int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
