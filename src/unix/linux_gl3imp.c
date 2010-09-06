@@ -105,6 +105,8 @@ static Display *dpy = NULL;
 static int      scrnum;
 static Window   win = 0;
 static GLXContext ctx = NULL;
+static GLXFBConfig *fbc = NULL;
+
 const char     *glx_extensions_string;
 
 static Atom     wm_protocols;
@@ -2069,6 +2071,117 @@ static void GLW_InitGamma()
 	}
 }
 
+static void GLW_InitOpenGL3xContext()
+{
+	int				retVal;
+	const char     *success[] = { "failed", "success" };
+
+	if(!r_glCoreProfile->integer)
+		return;
+
+	// try to initialize an OpenGL 3.x context
+	if(GLXEW_ARB_create_context || glxewIsSupported("GLX_ARB_create_context"))
+	{
+		int				nelements;
+
+		//if(!g_wvPtr->openGL3ContextCreated)
+		{
+			int				attribs[256];	// should be really enough
+			int				numAttribs;
+
+			/*
+			int             attribs[] =
+			{
+				GLX_CONTEXT_MAJOR_VERSION_ARB, r_glMinMajorVersion->integer,
+				GLX_CONTEXT_MINOR_VERSION_ARB, r_glMinMinorVersion->integer,
+
+				GLX_CONTEXT_FLAGS_ARB,
+				GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,// | WGL_CONTEXT_DEBUG_BIT_ARB,
+				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+
+				0
+			};
+			*/
+
+			memset(attribs, 0, sizeof(attribs));
+			numAttribs = 0;
+
+			attribs[numAttribs++] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+			attribs[numAttribs++] = r_glMinMajorVersion->integer;
+
+			attribs[numAttribs++] = GLX_CONTEXT_MINOR_VERSION_ARB;
+			attribs[numAttribs++] = r_glMinMinorVersion->integer;
+
+
+			if(GLXEW_ARB_create_context_profile)
+			{
+				attribs[numAttribs++] = GLX_CONTEXT_FLAGS_ARB;
+
+#if 0
+				if(GLXEW_ARB_debug_output)
+				{
+					attribs[numAttribs++] = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |  GLX_CONTEXT_DEBUG_BIT_ARB;
+				}
+				else
+#endif
+				{
+					attribs[numAttribs++] = GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+				}
+
+				attribs[numAttribs++] = GLX_CONTEXT_PROFILE_MASK_ARB;
+				attribs[numAttribs++] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+			}
+
+
+
+			/*
+			// set current context to NULL
+			retVal = wglMakeCurrent(glw_state.hDC, NULL) != 0;
+			ri.Printf(PRINT_ALL, "...wglMakeCurrent( %p, %p ): %s\n", glw_state.hDC, NULL, success[retVal]);
+
+			// delete HGLRC
+			if(glw_state.hGLRC)
+			{
+				retVal = wglDeleteContext(glw_state.hGLRC) != 0;
+				ri.Printf(PRINT_ALL, "...deleting standard GL context: %s\n", success[retVal]);
+				glw_state.hGLRC = NULL;
+			}
+			*/
+
+			ri.Printf(PRINT_ALL, "...initializing OpenGL %i.%i context ", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
+
+			fbc = glXChooseFBConfig(dpy, scrnum, 0, &nelements);
+
+			ctx = glXCreateContextAttribsARB(dpy, fbc[0], NULL, qtrue, attribs);
+			if (!ctx)
+			{
+				ri.Error(ERR_VID_FATAL, "GLW_InitOpenGL3xContext() - glXCreateContextAttribsARB failed for an OpenGL %i.%i context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
+			}
+
+			if(glXMakeCurrent(dpy, win, ctx))
+			{
+				ri.Printf(PRINT_ALL, " done\n");
+				glConfig.driverType = GLDRV_OPENGL3;
+
+				/*
+				if(GLEW_ARB_debug_output)
+				{
+					glDebugMessageCallbackARB(GLDebugCallback, NULL);
+				}
+				*/
+			}
+			else
+			{
+				ri.Error(ERR_VID_FATAL, "GLW_InitOpenGL3xContext() - could not initialize OpenGL %i.%i context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
+			}
+		}
+	}
+	else
+	{
+		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context: no WGL_ARB_create_context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
+	}
+}
+
 /*
 ** GLW_LoadOpenGL
 **
@@ -2078,6 +2191,8 @@ static void GLW_InitGamma()
 static void GLW_StartOpenGL()
 {
 	GLenum			glewResult;
+
+	glConfig.driverType = GLDRV_ICD;
 
 	// create the window and set up the context
 	if(!GLW_StartDriverAndSetMode(r_mode->integer, r_fullscreen->integer))
@@ -2101,6 +2216,8 @@ static void GLW_StartOpenGL()
 	{
 		ri.Printf(PRINT_ALL, "Using GLEW %s\n", glewGetString(GLEW_VERSION));
 	}
+
+	GLW_InitOpenGL3xContext();
 }
 
 /*
@@ -2142,7 +2259,6 @@ void GLimp_Init(void)
 	GLW_StartOpenGL();
 
 	// This values force the UI to disable driver selection
-	glConfig.driverType = GLDRV_ICD;
 	glConfig.hardwareType = GLHW_GENERIC;
 
 	// get our config strings
@@ -2153,15 +2269,18 @@ void GLimp_Init(void)
 		glConfig.renderer_string[strlen(glConfig.renderer_string) - 1] = 0;
 	}
 	Q_strncpyz(glConfig.version_string, glGetString(GL_VERSION), sizeof(glConfig.version_string));
-	Q_strncpyz(glConfig.extensions_string, glGetString(GL_EXTENSIONS), sizeof(glConfig.extensions_string));
-	// TTimo - safe check
-	if(strlen(glGetString(GL_EXTENSIONS)) >= sizeof(glConfig.extensions_string))
+
+	if(glConfig.driverType != GLDRV_OPENGL3)
 	{
-		Com_Printf(S_COLOR_YELLOW "WARNNING: GL extensions string too long (%d), truncated to %d\n",
-				   strlen(glGetString(GL_EXTENSIONS)), sizeof(glConfig.extensions_string));
+		Q_strncpyz(glConfig.extensions_string, glGetString(GL_EXTENSIONS), sizeof(glConfig.extensions_string));
+		// TTimo - safe check
+		if(strlen(glGetString(GL_EXTENSIONS)) >= sizeof(glConfig.extensions_string))
+		{
+			Com_Printf(S_COLOR_YELLOW "WARNNING: GL extensions string too long (%d), truncated to %d\n",
+					   strlen(glGetString(GL_EXTENSIONS)), sizeof(glConfig.extensions_string));
+		}
 	}
 
-	//bani - glx extensions string
 	if(GLXEW_VERSION_1_1)
 	{
 		glx_extensions_string = glXQueryExtensionsString(dpy, scrnum);
