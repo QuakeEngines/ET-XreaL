@@ -35,7 +35,7 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
-#include "../game/q_shared.h"
+#include "../shared/q_shared.h"
 #include "l_libvar.h"
 #include "l_log.h"
 #include "l_memory.h"
@@ -44,18 +44,18 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "../../etmain/src/game/botlib.h"
+#include "../../etmain/src/game/be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_ai_weight.h"		//fuzzy weights
-#include "../game/be_ai_weap.h"
+#include "../../etmain/src/game/be_ai_weap.h"
 
 //#define DEBUG_AI_WEAP
 
 //structure field offsets
-#define WEAPON_OFS( x ) (int)&( ( (weaponinfo_t *)0 )->x )
-#define PROJECTILE_OFS( x ) (int)&( ( (projectileinfo_t *)0 )->x )
+#define WEAPON_OFS( x ) (size_t)&( ( (weaponinfo_t *)0 )->x )
+#define PROJECTILE_OFS( x ) (size_t)&( ( (projectileinfo_t *)0 )->x )
 
 //weapon definition
 fielddef_t      weaponinfo_fields[] = {

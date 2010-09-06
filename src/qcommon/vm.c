@@ -363,11 +363,11 @@ Dlls will call this directly
 
 ============
 */
-int QDECL VM_DllSyscall(int arg, ...)
+intptr_t QDECL VM_DllSyscall(intptr_t arg, ...)
 {
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )	//|| (defined MACOS_X)
+#if defined(__x86_64__) || ( ( defined __linux__ ) && ( defined __powerpc__ ) ) 	//|| (defined MACOS_X)
 	// rcg010206 - see commentary above
-	int             args[16];
+	intptr_t        args[16];
 	int             i;
 	va_list         ap;
 
@@ -375,8 +375,7 @@ int QDECL VM_DllSyscall(int arg, ...)
 
 	va_start(ap, arg);
 	for(i = 1; i < sizeof(args) / sizeof(args[i]); i++)
-		args[i] = va_arg(ap, int);
-
+		args[i] = va_arg(ap, intptr_t);
 	va_end(ap);
 
 	return currentVM->systemCall(args);
@@ -405,7 +404,7 @@ vm_t           *VM_Restart(vm_t * vm)
 	if(vm->dllHandle)
 	{
 		char            name[MAX_QPATH];
-		int             (*systemCall) (int *parms);
+		intptr_t        (*systemCall) (intptr_t *parms);
 
 		systemCall = vm->systemCall;
 		Q_strncpyz(name, vm->name, sizeof(name));
@@ -477,7 +476,7 @@ it will attempt to load as a system dll
 
 #define STACK_SIZE  0x20000
 
-vm_t           *VM_Create(const char *module, int (*systemCalls) (int *), vmInterpret_t interpret)
+vm_t           *VM_Create(const char *module, intptr_t (*systemCalls) (intptr_t *), vmInterpret_t interpret)
 {
 	vm_t           *vm;
 	vmHeader_t     *header;
@@ -534,6 +533,7 @@ vm_t           *VM_Create(const char *module, int (*systemCalls) (int *), vmInte
 		return NULL;
 	}
 
+#if 0
 	// load the image
 	Com_sprintf(filename, sizeof(filename), "vm/%s.qvm", vm->name);
 	Com_Printf("Loading vm file %s.\n", filename);
@@ -611,6 +611,9 @@ vm_t           *VM_Create(const char *module, int (*systemCalls) (int *), vmInte
 	Com_Printf("%s loaded in %d bytes on the hunk\n", module, remaining - Hunk_MemoryRemaining());
 
 	return vm;
+#else
+	return NULL;
+#endif
 }
 
 /*
@@ -662,7 +665,7 @@ void VM_Clear(void)
 	lastVM = NULL;
 }
 
-void           *VM_ArgPtr(int intValue)
+void           *VM_ArgPtr(intptr_t intValue)
 {
 	if(!intValue)
 	{
@@ -684,7 +687,7 @@ void           *VM_ArgPtr(int intValue)
 	}
 }
 
-void           *VM_ExplicitArgPtr(vm_t * vm, int intValue)
+void           *VM_ExplicitArgPtr(vm_t * vm, intptr_t intValue)
 {
 	if(!intValue)
 	{
@@ -735,10 +738,10 @@ locals from sp
 #define MAX_STACK   256
 #define STACK_MASK  ( MAX_STACK - 1 )
 
-int QDECL VM_Call(vm_t * vm, int callnum, ...)
+intptr_t QDECL VM_Call(vm_t * vm, int callnum, ...)
 {
 	vm_t           *oldVM;
-	int             r;
+	intptr_t        r;
 
 	//rcg010207 see dissertation at top of VM_DllSyscall() in this file.
 #if ( ( defined __linux__ ) && ( defined __powerpc__ ) ) || ( defined MACOS_X )
@@ -765,22 +768,22 @@ int QDECL VM_Call(vm_t * vm, int callnum, ...)
 	if(vm->entryPoint)
 	{
 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) ) || ( defined MACOS_X )
+		int             args[16];
+		va_list         ap;
+		int				i;
+
 		va_start(ap, callnum);
 		for(i = 0; i < sizeof(args) / sizeof(args[i]); i++)
+		{
 			args[i] = va_arg(ap, int);
-
+		}
 		va_end(ap);
 
 		r = vm->entryPoint(callnum, args[0], args[1], args[2], args[3],
 						   args[4], args[5], args[6], args[7],
 						   args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15]);
-#else							// PPC above, original id code below
-		r = vm->entryPoint((&callnum)[0], (&callnum)[1], (&callnum)[2], (&callnum)[3],
-						   (&callnum)[4], (&callnum)[5], (&callnum)[6], (&callnum)[7],
-						   (&callnum)[8], (&callnum)[9], (&callnum)[10], (&callnum)[11], (&callnum)[12]);
-#endif
 	}
+#if 0
 	else if(vm->compiled)
 	{
 		r = VM_CallCompiled(vm, &callnum);
@@ -789,6 +792,12 @@ int QDECL VM_Call(vm_t * vm, int callnum, ...)
 	{
 		r = VM_CallInterpreted(vm, &callnum);
 	}
+#else
+	else
+	{
+		Com_Error(ERR_FATAL, "VM_Call without entrypoint");
+	}
+#endif
 
 	if(oldVM != NULL)
 	{							// bk001220 - assert(currentVM!=NULL) for oldVM==NULL

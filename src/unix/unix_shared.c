@@ -36,7 +36,7 @@ If you have questions concerning this license or the applicable additional terms
 #include <sys/time.h>
 #include <pwd.h>
 
-#include "../game/q_shared.h"
+#include "../shared/q_shared.h"
 #include "../qcommon/qcommon.h"
 
 //=============================================================================
@@ -80,6 +80,46 @@ int Sys_Milliseconds( void ) {
 
 	return curtime;
 }
+
+
+/*
+================
+Sys_SnapVector
+================
+*/
+// *INDENT-OFF*
+long fastftol( float f ) {
+	// rain - gcc-style inline asm
+	// zinx - meh, gcc's lrint is sane, so use that. fixed inline asm too, though.
+	/*
+	asm(
+		"fld %1\n\t"
+		"fistp %0\n"
+		: "=m" (tmp) // outputs
+		: "f" (f) // inputs
+	);
+	return tmp;
+	*/
+	return lrint( f );
+}
+
+void Sys_SnapVector( float *v ) {
+	// rain - gcc has different inline asm, but I'm not going to emulate
+	// that here for now...
+	*v = (float)fastftol( *v );
+	v++;
+	*v = (float)fastftol( *v );
+	v++;
+	*v = (float)fastftol( *v );
+}
+
+// XreaL BEGIN
+void* Sys_GetSystemHandles(void)
+{
+	return NULL;
+}
+// XreaL END
+
 
 #if !defined( DEDICATED )
 /*
@@ -389,11 +429,7 @@ char *Sys_DefaultHomePath( void ) {
 		#error FIXME
 		Q_strcat( homePath, sizeof( homePath ), "/Library/Application Support/WolfensteinMP" );
 #else
-	#ifndef PRE_RELEASE_DEMO
-		Q_strcat( homePath, sizeof( homePath ), "/.etwolf" );
-	#else
-		Q_strcat( homePath, sizeof( homePath ), "/.etwolf-test" );
-	#endif
+		Q_strcat( homePath, sizeof( homePath ), "/.etxreal" );
 #endif
 		if ( mkdir( homePath, 0777 ) ) {
 			if ( errno != EEXIST ) {

@@ -39,6 +39,8 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __BG_PUBLIC_H__
 #define __BG_PUBLIC_H__
 
+#include "../../../src/shared/q_shared.h"
+
 #define GAME_VERSION    "Enemy Territory"
 
 #if defined( _DEBUG )

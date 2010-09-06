@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../ui/keycodes.h"
+#include "../shared/keycodes.h"
 
 #define MAX_KEYS        256
 

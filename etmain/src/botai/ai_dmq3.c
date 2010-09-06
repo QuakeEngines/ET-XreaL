@@ -6327,7 +6327,7 @@ void BotMoveToIntermission(int client)
 	int             winner;		// DHM - Nerve
 	bot_state_t    *bs;
 
-	if(!g_entities[client].r.svFlags & SVF_BOT)
+	if(!(g_entities[client].r.svFlags & SVF_BOT))
 	{
 		return;
 	}
@@ -8110,6 +8110,10 @@ qboolean BotGetReachableEntityArea(bot_state_t * bs, int entityNum, bot_goal_t *
 		// TODO
 		i = BotGetArea(entityNum);
 		oldestTime = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, i, bs->tfl);
+
+		// RB: Description	Resource	Path	Location	Type
+		//»brushPos[2]« may be used uninitialized in this function	ai_dmq3.c	/ET-XreaL/etmain/src/botai	line 8079	C/C++ Problem
+		VectorClear(brushPos);
 	}
 
 	if(oldestTime <= 0)

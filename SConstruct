@@ -92,8 +92,11 @@ EnsureSConsVersion( 0, 96 )
 # CPU type
 cpu = commands.getoutput('uname -m')
 dll_cpu = '???' # grmbl, alternative naming for .so
-exp = re.compile('.*i?86.*')
-if exp.match(cpu):
+
+if cpu == 'x86_64' or cpu == 'amd64':
+	cpu = 'x86_64'
+	dll_cpu = 'x86_64'
+elif re.compile('.*i?86.*').match(cpu):
 	cpu = 'x86'
 	dll_cpu = 'i386'
 else:
@@ -156,6 +159,12 @@ elif OS == 'Darwin':
 else:
 	g_os = 'Linux'
 print 'OS: %s' % g_os
+
+if cpu == 'x86_64':
+	CC = 'gcc -m64'
+	CXX = 'g++ -m64'
+
+
 
 # end arch detection -----------------------------
 
@@ -256,7 +265,10 @@ elif ( BUILD == 'release' ):
 		# -fschedule-insns2: implicit at -O3
 		# -funroll-loops ?
 		# -mfpmath=sse -msse ?
-		OPTCPPFLAGS = [ '-O3', '-march=i686', '-Winline', '-ffast-math', '-fomit-frame-pointer', '-finline-functions', '-fschedule-insns2' ]
+		if cpu == 'x86_64':
+			OPTCPPFLAGS = [ '-O3', '-Winline', '-ffast-math', '-fomit-frame-pointer', '-finline-functions', '-fschedule-insns2' ]
+		else:
+			OPTCPPFLAGS = [ '-O3', '-march=i686', '-Winline', '-ffast-math', '-fomit-frame-pointer', '-finline-functions', '-fschedule-insns2' ]
 	elif ( OS == 'Darwin' ):
 		OPTCPPFLAGS = []
 else:
@@ -329,46 +341,47 @@ if ( TARGET_CORE == '1' ):
 	if ( DEDICATED == '0' or DEDICATED == '2' ):
 		local_dedicated = 0
 		Export( 'GLOBALS ' + GLOBALS )
-		BuildDir( g_build + '/core', '.', duplicate = 0 )
+		
+		VariantDir( g_build + '/core', '.', duplicate = 0 )
 		et = SConscript( g_build + '/core/SConscript.core' )
 		if ( g_os == 'win32' ):
-			toplevel_targets.append( InstallAs( '#et.exe', et ) )
+			toplevel_targets.append( InstallAs( '#ET-XreaL.exe', et ) )
 		else:
-			toplevel_targets.append( InstallAs( '#et.' + cpu, et ) )
+			toplevel_targets.append( InstallAs( '#et-xreal.' + cpu, et ) )
 
 	if ( DEDICATED == '1' or DEDICATED == '2' ):
 		local_dedicated = 1
 		Export( 'GLOBALS ' + GLOBALS )
-		BuildDir( g_build + '/dedicated', '.', duplicate = 0 )
+		VariantDir( g_build + '/dedicated', '.', duplicate = 0 )
 		etded = SConscript( g_build + '/dedicated/SConscript.core' )
 		if ( g_os == 'win32' ):
-			toplevel_targets.append( InstallAs( '#etded.exe', etded ) )
+			toplevel_targets.append( InstallAs( '#ET-XreaLDed.exe', etded ) )
 		else:
-			toplevel_targets.append( InstallAs( '#etded.' + cpu, etded ) )
+			toplevel_targets.append( InstallAs( '#et-xrealded.' + cpu, etded ) )
 
 if ( TARGET_BSPC == '1' ):
 	Export( 'GLOBALS ' + GLOBALS )
-	BuildDir( g_build + '/bspc', '.', duplicate = 0 )
+	VariantDir( g_build + '/bspc', '.', duplicate = 0 )
 	bspc = SConscript( g_build + '/bspc/SConscript.bspc' )
 	toplevel_targets.append( InstallAs( '#bspc.' + cpu, bspc ) )
 
 if ( TARGET_GAME == '1' ):
 	Export( 'GLOBALS ' + GLOBALS )
-	BuildDir( g_build + '/game', '.', duplicate = 0 )
+	VariantDir( g_build + '/game', '.', duplicate = 0 )
 	game = SConscript( g_build + '/game/SConscript.game' )
-	toplevel_targets.append( InstallAs( '#qagame.mp.%s.so' % dll_cpu, game ) )
+	toplevel_targets.append( InstallAs( '#etmain/qagame.mp.%s.so' % dll_cpu, game ) )
 
 if ( TARGET_CGAME == '1' ):
 	Export( 'GLOBALS ' + GLOBALS )
-	BuildDir( g_build + '/cgame', '.', duplicate = 0 )
+	VariantDir( g_build + '/cgame', '.', duplicate = 0 )
 	cgame = SConscript( g_build + '/cgame/SConscript.cgame' )
-	toplevel_targets.append( InstallAs( '#cgame.mp.%s.so' % dll_cpu, cgame ) )
+	toplevel_targets.append( InstallAs( '#etmain/cgame.mp.%s.so' % dll_cpu, cgame ) )
 
 if ( TARGET_UI == '1' ):
 	Export( 'GLOBALS ' + GLOBALS )
-	BuildDir( g_build + '/ui', '.', duplicate = 0 )
+	VariantDir( g_build + '/ui', '.', duplicate = 0 )
 	ui = SConscript( g_build + '/ui/SConscript.ui' )
-	toplevel_targets.append( InstallAs( '#ui.mp.%s.so' % dll_cpu, ui ) )
+	toplevel_targets.append( InstallAs( '#etmain/ui.mp.%s.so' % dll_cpu, ui ) )
 
 class CopyBins(scons_utils.idSetupBase):
 	def copy_bins( self, target, source, env ):

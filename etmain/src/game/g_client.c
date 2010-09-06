@@ -27,7 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "g_local.h"
-#include "../../etmain/ui/menudef.h"
+#include "../../ui/menudef.h"
 
 // g_client.c -- client functions that don't happen every frame
 

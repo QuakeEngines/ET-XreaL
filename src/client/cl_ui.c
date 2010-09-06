@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "client.h"
 
-#include "../game/botlib.h"
+#include "../../etmain/src/game/botlib.h"
 
 extern botlib_export_t *botlib_export;
 
@@ -180,7 +180,7 @@ static int LAN_AddServer(int source, const char *name, const char *address)
 	serverInfo_t   *servers = NULL;
 
 	max = MAX_OTHER_SERVERS;
-	count = 0;
+	count = NULL;
 
 	switch (source)
 	{
@@ -231,7 +231,7 @@ static void LAN_RemoveServer(int source, const char *addr)
 	int            *count, i;
 	serverInfo_t   *servers = NULL;
 
-	count = 0;
+	count = NULL;
 	switch (source)
 	{
 		case AS_LOCAL:
@@ -931,17 +931,11 @@ FloatAsInt
 */
 static int FloatAsInt(float f)
 {
-	int             temp;
+	floatint_t      fi;
 
-	*(float *)&temp = f;
-
-	return temp;
+	fi.f = f;
+	return fi.i;
 }
-
-void           *VM_ArgPtr(int intValue);
-
-#define VMA( x ) VM_ArgPtr( args[x] )
-#define VMF( x )  ( (float *)args )[x]
 
 /*
 ====================
@@ -950,7 +944,7 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
-int CL_UISystemCalls(int *args)
+intptr_t CL_UISystemCalls(intptr_t * args)
 {
 	switch (args[0])
 	{

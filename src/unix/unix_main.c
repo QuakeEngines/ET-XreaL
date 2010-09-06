@@ -303,6 +303,10 @@ void Sys_Exit(int ex)
 		sleep(1);
 	}
 
+#if defined(_DEBUG)
+	assert(ex == 0);
+#endif
+
 	exit(ex);
 }
 
@@ -792,10 +796,10 @@ char           *Sys_GetDLLName(const char *name)
 #endif
 }
 
-void           *Sys_LoadDll(const char *name, char *fqpath, int (**entryPoint) (int, ...), int (*systemcalls) (int, ...))
+void           *Sys_LoadDll(const char *name, char *fqpath, intptr_t(QDECL ** entryPoint) (int, ...), intptr_t(QDECL * systemcalls) (intptr_t, ...))
 {
 	void           *libHandle;
-	void            (*dllEntry) (int (*syscallptr) (int, ...));
+	void            (*dllEntry) (intptr_t (*syscallptr) (intptr_t, ...));
 	char            fname[MAX_OSPATH];
 	char           *pwdpath;
 	char           *homepath;

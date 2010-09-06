@@ -35,7 +35,7 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
-#include "../game/q_shared.h"
+#include "../shared/q_shared.h"
 #include "l_memory.h"
 #include "l_log.h"
 #include "l_utils.h"
@@ -44,8 +44,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_struct.h"
 #include "l_libvar.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "../../etmain/src/game/botlib.h"
+#include "../../etmain/src/game/be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_ai_weight.h"

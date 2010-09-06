@@ -37,10 +37,10 @@ If you have questions concerning this license or the applicable additional terms
  *
 */
 
-#include "../game/q_shared.h"
-#include "tr_types.h"
+#include "../../../src/shared/q_shared.h"
+#include "../../../src/shared/tr_types.h"
 #include "../game/bg_public.h"
-#include "cg_public.h"
+#include "../../../src/shared/cg_public.h"
 #include "../ui/ui_shared.h"
 
 

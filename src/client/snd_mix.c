@@ -46,59 +46,6 @@ int            *snd_p;
 int             snd_linear_count;
 short          *snd_out;
 
-#ifdef __linux__
-
-// snd_mixa.s
-void            S_WriteLinearBlastStereo16(void);
-
-#elif id386
-
-// *INDENT-OFF*
-__declspec( naked ) void S_WriteLinearBlastStereo16( void ) {
-	__asm {
-
-		push edi
-		push ebx
-		mov ecx,ds : dword ptr[snd_linear_count]
-		mov ebx,ds : dword ptr[snd_p]
-		mov edi,ds : dword ptr[snd_out]
-LWLBLoopTop:
-		mov eax,ds : dword ptr[-8 + ebx + ecx * 4]
-		sar eax,8
-		cmp eax,07FFFh
-		jg LClampHigh
-		cmp eax,0FFFF8000h
-		jnl LClampDone
-		mov eax,0FFFF8000h
-		jmp LClampDone
-LClampHigh:
-		mov eax,07FFFh
-LClampDone:
-		mov edx,ds : dword ptr[-4 + ebx + ecx * 4]
-		sar edx,8
-		cmp edx,07FFFh
-		jg LClampHigh2
-		cmp edx,0FFFF8000h
-		jnl LClampDone2
-		mov edx,0FFFF8000h
-		jmp LClampDone2
-LClampHigh2:
-		mov edx,07FFFh
-LClampDone2:
-		shl edx,16
-		and eax,0FFFFh
-		or edx,eax
-		mov ds : dword ptr[-4 + edi + ecx * 2],edx
-		sub ecx,2
-		jnz LWLBLoopTop
-		pop ebx
-		pop edi
-		ret
-	}
-}
-// *INDENT-ON*
-
-#else
 
 /*
 ===================
@@ -141,8 +88,6 @@ void S_WriteLinearBlastStereo16(void)
 		}
 	}
 }
-
-#endif
 
 /*
 ===================

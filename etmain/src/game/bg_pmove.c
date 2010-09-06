@@ -35,7 +35,7 @@ If you have questions concerning this license or the applicable additional terms
 #ifdef CGAMEDLL
 #include "../cgame/cg_local.h"
 #else
-#include "q_shared.h"
+#include "../../../src/shared/q_shared.h"
 #include "bg_public.h"
 #endif							// CGAMEDLL
 
@@ -3827,7 +3827,7 @@ static void PM_Weapon(void)
 	// check for dead player
 	if(pm->ps->stats[STAT_HEALTH] <= 0)
 	{
-		if(!pm->ps->pm_flags & PMF_LIMBO)
+		if(!(pm->ps->pm_flags & PMF_LIMBO))
 		{
 			PM_CoolWeapons();
 		}

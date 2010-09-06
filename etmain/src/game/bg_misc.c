@@ -34,9 +34,9 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 
-#include "q_shared.h"
+#include "../../../src/shared/q_shared.h"
 #include "bg_public.h"
-#include "../../etmain/ui/menudef.h"
+#include "../../ui/menudef.h"
 
 #ifdef CGAMEDLL
 extern vmCvar_t cg_gameType;
@@ -4710,6 +4710,12 @@ float BG_SplineLength(splinePath_t * pSpline)
 	vec3_t          vec[2];
 	vec3_t          lastPoint;
 	vec3_t          result;
+
+	// RB:
+	// Description	Resource	Path	Location	Type
+	//»lastPoint[1]« may be used uninitialized in this function	bg_misc.c	/ET-XreaL/etmain/src/game	line 4711	C/C++ Problem
+	VectorClear(lastPoint);
+
 
 	for(i = 0; i <= 1.f; i += granularity)
 	{

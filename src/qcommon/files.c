@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #define MP_LEGACY_PAK 0x7776DC09
 
-#include "../game/q_shared.h"
+#include "../shared/q_shared.h"
 #include "qcommon.h"
 #include "unzip.h"
 
@@ -3313,7 +3313,7 @@ static void FS_AddGameDirectory(const char *path, const char *dir)
 // jpw
 	}
 
-	qsort(sorted, numfiles, 4, paksort);
+	qsort(sorted, numfiles, sizeof(char *), paksort);
 
 	for(i = 0; i < numfiles; i++)
 	{

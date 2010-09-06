@@ -31,7 +31,7 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef TR_LOCAL_H
 #define TR_LOCAL_H
 
-#include "../game/q_shared.h"
+#include "../shared/q_shared.h"
 #include "../qcommon/qfiles.h"
 #include "../qcommon/qcommon.h"
 #include "tr_public.h"
@@ -636,7 +636,7 @@ typedef enum
 
 typedef struct drawSurf_s
 {
-	unsigned        sort;		// bit combination for fast compares
+	uint32_t        sort;		// bit combination for fast compares
 	surfaceType_t  *surface;	// any of surface*_t
 } drawSurf_t;
 

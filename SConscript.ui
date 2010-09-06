@@ -9,23 +9,21 @@ import scons_utils
 Import( 'GLOBALS' )
 Import( GLOBALS )
 
-ui_string = """
-ui_atoms.c
-ui_gameinfo.c
-ui_loadpanel.c
-ui_main.c
-ui_players.c
-ui_shared.c
-ui_syscalls.c
-ui_util.c
-../game/bg_campaign.c
-../game/bg_classes.c
-../game/bg_misc.c
-../game/q_math.c
-../game/q_shared.c
-"""
-
-ui_list = scons_utils.BuildList( 'ui', ui_string )
+ui_list = [
+'etmain/src/ui/ui_atoms.c',
+'etmain/src/ui/ui_gameinfo.c',
+'etmain/src/ui/ui_loadpanel.c',
+'etmain/src/ui/ui_main.c',
+'etmain/src/ui/ui_players.c',
+'etmain/src/ui/ui_shared.c',
+'etmain/src/ui/ui_syscalls.c',
+'etmain/src/ui/ui_util.c',
+'etmain/src/game/bg_campaign.c',
+'etmain/src/game/bg_classes.c',
+'etmain/src/game/bg_misc.c',
+'src/shared/q_math.c',
+'src/shared/q_shared.c',
+]
 
 local_env = g_env.Clone()
 

@@ -30,11 +30,11 @@ If you have questions concerning this license or the applicable additional terms
 #define __UI_SHARED_H
 
 
-#include "../game/q_shared.h"
-#include "../cgame/tr_types.h"
-#include "keycodes.h"
+#include "../../../src/shared/q_shared.h"
+#include "../../../src/shared/tr_types.h"
+#include "../../../src/shared/keycodes.h"
 
-#include "../../etmain/ui/menudef.h"
+#include "../../ui/menudef.h"
 
 #define MAX_MENUNAME 32
 #define MAX_ITEMTEXT 64

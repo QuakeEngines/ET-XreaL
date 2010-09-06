@@ -350,6 +350,8 @@ typedef int     clipHandle_t;
 #define ALIGN(x)
 #endif
 
+#define PAD(x,y) (((x)+(y)-1) & ~((y)-1))
+
 #ifndef NULL
 #define NULL ( (void *)0 )
 #endif

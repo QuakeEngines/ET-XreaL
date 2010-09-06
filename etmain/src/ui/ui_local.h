@@ -29,10 +29,10 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __UI_LOCAL_H__
 #define __UI_LOCAL_H__
 
-#include "../game/q_shared.h"
-#include "../cgame/tr_types.h"
-#include "ui_public.h"
-#include "keycodes.h"
+#include "../../../src/shared/q_shared.h"
+#include "../../../src/shared/tr_types.h"
+#include "../../../src/shared/ui_public.h"
+#include "../../../src/shared/keycodes.h"
 #include "../game/bg_public.h"
 #include "ui_shared.h"
 

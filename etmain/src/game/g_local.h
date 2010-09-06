@@ -30,9 +30,9 @@ If you have questions concerning this license or the applicable additional terms
 
 // g_local.h -- local definitions for game module
 
-#include "q_shared.h"
+#include "../../../src/shared/q_shared.h"
 #include "bg_public.h"
-#include "g_public.h"
+#include "../../../src/shared/g_public.h"
 
 #include "../game/be_aas.h"
 
@@ -1675,7 +1675,7 @@ extern gentity_t g_entities[];	//DAJ was explicit set to MAX_ENTITIES
 extern g_campaignInfo_t g_campaigns[];
 extern int      saveGamePending;
 
-#define FOFS( x ) ( (int)&( ( (gentity_t *)0 )->x ) )
+#define FOFS( x ) ( (size_t)&( ( (gentity_t *)0 )->x ) )
 
 extern vmCvar_t g_gametype;
 

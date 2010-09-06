@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "client.h"
 
-#include "../game/botlib.h"
+#include "../../etmain/src/game/botlib.h"	// FIXME
 
 extern botlib_export_t *botlib_export;
 
@@ -618,11 +618,10 @@ void CL_ShutdownCGame(void)
 
 static int FloatAsInt(float f)
 {
-	int             temp;
+	floatint_t      fi;
 
-	*(float *)&temp = f;
-
-	return temp;
+fi.f = f;
+	return fi.i;
 }
 
 //static int numtraces = 0;
@@ -634,10 +633,7 @@ CL_CgameSystemCalls
 The cgame module is making a system call
 ====================
 */
-#define VMA( x ) VM_ArgPtr( args[x] )
-#define VMF( x )  ( (float *)args )[x]
-
-int CL_CgameSystemCalls(int *args)
+intptr_t CL_CgameSystemCalls(intptr_t * args)
 {
 	switch (args[0])
 	{

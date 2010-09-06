@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "server.h"
 
-#include "../game/botlib.h"
+#include "../../etmain/src/game/botlib.h"
 
 botlib_export_t *botlib_export;
 
@@ -390,11 +390,10 @@ void SV_GameBinaryMessageReceived(int cno, const char *buf, int buflen, int comm
 
 static int FloatAsInt(float f)
 {
-	int             temp;
+	floatint_t      fi;
 
-	*(float *)&temp = f;
-
-	return temp;
+	fi.f = f;
+	return fi.i;
 }
 
 /*
@@ -404,20 +403,7 @@ SV_GameSystemCalls
 The module is making a system call
 ====================
 */
-//rcg010207 - see my comments in VM_DllSyscall(), in qcommon/vm.c ...
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) ) || ( defined MACOS_X )
-#define VMA( x ) ( (void *) args[x] )
-#else
-#define VMA( x ) VM_ArgPtr( args[x] )
-#endif
-
-#define VMF( x )  ( (float *)args )[x]
-
-// show_bug.cgi?id=574
-extern int      S_RegisterSound(const char *name, qboolean compressed);
-extern int      S_GetSoundLength(sfxHandle_t sfxHandle);
-
-int SV_GameSystemCalls(int *args)
+intptr_t SV_GameSystemCalls(intptr_t * args)
 {
 	switch (args[0])
 	{

@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "q_shared.h"
+#include "../../../src/shared/q_shared.h"
 //#include "bg_public.h"
 
 #ifdef GAMEDLL

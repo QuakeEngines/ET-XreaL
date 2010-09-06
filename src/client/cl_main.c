@@ -3538,12 +3538,17 @@ void CL_InitRef(void)
 {
 	refimport_t     ri;
 	refexport_t    *ret;
+
+#if !defined(REF_HARD_LINKED)
 	GetRefAPI_t		GetRefAPI;
 	char            dllName[MAX_OSPATH];
+#endif
 
 	Com_Printf("----- Initializing Renderer ----\n");
 
 	cl_renderer = Cvar_Get("cl_renderer", "GL3", CVAR_LATCH);
+
+#if !defined(REF_HARD_LINKED)
 
 #ifdef _WIN32
 	Com_sprintf(dllName, sizeof(dllName), "renderer%s" DLL_EXT, cl_renderer->string);
@@ -3578,6 +3583,8 @@ void CL_InitRef(void)
 	{
 		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: '%s'",  Sys_DLLError());
 	}
+
+#endif
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;

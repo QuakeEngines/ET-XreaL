@@ -35,8 +35,8 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
-#include "../game/q_shared.h"
-#include "../game/botlib.h"
+#include "../shared/q_shared.h"
+#include "../../etmain/src/game/botlib.h"
 #include "l_log.h"
 #include "be_interface.h"
 
