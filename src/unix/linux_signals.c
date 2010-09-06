@@ -31,7 +31,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../shared/q_shared.h"
 #include "../qcommon/qcommon.h"
 #ifndef DEDICATED
-#include "../renderer/tr_local.h"
+#include "../rendererGL3/tr_local.h"
 #endif
 
 // rain - don't bother building this in debug builds now, since we
