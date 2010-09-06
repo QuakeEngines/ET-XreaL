@@ -221,10 +221,10 @@ qcommon_list = [
 ]
 
 if ( cpu == 'x86' ):
-	qcommon_list += 'src/qcommon/vm_x86.c'
+	qcommon_list += [ 'src/qcommon/vm_x86.c' ]
 	
 #if ( cpu == 'x86_64' ):
-#	qcommon_list += 'src/qcommon/vm_x86.c'
+#	qcommon_list += [ 'src/qcommon/vm_x86_64.c' ]
 
 
 splines_list = [
@@ -390,7 +390,9 @@ if ( g_os == 'Linux' ):
 		local_env.Append( LIBPATH = [ '/usr/X11R6/lib' ] )
 		local_env.Append( CPPPATH = [ 'src/curl-7.12.2/include' ] )
 		local_env.Append( CPPPATH = [ 'src/glew/include' ] )
+		local_env.Append( CPPPATH = [ 'src/zlib' ] )
 		local_env.Append( CPPDEFINES = [ 'REF_HARD_LINKED' ] )
+		local_env.Append( CPPDEFINES = [ 'PNG_NO_ASSEMBLER_CODE' ] )
 		local_env.ParseConfig('pkg-config --cflags --libs x11')
 		local_env.ParseConfig('pkg-config --cflags --libs xext')
 		local_env.ParseConfig('pkg-config --cflags --libs xxf86dga')
