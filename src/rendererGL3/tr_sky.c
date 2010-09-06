@@ -645,7 +645,6 @@ static void BuildCloudData()
 ** R_InitSkyTexCoords
 ** Called when a sky shader is parsed
 */
-#define SQR( a ) ((a)*(a))
 void R_InitSkyTexCoords(float heightCloud)
 {
 	int             i, s, t;

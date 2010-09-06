@@ -46,6 +46,80 @@ jpeg_list = [
 'src/jpeg-6/jutils.c',
 ]
 
+png_list = [
+'src/png/png.c',
+'src/png/pngset.c',
+'src/png/pngget.c',
+'src/png/pngrutil.c',
+'src/png/pngtrans.c',
+'src/png/pngwutil.c',
+'src/png/pngread.c',
+'src/png/pngrio.c',
+'src/png/pngwio.c',
+'src/png/pngwrite.c',
+'src/png/pngrtran.c',
+'src/png/pngwtran.c',
+'src/png/pngmem.c',
+'src/png/pngerror.c',
+'src/png/pngpread.c',
+]
+
+zlib_list = [
+'src/zlib/adler32.c',
+'src/zlib/compress.c',
+'src/zlib/crc32.c',
+'src/zlib/gzio.c',
+'src/zlib/uncompr.c',
+'src/zlib/deflate.c',
+'src/zlib/trees.c',
+'src/zlib/zutil.c',
+'src/zlib/inflate.c',
+'src/zlib/infback.c',
+'src/zlib/inftrees.c',
+'src/zlib/inffast.c',
+'src/zlib/ioapi.c',
+]
+
+freetype_list = [
+#'src/freetype/src/autofit/autofit.c',
+#'src/freetype/src/bdf/bdf.c',
+#'src/freetype/src/cff/cff.c',
+#'src/freetype/src/base/ftbase.c',
+#'src/freetype/src/base/ftbitmap.c',
+#'src/freetype/src/cache/ftcache.c',
+#'src/freetype/src/base/ftdebug.c',
+#'src/freetype/src/base/ftgasp.c',
+#'src/freetype/src/base/ftglyph.c',
+#'src/freetype/src/gzip/ftgzip.c',
+#'src/freetype/src/base/ftinit.c',
+#'src/freetype/src/lzw/ftlzw.c',
+#'src/freetype/src/base/ftstroke.c',
+#'src/freetype/src/base/ftsystem.c',
+#'src/freetype/src/smooth/smooth.c',
+#'src/freetype/src/base/ftbbox.c',
+#'src/freetype/src/base/ftmm.c',
+#'src/freetype/src/base/ftpfr.c',
+#'src/freetype/src/base/ftsynth.c',
+#'src/freetype/src/base/fttype1.c',
+#'src/freetype/src/base/ftwinfnt.c',
+#'src/freetype/src/pcf/pcf.c',
+#'src/freetype/src/pfr/pfr.c',
+#'src/freetype/src/psaux/psaux.c',
+#'src/freetype/src/pshinter/pshinter.c',
+#'src/freetype/src/psnames/psmodule.c',
+#'src/freetype/src/raster/raster.c',
+#'src/freetype/src/sfnt/sfnt.c',
+#'src/freetype/src/truetype/truetype.c',
+#'src/freetype/src/type1/type1.c',
+#'src/freetype/src/cid/type1cid.c',
+#'src/freetype/src/type42/type42.c',
+#'src/freetype/src/winfonts/winfnt.c',
+]
+
+openexr_list = [
+'src/openexr/half.cpp',
+]
+
 renderer_list = [
 'src/renderer/tr_animation_mdm.c',
 'src/renderer/tr_animation_mds.c',
@@ -74,6 +148,45 @@ renderer_list = [
 'src/renderer/tr_sky.c',
 'src/renderer/tr_surface.c',
 'src/renderer/tr_world.c'
+]
+
+rendererGL3_list = [
+'src/rendererGL3/tr_animation_mdm.c',
+'src/rendererGL3/tr_animation.c',
+'src/rendererGL3/tr_backend.c',
+'src/rendererGL3/tr_bsp.c',
+'src/rendererGL3/tr_cmds.c',
+'src/rendererGL3/tr_curve.c',
+'src/rendererGL3/tr_decals.c',
+'src/rendererGL3/tr_fbo.c',
+'src/rendererGL3/tr_flares.c',
+'src/rendererGL3/tr_fog.c',
+'src/rendererGL3/tr_font.c',
+'src/rendererGL3/tr_image.c',
+'src/rendererGL3/tr_image_dds.c',
+'src/rendererGL3/tr_image_exr.cpp',
+'src/rendererGL3/tr_image_jpg.c',
+'src/rendererGL3/tr_image_png.c',
+'src/rendererGL3/tr_image_tga.c',
+'src/rendererGL3/tr_init.c',
+'src/rendererGL3/tr_light.c',
+'src/rendererGL3/tr_main.c',
+'src/rendererGL3/tr_marks.c',
+'src/rendererGL3/tr_mesh.c',
+'src/rendererGL3/tr_model.c',
+'src/rendererGL3/tr_model_md3.c',
+'src/rendererGL3/tr_model_mdc.c',
+'src/rendererGL3/tr_noise.c',
+'src/rendererGL3/tr_scene.c',
+'src/rendererGL3/tr_shade.c',
+'src/rendererGL3/tr_shade_calc.c',
+'src/rendererGL3/tr_shader.c',
+'src/rendererGL3/tr_shadows.c',
+'src/rendererGL3/tr_skin.c',
+'src/rendererGL3/tr_sky.c',
+'src/rendererGL3/tr_surface.c',
+'src/rendererGL3/tr_vbo.c',
+'src/rendererGL3/tr_world.c',
 ]
 
 server_list = [
@@ -155,8 +268,9 @@ linux_sources = [
 ]
 
 linux_full_sources = [
-        'src/unix/linux_glimp.c',
-        'src/unix/linux_qgl.c',
+		'src/glew/src/glew.c',
+        'src/unix/linux_gl3imp.c',
+        #'src/unix/linux_qgl.c',
         'src/unix/linux_snd.c',
         'src/unix/linux_joystick.c',
 #        'unix/snd_mixa.S'
@@ -197,8 +311,8 @@ win32_sources = [
 
 win32_full_sources = [
 	'win32/win_input.c',
-	'win32/win_glimp.c',
-	'win32/win_qgl.c',
+	'win32/win_gl3imp.c',
+	#'win32/win_qgl.c',
 	'win32/win_gamma.c',
 	'win32/win_snd.c',
 ]
@@ -272,9 +386,10 @@ local_env = g_env.Clone()
 if ( g_os == 'Linux' ):
 	local_env.Append( LIBS = [ 'dl' ] )
 	if ( local_dedicated == 0 ):
-		local_env.Append( LIBS = [ 'm' ] )
+		local_env.Append( LIBS = [ 'm', 'GL' ] )
 		local_env.Append( LIBPATH = [ '/usr/X11R6/lib' ] )
-		local_env.Append( CPPPATH = [ 'curl-7.12.2/include' ] )
+		local_env.Append( CPPPATH = [ 'src/curl-7.12.2/include' ] )
+		local_env.Append( CPPPATH = [ 'src/glew/include' ] )
 		local_env.Append( CPPDEFINES = [ 'REF_HARD_LINKED' ] )
 		local_env.ParseConfig('pkg-config --cflags --libs x11')
 		local_env.ParseConfig('pkg-config --cflags --libs xext')
@@ -322,7 +437,10 @@ source_list += botlib_objs
 
 if ( local_dedicated == 0 ):
 	source_list += jpeg_list
-	source_list += renderer_list
+	source_list += png_list
+	source_list += zlib_list
+	source_list += openexr_list
+	source_list += rendererGL3_list
 	source_list += client_list
 	source_list += [ 'src/qcommon/dl_main_curl.c' ]
 	source_list += curl_lib

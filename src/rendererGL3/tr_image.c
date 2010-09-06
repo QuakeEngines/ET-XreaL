@@ -3351,17 +3351,11 @@ void R_ShutdownImages(void)
 	{
 		image = Com_GrowListElement(&tr.images, i);
 
-#if defined(USE_D3D10)
-		// TODO
-#else
 		glDeleteTextures(1, &image->texnum);
-#endif
 	}
 
-#if defined(USE_D3D10)
-	// TODO
-#else
 	Com_Memset(glState.currenttextures, 0, sizeof(glState.currenttextures));
+	/*
 	if(glBindTexture)
 	{
 		if(glActiveTextureARB)
@@ -3377,7 +3371,7 @@ void R_ShutdownImages(void)
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
-#endif
+	*/
 
 	Com_DestroyGrowList(&tr.images);
 	Com_DestroyGrowList(&tr.lightmaps);

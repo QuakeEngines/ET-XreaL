@@ -90,7 +90,7 @@ optimization to prevent disk rescanning if they are
 asked for again.
 ====================
 */
-qhandle_t RE_RegisterModel(const char *name, qboolean forceStatic)
+qhandle_t RE_RegisterModel(const char *name)
 {
 	model_t        *mod;
 	unsigned       *buffer;
