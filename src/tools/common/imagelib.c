@@ -1254,7 +1254,7 @@ void Load32BitImage(const char *name, unsigned **pixels, int *width, int *height
 LoadJPGBuffer
 =============
 */
-void LoadJPGBuffer(byte * fbuffer, byte ** pic, int *width, int *height)
+void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width, int *height)
 {
 	/* This struct contains the JPEG decompression parameters and pointers to
 	 * working space (which is allocated as needed by the JPEG library).
@@ -1277,8 +1277,9 @@ void LoadJPGBuffer(byte * fbuffer, byte ** pic, int *width, int *height)
 
 	/* More stuff */
 	JSAMPARRAY      buffer;		/* Output row buffer */
-	int             row_stride;	/* physical row width in output buffer */
-	unsigned char  *out;
+	unsigned        row_stride;	/* physical row width in output buffer */
+	unsigned        pixelcount;
+	unsigned char  *out, *out_converted;
 	byte           *bbuf;
 
 	/* In this example we want to open the input file before doing anything else,
@@ -1337,11 +1338,16 @@ void LoadJPGBuffer(byte * fbuffer, byte ** pic, int *width, int *height)
 	 * In this example, we need to make an output work buffer of the right size.
 	 */
 	/* JSAMPLEs per row in output buffer */
+	pixelcount = cinfo.output_width * cinfo.output_height;
 	row_stride = cinfo.output_width * cinfo.output_components;
+	out = safe_malloc(pixelcount * 4);
 
-	out = safe_malloc(cinfo.output_width * cinfo.output_height * cinfo.output_components);
+	if(!cinfo.output_width || !cinfo.output_height || ((pixelcount * 4) / cinfo.output_width) / 4 != cinfo.output_height || pixelcount > 0x1FFFFFFF || cinfo.output_components > 4)	// 4*1FFFFFFF == 0x7FFFFFFC < 0x7FFFFFFF
+	{
+		Error("LoadJPG( '%s' ) invalid image size: %dx%d*4=%d, components: %d\n", filename,
+				 cinfo.output_width, cinfo.output_height, pixelcount * 4, cinfo.output_components);
+	}
 
-	*pic = out;
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
 
@@ -1362,12 +1368,35 @@ void LoadJPGBuffer(byte * fbuffer, byte ** pic, int *width, int *height)
 		(void)jpeg_read_scanlines(&cinfo, buffer, 1);
 	}
 
-	// clear all the alphas to 255
+	// If we are processing an 8-bit JPEG (greyscale), we'll have to convert
+	// the greyscale values to RGBA.
+	if(cinfo.output_components == 1)
 	{
+		int             sindex, dindex = 0;
+		unsigned char   greyshade;
+
+		// allocate a new buffer for the transformed image
+		out_converted = safe_malloc(pixelcount * 4);
+
+		for(sindex = 0; sindex < pixelcount; sindex++)
+		{
+			greyshade = out[sindex];
+			out_converted[dindex++] = greyshade;
+			out_converted[dindex++] = greyshade;
+			out_converted[dindex++] = greyshade;
+			out_converted[dindex++] = 255;
+		}
+
+		free(out);
+		out = out_converted;
+	}
+	else
+	{
+		// clear all the alphas to 255
 		int             i, j;
 		byte           *buf;
 
-		buf = *pic;
+		buf = out;
 
 		j = cinfo.output_width * cinfo.output_height * 4;
 		for(i = 3; i < j; i += 4)
@@ -1375,6 +1404,8 @@ void LoadJPGBuffer(byte * fbuffer, byte ** pic, int *width, int *height)
 			buf[i] = 255;
 		}
 	}
+
+	*pic = out;
 
 	/* Step 7: Finish decompression */
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="ETXmap"
 	ProjectGUID="{8ED67991-58A6-44AA-9B3A-3217085EF187}"
 	RootNamespace="ETXmap"
@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="../.."
+			OutputDirectory="../../.."
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\common;..\xrealradiant\libs;..\glib\include\glib-2.0;..\glib\lib\glib-2.0\include;..\png;..\zlib"
+				AdditionalIncludeDirectories="..\common;..\..\libs\picomodel;..\..\libs\glib\include\glib-2.0;..\..\libs\glib\lib\glib-2.0\include;..\..\libs\png;..\..\libs\zlib"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE,XMAP"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
@@ -78,7 +78,7 @@
 				OutputFile="$(OutDir)/ETXmap.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\glib\lib"
+				AdditionalLibraryDirectories="..\..\libs\glib\lib"
 				IgnoreDefaultLibraryNames="libcd"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ETXmap.pdb"
@@ -144,7 +144,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\common;..\xrealradiant\libs;..\glib\include\glib-2.0;..\glib\lib\glib-2.0\include;..\png;..\zlib"
+				AdditionalIncludeDirectories="..\common;..\..\libs\picomodel;..\..\libs\glib\include\glib-2.0;..\..\libs\glib\lib\glib-2.0\include;..\..\libs\png;..\..\libs\zlib"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE,XMAP"
 				StringPooling="true"
 				ExceptionHandling="0"
@@ -180,7 +180,7 @@
 				OutputFile="$(OutDir)/ETXmap.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\glib\lib"
+				AdditionalLibraryDirectories="..\..\libs\glib\lib"
 				ProgramDatabaseFile=".\Release/ETXmap.pdb"
 				GenerateMapFile="true"
 				MapFileName=".\Release/ETXmap.map"
@@ -485,90 +485,90 @@
 				Name="picomodel"
 				>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\picointernal.c"
+					RelativePath="..\..\libs\picomodel\picointernal.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\picomodel.c"
+					RelativePath="..\..\libs\picomodel\picomodel.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\picomodules.c"
+					RelativePath="..\..\libs\picomodel\picomodules.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_3ds.c"
+					RelativePath="..\..\libs\picomodel\pm_3ds.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_ase.c"
+					RelativePath="..\..\libs\picomodel\pm_ase.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_fm.c"
+					RelativePath="..\..\libs\picomodel\pm_fm.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_lwo.c"
+					RelativePath="..\..\libs\picomodel\pm_lwo.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_md2.c"
+					RelativePath="..\..\libs\picomodel\pm_md2.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_md3.c"
+					RelativePath="..\..\libs\picomodel\pm_md3.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_mdc.c"
+					RelativePath="..\..\libs\picomodel\pm_mdc.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_ms3d.c"
+					RelativePath="..\..\libs\picomodel\pm_ms3d.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_obj.c"
+					RelativePath="..\..\libs\picomodel\pm_obj.c"
 					>
 				</File>
 				<File
-					RelativePath="..\xrealradiant\libs\picomodel\pm_terrain.c"
+					RelativePath="..\..\libs\picomodel\pm_terrain.c"
 					>
 				</File>
 				<Filter
 					Name="lwo"
 					>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\clip.c"
+						RelativePath="..\..\libs\picomodel\lwo\clip.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\envelope.c"
+						RelativePath="..\..\libs\picomodel\lwo\envelope.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\list.c"
+						RelativePath="..\..\libs\picomodel\lwo\list.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\lwio.c"
+						RelativePath="..\..\libs\picomodel\lwo\lwio.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\lwo2.c"
+						RelativePath="..\..\libs\picomodel\lwo\lwo2.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\lwob.c"
+						RelativePath="..\..\libs\picomodel\lwo\lwob.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\pntspols.c"
+						RelativePath="..\..\libs\picomodel\lwo\pntspols.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\surface.c"
+						RelativePath="..\..\libs\picomodel\lwo\surface.c"
 						>
 						<FileConfiguration
 							Name="Debug|Win32"
@@ -590,11 +590,11 @@
 						</FileConfiguration>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\vecmath.c"
+						RelativePath="..\..\libs\picomodel\lwo\vecmath.c"
 						>
 					</File>
 					<File
-						RelativePath="..\xrealradiant\libs\picomodel\lwo\vmap.c"
+						RelativePath="..\..\libs\picomodel\lwo\vmap.c"
 						>
 					</File>
 				</Filter>
@@ -603,71 +603,71 @@
 				Name="png"
 				>
 				<File
-					RelativePath="..\png\png.c"
+					RelativePath="..\..\libs\png\png.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngerror.c"
+					RelativePath="..\..\libs\png\pngerror.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pnggccrd.c"
+					RelativePath="..\..\libs\png\pnggccrd.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngget.c"
+					RelativePath="..\..\libs\png\pngget.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngmem.c"
+					RelativePath="..\..\libs\png\pngmem.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngpread.c"
+					RelativePath="..\..\libs\png\pngpread.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngread.c"
+					RelativePath="..\..\libs\png\pngread.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngrio.c"
+					RelativePath="..\..\libs\png\pngrio.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngrtran.c"
+					RelativePath="..\..\libs\png\pngrtran.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngrutil.c"
+					RelativePath="..\..\libs\png\pngrutil.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngset.c"
+					RelativePath="..\..\libs\png\pngset.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngtrans.c"
+					RelativePath="..\..\libs\png\pngtrans.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngvcrd.c"
+					RelativePath="..\..\libs\png\pngvcrd.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngwio.c"
+					RelativePath="..\..\libs\png\pngwio.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngwrite.c"
+					RelativePath="..\..\libs\png\pngwrite.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngwtran.c"
+					RelativePath="..\..\libs\png\pngwtran.c"
 					>
 				</File>
 				<File
-					RelativePath="..\png\pngwutil.c"
+					RelativePath="..\..\libs\png\pngwutil.c"
 					>
 				</File>
 			</Filter>
@@ -675,139 +675,139 @@
 				Name="jpeg"
 				>
 				<File
-					RelativePath="..\jpeg-6\jcapimin.c"
+					RelativePath="..\..\libs\jpeg-6\jcapimin.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jccoefct.c"
+					RelativePath="..\..\libs\jpeg-6\jccoefct.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jccolor.c"
+					RelativePath="..\..\libs\jpeg-6\jccolor.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcdctmgr.c"
+					RelativePath="..\..\libs\jpeg-6\jcdctmgr.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jchuff.c"
+					RelativePath="..\..\libs\jpeg-6\jchuff.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcinit.c"
+					RelativePath="..\..\libs\jpeg-6\jcinit.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcmainct.c"
+					RelativePath="..\..\libs\jpeg-6\jcmainct.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcmarker.c"
+					RelativePath="..\..\libs\jpeg-6\jcmarker.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcmaster.c"
+					RelativePath="..\..\libs\jpeg-6\jcmaster.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcomapi.c"
+					RelativePath="..\..\libs\jpeg-6\jcomapi.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcparam.c"
+					RelativePath="..\..\libs\jpeg-6\jcparam.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcphuff.c"
+					RelativePath="..\..\libs\jpeg-6\jcphuff.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcprepct.c"
+					RelativePath="..\..\libs\jpeg-6\jcprepct.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jcsample.c"
+					RelativePath="..\..\libs\jpeg-6\jcsample.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdapimin.c"
+					RelativePath="..\..\libs\jpeg-6\jdapimin.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdapistd.c"
+					RelativePath="..\..\libs\jpeg-6\jdapistd.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdatasrc.c"
+					RelativePath="..\..\libs\jpeg-6\jdatasrc.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdcoefct.c"
+					RelativePath="..\..\libs\jpeg-6\jdcoefct.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdcolor.c"
+					RelativePath="..\..\libs\jpeg-6\jdcolor.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jddctmgr.c"
+					RelativePath="..\..\libs\jpeg-6\jddctmgr.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdhuff.c"
+					RelativePath="..\..\libs\jpeg-6\jdhuff.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdinput.c"
+					RelativePath="..\..\libs\jpeg-6\jdinput.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdmainct.c"
+					RelativePath="..\..\libs\jpeg-6\jdmainct.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdmarker.c"
+					RelativePath="..\..\libs\jpeg-6\jdmarker.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdmaster.c"
+					RelativePath="..\..\libs\jpeg-6\jdmaster.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdpostct.c"
+					RelativePath="..\..\libs\jpeg-6\jdpostct.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdsample.c"
+					RelativePath="..\..\libs\jpeg-6\jdsample.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jdtrans.c"
+					RelativePath="..\..\libs\jpeg-6\jdtrans.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jerror.c"
+					RelativePath="..\..\libs\jpeg-6\jerror.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jfdctflt.c"
+					RelativePath="..\..\libs\jpeg-6\jfdctflt.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jidctflt.c"
+					RelativePath="..\..\libs\jpeg-6\jidctflt.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jmemansi.c"
+					RelativePath="..\..\libs\jpeg-6\jmemansi.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jmemmgr.c"
+					RelativePath="..\..\libs\jpeg-6\jmemmgr.c"
 					>
 				</File>
 				<File
-					RelativePath="..\jpeg-6\jutils.c"
+					RelativePath="..\..\libs\jpeg-6\jutils.c"
 					>
 				</File>
 			</Filter>
@@ -815,55 +815,55 @@
 				Name="zlib"
 				>
 				<File
-					RelativePath="..\zlib\adler32.c"
+					RelativePath="..\..\libs\zlib\adler32.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\compress.c"
+					RelativePath="..\..\libs\zlib\compress.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\crc32.c"
+					RelativePath="..\..\libs\zlib\crc32.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\deflate.c"
+					RelativePath="..\..\libs\zlib\deflate.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\gzio.c"
+					RelativePath="..\..\libs\zlib\gzio.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\infback.c"
+					RelativePath="..\..\libs\zlib\infback.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\inffast.c"
+					RelativePath="..\..\libs\zlib\inffast.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\inflate.c"
+					RelativePath="..\..\libs\zlib\inflate.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\inftrees.c"
+					RelativePath="..\..\libs\zlib\inftrees.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\ioapi.c"
+					RelativePath="..\..\libs\zlib\ioapi.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\trees.c"
+					RelativePath="..\..\libs\zlib\trees.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\uncompr.c"
+					RelativePath="..\..\libs\zlib\uncompr.c"
 					>
 				</File>
 				<File
-					RelativePath="..\zlib\zutil.c"
+					RelativePath="..\..\libs\zlib\zutil.c"
 					>
 				</File>
 			</Filter>
@@ -873,11 +873,11 @@
 			Filter="h"
 			>
 			<File
-				RelativePath=".\game_xreal.h"
+				RelativePath=".\etxmap.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ETXmap.h"
+				RelativePath=".\game_xreal.h"
 				>
 			</File>
 		</Filter>
@@ -886,11 +886,11 @@
 			Filter=".rc;.ico"
 			>
 			<File
-				RelativePath=".\ETXmap.ico"
+				RelativePath=".\etxmap.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\ETXmap.rc"
+				RelativePath=".\etxmap.rc"
 				>
 			</File>
 		</Filter>

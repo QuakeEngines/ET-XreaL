@@ -33,7 +33,7 @@ Foliage code for Wolfenstein: Enemy Territory by ydnar@splashdamage.com
 
 
 /* dependencies */
-#include "xmap2.h"
+#include "etxmap.h"
 
 
 
