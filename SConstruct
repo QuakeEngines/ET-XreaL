@@ -345,9 +345,9 @@ if ( TARGET_CORE == '1' ):
 		VariantDir( g_build + '/core', '.', duplicate = 0 )
 		et = SConscript( g_build + '/core/SConscript.core' )
 		if ( g_os == 'win32' ):
-			toplevel_targets.append( InstallAs( '#ET-XreaL.exe', et ) )
+			toplevel_targets.append( InstallAs( '#ETXreaL.exe', et ) )
 		else:
-			toplevel_targets.append( InstallAs( '#et-xreal.' + cpu, et ) )
+			toplevel_targets.append( InstallAs( '#etxreal.' + cpu, et ) )
 
 	if ( DEDICATED == '1' or DEDICATED == '2' ):
 		local_dedicated = 1
@@ -355,9 +355,9 @@ if ( TARGET_CORE == '1' ):
 		VariantDir( g_build + '/dedicated', '.', duplicate = 0 )
 		etded = SConscript( g_build + '/dedicated/SConscript.core' )
 		if ( g_os == 'win32' ):
-			toplevel_targets.append( InstallAs( '#ET-XreaLDed.exe', etded ) )
+			toplevel_targets.append( InstallAs( '#ETXreaL-Ded.exe', etded ) )
 		else:
-			toplevel_targets.append( InstallAs( '#et-xrealded.' + cpu, etded ) )
+			toplevel_targets.append( InstallAs( '#etxreal-ded.' + cpu, etded ) )
 
 if ( TARGET_BSPC == '1' ):
 	Export( 'GLOBALS ' + GLOBALS )
