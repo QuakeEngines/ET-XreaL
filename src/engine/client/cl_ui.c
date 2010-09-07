@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "client.h"
 
-#include "../../etmain/src/game/botlib.h"
+#include "../../../etmain/src/game/botlib.h"
 
 extern botlib_export_t *botlib_export;
 

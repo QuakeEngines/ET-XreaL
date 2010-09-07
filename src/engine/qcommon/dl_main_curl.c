@@ -35,10 +35,10 @@ If you have questions concerning this license or the applicable additional terms
 #ifdef __MACOS__
 #include <curl/curl.h>
 #else
-#include "../curl-7.12.2/include/curl/curl.h"
+#include "../../libs/curl-7.12.2/include/curl/curl.h"
 #endif
 
-#include "../shared/q_shared.h"
+#include "../../shared/q_shared.h"
 #include "qcommon.h"
 #include "dl_public.h"
 

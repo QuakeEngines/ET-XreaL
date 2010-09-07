@@ -28,14 +28,14 @@ If you have questions concerning this license or the applicable additional terms
 
 // client.h -- primary header for client
 
-#include "../shared/q_shared.h"
+#include "../../shared/q_shared.h"
 #include "../qcommon/qcommon.h"
 #include "../renderer/tr_public.h"
-#include "../shared/ui_public.h"
+#include "../../shared/ui_public.h"
 #include "keys.h"
 #include "snd_public.h"
-#include "../shared/cg_public.h"
-#include "../../etmain/src/game/bg_public.h"	// FIXME
+#include "../../shared/cg_public.h"
+#include "../../../etmain/src/game/bg_public.h"	// FIXME
 
 #define RETRANSMIT_TIMEOUT  3000	// time between connection packet retransmits
 

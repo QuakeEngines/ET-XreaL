@@ -6,8 +6,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "botlib", "engine\botlib\bot
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgame", "..\etmain\src\cgame\cgame.vcproj", "{68A804FC-00C3-44E2-A479-3DB3D20F943D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extractfuncs", "tools\extractfuncs\extractfuncs.vcproj", "{D8A3C382-BCD1-46AE-B5AD-C8538DDD0D3D}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "..\etmain\src\game\game.vcproj", "{4F8332D7-5687-4875-813A-A1B7AA479C2D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "renderer", "engine\renderer\renderer.vcproj", "{7906CC4F-E230-4049-A3EF-EA7F64E73DDE}"
@@ -53,10 +51,6 @@ Global
 		{68A804FC-00C3-44E2-A479-3DB3D20F943D}.Release Dedicated|Win32.ActiveCfg = Release|Win32
 		{68A804FC-00C3-44E2-A479-3DB3D20F943D}.Release|Win32.ActiveCfg = Release|Win32
 		{68A804FC-00C3-44E2-A479-3DB3D20F943D}.Release|Win32.Build.0 = Release|Win32
-		{D8A3C382-BCD1-46AE-B5AD-C8538DDD0D3D}.Debug Dedicated|Win32.ActiveCfg = Debug|Win32
-		{D8A3C382-BCD1-46AE-B5AD-C8538DDD0D3D}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D8A3C382-BCD1-46AE-B5AD-C8538DDD0D3D}.Release Dedicated|Win32.ActiveCfg = Release|Win32
-		{D8A3C382-BCD1-46AE-B5AD-C8538DDD0D3D}.Release|Win32.ActiveCfg = Release|Win32
 		{4F8332D7-5687-4875-813A-A1B7AA479C2D}.Debug Dedicated|Win32.ActiveCfg = Debug|Win32
 		{4F8332D7-5687-4875-813A-A1B7AA479C2D}.Debug Dedicated|Win32.Build.0 = Debug|Win32
 		{4F8332D7-5687-4875-813A-A1B7AA479C2D}.Debug|Win32.ActiveCfg = Debug|Win32

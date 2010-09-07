@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\ft2\include;..\sdl\include;..\zlib;..\glew\include"
+				AdditionalIncludeDirectories="..\..\libs\ft2\include;..\sdl\include;..\..\libs\zlib;..\..\libs\glew\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -70,10 +70,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="opengl32.lib"
-				OutputFile="../../rendererGL3.dll"
+				OutputFile="../../../rendererGL3.dll"
 				ModuleDefinitionFile="rendererGL3.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../../rendererGL3.pdb"
+				ProgramDatabaseFile="../../../rendererGL3.pdb"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -126,7 +126,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\freetype\include;..\sdl\include;..\zlib;..\glew\include"
+				AdditionalIncludeDirectories="..\freetype\include;..\sdl\include;..\..\libs\zlib;..\..\libs\glew\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -154,7 +154,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="opengl32.lib"
-				OutputFile="../../rendererGL3.dll"
+				OutputFile="../../../rendererGL3.dll"
 				ModuleDefinitionFile="rendererGL3.def"
 			/>
 			<Tool
@@ -188,11 +188,11 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 			>
 			<File
-				RelativePath="..\shared\q_math.c"
+				RelativePath="..\..\shared\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath="..\shared\q_shared.c"
+				RelativePath="..\..\shared\q_shared.c"
 				>
 			</File>
 			<File
@@ -353,7 +353,7 @@
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
 			<File
-				RelativePath="..\shared\q_shared.h"
+				RelativePath="..\..\shared\q_shared.h"
 				>
 			</File>
 			<File
@@ -365,7 +365,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\shared\tr_types.h"
+				RelativePath="..\..\shared\tr_types.h"
 				>
 			</File>
 		</Filter>
@@ -388,47 +388,47 @@
 					Name="Header Files"
 					>
 					<File
-						RelativePath="..\jpeg-6\jchuff.h"
+						RelativePath="..\..\libs\jpeg-6\jchuff.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jconfig.h"
+						RelativePath="..\..\libs\jpeg-6\jconfig.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdct.h"
+						RelativePath="..\..\libs\jpeg-6\jdct.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdhuff.h"
+						RelativePath="..\..\libs\jpeg-6\jdhuff.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jerror.h"
+						RelativePath="..\..\libs\jpeg-6\jerror.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jinclude.h"
+						RelativePath="..\..\libs\jpeg-6\jinclude.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jmemsys.h"
+						RelativePath="..\..\libs\jpeg-6\jmemsys.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jmorecfg.h"
+						RelativePath="..\..\libs\jpeg-6\jmorecfg.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jpegint.h"
+						RelativePath="..\..\libs\jpeg-6\jpegint.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jpeglib.h"
+						RelativePath="..\..\libs\jpeg-6\jpeglib.h"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jversion.h"
+						RelativePath="..\..\libs\jpeg-6\jversion.h"
 						>
 					</File>
 				</Filter>
@@ -436,147 +436,147 @@
 					Name="Source Files"
 					>
 					<File
-						RelativePath="..\jpeg-6\jcapimin.c"
+						RelativePath="..\..\libs\jpeg-6\jcapimin.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jccoefct.c"
+						RelativePath="..\..\libs\jpeg-6\jccoefct.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jccolor.c"
+						RelativePath="..\..\libs\jpeg-6\jccolor.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcdctmgr.c"
+						RelativePath="..\..\libs\jpeg-6\jcdctmgr.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jchuff.c"
+						RelativePath="..\..\libs\jpeg-6\jchuff.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcinit.c"
+						RelativePath="..\..\libs\jpeg-6\jcinit.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcmainct.c"
+						RelativePath="..\..\libs\jpeg-6\jcmainct.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcmarker.c"
+						RelativePath="..\..\libs\jpeg-6\jcmarker.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcmaster.c"
+						RelativePath="..\..\libs\jpeg-6\jcmaster.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcomapi.c"
+						RelativePath="..\..\libs\jpeg-6\jcomapi.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcparam.c"
+						RelativePath="..\..\libs\jpeg-6\jcparam.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcphuff.c"
+						RelativePath="..\..\libs\jpeg-6\jcphuff.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcprepct.c"
+						RelativePath="..\..\libs\jpeg-6\jcprepct.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jcsample.c"
+						RelativePath="..\..\libs\jpeg-6\jcsample.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jctrans.c"
+						RelativePath="..\..\libs\jpeg-6\jctrans.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdapimin.c"
+						RelativePath="..\..\libs\jpeg-6\jdapimin.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdapistd.c"
+						RelativePath="..\..\libs\jpeg-6\jdapistd.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdatadst.c"
+						RelativePath="..\..\libs\jpeg-6\jdatadst.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdatasrc.c"
+						RelativePath="..\..\libs\jpeg-6\jdatasrc.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdcoefct.c"
+						RelativePath="..\..\libs\jpeg-6\jdcoefct.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdcolor.c"
+						RelativePath="..\..\libs\jpeg-6\jdcolor.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jddctmgr.c"
+						RelativePath="..\..\libs\jpeg-6\jddctmgr.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdhuff.c"
+						RelativePath="..\..\libs\jpeg-6\jdhuff.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdinput.c"
+						RelativePath="..\..\libs\jpeg-6\jdinput.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdmainct.c"
+						RelativePath="..\..\libs\jpeg-6\jdmainct.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdmarker.c"
+						RelativePath="..\..\libs\jpeg-6\jdmarker.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdmaster.c"
+						RelativePath="..\..\libs\jpeg-6\jdmaster.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdpostct.c"
+						RelativePath="..\..\libs\jpeg-6\jdpostct.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdsample.c"
+						RelativePath="..\..\libs\jpeg-6\jdsample.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jdtrans.c"
+						RelativePath="..\..\libs\jpeg-6\jdtrans.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jerror.c"
+						RelativePath="..\..\libs\jpeg-6\jerror.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jfdctflt.c"
+						RelativePath="..\..\libs\jpeg-6\jfdctflt.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jidctflt.c"
+						RelativePath="..\..\libs\jpeg-6\jidctflt.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jmemmgr.c"
+						RelativePath="..\..\libs\jpeg-6\jmemmgr.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jmemnobs.c"
+						RelativePath="..\..\libs\jpeg-6\jmemnobs.c"
 						>
 					</File>
 					<File
-						RelativePath="..\jpeg-6\jutils.c"
+						RelativePath="..\..\libs\jpeg-6\jutils.c"
 						>
 					</File>
 				</Filter>
@@ -588,63 +588,63 @@
 					Name="Source Files"
 					>
 					<File
-						RelativePath="..\png\png.c"
+						RelativePath="..\..\libs\png\png.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngerror.c"
+						RelativePath="..\..\libs\png\pngerror.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngget.c"
+						RelativePath="..\..\libs\png\pngget.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngmem.c"
+						RelativePath="..\..\libs\png\pngmem.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngpread.c"
+						RelativePath="..\..\libs\png\pngpread.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngread.c"
+						RelativePath="..\..\libs\png\pngread.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngrio.c"
+						RelativePath="..\..\libs\png\pngrio.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngrtran.c"
+						RelativePath="..\..\libs\png\pngrtran.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngrutil.c"
+						RelativePath="..\..\libs\png\pngrutil.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngset.c"
+						RelativePath="..\..\libs\png\pngset.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngtrans.c"
+						RelativePath="..\..\libs\png\pngtrans.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngwio.c"
+						RelativePath="..\..\libs\png\pngwio.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngwrite.c"
+						RelativePath="..\..\libs\png\pngwrite.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngwtran.c"
+						RelativePath="..\..\libs\png\pngwtran.c"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngwutil.c"
+						RelativePath="..\..\libs\png\pngwutil.c"
 						>
 					</File>
 				</Filter>
@@ -652,11 +652,11 @@
 					Name="Header Files"
 					>
 					<File
-						RelativePath="..\png\png.h"
+						RelativePath="..\..\libs\png\png.h"
 						>
 					</File>
 					<File
-						RelativePath="..\png\pngconf.h"
+						RelativePath="..\..\libs\png\pngconf.h"
 						>
 					</File>
 				</Filter>
@@ -668,19 +668,19 @@
 					Name="Header Files"
 					>
 					<File
-						RelativePath="..\zlib\inftrees.h"
+						RelativePath="..\..\libs\zlib\inftrees.h"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\ioapi.h"
+						RelativePath="..\..\libs\zlib\ioapi.h"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\zconf.h"
+						RelativePath="..\..\libs\zlib\zconf.h"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\zlib.h"
+						RelativePath="..\..\libs\zlib\zlib.h"
 						>
 					</File>
 				</Filter>
@@ -688,55 +688,55 @@
 					Name="Source Files"
 					>
 					<File
-						RelativePath="..\zlib\adler32.c"
+						RelativePath="..\..\libs\zlib\adler32.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\compress.c"
+						RelativePath="..\..\libs\zlib\compress.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\crc32.c"
+						RelativePath="..\..\libs\zlib\crc32.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\deflate.c"
+						RelativePath="..\..\libs\zlib\deflate.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\gzio.c"
+						RelativePath="..\..\libs\zlib\gzio.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\infback.c"
+						RelativePath="..\..\libs\zlib\infback.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\inffast.c"
+						RelativePath="..\..\libs\zlib\inffast.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\inflate.c"
+						RelativePath="..\..\libs\zlib\inflate.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\inftrees.c"
+						RelativePath="..\..\libs\zlib\inftrees.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\ioapi.c"
+						RelativePath="..\..\libs\zlib\ioapi.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\trees.c"
+						RelativePath="..\..\libs\zlib\trees.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\uncompr.c"
+						RelativePath="..\..\libs\zlib\uncompr.c"
 						>
 					</File>
 					<File
-						RelativePath="..\zlib\zutil.c"
+						RelativePath="..\..\libs\zlib\zutil.c"
 						>
 					</File>
 				</Filter>
@@ -748,135 +748,135 @@
 					Name="Source Files"
 					>
 					<File
-						RelativePath="..\ft2\ahangles.c"
+						RelativePath="..\..\libs\ft2\ahangles.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahglobal.c"
+						RelativePath="..\..\libs\ft2\ahglobal.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahglyph.c"
+						RelativePath="..\..\libs\ft2\ahglyph.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahhint.c"
+						RelativePath="..\..\libs\ft2\ahhint.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahmodule.c"
+						RelativePath="..\..\libs\ft2\ahmodule.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahoptim.c"
+						RelativePath="..\..\libs\ft2\ahoptim.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftcalc.c"
+						RelativePath="..\..\libs\ft2\ftcalc.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftdebug.c"
+						RelativePath="..\..\libs\ft2\ftdebug.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftextend.c"
+						RelativePath="..\..\libs\ft2\ftextend.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftglyph.c"
+						RelativePath="..\..\libs\ft2\ftglyph.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftgrays.c"
+						RelativePath="..\..\libs\ft2\ftgrays.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftinit.c"
+						RelativePath="..\..\libs\ft2\ftinit.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftlist.c"
+						RelativePath="..\..\libs\ft2\ftlist.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftmm.c"
+						RelativePath="..\..\libs\ft2\ftmm.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftnames.c"
+						RelativePath="..\..\libs\ft2\ftnames.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftobjs.c"
+						RelativePath="..\..\libs\ft2\ftobjs.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftoutln.c"
+						RelativePath="..\..\libs\ft2\ftoutln.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftraster.c"
+						RelativePath="..\..\libs\ft2\ftraster.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftrend1.c"
+						RelativePath="..\..\libs\ft2\ftrend1.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftsmooth.c"
+						RelativePath="..\..\libs\ft2\ftsmooth.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftstream.c"
+						RelativePath="..\..\libs\ft2\ftstream.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftsystem.c"
+						RelativePath="..\..\libs\ft2\ftsystem.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\sfdriver.c"
+						RelativePath="..\..\libs\ft2\sfdriver.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\sfobjs.c"
+						RelativePath="..\..\libs\ft2\sfobjs.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttcmap.c"
+						RelativePath="..\..\libs\ft2\ttcmap.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttdriver.c"
+						RelativePath="..\..\libs\ft2\ttdriver.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttgload.c"
+						RelativePath="..\..\libs\ft2\ttgload.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttinterp.c"
+						RelativePath="..\..\libs\ft2\ttinterp.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttload.c"
+						RelativePath="..\..\libs\ft2\ttload.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttobjs.c"
+						RelativePath="..\..\libs\ft2\ttobjs.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttpload.c"
+						RelativePath="..\..\libs\ft2\ttpload.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttpost.c"
+						RelativePath="..\..\libs\ft2\ttpost.c"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttsbit.c"
+						RelativePath="..\..\libs\ft2\ttsbit.c"
 						>
 					</File>
 				</Filter>
@@ -884,215 +884,215 @@
 					Name="Header Files"
 					>
 					<File
-						RelativePath="..\ft2\ahangles.h"
+						RelativePath="..\..\libs\ft2\ahangles.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahglobal.h"
+						RelativePath="..\..\libs\ft2\ahglobal.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahglyph.h"
+						RelativePath="..\..\libs\ft2\ahglyph.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahhint.h"
+						RelativePath="..\..\libs\ft2\ahhint.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahloader.h"
+						RelativePath="..\..\libs\ft2\ahloader.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahmodule.h"
+						RelativePath="..\..\libs\ft2\ahmodule.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahoptim.h"
+						RelativePath="..\..\libs\ft2\ahoptim.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ahtypes.h"
+						RelativePath="..\..\libs\ft2\ahtypes.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\autohint.h"
+						RelativePath="..\..\libs\ft2\autohint.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\freetype.h"
+						RelativePath="..\..\libs\ft2\freetype.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftcalc.h"
+						RelativePath="..\..\libs\ft2\ftcalc.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftconfig.h"
+						RelativePath="..\..\libs\ft2\ftconfig.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftdebug.h"
+						RelativePath="..\..\libs\ft2\ftdebug.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftdriver.h"
+						RelativePath="..\..\libs\ft2\ftdriver.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\fterrors.h"
+						RelativePath="..\..\libs\ft2\fterrors.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftextend.h"
+						RelativePath="..\..\libs\ft2\ftextend.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftglyph.h"
+						RelativePath="..\..\libs\ft2\ftglyph.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftgrays.h"
+						RelativePath="..\..\libs\ft2\ftgrays.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftimage.h"
+						RelativePath="..\..\libs\ft2\ftimage.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftlist.h"
+						RelativePath="..\..\libs\ft2\ftlist.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftmemory.h"
+						RelativePath="..\..\libs\ft2\ftmemory.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftmm.h"
+						RelativePath="..\..\libs\ft2\ftmm.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftmodule.h"
+						RelativePath="..\..\libs\ft2\ftmodule.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftnames.h"
+						RelativePath="..\..\libs\ft2\ftnames.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftobjs.h"
+						RelativePath="..\..\libs\ft2\ftobjs.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftoption.h"
+						RelativePath="..\..\libs\ft2\ftoption.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftoutln.h"
+						RelativePath="..\..\libs\ft2\ftoutln.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftraster.h"
+						RelativePath="..\..\libs\ft2\ftraster.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftrend1.h"
+						RelativePath="..\..\libs\ft2\ftrend1.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftrender.h"
+						RelativePath="..\..\libs\ft2\ftrender.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftsmooth.h"
+						RelativePath="..\..\libs\ft2\ftsmooth.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftstream.h"
+						RelativePath="..\..\libs\ft2\ftstream.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ftsystem.h"
+						RelativePath="..\..\libs\ft2\ftsystem.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\fttypes.h"
+						RelativePath="..\..\libs\ft2\fttypes.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\psnames.h"
+						RelativePath="..\..\libs\ft2\psnames.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\sfdriver.h"
+						RelativePath="..\..\libs\ft2\sfdriver.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\sfnt.h"
+						RelativePath="..\..\libs\ft2\sfnt.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\sfobjs.h"
+						RelativePath="..\..\libs\ft2\sfobjs.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\t1tables.h"
+						RelativePath="..\..\libs\ft2\t1tables.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttcmap.h"
+						RelativePath="..\..\libs\ft2\ttcmap.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttdriver.h"
+						RelativePath="..\..\libs\ft2\ttdriver.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\tterrors.h"
+						RelativePath="..\..\libs\ft2\tterrors.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttgload.h"
+						RelativePath="..\..\libs\ft2\ttgload.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttinterp.h"
+						RelativePath="..\..\libs\ft2\ttinterp.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttload.h"
+						RelativePath="..\..\libs\ft2\ttload.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttnameid.h"
+						RelativePath="..\..\libs\ft2\ttnameid.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttobjs.h"
+						RelativePath="..\..\libs\ft2\ttobjs.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttpload.h"
+						RelativePath="..\..\libs\ft2\ttpload.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttpost.h"
+						RelativePath="..\..\libs\ft2\ttpost.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\ttsbit.h"
+						RelativePath="..\..\libs\ft2\ttsbit.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\tttables.h"
+						RelativePath="..\..\libs\ft2\tttables.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\tttags.h"
+						RelativePath="..\..\libs\ft2\tttags.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ft2\tttypes.h"
+						RelativePath="..\..\libs\ft2\tttypes.h"
 						>
 					</File>
 				</Filter>
@@ -1101,23 +1101,23 @@
 				Name="openexr"
 				>
 				<File
-					RelativePath="..\openexr\eLut.h"
+					RelativePath="..\..\libs\openexr\eLut.h"
 					>
 				</File>
 				<File
-					RelativePath="..\openexr\half.cpp"
+					RelativePath="..\..\libs\openexr\half.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\openexr\half.h"
+					RelativePath="..\..\libs\openexr\half.h"
 					>
 				</File>
 				<File
-					RelativePath="..\openexr\halfLimits.h"
+					RelativePath="..\..\libs\openexr\halfLimits.h"
 					>
 				</File>
 				<File
-					RelativePath="..\openexr\toFloat.h"
+					RelativePath="..\..\libs\openexr\toFloat.h"
 					>
 				</File>
 			</Filter>
@@ -1128,11 +1128,11 @@
 					Name="Header Files"
 					>
 					<File
-						RelativePath="..\glew\include\GL\glew.h"
+						RelativePath="..\..\libs\glew\include\GL\glew.h"
 						>
 					</File>
 					<File
-						RelativePath="..\glew\include\GL\wglew.h"
+						RelativePath="..\..\libs\glew\include\GL\wglew.h"
 						>
 					</File>
 				</Filter>
@@ -1140,7 +1140,7 @@
 					Name="Source Files"
 					>
 					<File
-						RelativePath="..\glew\src\glew.c"
+						RelativePath="..\..\libs\glew\src\glew.c"
 						>
 					</File>
 				</Filter>

@@ -44,7 +44,7 @@ If you have questions concerning this license or the applicable additional terms
  */
 
 #define JPEG_INTERNALS
-#include "../jpeg-6/jpeglib.h"
+#include "../../libs/jpeg-6/jpeglib.h"
 
 
 static void     LoadBMP(const char *name, byte ** pic, int *width, int *height);

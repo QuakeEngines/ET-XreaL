@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../shared/q_shared.h"
+#include "../../shared/q_shared.h"
 #include "qcommon.h"
 
 typedef enum

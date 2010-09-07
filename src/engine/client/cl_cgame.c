@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "client.h"
 
-#include "../../etmain/src/game/botlib.h"	// FIXME
+#include "../../../etmain/src/game/botlib.h"	// FIXME
 
 extern botlib_export_t *botlib_export;
 

@@ -29,8 +29,8 @@ If you have questions concerning this license or the applicable additional terms
 // sv_bot.c
 
 #include "server.h"
-#include "../../etmain/src/game/botlib.h"
-#include "../../etmain/src/botai/botai.h"
+#include "../../../etmain/src/game/botlib.h"
+#include "../../../etmain/src/botai/botai.h"
 
 static bot_debugpoly_t debugpolygons[MAX_DEBUGPOLYS];
 

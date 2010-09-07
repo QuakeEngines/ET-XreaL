@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "server.h"
 
-#include "../../etmain/src/game/botlib.h"
+#include "../../../etmain/src/game/botlib.h"
 
 botlib_export_t *botlib_export;
 
