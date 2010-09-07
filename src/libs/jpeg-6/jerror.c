@@ -24,7 +24,7 @@
 #elif defined(RADIANT)
 // include nothing
 #else
-#include "../renderer/tr_local.h"
+#include "../../engine/renderer/tr_local.h"
 #endif
 
 #ifndef EXIT_FAILURE			/* define exit() codes if not provided */
