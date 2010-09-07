@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="xmap2"
+	Name="ETXmap"
 	ProjectGUID="{8ED67991-58A6-44AA-9B3A-3217085EF187}"
-	RootNamespace="q3map2"
+	RootNamespace="ETXmap"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/q3map2.tlb"
+				TypeLibraryName=".\Debug/ETXmap.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -50,7 +50,7 @@
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="false"
-				PrecompiledHeaderFile=".\Debug/q3map2.pch"
+				PrecompiledHeaderFile=".\Debug/ETXmap.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -75,15 +75,15 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="glib-2.0.lib wsock32.lib"
-				OutputFile="$(OutDir)/xmap2.exe"
+				OutputFile="$(OutDir)/ETXmap.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\glib\lib"
 				IgnoreDefaultLibraryNames="libcd"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/q3map2.pdb"
+				ProgramDatabaseFile=".\Debug/ETXmap.pdb"
 				GenerateMapFile="true"
-				MapFileName=".\Debug/q3map2.map"
+				MapFileName=".\Debug/ETXmap.map"
 				SubSystem="1"
 				StackReserveSize="4194304"
 				RandomizedBaseAddress="1"
@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/q3map2.tlb"
+				TypeLibraryName=".\Release/ETXmap.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -152,7 +152,7 @@
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/q3map2.pch"
+				PrecompiledHeaderFile=".\Release/ETXmap.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -177,13 +177,13 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="glib-2.0.lib  wsock32.lib"
-				OutputFile="$(OutDir)/xmap2.exe"
+				OutputFile="$(OutDir)/ETXmap.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\glib\lib"
-				ProgramDatabaseFile=".\Release/q3map2.pdb"
+				ProgramDatabaseFile=".\Release/ETXmap.pdb"
 				GenerateMapFile="true"
-				MapFileName=".\Release/q3map2.map"
+				MapFileName=".\Release/ETXmap.map"
 				SubSystem="1"
 				StackReserveSize="4194304"
 				RandomizedBaseAddress="1"
@@ -877,7 +877,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\xmap2.h"
+				RelativePath=".\ETXmap.h"
 				>
 			</File>
 		</Filter>
@@ -886,11 +886,11 @@
 			Filter=".rc;.ico"
 			>
 			<File
-				RelativePath=".\xmap2.ico"
+				RelativePath=".\ETXmap.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\xmap2.rc"
+				RelativePath=".\ETXmap.rc"
 				>
 			</File>
 		</Filter>
