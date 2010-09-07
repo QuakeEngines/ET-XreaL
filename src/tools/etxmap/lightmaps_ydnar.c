@@ -3372,9 +3372,9 @@ void StoreSurfaceLightmaps(void)
 			/*
 			   Tr3B: commented
 			   if(info->si->styleMarker == 2)
-			   csi = CustomShader(info->si, "xmap_styleMarker2", styleStages);
+			   csi = CustomShader(info->si, "q3map_styleMarker2", styleStages);
 			   else
-			   csi = CustomShader(info->si, "xmap_styleMarker", styleStages);
+			   csi = CustomShader(info->si, "q3map_styleMarker", styleStages);
 			 */
 
 			/* emit remap command */

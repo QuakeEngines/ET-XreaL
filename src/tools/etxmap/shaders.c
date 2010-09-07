@@ -1080,7 +1080,7 @@ static void ParseShaderFile(const char *filename)
 				si->polygonOffset = qtrue;
 
 			/* tesssize is used to force liquid surfaces to subdivide */
-			else if(!Q_stricmp(token, "tessSize") || !Q_stricmp(token, "xmap_tessSize") /* sof2 */ )
+			else if(!Q_stricmp(token, "tessSize") || !Q_stricmp(token, "q3map_tessSize") /* sof2 */ )
 			{
 				GetToken(qfalse);
 				si->subdivisions = atof(token);
@@ -1215,7 +1215,7 @@ static void ParseShaderFile(const char *filename)
 			}
 
 			/* ydnar: xmap_normalimage <image> (bumpmapping normal map) */
-			else if(!Q_stricmp(token, "xmap_normalImage"))
+			else if(!Q_stricmp(token, "q3map_normalImage"))
 			{
 				GetToken(qfalse);
 				strcpy(si->normalImagePath, token);
@@ -1223,13 +1223,13 @@ static void ParseShaderFile(const char *filename)
 			}
 
 			/* xmap_lightimage <image> */
-			else if(!Q_stricmp(token, "xmap_lightImage"))
+			else if(!Q_stricmp(token, "q3map_lightImage"))
 			{
 				GetToken(qfalse);
 				strcpy(si->lightImagePath, token);
 				DefaultExtension(si->lightImagePath, ".tga");
 
-				//Sys_FPrintf(SYS_VRB, "xmap_lightImage: %s\n", si->lightImagePath);
+				//Sys_FPrintf(SYS_VRB, "q3map_lightImage: %s\n", si->lightImagePath);
 			}
 
 			/* ydnar: skyparms <outer image> <cloud height> <inner image> */
@@ -1286,7 +1286,7 @@ static void ParseShaderFile(const char *filename)
 			   intensity falls off with angle but not distance 100 is a fairly bright sun
 			   degree of 0 = from the east, 90 = north, etc.  altitude of 0 = sunrise/set, 90 = noon
 			   ydnar: sof2map has bareword 'sun' token, so we support that as well */
-			else if(!Q_stricmp(token, "sun") /* sof2 */  || !Q_stricmp(token, "xmap_sun") || !Q_stricmp(token, "xmap_sunExt"))
+			else if(!Q_stricmp(token, "sun") /* sof2 */  || !Q_stricmp(token, "q3map_sun") || !Q_stricmp(token, "q3map_sunExt"))
 			{
 				float           a, b;
 				sun_t          *sun;
@@ -1294,7 +1294,7 @@ static void ParseShaderFile(const char *filename)
 
 
 				/* ydnar: extended sun directive? */
-				if(!Q_stricmp(token, "xmap_sunext"))
+				if(!Q_stricmp(token, "q3map_sunext"))
 					ext = qtrue;
 
 				/* allocate sun */
@@ -1358,10 +1358,10 @@ static void ParseShaderFile(const char *filename)
 			}
 
 			/* match xmap_ */
-			else if(!Q_strncasecmp(token, "xmap_", 5))
+			else if(!Q_strncasecmp(token, "q3map_", 5))
 			{
 				/* ydnar: xmap_baseShader <shader> (inherit this shader's parameters) */
-				if(!Q_stricmp(token, "xmap_baseShader"))
+				if(!Q_stricmp(token, "q3map_baseShader"))
 				{
 					shaderInfo_t   *si2;
 					qboolean        oldWarnImage;
@@ -1393,7 +1393,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_surfacemodel <path to model> <density> <min scale> <max scale> <min angle> <max angle> <oriented (0 or 1)> */
-				else if(!Q_stricmp(token, "xmap_surfacemodel"))
+				else if(!Q_stricmp(token, "q3map_surfacemodel"))
 				{
 					surfaceModel_t *model;
 
@@ -1428,7 +1428,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar/sd: xmap_foliage <path to model> <scale> <density> <odds> <invert alpha (1 or 0)> */
-				else if(!Q_stricmp(token, "xmap_foliage"))
+				else if(!Q_stricmp(token, "q3map_foliage"))
 				{
 					foliage_t      *foliage;
 
@@ -1454,14 +1454,14 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_bounce <value> (fraction of light to re-emit during radiosity passes) */
-				else if(!Q_stricmp(token, "xmap_bounce") || !Q_stricmp(token, "xmap_bounceScale"))
+				else if(!Q_stricmp(token, "q3map_bounce") || !Q_stricmp(token, "q3map_bounceScale"))
 				{
 					GetToken(qfalse);
 					si->bounceScale = atof(token);
 				}
 
 				/* ydnar/splashdamage: xmap_skyLight <value> <iterations> */
-				else if(!Q_stricmp(token, "xmap_skyLight"))
+				else if(!Q_stricmp(token, "q3map_skyLight"))
 				{
 					GetToken(qfalse);
 					si->skyLightValue = atof(token);
@@ -1476,15 +1476,15 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_surfacelight <value> */
-				else if(!Q_stricmp(token, "xmap_surfacelight"))
+				else if(!Q_stricmp(token, "q3map_surfacelight"))
 				{
 					GetToken(qfalse);
 					si->value = atof(token);
-					//Sys_FPrintf(SYS_VRB, "xmap_surfacelight: %f (%s)\n", si->value, si->shader);
+					//Sys_FPrintf(SYS_VRB, "q3map_surfacelight: %f (%s)\n", si->value, si->shader);
 				}
 
 				/* xmap_lightStyle (sof2/jk2 lightstyle) */
-				else if(!Q_stricmp(token, "xmap_lightStyle"))
+				else if(!Q_stricmp(token, "q3map_lightStyle"))
 				{
 					GetToken(qfalse);
 					val = atoi(token);
@@ -1496,7 +1496,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* wolf: xmap_lightRGB <red> <green> <blue> */
-				else if(!Q_stricmp(token, "xmap_lightRGB"))
+				else if(!Q_stricmp(token, "q3map_lightRGB"))
 				{
 					VectorClear(si->color);
 					GetToken(qfalse);
@@ -1509,14 +1509,14 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_lightSubdivide <value> */
-				else if(!Q_stricmp(token, "xmap_lightSubdivide"))
+				else if(!Q_stricmp(token, "q3map_lightSubdivide"))
 				{
 					GetToken(qfalse);
 					si->lightSubdivide = atoi(token);
 				}
 
 				/* xmap_backsplash <percent> <distance> */
-				else if(!Q_stricmp(token, "xmap_backsplash"))
+				else if(!Q_stricmp(token, "q3map_backsplash"))
 				{
 					GetToken(qfalse);
 					si->backsplashFraction = atof(token) * 0.01f;
@@ -1525,21 +1525,21 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_lightmapSampleSize <value> */
-				else if(!Q_stricmp(token, "xmap_lightmapSampleSize"))
+				else if(!Q_stricmp(token, "q3map_lightmapSampleSize"))
 				{
 					GetToken(qfalse);
 					si->lightmapSampleSize = atoi(token);
 				}
 
 				/* xmap_lightmapSampleSffset <value> */
-				else if(!Q_stricmp(token, "xmap_lightmapSampleOffset"))
+				else if(!Q_stricmp(token, "q3map_lightmapSampleOffset"))
 				{
 					GetToken(qfalse);
 					si->lightmapSampleOffset = atof(token);
 				}
 
 				/* ydnar: xmap_lightmapFilterRadius <self> <other> */
-				else if(!Q_stricmp(token, "xmap_lightmapFilterRadius"))
+				else if(!Q_stricmp(token, "q3map_lightmapFilterRadius"))
 				{
 					GetToken(qfalse);
 					si->lmFilterRadius = atof(token);
@@ -1548,7 +1548,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_lightmapAxis [xyz] */
-				else if(!Q_stricmp(token, "xmap_lightmapAxis"))
+				else if(!Q_stricmp(token, "q3map_lightmapAxis"))
 				{
 					GetToken(qfalse);
 					if(!Q_stricmp(token, "x"))
@@ -1565,7 +1565,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_lightmapSize <width> <height> (for autogenerated shaders + external tga lightmaps) */
-				else if(!Q_stricmp(token, "xmap_lightmapSize"))
+				else if(!Q_stricmp(token, "q3map_lightmapSize"))
 				{
 					GetToken(qfalse);
 					si->lmCustomWidth = atoi(token);
@@ -1583,7 +1583,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_lightmapBrightness N (for autogenerated shaders + external tga lightmaps) */
-				else if(!Q_stricmp(token, "xmap_lightmapBrightness") || !Q_stricmp(token, "xmap_lightmapGamma"))
+				else if(!Q_stricmp(token, "q3map_lightmapBrightness") || !Q_stricmp(token, "q3map_lightmapGamma"))
 				{
 					GetToken(qfalse);
 					si->lmBrightness = atof(token);
@@ -1592,20 +1592,20 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_vertexScale (scale vertex lighting by this fraction) */
-				else if(!Q_stricmp(token, "xmap_vertexScale"))
+				else if(!Q_stricmp(token, "q3map_vertexScale"))
 				{
 					GetToken(qfalse);
 					si->vertexScale = atof(token);
 				}
 
 				/* xmap_noVertexLight */
-				else if(!Q_stricmp(token, "xmap_noVertexLight"))
+				else if(!Q_stricmp(token, "q3map_noVertexLight"))
 				{
 					si->noVertexLight = qtrue;
 				}
 
 				/* xmap_flare[Shader] <shader> */
-				else if(!Q_stricmp(token, "xmap_flare") || !Q_stricmp(token, "xmap_flareShader"))
+				else if(!Q_stricmp(token, "q3map_flare") || !Q_stricmp(token, "q3map_flareShader"))
 				{
 					GetToken(qfalse);
 					if(token[0] != '\0')
@@ -1616,7 +1616,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_backShader <shader> */
-				else if(!Q_stricmp(token, "xmap_backShader"))
+				else if(!Q_stricmp(token, "q3map_backShader"))
 				{
 					GetToken(qfalse);
 					if(token[0] != '\0')
@@ -1627,7 +1627,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_cloneShader <shader> */
-				else if(!Q_stricmp(token, "xmap_cloneShader"))
+				else if(!Q_stricmp(token, "q3map_cloneShader"))
 				{
 					GetToken(qfalse);
 					if(token[0] != '\0')
@@ -1638,7 +1638,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_remapShader <shader> */
-				else if(!Q_stricmp(token, "xmap_remapShader"))
+				else if(!Q_stricmp(token, "q3map_remapShader"))
 				{
 					GetToken(qfalse);
 					if(token[0] != '\0')
@@ -1649,14 +1649,14 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_offset <value> */
-				else if(!Q_stricmp(token, "xmap_offset"))
+				else if(!Q_stricmp(token, "q3map_offset"))
 				{
 					GetToken(qfalse);
 					si->offset = atof(token);
 				}
 
 				/* ydnar: xmap_textureSize <width> <height> (substitute for xmap_lightimage derivation for terrain) */
-				else if(!Q_stricmp(token, "xmap_fur"))
+				else if(!Q_stricmp(token, "q3map_fur"))
 				{
 					GetToken(qfalse);
 					si->furNumLayers = atoi(token);
@@ -1667,7 +1667,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: gs mods: legacy support for terrain/terrain2 shaders */
-				else if(!Q_stricmp(token, "xmap_terrain"))
+				else if(!Q_stricmp(token, "q3map_terrain"))
 				{
 					/* team arena terrain is assumed to be nonplanar, with full normal averaging,
 					   passed through the metatriangle surface pipeline, with a lightmap axis on z */
@@ -1682,20 +1682,20 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: picomodel: xmap_forceMeta (forces brush faces and/or triangle models to go through the metasurface pipeline) */
-				else if(!Q_stricmp(token, "xmap_forceMeta"))
+				else if(!Q_stricmp(token, "q3map_forceMeta"))
 				{
 					si->forceMeta = qtrue;
 				}
 
 				/* ydnar: gs mods: xmap_shadeAngle <degrees> */
-				else if(!Q_stricmp(token, "xmap_shadeAngle"))
+				else if(!Q_stricmp(token, "q3map_shadeAngle"))
 				{
 					GetToken(qfalse);
 					si->shadeAngleDegrees = atof(token);
 				}
 
 				/* ydnar: xmap_textureSize <width> <height> (substitute for xmap_lightimage derivation for terrain) */
-				else if(!Q_stricmp(token, "xmap_textureSize"))
+				else if(!Q_stricmp(token, "q3map_textureSize"))
 				{
 					GetToken(qfalse);
 					si->shaderWidth = atoi(token);
@@ -1704,7 +1704,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: gs mods: xmap_tcGen <style> <parameters> */
-				else if(!Q_stricmp(token, "xmap_tcGen"))
+				else if(!Q_stricmp(token, "q3map_tcGen"))
 				{
 					si->tcGen = qtrue;
 					GetToken(qfalse);
@@ -1735,17 +1735,17 @@ static void ParseShaderFile(const char *filename)
 					}
 				}
 
-				/* ydnar: gs mods: xmap_[color|rgb|alpha][Gen|Mod] <style> <parameters> */
-				else if(!Q_stricmp(token, "xmap_colorGen") || !Q_stricmp(token, "xmap_colorMod") ||
-						!Q_stricmp(token, "xmap_rgbGen") || !Q_stricmp(token, "xmap_rgbMod") ||
-						!Q_stricmp(token, "xmap_alphaGen") || !Q_stricmp(token, "xmap_alphaMod"))
+				/* ydnar: gs mods: q3map_[color|rgb|alpha][Gen|Mod] <style> <parameters> */
+				else if(!Q_stricmp(token, "q3map_colorGen") || !Q_stricmp(token, "q3map_colorMod") ||
+						!Q_stricmp(token, "q3map_rgbGen") || !Q_stricmp(token, "q3map_rgbMod") ||
+						!Q_stricmp(token, "q3map_alphaGen") || !Q_stricmp(token, "q3map_alphaMod"))
 				{
 					colorMod_t     *cm, *cm2;
 					int             alpha;
 
 
 					/* alphamods are colormod + 1 */
-					alpha = (!Q_stricmp(token, "xmap_alphaGen") || !Q_stricmp(token, "xmap_alphaMod")) ? 1 : 0;
+					alpha = (!Q_stricmp(token, "q3map_alphaGen") || !Q_stricmp(token, "q3map_alphaMod")) ? 1 : 0;
 
 					/* allocate new colormod */
 					cm = safe_malloc(sizeof(*cm));
@@ -1826,7 +1826,7 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: gs mods: xmap_tcMod <style> <parameters> */
-				else if(!Q_stricmp(token, "xmap_tcMod"))
+				else if(!Q_stricmp(token, "q3map_tcMod"))
 				{
 					float           a, b;
 
@@ -1867,74 +1867,74 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* xmap_fogDir (direction a fog shader fades from transparent to opaque) */
-				else if(!Q_stricmp(token, "xmap_fogDir"))
+				else if(!Q_stricmp(token, "q3map_fogDir"))
 				{
 					Parse1DMatrix(3, si->fogDir);
 					VectorNormalize2(si->fogDir, si->fogDir);
 				}
 
 				/* xmap_globaltexture */
-				else if(!Q_stricmp(token, "xmap_globaltexture"))
+				else if(!Q_stricmp(token, "q3map_globaltexture"))
 					si->globalTexture = qtrue;
 
 				/* ydnar: gs mods: xmap_nonplanar (make it a nonplanar merge candidate for meta surfaces) */
-				else if(!Q_stricmp(token, "xmap_nonplanar"))
+				else if(!Q_stricmp(token, "q3map_nonplanar"))
 					si->nonplanar = qtrue;
 
 				/* ydnar: gs mods: xmap_noclip (preserve original face winding, don't clip by bsp tree) */
-				else if(!Q_stricmp(token, "xmap_noclip"))
+				else if(!Q_stricmp(token, "q3map_noclip"))
 					si->noClip = qtrue;
 
 				/* xmap_notjunc */
-				else if(!Q_stricmp(token, "xmap_notjunc"))
+				else if(!Q_stricmp(token, "q3map_notjunc"))
 					si->notjunc = qtrue;
 
 				/* xmap_nofog */
-				else if(!Q_stricmp(token, "xmap_nofog"))
+				else if(!Q_stricmp(token, "q3map_nofog"))
 					si->noFog = qtrue;
 
 				/* ydnar: gs mods: xmap_indexed (for explicit terrain-style indexed mapping) */
-				else if(!Q_stricmp(token, "xmap_indexed"))
+				else if(!Q_stricmp(token, "q3map_indexed"))
 					si->indexed = qtrue;
 
 				/* ydnar: xmap_invert (inverts a drawsurface's facing) */
-				else if(!Q_stricmp(token, "xmap_invert"))
+				else if(!Q_stricmp(token, "q3map_invert"))
 					si->invert = qtrue;
 
 				/* ydnar: gs mods: xmap_lightmapMergable (ok to merge non-planar */
-				else if(!Q_stricmp(token, "xmap_lightmapMergable"))
+				else if(!Q_stricmp(token, "q3map_lightmapMergable"))
 					si->lmMergable = qtrue;
 
 				/* ydnar: xmap_nofast */
-				else if(!Q_stricmp(token, "xmap_noFast"))
+				else if(!Q_stricmp(token, "q3map_noFast"))
 					si->noFast = qtrue;
 
 				/* xmap_patchshadows */
-				else if(!Q_stricmp(token, "xmap_patchShadows"))
+				else if(!Q_stricmp(token, "q3map_patchShadows"))
 					si->patchShadows = qtrue;
 
 				/* xmap_vertexshadows */
-				else if(!Q_stricmp(token, "xmap_vertexShadows"))
+				else if(!Q_stricmp(token, "q3map_vertexShadows"))
 					si->vertexShadows = qtrue;	/* ydnar */
 
 				/* xmap_novertexshadows */
-				else if(!Q_stricmp(token, "xmap_noVertexShadows"))
+				else if(!Q_stricmp(token, "q3map_noVertexShadows"))
 					si->vertexShadows = qfalse;	/* ydnar */
 
 				/* xmap_splotchfix (filter dark lightmap luxels on lightmapped models) */
-				else if(!Q_stricmp(token, "xmap_splotchfix"))
+				else if(!Q_stricmp(token, "q3map_splotchfix"))
 					si->splotchFix = qtrue;	/* ydnar */
 
 				/* xmap_forcesunlight */
-				else if(!Q_stricmp(token, "xmap_forceSunlight"))
+				else if(!Q_stricmp(token, "q3map_forceSunlight"))
 					si->forceSunlight = qtrue;
 
 				/* xmap_onlyvertexlighting (sof2) */
-				else if(!Q_stricmp(token, "xmap_onlyVertexLighting"))
+				else if(!Q_stricmp(token, "q3map_onlyVertexLighting"))
 					ApplySurfaceParm("pointlight", &si->contentFlags, &si->surfaceFlags, &si->compileFlags);
 
 				/* xmap_material (sof2) */
-				else if(!Q_stricmp(token, "xmap_material"))
+				else if(!Q_stricmp(token, "q3map_material"))
 				{
 					GetToken(qfalse);
 					sprintf(temp, "*mat_%s", token);
@@ -1943,13 +1943,13 @@ static void ParseShaderFile(const char *filename)
 				}
 
 				/* ydnar: xmap_clipmodel (autogenerate clip brushes for model triangles using this shader) */
-				else if(!Q_stricmp(token, "xmap_clipmodel"))
+				else if(!Q_stricmp(token, "q3map_clipmodel"))
 					si->clipModel = qtrue;
 
 				/* ydnar: xmap_styleMarker[2] */
-				else if(!Q_stricmp(token, "xmap_styleMarker"))
+				else if(!Q_stricmp(token, "q3map_styleMarker"))
 					si->styleMarker = 1;
-				else if(!Q_stricmp(token, "xmap_styleMarker2"))	/* uses depthFunc equal */
+				else if(!Q_stricmp(token, "q3map_styleMarker2"))	/* uses depthFunc equal */
 					si->styleMarker = 2;
 
 				/* ydnar: default to searching for xmap_<surfaceparm> */
@@ -2146,7 +2146,7 @@ void LoadShaderInfo(void)
 	/* parse the shader files */
 	for(i = 0; i < numShaderFiles; i++)
 	{
-		sprintf(filename, "%s/%s.mtr", game->shaderPath, shaderFiles[i]);
+		sprintf(filename, "%s/%s.shader", game->shaderPath, shaderFiles[i]);
 		ParseShaderFile(filename);
 		free(shaderFiles[i]);
 	}

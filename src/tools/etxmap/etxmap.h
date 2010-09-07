@@ -1923,6 +1923,8 @@ Q_EXTERN game_t				games[]
 #else
 							=
 							{
+								#include "game_etxreal.h"
+								,
 								#include "game_xreal.h"
 								,
 								{ NULL }	/* null game */

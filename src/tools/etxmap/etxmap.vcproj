@@ -114,7 +114,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../.."
+			OutputDirectory="../../.."
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -874,6 +874,10 @@
 			>
 			<File
 				RelativePath=".\etxmap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\game_etxreal.h"
 				>
 			</File>
 			<File
