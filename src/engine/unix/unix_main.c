@@ -57,7 +57,7 @@ If you have questions concerning this license or the applicable additional terms
 // FIXME TTimo should we gard this? most *nix system should comply?
 #include <termios.h>
 
-#include "../shared/q_shared.h"
+#include "../../shared/q_shared.h"
 #include "../qcommon/qcommon.h"
 #include "../renderer/tr_public.h"
 

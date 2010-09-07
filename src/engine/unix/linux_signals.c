@@ -28,7 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include <signal.h>
 
-#include "../shared/q_shared.h"
+#include "../../shared/q_shared.h"
 #include "../qcommon/qcommon.h"
 #ifndef DEDICATED
 #include "../rendererGL3/tr_local.h"
