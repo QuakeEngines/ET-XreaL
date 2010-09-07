@@ -1,16 +1,81 @@
-Wolfenstein: Enemy Territory GPL source release
-===============================================
-test
+
+____  ___                     .____     
+\   \/  /______   ____ _____  |    |    
+ \     /\_  __ \_/ __ \\__  \ |    |    
+ /     \ |  | \/\  ___/ / __ \|    |___ 
+/___/\  \|__|    \___  >____  /_______ \
+      \_/            \/     \/        \/
+
+_________________________________________
+
+
+ET-XreaL Readme - http://sourceforge.net/projects/xreal
+
+Thank you for downloading ET-XreaL.
+
+
+
+_______________________________________
+
+CONTENTS
+_______________________________
+
+
+
 This file contains the following sections:
 
-GENERAL NOTES
-LICENSE
+	1) SYSTEM REQUIREMENTS
 
-GENERAL NOTES
-=============
+	2) LICENSE
 
-Game data and patching:
------------------------
+	3) GENERAL NOTES
+	
+	4) GETTING THE SOURCE CODE AND MEDIA
+
+	5) COMPILING ON WIN32 WITH VISUAL C++ 2008 EXPRESS EDITION
+
+	6) COMPILING ON GNU/LINUX
+	
+	7) CODE LICENSE EXCEPTIONS
+
+
+
+___________________________________
+
+1) SYSTEM REQUIREMENTS
+__________________________
+
+
+
+Minimum system requirements:
+
+	CPU: 2 GHz Intel compatible
+	System Memory: 512MB
+	Graphics card: GeForce 6600 GT or any other Shader Model 3.0 compatible GFX card 
+
+Recommended system requirements:
+
+	CPU: 3 GHz + Intel compatible
+	System Memory: 1024MB+
+	Graphics card: Geforce 8800 GT, ATI HD 4850 or higher. 
+
+
+
+
+_______________________________
+
+2) LICENSE
+______________________
+
+See COPYING.txt for all the legal stuff.
+
+
+
+_______________________________
+
+3) GENERAL NOTES
+______________________
+
 
 Wolfenstein: Enemy Territory is a free release, and can be downloaded from
 http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
@@ -20,39 +85,53 @@ covered by the original EULA and must be obeyed as usual.
 
 Install the latest version of the game for your platform to get the game data.
 
-Compiling on win32:
--------------------
 
-A Visual C++ 2008 project is provided in src\wolf.sln.
-The solution file is compatible with the Express release of Visual C++.
+____________________________________________
 
-In order to test your binaries, backup and remove Main\mp_bin.pk3, then replace
-WolfMP.exe, Main\qagame_mp_x86.dll, Main\cgame_mp_x86.dll, Main\ui_mp_x86.dll
-by your compiled versions. When starting the server make sure to specify
-'Pure Server: No' in the advanced settings page.
+4) GETTING THE SOURCE CODE AND MEDIA
+___________________________________
 
-Compiling on GNU/Linux x86:
----------------------------
+This project's SourceForge.net Git repository can be checked out through Git with the following instruction set: 
 
-Get scons from http://scons.org/ if your favorite distribution doesn't
-package it.
-
-run scons from the src/ directory. see scons --help for build options
-
-If any problems occur, consult the internet.
-
-Other platforms, updated source code, security issues:
-------------------------------------------------------
-
-If you have obtained this source code several weeks after the time of release
-(August 2010), it is likely that you can find modified and improved
-versions of the engine in various open source projects across the internet.
-Depending what is your interest with the source code, those may be a better
-starting point.
+git clone git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL
 
 
-LICENSE
-=======
+
+___________________________________________________________________
+
+5) COMPILING ON WIN32 WITH VISUAL C++ 2008 EXPRESS EDITION
+__________________________________________________________
+
+1. Download and install the Visual C++ 2008 Express Edition.
+2. Use the VC9 solutions to compile what you need:
+	ET-XreaL/src/wolf.sln
+	ET-XreaL/src/tools/etxmap/etxmap.sln
+	ET-XreaL/src/tools/etxradiant/ETXRadiant.sln
+
+
+__________________________________
+
+6) COMPILING ON GNU/LINUX
+_________________________
+
+You need the following dependencies in order to compile XreaL with all features:
+
+ 
+On Debian or Ubuntu:
+
+	> apt-get install libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
+
+Compile XreaL:
+	>scons or make
+
+Type scons -h for more compile options.
+
+
+
+____________________________________________________________________________________
+
+7) CODE LICENSE EXCEPTIONS - The parts that are not covered by the GPL:
+_______________________________________________________________________
 
 See COPYING.txt for the GNU GENERAL PUBLIC LICENSE
 
@@ -60,8 +139,9 @@ ADDITIONAL TERMS:  The Wolfenstein: Enemy Territory GPL Source Code is also subj
 
 EXCLUDED CODE:  The code described below and contained in the Wolfenstein: Enemy Territory GPL Source Code release is not part of the Program covered by the GPL and is expressly excluded from its terms.  You are solely responsible for obtaining from the copyright holder a license for such code and complying with the applicable license terms.
 
+
 IO on .zip files using portions of zlib
----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 lines	file(s)
 4301	src/qcommon/unzip.c
 Copyright (C) 1998 Gilles Vollant
@@ -158,3 +238,56 @@ FT2 library
 -----------------------------------------------------------------------------
 src/ft2
 The FT2 library is being used under the GPL v2 as indicated by its LICENSE.txt
+
+PNG library
+-----------------------------------------------------------------------------
+code/png
+Copyright (c) 2004, 2006 Glenn Randers-Pehrson
+
+Permission is hereby granted to use, copy, modify, and distribute this
+source code, or portions hereof, for any purpose, without fee, subject
+to the following restrictions:
+
+1. The origin of this source code must not be misrepresented.
+
+2. Altered versions must be plainly marked as such and must not
+   be misrepresented as being the original source.
+
+3. This Copyright notice may not be removed or altered from any
+   source or altered source distribution.
+
+The Contributing Authors and Group 42, Inc. specifically permit, without
+fee, and encourage the use of this source code as a component to
+supporting the PNG file format in commercial products.  If you use this
+source code in a product, acknowledgment is not required but would be
+appreciated.
+
+The PNG Reference Library is supplied "AS IS".  The Contributing Authors
+and Group 42, Inc. disclaim all warranties, expressed or implied,
+including, without limitation, the warranties of merchantability and of
+fitness for any purpose.  The Contributing Authors and Group 42, Inc.
+assume no liability for direct, indirect, incidental, special, exemplary,
+or consequential damages, which may result from the use of the PNG
+Reference Library, even if advised of the possibility of such damage.
+
+ZLIB library
+-----------------------------------------------------------------------------
+code/zlib
+(C) 1995-2004 Jean-loup Gailly and Mark Adler
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+
