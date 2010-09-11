@@ -29,7 +29,7 @@ egypt_trim_sd
 egypt_walls_sd
 egypt_windows_sd
 egypt_wood_sd
-eX
+#eX
 factory_sd
 fueldump
 gfx_2d
@@ -70,7 +70,7 @@ props_sd
 radar
 railgun_props
 railway_sd
-reflex_layout
+#reflex_layout
 rock
 rubble
 seawall_wall

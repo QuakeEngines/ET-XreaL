@@ -43,10 +43,30 @@ textures/common/ai_nosight_shoot_through
 	surfaceparm trans
 }
 
+//==============================================================================
+// portals
+//==============================================================================
+
+// visportal brushes stop the area flood fills in xmap and
+// define portals, separating the world into areas
+textures/common/areaportal
+{
+	qer_editorimage	textures/common/areaportal.tga
+	qer_trans 0.50
+
+	surfaceparm areaportal
+	surfaceparm nodraw
+	surfaceparm nomarks
+	surfaceparm nonsolid
+	surfaceparm structural
+	surfaceparm trans
+}
+
 textures/common/antiportal
 {
 	qer_nocarve
 	qer_trans 0.30
+
 	surfaceparm antiportal
 	surfaceparm nodraw
 	surfaceparm nonsolid
@@ -54,14 +74,17 @@ textures/common/antiportal
 	surfaceparm trans
 }
 
-textures/common/areaportal
+textures/editor/visportal
 {
-	surfaceparm areaportal
-	surfaceparm nodraw
-	surfaceparm nomarks
-	surfaceparm nonsolid
-	surfaceparm structural
-	surfaceparm trans
+	qer_editorimage	textures/common/visportal.tga
+	qer_trans 0.5
+	
+	nonsolid
+	noshadows
+	nomarks
+	nolightmap
+	//structural
+	//areaportal
 }
 
 textures/common/caulk
