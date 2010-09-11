@@ -369,7 +369,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 		return;
 	}
 
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 	Com_sprintf(fileName, sizeof(fileName), "fonts/%s_%i.dat", fontName, pointSize);
 #else
 	COM_StripExtension3(fontName, strippedName, sizeof(strippedName));
@@ -384,7 +384,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 		}
 	}
 
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 	len = ri.FS_ReadFile(fileName, NULL);
 	if(len == sizeof(fontInfo_t))
 	{

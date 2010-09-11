@@ -279,6 +279,7 @@ R_ProcessLightmap
 	returns maxIntensity
 ===============
 */
+#if defined(COMPAT_ET)
 float R_ProcessLightmap(byte ** pic, int in_padding, int width, int height, byte ** pic_out)
 {
 	int             j;
@@ -345,6 +346,7 @@ float R_ProcessLightmap(byte ** pic, int in_padding, int width, int height, byte
 
 	return maxIntensity;
 }
+#endif
 
 static int QDECL LightmapNameCompare(const void *a, const void *b)
 {
@@ -1393,7 +1395,7 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 #else
 		for(j = 0; j < 4; j++)
 		{
-			cv->verts[i].paintColor[j] = Q_clamp(LittleFloat(verts[i].paintColor[j]), 0.0f, 1.0f);
+			cv->verts[i].paintColor[j] = Q_bound(0, LittleFloat(verts[i].paintColor[j]), 1);
 			cv->verts[i].lightColor[j] = LittleFloat(verts[i].lightColor[j]);
 		}
 
@@ -1590,7 +1592,7 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 #else
 		for(j = 0; j < 4; j++)
 		{
-			points[i].paintColor[j] = Q_clamp(LittleFloat(verts[i].paintColor[j]), 0.0f, 1.0f);
+			points[i].paintColor[j] = Q_bound(0, LittleFloat(verts[i].paintColor[j]), 1);
 			points[i].lightColor[j] = LittleFloat(verts[i].lightColor[j]);
 		}
 
@@ -1697,7 +1699,7 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 #else
 		for(j = 0; j < 4; j++)
 		{
-			cv->verts[i].paintColor[j] = Q_clamp(LittleFloat(verts[i].paintColor[j]), 0.0f, 1.0f);
+			cv->verts[i].paintColor[j] = Q_bound(0, LittleFloat(verts[i].paintColor[j]), 1);
 			cv->verts[i].lightColor[j] = LittleFloat(verts[i].lightColor[j]);
 		}
 
@@ -5409,7 +5411,26 @@ void R_LoadLightGrid(lump_t * l)
 		tmpDirected[2] = in->directed[2];
 		tmpDirected[3] = 255;
 
-		
+		R_ColorShiftLightingBytes(tmpAmbient, tmpAmbient);
+		R_ColorShiftLightingBytes(tmpDirected, tmpDirected);
+
+		for(j = 0; j < 3; j++)
+		{
+			gridPoint->ambientColor[j] = tmpAmbient[j] * (1.0f / 255.0f);
+			gridPoint->directedColor[j] = tmpDirected[j] * (1.0f / 255.0f);
+		}
+#else
+		for(j = 0; j < 3; j++)
+		{
+
+			gridPoint->ambientColor[j] = LittleFloat(in->ambient[j]);
+			gridPoint->directedColor[j] = LittleFloat(in->directed[j]);
+		}
+#endif
+
+		gridPoint->ambientColor[3] = 1.0f;
+		gridPoint->directedColor[3] = 1.0f;
+
 		// standard spherical coordinates to cartesian coordinates conversion
 		
 		// decode X as cos( lat ) * sin( long )
@@ -5428,26 +5449,6 @@ void R_LoadLightGrid(lump_t * l)
 		gridPoint->direction[1] = sin(lat) * sin(lng);
 		gridPoint->direction[2] = cos(lng);
 
-		R_ColorShiftLightingBytes(tmpAmbient, tmpAmbient);
-		R_ColorShiftLightingBytes(tmpDirected, tmpDirected);
-
-		for(j = 0; j < 3; j++)
-		{
-			gridPoint->ambientColor[j] = tmpAmbient[j] * (1.0f / 255.0f);
-			gridPoint->directedColor[j] = tmpDirected[j] * (1.0f / 255.0f);
-		}
-#else
-		for(j = 0; j < 3; j++)
-		{
-
-			gridPoint->ambient[j] = LittleFloat(in->ambient[j]);
-			gridPoint->directed[j] = LittleFloat(in->directed[j]);
-		}
-#endif
-
-		gridPoint->ambientColor[3] = 1.0f;
-		gridPoint->directedColor[3] = 1.0f;
-
 #if 0
 		// debug print to see if the XBSP format is correct
 		ri.Printf(PRINT_ALL, "%9d Amb: (%03.1f %03.1f %03.1f) Dir: (%03.1f %03.1f %03.1f)\n",
@@ -5456,8 +5457,8 @@ void R_LoadLightGrid(lump_t * l)
 
 #if !defined(COMPAT_ET)
 		// deal with overbright bits
-		R_HDRTonemapLightingColors(gridPoint->ambient, out->ambient, qtrue);
-		R_HDRTonemapLightingColors(gridPoint->directed, out->directed, qtrue);
+		R_HDRTonemapLightingColors(gridPoint->ambientColor, gridPoint->ambientColor, qtrue);
+		R_HDRTonemapLightingColors(gridPoint->directedColor, gridPoint->directedColor, qtrue);
 #endif
 	}
 

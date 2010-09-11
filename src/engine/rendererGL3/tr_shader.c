@@ -5978,7 +5978,7 @@ static void ScanAndLoadShaderFiles(void)
 	ri.Printf(PRINT_ALL, "----- ScanAndLoadShaderFiles -----\n");
 
 	// scan for shader files
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 	shaderFiles = ri.FS_ListFiles("scripts", ".shader", &numShaders);
 #else
 	shaderFiles = ri.FS_ListFiles("materials", ".mtr", &numShaders);
@@ -5998,7 +5998,7 @@ static void ScanAndLoadShaderFiles(void)
 	// build single large buffer
 	for(i = 0; i < numShaders; i++)
 	{
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
@@ -6011,7 +6011,7 @@ static void ScanAndLoadShaderFiles(void)
 	// load in reverse order, so doubled shaders are overriden properly
 	for(i = numShaders - 1; i >= 0; i--)
 	{
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
@@ -6036,7 +6036,7 @@ static void ScanAndLoadShaderFiles(void)
 	size = 0;
 	for(i = 0; i < numShaders; i++)
 	{
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
@@ -6137,7 +6137,7 @@ static void ScanAndLoadShaderFiles(void)
 	//
 	for(i = 0; i < numShaders; i++)
 	{
-#if defined(COMPAT_ET)
+#if 1 //defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);

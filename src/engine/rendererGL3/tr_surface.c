@@ -459,7 +459,7 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 #if defined(COMPAT_ET)
 				attribBits |= ATTR_LIGHTCOORD;
 #else
-				attribBits |= ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION);
+				attribBits |= ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION;
 #endif
 			}
 

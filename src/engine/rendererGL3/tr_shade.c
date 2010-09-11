@@ -5630,8 +5630,10 @@ void Tess_StageIteratorGeneric()
 				break;
 		}
 
+#if defined(COMPAT_ET)
 		if(r_showLightMaps->integer && pStage->type == ST_LIGHTMAP)
 			break;
+#endif
 	}
 
 	// reset polygon offset
