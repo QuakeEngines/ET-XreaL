@@ -93,7 +93,7 @@ ___________________________________
 
 This project's SourceForge.net Git repository can be checked out through Git with the following instruction set: 
 
-git clone git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL
+	> git clone git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL
 
 
 
@@ -108,6 +108,9 @@ __________________________________________________________
 	ET-XreaL/src/tools/etxmap/etxmap.sln
 	ET-XreaL/src/tools/etxradiant/ETXRadiant.sln
 
+	To have the required Win32 dependencies to build the ETXRadiant copy them from the DarkRadiant Subversion repository:
+	
+	> svn export -r5171 https://darkradiant.svn.sourceforge.net/svnroot/darkradiant/trunk/w32deps/   ET-XreaL/src/tools/etxradiant/w32deps
 
 __________________________________
 
@@ -122,7 +125,8 @@ On Debian or Ubuntu:
 	> apt-get install libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
 
 Compile XreaL:
-	>scons or make
+	
+	> scons or make
 
 Type scons -h for more compile options.
 
