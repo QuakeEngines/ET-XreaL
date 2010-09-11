@@ -5,7 +5,7 @@
 #define RADIANT_VERSION "1.1.1"
 #endif
 
-#define RADIANT_APPNAME "XreaLRadiant"
+#define RADIANT_APPNAME "ETXRadiant"
 #define RADIANT_BLANK " "
 
 #if defined(_M_X64) || defined(__amd64__) || defined(_WIN64)

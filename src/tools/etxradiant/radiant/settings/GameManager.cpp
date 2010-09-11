@@ -308,7 +308,7 @@ void Manager::initEnginePath() {
 	
 	// Add the note to the preference page
 	PreferencesPagePtr page = GetPreferenceSystem().getPage("Game");
-	page->appendLabel("<b>Note</b>: You will have to restart XreaLRadiant for the changes to take effect.");
+	page->appendLabel("<b>Note</b>: You will have to restart ETXRadiant for the changes to take effect.");
 }
 
 bool Manager::settingsValid() const {

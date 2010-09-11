@@ -70,7 +70,7 @@ private:
 	{
 		if (remove(_filename.c_str()) == -1)
 		{
-			gtkutil::MessageBox box("XreaLRadiant", "WARNING: Could not delete " + _filename, ui::IDialog::MESSAGE_ERROR);
+			gtkutil::MessageBox box("ETXRadiant", "WARNING: Could not delete " + _filename, ui::IDialog::MESSAGE_ERROR);
 			box.run();
  		}
  	}

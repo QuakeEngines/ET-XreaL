@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mathlib", "mathlib.vcproj", "{3C9FB5AA-7118-476E-B33D-D3AC1C8412BB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XreaLRadiant", "XreaLRadiant.vcproj", "{8E70385C-223A-4DD1-9B99-28FF2331A2B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ETXRadiant", "ETXRadiant.vcproj", "{8E70385C-223A-4DD1-9B99-28FF2331A2B5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4286E605-5358-462F-AC57-44FCC697585B} = {4286E605-5358-462F-AC57-44FCC697585B}
 		{F7408B46-E4A9-470C-9731-9A1564247385} = {F7408B46-E4A9-470C-9731-9A1564247385}
@@ -17,6 +17,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XreaLRadiant", "XreaLRadian
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "archivezip", "archivezip.vcproj", "{A7E0FE03-E9BB-4478-9752-250BBD406C2D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BEC4EE48-0806-4E16-A16C-3E43D39763D6} = {BEC4EE48-0806-4E16-A16C-3E43D39763D6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eclassmgr", "eclassmgr.vcproj", "{4CF3ED90-BE1A-45D1-9DC7-7CC6884A9754}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -371,12 +374,10 @@ Global
 		{48F648E3-F761-4647-B9A7-63122A0B1F12}.Release|x64.ActiveCfg = Release|Win32
 		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Debug|Win32.ActiveCfg = Debug|Win32
 		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Debug|Win32.Build.0 = Debug|Win32
-		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Debug|x64.ActiveCfg = Debug|x64
-		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Debug|x64.Build.0 = Debug|x64
+		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Debug|x64.ActiveCfg = Debug|Win32
 		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Release|Win32.ActiveCfg = Release|Win32
 		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Release|Win32.Build.0 = Release|Win32
-		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Release|x64.ActiveCfg = Release|x64
-		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Release|x64.Build.0 = Release|x64
+		{9F3C61EC-51A7-4737-89EA-CBECBD8559F7}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,7 +6,7 @@
 namespace map {
 
 // InfoFile tokens --------------------------------------------------
-const std::string HEADER_SEQUENCE = "XreaLRadiant Map Information File Version";
+const std::string HEADER_SEQUENCE = "ETXRadiant Map Information File Version";
 const std::string NODE_TO_LAYER_MAPPING = "NodeToLayerMapping";
 const std::string LAYER = "Layer";
 const std::string LAYERS = "Layers";

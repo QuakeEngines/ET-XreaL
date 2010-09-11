@@ -95,7 +95,7 @@ PrefPagePtr PrefDialog::createOrFindPage(const std::string& path) {
 void PrefDialog::initDialog() {
 	
 	_dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(_dialog), "XreaLRadiant Preferences");
+	gtk_window_set_title(GTK_WINDOW(_dialog), "ETXRadiant Preferences");
 	gtk_window_set_modal(GTK_WINDOW(_dialog), TRUE);
 	gtk_window_set_position(GTK_WINDOW(_dialog), GTK_WIN_POS_CENTER);
 		
