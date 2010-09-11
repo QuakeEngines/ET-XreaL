@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="ETXmap"
+	Name="ETXMap"
 	ProjectGUID="{8ED67991-58A6-44AA-9B3A-3217085EF187}"
-	RootNamespace="ETXmap"
+	RootNamespace="ETXMap"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -39,7 +39,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/ETXmap.tlb"
+				TypeLibraryName=".\Debug/ETXMap.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -50,7 +50,7 @@
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="false"
-				PrecompiledHeaderFile=".\Debug/ETXmap.pch"
+				PrecompiledHeaderFile=".\Debug/ETXMap.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -75,15 +75,15 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="glib-2.0.lib wsock32.lib"
-				OutputFile="$(OutDir)/ETXmap.exe"
+				OutputFile="$(OutDir)/ETXMap.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\libs\glib\lib"
 				IgnoreDefaultLibraryNames="libcd"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/ETXmap.pdb"
+				ProgramDatabaseFile=".\Debug/ETXMap.pdb"
 				GenerateMapFile="true"
-				MapFileName=".\Debug/ETXmap.map"
+				MapFileName=".\Debug/ETXMap.map"
 				SubSystem="1"
 				StackReserveSize="4194304"
 				RandomizedBaseAddress="1"
@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/ETXmap.tlb"
+				TypeLibraryName=".\Release/ETXMap.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -152,7 +152,7 @@
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/ETXmap.pch"
+				PrecompiledHeaderFile=".\Release/ETXMap.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -177,13 +177,13 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="glib-2.0.lib  wsock32.lib"
-				OutputFile="$(OutDir)/ETXmap.exe"
+				OutputFile="$(OutDir)/ETXMap.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\libs\glib\lib"
-				ProgramDatabaseFile=".\Release/ETXmap.pdb"
+				ProgramDatabaseFile=".\Release/ETXMap.pdb"
 				GenerateMapFile="true"
-				MapFileName=".\Release/ETXmap.map"
+				MapFileName=".\Release/ETXMap.map"
 				SubSystem="1"
 				StackReserveSize="4194304"
 				RandomizedBaseAddress="1"
