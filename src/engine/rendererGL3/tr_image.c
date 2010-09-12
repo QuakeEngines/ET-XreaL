@@ -3136,13 +3136,13 @@ void R_CreateBuiltinImages(void)
 	}
 
 	out = &data[0][0][0];
-	for(y = 0; y < 8; y++)
+	for(y = 0; y < DEFAULT_SIZE; y++)
 	{
-		for(x = 0; x < 32; x++, out += 4)
+		for(x = 0; x < DEFAULT_SIZE; x++, out += 4)
 		{
-			s = (((float)x + 0.5f) * (2.0f / 32) - 1.0f);
+			s = (((float)x + 0.5f) * (2.0f / DEFAULT_SIZE) - 1.0f);
 
-			s = Q_fabs(s) - (1.0f / 32);
+			s = Q_fabs(s) - (1.0f / DEFAULT_SIZE);
 
 			value = 1.0f - (s * 2.0f) + (s * s);
 
