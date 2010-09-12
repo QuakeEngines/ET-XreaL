@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -54,13 +54,13 @@ static void ExpandLongestCurve(float *longestCurve, vec3_t a, vec3_t b, vec3_t c
 
 	/* calc vectors */
 	VectorSubtract(b, a, ab);
-	if(VectorNormalize2(ab, ab) < 0.125f)
+	if(VectorNormalize(ab) < 0.125f)
 		return;
 	VectorSubtract(c, b, bc);
-	if(VectorNormalize2(bc, bc) < 0.125f)
+	if(VectorNormalize(bc) < 0.125f)
 		return;
 	VectorSubtract(c, a, ac);
-	if(VectorNormalize2(ac, ac) < 0.125f)
+	if(VectorNormalize(ac) < 0.125f)
 		return;
 
 	/* if all 3 vectors are the same direction, then this edge is linear, so we ignore it */
@@ -177,9 +177,9 @@ static void ExpandMaxIterations(int *maxIterations, int maxError, vec3_t a, vec3
 	{
 		/* create vectors */
 		VectorSubtract(points[i + 1], points[i], delta);
-		len = VectorNormalize2(delta, delta);
+		len = VectorNormalize(delta);
 		VectorSubtract(points[i + 2], points[i + 1], delta2);
-		len2 = VectorNormalize2(delta2, delta2);
+		len2 = VectorNormalize(delta2);
 
 		/* if either edge is degenerate, then eliminate it */
 		if(len < 0.0625f || len2 < 0.0625f || DotProduct(delta, delta2) >= 1.0f)
@@ -300,7 +300,7 @@ void ParsePatch(qboolean onlyLights, qboolean patchDef3)
 	for(i = 1; i < j && delta[3] == 0; i++)
 	{
 		VectorSubtract(m.verts[0].xyz, m.verts[i].xyz, delta);
-		delta[3] = VectorNormalize2(delta, delta);
+		delta[3] = VectorNormalize(delta);
 	}
 
 	/* secondary degenerate test */
@@ -312,7 +312,7 @@ void ParsePatch(qboolean onlyLights, qboolean patchDef3)
 		for(i = 1; i < j && degenerate == qtrue; i++)
 		{
 			VectorSubtract(m.verts[0].xyz, m.verts[i].xyz, delta2);
-			delta2[3] = VectorNormalize2(delta2, delta2);
+			delta2[3] = VectorNormalize(delta2);
 			if(delta2[3] != 0)
 			{
 				/* create inverse vector */

@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -409,6 +409,10 @@ void CreateEntityLights(void)
 		else
 			light->color[0] = light->color[1] = light->color[2] = 1.0f;
 
+		light->extraDist = FloatForKey(e, "_extradist");
+		if(light->extraDist == 0.0f)
+			light->extraDist = extraDist;
+
 		intensity = intensity * pointScale;
 		light->photons = intensity;
 
@@ -753,7 +757,9 @@ int LightContributionToSample(trace_t * trace)
 	float           angle;
 	float           add;
 	float           dist;
-
+	float           addDeluxe = 0.0f, addDeluxeBounceScale = 0.25f;
+	qboolean        angledDeluxe = qfalse;
+	float           colorBrightness;
 
 	/* get light */
 	light = trace->light;
@@ -761,6 +767,9 @@ int LightContributionToSample(trace_t * trace)
 	/* clear color */
 	VectorClear(trace->color);
 	VectorClear(trace->colorNoShadow);
+	VectorClear(trace->directionContribution);
+
+	colorBrightness = RGBTOGRAY(light->color) * (1.0f / 255.0f);
 
 	/* ydnar: early out */
 	if(!(light->flags & LIGHT_SURFACES) || light->envelope <= 0.0f)
@@ -800,7 +809,7 @@ int LightContributionToSample(trace_t * trace)
 		}
 
 		/* nudge the point so that it is clearly forward of the light */
-		/* so that surfaces meeting a light emiter don't get black edges */
+		/* so that surfaces meeting a light emitter don't get black edges */
 		if(d > -8.0f && d < 8.0f)
 			VectorMA(trace->origin, (8.0f - d), light->normal, pushedOrigin);
 		else
@@ -828,7 +837,21 @@ int LightContributionToSample(trace_t * trace)
 				return 0;
 			else if(angle < 0.0f && (trace->twoSided || (light->flags & LIGHT_TWOSIDED)))
 				angle = -angle;
+
+			/* clamp the distance to prevent super hot spots */
+			dist = sqrt(dist * dist + light->extraDist * light->extraDist);
+			if(dist < 16.0f)
+				dist = 16.0f;
+
 			add = light->photons / (dist * dist) * angle;
+
+			if(deluxemap)
+			{
+				if(angledDeluxe)
+					addDeluxe = light->photons / (dist * dist) * angle;
+				else
+					addDeluxe = light->photons / (dist * dist);
+			}
 		}
 		else
 		{
@@ -855,6 +878,9 @@ int LightContributionToSample(trace_t * trace)
 
 			/* ydnar: moved to here */
 			add = factor * light->add;
+
+			if(deluxemap)
+				addDeluxe = add;
 		}
 	}
 
@@ -868,11 +894,39 @@ int LightContributionToSample(trace_t * trace)
 			return 0;
 
 		/* clamp the distance to prevent super hot spots */
+		dist = sqrt(dist * dist + light->extraDist * light->extraDist);
 		if(dist < 16.0f)
 			dist = 16.0f;
 
 		/* angle attenuation */
-		angle = (light->flags & LIGHT_ATTEN_ANGLE) ? DotProduct(trace->normal, trace->direction) : 1.0f;
+		if(light->flags & LIGHT_ATTEN_ANGLE)
+		{
+			/* standard Lambert attenuation */
+			float           dot = DotProduct(trace->normal, trace->direction);
+
+			/* twosided lighting */
+			if(trace->twoSided)
+				dot = fabs(dot);
+
+			/* jal: optional half Lambert attenuation (http://developer.valvesoftware.com/wiki/Half_Lambert) */
+			if(lightAngleHL)
+			{
+				if(dot > 0.001f)	// skip coplanar
+				{
+					if(dot > 1.0f)
+						dot = 1.0f;
+					dot = (dot * 0.5f) + 0.5f;
+					dot *= dot;
+				}
+				else
+					dot = 0;
+			}
+
+			angle = dot;
+		}
+		else
+			angle = 1.0f;
+
 		if(light->angleScale != 0.0f)
 		{
 			angle /= light->angleScale;
@@ -880,19 +934,41 @@ int LightContributionToSample(trace_t * trace)
 				angle = 1.0f;
 		}
 
-		/* twosided lighting */
-		if(trace->twoSided)
-			angle = fabs(angle);
-
 		/* attenuate */
 		if(light->flags & LIGHT_ATTEN_LINEAR)
 		{
 			add = angle * light->photons * linearScale - (dist * light->fade);
 			if(add < 0.0f)
 				add = 0.0f;
+
+			if(deluxemap)
+			{
+				if(angledDeluxe)
+					addDeluxe = angle * light->photons * linearScale - (dist * light->fade);
+				else
+					addDeluxe = light->photons * linearScale - (dist * light->fade);
+
+				if(addDeluxe < 0.0f)
+					addDeluxe = 0.0f;
+			}
 		}
 		else
-			add = light->photons / (dist * dist) * angle;
+		{
+			add = (light->photons / (dist * dist)) * angle;
+			if(add < 0.0f)
+				add = 0.0f;
+
+			if(deluxemap)
+			{
+				if(angledDeluxe)
+					addDeluxe = (light->photons / (dist * dist)) * angle;
+				else
+					addDeluxe = (light->photons / (dist * dist));
+			}
+
+			if(addDeluxe < 0.0f)
+				addDeluxe = 0.0f;
+		}
 
 		/* handle spotlights */
 		if(light->type == EMIT_SPOT)
@@ -915,7 +991,16 @@ int LightContributionToSample(trace_t * trace)
 
 			/* attenuate */
 			if(sampleRadius > (radiusAtDist - 32.0f))
+			{
 				add *= ((radiusAtDist - sampleRadius) / 32.0f);
+				if(add < 0.0f)
+					add = 0.0f;
+
+				addDeluxe *= ((radiusAtDist - sampleRadius) / 32.0f);
+
+				if(addDeluxe < 0.0f)
+					addDeluxe = 0.0f;
+			}
 		}
 	}
 
@@ -927,19 +1012,64 @@ int LightContributionToSample(trace_t * trace)
 		dist = SetupTrace(trace);
 
 		/* angle attenuation */
-		angle = (light->flags & LIGHT_ATTEN_ANGLE) ? DotProduct(trace->normal, trace->direction) : 1.0f;
+		if(light->flags & LIGHT_ATTEN_ANGLE)
+		{
+			/* standard Lambert attenuation */
+			float           dot = DotProduct(trace->normal, trace->direction);
 
-		/* twosided lighting */
-		if(trace->twoSided)
-			angle = fabs(angle);
+			/* twosided lighting */
+			if(trace->twoSided)
+				dot = fabs(dot);
+
+			/* jal: optional half Lambert attenuation (http://developer.valvesoftware.com/wiki/Half_Lambert) */
+			if(lightAngleHL)
+			{
+				if(dot > 0.001f)	// skip coplanar
+				{
+					if(dot > 1.0f)
+						dot = 1.0f;
+					dot = (dot * 0.5f) + 0.5f;
+					dot *= dot;
+				}
+				else
+					dot = 0;
+			}
+
+			angle = dot;
+		}
+		else
+			angle = 1.0f;
 
 		/* attenuate */
 		add = light->photons * angle;
+
+		if(deluxemap)
+		{
+			if(angledDeluxe)
+				addDeluxe = light->photons * angle;
+			else
+				addDeluxe = light->photons;
+
+			if(addDeluxe < 0.0f)
+				addDeluxe = 0.0f;
+		}
+
 		if(add <= 0.0f)
 			return 0;
 
 		/* VorteX: set noShadow color */
 		VectorScale(light->color, add, trace->colorNoShadow);
+
+		addDeluxe *= colorBrightness;
+
+		if(bouncing)
+		{
+			addDeluxe *= addDeluxeBounceScale;
+			if(addDeluxe < 0.00390625f)
+				addDeluxe = 0.00390625f;
+		}
+
+		VectorScale(trace->direction, addDeluxe, trace->directionContribution);
 
 		/* setup trace */
 		trace->testAll = qtrue;
@@ -953,6 +1083,8 @@ int LightContributionToSample(trace_t * trace)
 			if(!(trace->compileFlags & C_SKY) || trace->opaque)
 			{
 				VectorClear(trace->color);
+				VectorClear(trace->directionContribution);
+
 				return -1;
 			}
 		}
@@ -968,6 +1100,29 @@ int LightContributionToSample(trace_t * trace)
 	if(add <= 0.0f || (add <= light->falloffTolerance && (light->flags & LIGHT_FAST_ACTUAL)))
 		return 0;
 
+	addDeluxe *= colorBrightness;
+
+	/* hack land: scale down the radiosity contribution to light directionality.
+	   Deluxemaps fusion many light directions into one. In a rtl process all lights
+	   would contribute individually to the bump map, so several light sources together
+	   would make it more directional (example: a yellow and red lights received from
+	   opposing sides would light one side in red and the other in blue, adding
+	   the effect of 2 directions applied. In the deluxemapping case, this 2 lights would
+	   neutralize each other making it look like having no direction.
+	   Same thing happens with radiosity. In deluxemapping case the radiosity contribution
+	   is modifying the direction applied from directional lights, making it go closer and closer
+	   to the surface normal the bigger is the amount of radiosity received.
+	   So, for preserving the directional lights contributions, we scale down the radiosity
+	   contribution. It's a hack, but there's a reason behind it */
+	if(bouncing)
+	{
+		addDeluxe *= addDeluxeBounceScale;
+		if(addDeluxe < 0.00390625f)
+			addDeluxe = 0.00390625f;
+	}
+
+	VectorScale(trace->direction, addDeluxe, trace->directionContribution);
+
 	/* setup trace */
 	trace->testAll = qfalse;
 	VectorScale(light->color, add, trace->color);
@@ -977,6 +1132,8 @@ int LightContributionToSample(trace_t * trace)
 	if(trace->passSolid || trace->opaque)
 	{
 		VectorClear(trace->color);
+		VectorClear(trace->directionContribution);
+
 		return -1;
 	}
 
@@ -1116,6 +1273,7 @@ int LightContributionToPoint(trace_t * trace)
 	if(light->type == EMIT_AREA && faster)
 	{
 		/* clamp the distance to prevent super hot spots */
+		dist = sqrt(dist * dist + light->extraDist * light->extraDist);
 		if(dist < 16.0f)
 			dist = 16.0f;
 
@@ -1162,6 +1320,7 @@ int LightContributionToPoint(trace_t * trace)
 	else if(light->type == EMIT_POINT || light->type == EMIT_SPOT)
 	{
 		/* clamp the distance to prevent super hot spots */
+		dist = sqrt(dist * dist + light->extraDist * light->extraDist);
 		if(dist < 16.0f)
 			dist = 16.0f;
 
@@ -1261,26 +1420,26 @@ grid samples are for quickly determining the lighting
 of dynamically placed entities in the world
 */
 
-#define	MAX_CONTRIBUTIONS	1024
+#define	MAX_CONTRIBUTIONS	32768
 
 typedef struct
 {
 	vec3_t          dir;
 	vec3_t          color;
+	vec3_t          ambient;
 	int             style;
 }
 contribution_t;
 
 void TraceGrid(int num)
 {
-	int             i, j, x, y, z, mod, step, numCon, numStyles;
-	float           d;
-	vec3_t          baseOrigin, cheapColor, color;
+	int             i, j, x, y, z, mod, numCon, numStyles;
+	float           d, step;
+	vec3_t          baseOrigin, cheapColor, color, thisdir;
 	rawGridPoint_t *gp;
 	bspGridPoint_t *bgp;
 	contribution_t  contributions[MAX_CONTRIBUTIONS];
 	trace_t         trace;
-
 
 	/* get grid points */
 	gp = &rawGridPoints[num];
@@ -1312,38 +1471,21 @@ void TraceGrid(int num)
 	{
 		/* try to nudge the origin around to find a valid point */
 		VectorCopy(trace.origin, baseOrigin);
-		for(step = 9; step <= 18; step += 9)
+		for(step = 0; (step += 0.005) <= 1.0;)
 		{
-			for(i = 0; i < 8; i++)
-			{
-				VectorCopy(baseOrigin, trace.origin);
-				if(i & 1)
-					trace.origin[0] += step;
-				else
-					trace.origin[0] -= step;
+			VectorCopy(baseOrigin, trace.origin);
+			trace.origin[0] += step * (Random() - 0.5) * gridSize[0];
+			trace.origin[1] += step * (Random() - 0.5) * gridSize[1];
+			trace.origin[2] += step * (Random() - 0.5) * gridSize[2];
 
-				if(i & 2)
-					trace.origin[1] += step;
-				else
-					trace.origin[1] -= step;
-
-				if(i & 4)
-					trace.origin[2] += step;
-				else
-					trace.origin[2] -= step;
-
-				/* ydnar: changed to find cluster num */
-				trace.cluster = ClusterForPointExt(trace.origin, VERTEX_EPSILON);
-				if(trace.cluster >= 0)
-					break;
-			}
-
-			if(i != 8)
+			/* ydnar: changed to find cluster num */
+			trace.cluster = ClusterForPointExt(trace.origin, VERTEX_EPSILON);
+			if(trace.cluster >= 0)
 				break;
 		}
 
 		/* can't find a valid point at all */
-		if(step > 18)
+		if(step > 1.0)
 			return;
 	}
 
@@ -1378,6 +1520,7 @@ void TraceGrid(int num)
 		/* add a contribution */
 		VectorCopy(trace.color, contributions[numCon].color);
 		VectorCopy(trace.direction, contributions[numCon].dir);
+		VectorClear(contributions[numCon].ambient);
 		contributions[numCon].style = trace.light->style;
 		numCon++;
 
@@ -1399,22 +1542,19 @@ void TraceGrid(int num)
 	//do our floodlight ambient occlusion loop, and add a single contribution based on the brightest dir
 	if(floodlighty)
 	{
-		int             q;
+		int             k;
 		float           addSize, f;
-		vec3_t          col, dir;
-
-		col[0] = col[1] = col[2] = floodlightIntensity;
-		dir[0] = dir[1] = 0;
-		dir[2] = 1;
+		vec3_t          dir = { 0, 0, 1 };
+		float           ambientFrac = 0.25f;
 
 		trace.testOcclusion = qtrue;
 		trace.forceSunlight = qfalse;
 		trace.inhibitRadius = DEFAULT_INHIBIT_RADIUS;
 		trace.testAll = qtrue;
 
-		for(q = 0; q < 2; q++)
+		for(k = 0; k < 2; k++)
 		{
-			if(q == 0)			//upper hemisphere
+			if(k == 0)			// upper hemisphere
 			{
 				trace.normal[0] = 0;
 				trace.normal[1] = 0;
@@ -1429,33 +1569,43 @@ void TraceGrid(int num)
 
 			f = FloodLightForSample(&trace, floodlightDistance, floodlight_lowquality);
 
-			contributions[numCon].color[0] = col[0] * f;
-			contributions[numCon].color[1] = col[1] * f;
-			contributions[numCon].color[2] = col[2] * f;
+			/* add a fraction as pure ambient, half as top-down direction */
+			contributions[numCon].color[0] = floodlightRGB[0] * floodlightIntensity * f * (1.0f - ambientFrac);
+			contributions[numCon].color[1] = floodlightRGB[1] * floodlightIntensity * f * (1.0f - ambientFrac);
+			contributions[numCon].color[2] = floodlightRGB[2] * floodlightIntensity * f * (1.0f - ambientFrac);
+
+			contributions[numCon].ambient[0] = floodlightRGB[0] * floodlightIntensity * f * ambientFrac;
+			contributions[numCon].ambient[1] = floodlightRGB[1] * floodlightIntensity * f * ambientFrac;
+			contributions[numCon].ambient[2] = floodlightRGB[2] * floodlightIntensity * f * ambientFrac;
 
 			contributions[numCon].dir[0] = dir[0];
 			contributions[numCon].dir[1] = dir[1];
 			contributions[numCon].dir[2] = dir[2];
 
 			contributions[numCon].style = 0;
-			numCon++;
+
 			/* push average direction around */
-			addSize = VectorLength(col);
+			addSize = VectorLength(contributions[numCon].color);
 			VectorMA(gp->dir, addSize, dir, gp->dir);
+
+			numCon++;
 		}
 	}
 	/////////////////////
 
 	/* normalize to get primary light direction */
-	VectorNormalize(gp->dir);
+	VectorNormalize2(gp->dir, thisdir);
 
 	/* now that we have identified the primary light direction,
 	   go back and separate all the light into directed and ambient */
+
 	numStyles = 1;
 	for(i = 0; i < numCon; i++)
 	{
 		/* get relative directed strength */
-		d = DotProduct(contributions[i].dir, gp->dir);
+		d = DotProduct(contributions[i].dir, thisdir);
+		/* we map 1 to gridDirectionality, and 0 to gridAmbientDirectionality */
+		d = gridAmbientDirectionality + d * (gridDirectionality - gridAmbientDirectionality);
 		if(d < 0.0f)
 			d = 0.0f;
 
@@ -1493,15 +1643,32 @@ void TraceGrid(int num)
 		/* (Hobbes: always setting it to .25 is hardly any better) */
 		d = 0.25f * (1.0f - d);
 		VectorMA(gp->ambient[j], d, contributions[i].color, gp->ambient[j]);
+
+		VectorAdd(gp->ambient[j], contributions[i].ambient, gp->ambient[j]);
+
+/*
+ * div0:
+ * the total light average = ambient value + 0.25 * sum of all directional values
+ * we can also get the total light average as 0.25 * the sum of all contributions
+ *
+ * 0.25 * sum(contribution_i) == ambient + 0.25 * sum(d_i contribution_i)
+ *
+ * THIS YIELDS:
+ * ambient == 0.25 * sum((1 - d_i) contribution_i)
+ *
+ * So, 0.25f * (1.0f - d) IS RIGHT. If you want to tune it, tune d BEFORE.
+ */
 	}
 
 
 	/* store off sample */
 	for(i = 0; i < MAX_LIGHTMAPS; i++)
 	{
+#if 0
 		/* do some fudging to keep the ambient from being too low (2003-07-05: 0.25 -> 0.125) */
 		if(!bouncing)
 			VectorMA(gp->ambient[i], 0.125f, gp->directed[i], gp->ambient[i]);
+#endif
 
 		/* set minimum light and copy off to bytes */
 		VectorCopy(gp->ambient[i], color);
@@ -1524,8 +1691,7 @@ void TraceGrid(int num)
 #endif
 
 	/* store direction */
-	if(!bouncing)
-		NormalToLatLong(gp->dir, bgp->latLong);
+	NormalToLatLong(thisdir, bgp->latLong);
 }
 
 
@@ -1635,7 +1801,7 @@ void LightWorld(void)
 	vec3_t          color;
 	float           f;
 	int             b, bt;
-	qboolean        minVertex, minGrid;
+	qboolean        minVertex, minGrid, ps;
 	const char     *value;
 
 
@@ -1709,7 +1875,9 @@ void LightWorld(void)
 		SetupEnvelopes(qtrue, fastgrid);
 
 		Sys_Printf("--- TraceGrid ---\n");
+		inGrid = qtrue;
 		RunThreadsOnIndividual(numRawGridPoints, qtrue, TraceGrid);
+		inGrid = qfalse;
 		Sys_Printf("%d x %d x %d = %d grid\n", gridBounds[0], gridBounds[1], gridBounds[2], numBSPGridPoints);
 
 		/* ydnar: emit statistics on light culling */
@@ -1800,7 +1968,9 @@ void LightWorld(void)
 			gridBoundsCulled = 0;
 
 			Sys_Printf("--- BounceGrid ---\n");
+			inGrid = qtrue;
 			RunThreadsOnIndividual(numRawGridPoints, qtrue, TraceGrid);
+			inGrid = qfalse;
 			Sys_FPrintf(SYS_VRB, "%9d grid points envelope culled\n", gridEnvelopeCulled);
 			Sys_FPrintf(SYS_VRB, "%9d grid points bounds culled\n", gridBoundsCulled);
 		}
@@ -1878,6 +2048,10 @@ int LightMain(int argc, char **argv)
 
 	gridAmbientScale = game->gridAmbientScale;
 	Sys_Printf(" lightgrid ambient scale: %f\n", gridAmbientScale);
+
+	lightAngleHL = game->lightAngleHL;
+	if(lightAngleHL)
+		Sys_Printf(" half lambert light angle attenuation enabled \n");
 
 	noStyles = game->noStyles;
 	if(noStyles == qtrue)
@@ -1965,6 +2139,30 @@ int LightMain(int argc, char **argv)
 			f = atof(argv[i + 1]);
 			Sys_Printf("Grid ambient lightning scaled by %f\n", f);
 			gridAmbientScale *= f;
+			i++;
+		}
+
+		else if(!strcmp(argv[i], "-griddirectionality"))
+		{
+			f = atof(argv[i + 1]);
+			if(f < 0)
+				f = 0;
+			if(f > gridAmbientDirectionality)
+				f = gridAmbientDirectionality;
+			Sys_Printf("Grid directionality is %f\n", f);
+			gridDirectionality *= f;
+			i++;
+		}
+
+		else if(!strcmp(argv[i], "-gridambientdirectionality"))
+		{
+			f = atof(argv[i + 1]);
+			if(f > gridDirectionality)
+				f = gridDirectionality;
+			if(f > 1)
+				f = 1;
+			Sys_Printf("Grid ambient directionality is %f\n", f);
+			gridAmbientDirectionality *= f;
 			i++;
 		}
 
@@ -2155,6 +2353,15 @@ int LightMain(int argc, char **argv)
 			/* -game should already be set */
 			wolfLight = qfalse;
 			Sys_Printf("Enabling Quake 3 lighting model (nonlinear default)\n");
+		}
+
+		else if(!strcmp(argv[i], "-extradist"))
+		{
+			extraDist = atof(argv[i + 1]);
+			if(extraDist < 0)
+				extraDist = 0;
+			i++;
+			Sys_Printf("Default extra radius set to %f units\n", extraDist);
 		}
 
 		else if(!strcmp(argv[i], "-sunonly"))
@@ -2390,6 +2597,17 @@ int LightMain(int argc, char **argv)
 		{
 			loMem = qtrue;
 			Sys_Printf("Enabling low-memory (potentially slower) lighting mode\n");
+		}
+		else if(!strcmp(argv[i], "-lightanglehl"))
+		{
+			if((atoi(argv[i + 1]) != 0) != lightAngleHL)
+			{
+				lightAngleHL = (atoi(argv[i + 1]) != 0);
+				if(lightAngleHL)
+					Sys_Printf("Enabling half lambert light angle attenuation\n");
+				else
+					Sys_Printf("Disabling half lambert light angle attenuation\n");
+			}
 		}
 		else if(!strcmp(argv[i], "-nostyle") || !strcmp(argv[i], "-nostyles"))
 		{

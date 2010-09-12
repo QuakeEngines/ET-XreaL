@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -568,7 +568,7 @@ void InjectCommandLine(char **argv, int beginArgs, int endArgs)
 	char           *sentinel = newCommandLine + sizeof(newCommandLine) - 1;
 	int             i;
 
-	previousCommandLine = ValueForKey(&entities[0], "_xmap2_cmdline");
+	previousCommandLine = ValueForKey(&entities[0], "_etq3map_cmdline");
 	if(previousCommandLine && *previousCommandLine)
 	{
 		inpos = previousCommandLine;
@@ -591,8 +591,8 @@ void InjectCommandLine(char **argv, int beginArgs, int endArgs)
 	}
 
 	*outpos = 0;
-	SetKeyValue(&entities[0], "_xmap2_cmdline", newCommandLine);
-	SetKeyValue(&entities[0], "_xmap2_version", XMAP_VERSION);
+	SetKeyValue(&entities[0], "_etq3map_cmdline", newCommandLine);
+	SetKeyValue(&entities[0], "_etq3map_version", Q3MAP_VERSION);
 }
 
 /*

@@ -29,13 +29,13 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* marker */
-#ifndef XMAP2_H
-#define XMAP2_H
+#ifndef Q3MAP2_H
+#define Q3MAP2_H
 
 
 
 /* version */
-#define XMAP_VERSION	"2.5.17"
+#define Q3MAP_VERSION	"0.9.0"
 
 
 
@@ -77,8 +77,7 @@ dependencies
 #include "inout.h"
 #include "vfs.h"
 #include "png.h"
-//#include "mhash.h"
-
+#include "md4.h"
 #include <stdlib.h>
 
 
@@ -285,6 +284,9 @@ constants
 #define SUPER_DIRT( x, y )		(lm->superNormals + ((((y) * lm->sw) + (x)) * SUPER_NORMAL_SIZE) + 3)	/* stash dirtyness in normal[ 3 ] */
 #define SUPER_FLOODLIGHT( x, y )	(lm->superFloodLight + ((((y) * lm->sw) + (x)) * SUPER_FLOODLIGHT_SIZE) )
 
+
+#define	RGBTOGRAY(v)		( (v)[0] * 0.3f + (v)[1] * 0.59f + (v)[2] * 0.11f)
+#define	RGBTOLUMINANCE(v)	( (v)[0] * 0.2125f + (v)[1] * 0.7154f + (v)[2] * 0.0721f)
 
 
 /* -------------------------------------------------------------------------------
@@ -525,7 +527,7 @@ general types
 typedef char    qb_t;
 
 
-/* ydnar: for xmap_tcMod */
+/* ydnar: for q3map_tcMod */
 typedef float   tcMod_t[3][3];
 
 
@@ -565,6 +567,7 @@ typedef struct game_s
 	float           lightmapCompensate;	/* default lightmap compensate value */
 	float           gridScale;	/* vortex: default lightgrid scale (affects both directional and ambient spectres) */
 	float           gridAmbientScale;	/* vortex: default lightgrid ambient spectre scale */
+	qboolean        lightAngleHL;	/* jal: use half-lambert curve for light angle attenuation */
 	qboolean        noStyles;	/* use lightstyles hack or not */
 	qboolean        keepLights;	/* keep light entities on bsp */
 	int             patchSubdivisions;	/* default patch subdivisions tolerance */
@@ -728,9 +731,9 @@ typedef struct shaderInfo_s
 	qb_t            nonplanar;	/* ydnar: for nonplanar meta surface merging */
 	qb_t            tcGen;		/* ydnar: has explicit texcoord generation */
 	vec3_t          vecs[2];	/* ydnar: explicit texture vectors for [0,1] texture space */
-	tcMod_t         mod;		/* ydnar: xmap_tcMod matrix for djbob :) */
+	tcMod_t         mod;		/* ydnar: q3map_tcMod matrix for djbob :) */
 	vec3_t          lightmapAxis;	/* ydnar: explicit lightmap axis projection */
-	colorMod_t     *colorMod;	/* ydnar: xmap_rgb/color/alpha/Set/Mod support */
+	colorMod_t     *colorMod;	/* ydnar: q3map_rgb/color/alpha/Set/Mod support */
 
 	int             furNumLayers;	/* ydnar: number of fur layers */
 	float           furOffset;	/* ydnar: offset of each layer */
@@ -752,6 +755,7 @@ typedef struct shaderInfo_s
 	qb_t            noFog;		/* ydnar: supress fogging */
 	qb_t            clipModel;	/* ydnar: solid model hack */
 	qb_t            noVertexLight;	/* ydnar: leave vertex color alone */
+	qb_t            noDirty;	/* jal: do not apply the dirty pass to this surface */
 
 	byte            styleMarker;	/* ydnar: light styles hack */
 
@@ -794,6 +798,7 @@ typedef struct shaderInfo_s
 
 	vec3_t          fogDir;		/* ydnar */
 
+	char           *shaderText;	/* ydnar */
 	qb_t            explicit;	/* Tr3B: .mtr material was found */
 	qb_t            custom;
 	qb_t            finished;
@@ -1017,7 +1022,7 @@ typedef struct mapDrawSurface_s
 
 	qboolean        fur;		/* ydnar: this is kind of a hack, but hey... */
 	qboolean        skybox;		/* ydnar: yet another fun hack */
-	qboolean        backSide;	/* ydnar: xmap_backShader support */
+	qboolean        backSide;	/* ydnar: q3map_backShader support */
 
 	struct mapDrawSurface_s *parent;	/* ydnar: for cloned (skybox) surfaces to share lighting data */
 	struct mapDrawSurface_s *clone;	/* ydnar: for cloned surfaces */
@@ -1307,6 +1312,7 @@ typedef struct light_s
 	float           radiusByDist;	/* for spotlights */
 	float           fade;		/* ydnar: from wolf, for linear lights */
 	float           angleScale;	/* ydnar: stolen from vlight for K */
+	float           extraDist;	/* "extra dimension" distance of the light, to kill hot spots */
 
 	float           add;		/* ydnar: used for area lights */
 	float           envelope;	/* ydnar: units until falloff < tolerance */
@@ -1353,6 +1359,7 @@ typedef struct
 	/* input and output */
 	vec3_t          color;		/* starts out at full color, may be reduced if transparent surfaces are crossed */
 	vec3_t          colorNoShadow;	/* result color with no shadow casting */
+	vec3_t          directionContribution;	/* result contribution to the deluxe map */
 
 	/* output */
 	vec3_t          hit;
@@ -2139,6 +2146,7 @@ light global variables
 
 /* commandline arguments */
 Q_EXTERN qboolean			wolfLight Q_ASSIGN( qfalse );
+Q_EXTERN float				extraDist Q_ASSIGN( 0.0f );
 Q_EXTERN qboolean			loMem Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			noStyles Q_ASSIGN( qfalse );
 
@@ -2216,9 +2224,15 @@ Q_EXTERN float				areaScale Q_ASSIGN( 0.25f );
 Q_EXTERN float				skyScale Q_ASSIGN( 1.0f );
 Q_EXTERN float				bounceScale Q_ASSIGN( 0.25f );
 
+/* jal: alternative angle attenuation curve */
+Q_EXTERN qboolean			lightAngleHL Q_ASSIGN( qfalse );
+ 
 /* vortex: gridscale and gridambientscale */
 Q_EXTERN float				gridScale Q_ASSIGN( 1.0f );
 Q_EXTERN float				gridAmbientScale Q_ASSIGN( 1.0f );
+Q_EXTERN float				gridDirectionality Q_ASSIGN( 1.0f );
+Q_EXTERN float				gridAmbientDirectionality Q_ASSIGN( 0.0f );
+Q_EXTERN qboolean			inGrid Q_ASSIGN(0);
 
 /* ydnar: lightmap gamma/compensation */
 Q_EXTERN float				lightmapGamma Q_ASSIGN( 1.0f );

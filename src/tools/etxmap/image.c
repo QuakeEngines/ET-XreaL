@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -402,7 +402,7 @@ image_t        *ImageLoad(const char *filename)
 			LoadPNGBuffer(buffer, &image->pixels, &image->width, &image->height);
 		else
 		{
-#if 0
+#if 1
 			/* attempt to load jpg */
 			StripExtension(name);
 			strcat(name, ".jpg");

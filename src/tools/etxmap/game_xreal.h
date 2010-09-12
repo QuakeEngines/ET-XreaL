@@ -40,6 +40,8 @@ content and surface flags
 
 ------------------------------------------------------------------------------- */
 
+// *INDENT-OFF*
+
 /* game flags */
 #define Q_CONT_SOLID				1			/* an eye is never valid in a solid */
 #define Q_CONT_LAVA					8
@@ -126,6 +128,7 @@ game_t struct
 	1.0f,				/* lightmap compensate */
 	1.0f,				/* lightgrid scale */
 	1.0f,				/* lightgrid ambient scale */
+	qfalse,				/* light angle attenuation uses half-lambert curve */
 	qtrue,				/* disable shader lightstyles hack */
 	qtrue,				/* keep light entities on bsp */
 	8,					/* default patchMeta subdivisions tolerance */

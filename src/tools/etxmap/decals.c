@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -62,14 +62,14 @@ static vec3_t   entityOrigin;
 
 
 /*
-DVectorNormalize2()
+DVectorNormalize()
 normalizes a vector, returns the length, operates using doubles
 */
 
 typedef double  dvec_t;
 typedef dvec_t  dvec3_t[3];
 
-dvec_t DVectorNormalize2(dvec3_t in, dvec3_t out)
+dvec_t DVectorNormalize(dvec3_t in, dvec3_t out)
 {
 	dvec_t          len, ilen;
 
@@ -173,7 +173,7 @@ static qboolean MakeTextureMatrix(decalProjector_t * dp, vec4_t projection, bspD
 
 		/* calculate transform axis */
 		for(i = 0; i < 3; i++)
-			lengths[i] = DVectorNormalize2(vecs[i], axis[i]);
+			lengths[i] = DVectorNormalize(vecs[i], axis[i]);
 		for(i = 0; i < 2; i++)
 			for(j = 0; j < 3; j++)
 				dp->texMat[i][j] = lengths[i] > 0.0 ? (axis[i][j] / lengths[i]) : 0.0;

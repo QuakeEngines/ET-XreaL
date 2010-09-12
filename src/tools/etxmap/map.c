@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -1060,7 +1060,7 @@ static void ParseRawBrush(qboolean onlyLights)
 		   was previously the content flags. and only then did a single bit matter, the detail
 		   bit. because every game has its own special flags for specifying detail, the
 		   traditionally game-specified CONTENTS_DETAIL flag was overridden for Q3Map 2.3.0
-		   by C_DETAIL, defined in xmap2.h. the value is exactly as it was before, but
+		   by C_DETAIL, defined in q3map2.h. the value is exactly as it was before, but
 		   is stored in compileFlags, as opposed to contentFlags, for multiple-game
 		   portability. :sigh:
 		 */

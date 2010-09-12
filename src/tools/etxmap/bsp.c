@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -667,10 +667,10 @@ void OnlyEnts(void)
 	LoadBSPFile(out);
 
 	ParseEntities();
-	p = ValueForKey(&entities[0], "_xmap2_cmdline");
+	p = ValueForKey(&entities[0], "_q3map2_cmdline");
 	strncpy(save_cmdline, p, sizeof(save_cmdline));
 	save_cmdline[sizeof(save_cmdline) - 1] = 0;
-	p = ValueForKey(&entities[0], "_xmap2_version");
+	p = ValueForKey(&entities[0], "_q3map2_version");
 	strncpy(save_version, p, sizeof(save_version));
 	save_version[sizeof(save_version) - 1] = 0;
 
@@ -682,9 +682,9 @@ void OnlyEnts(void)
 	//% Tr3B: SetLightStyles();
 
 	if(*save_cmdline)
-		SetKeyValue(&entities[0], "_xmap2_cmdline", save_cmdline);
+		SetKeyValue(&entities[0], "_q3map2_cmdline", save_cmdline);
 	if(*save_version)
-		SetKeyValue(&entities[0], "_xmap2_version", save_version);
+		SetKeyValue(&entities[0], "_q3map2_version", save_version);
 
 	numBSPEntities = numEntities;
 	UnparseEntities();

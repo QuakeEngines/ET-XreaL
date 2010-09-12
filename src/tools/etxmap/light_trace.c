@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -69,7 +69,7 @@ traceVert_t;
 typedef struct traceInfo_s
 {
 	shaderInfo_t   *si;
-	int             surfaceNum, castShadows;
+	int             surfaceNum, castShadows, skipGrid;
 }
 traceInfo_t;
 
@@ -139,7 +139,8 @@ static int AddTraceInfo(traceInfo_t * ti)
 	for(num = firstTraceInfo; num < numTraceInfos; num++)
 	{
 		if(traceInfos[num].si == ti->si &&
-		   traceInfos[num].surfaceNum == ti->surfaceNum && traceInfos[num].castShadows == ti->castShadows)
+		   traceInfos[num].surfaceNum == ti->surfaceNum &&
+		   traceInfos[num].castShadows == ti->castShadows && traceInfos[num].skipGrid == ti->skipGrid)
 			return num;
 	}
 
@@ -968,6 +969,7 @@ static void PopulateWithBSPModel(bspModel_t * model, matrix_t transform)
 		ti.si = info->si;
 		ti.castShadows = info->castShadows;
 		ti.surfaceNum = model->firstBSPBrush + i;
+		ti.skipGrid = (ds->surfaceType == MST_PATCH);
 
 		/* choose which node (normal or skybox) */
 		if(info->parentSurfaceNum >= 0)
@@ -1136,6 +1138,7 @@ static void PopulateWithPicoModel(int castShadows, picoModel_t * model, matrix_t
 		/* setup trace info */
 		ti.castShadows = castShadows;
 		ti.surfaceNum = -1;
+		ti.skipGrid = qtrue;	// also ignore picomodels when skipping patches
 
 		/* setup trace winding */
 		memset(&tw, 0, sizeof(tw));
@@ -1454,6 +1457,13 @@ qboolean TraceTriangle(traceInfo_t * ti, traceTriangle_t * tt, trace_t * trace)
 	else
 	{
 		if(abs(ti->castShadows) != abs(trace->recvShadows))
+			return qfalse;
+	}
+
+	/* skip patches when doing the grid (FIXME this is an ugly hack) */
+	if(inGrid)
+	{
+		if(ti->skipGrid)
 			return qfalse;
 	}
 

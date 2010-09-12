@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -562,7 +562,7 @@ int MiniMapBSPMain(int argc, char **argv)
 	if(argc < 2)
 	{
 		Sys_Printf
-			("Usage: xmap2 [-v] -minimap [-size n] [-sharpen f] [-samples n | -random n] [-o filename.png] [-minmax Xmin Ymin Zmin Xmax Ymax Zmax] <mapname>\n");
+			("Usage: etxmap [-v] -minimap [-size n] [-sharpen f] [-samples n | -random n] [-o filename.png] [-minmax Xmin Ymin Zmin Xmax Ymax Zmax] <mapname>\n");
 		return 0;
 	}
 
@@ -827,7 +827,7 @@ int FixAAS(int argc, char **argv)
 	/* arg checking */
 	if(argc < 2)
 	{
-		Sys_Printf("Usage: xmap -fixaas [-v] <mapname>\n");
+		Sys_Printf("Usage: etxmap -fixaas [-v] <mapname>\n");
 		return 0;
 	}
 
@@ -938,7 +938,7 @@ int AnalyzeBSP(int argc, char **argv)
 	/* arg checking */
 	if(argc < 1)
 	{
-		Sys_Printf("Usage: xmap -analyze [-lumpswap] [-v] <mapname>\n");
+		Sys_Printf("Usage: etxmap -analyze [-lumpswap] [-v] <mapname>\n");
 		return 0;
 	}
 
@@ -1203,7 +1203,7 @@ int ScaleBSPMain(int argc, char **argv)
 	/* arg checking */
 	if(argc < 3)
 	{
-		Sys_Printf("Usage: xmap2 [-v] -scale [-tex] <value> <mapname>\n");
+		Sys_Printf("Usage: etxmap [-v] -scale [-tex] <value> <mapname>\n");
 		return 0;
 	}
 
@@ -1220,7 +1220,7 @@ int ScaleBSPMain(int argc, char **argv)
 
 	if(scale[0] == 0.0f || scale[1] == 0.0f || scale[2] == 0.0f)
 	{
-		Sys_Printf("Usage: xmap2 [-v] -scale [-tex] <value> <mapname>\n");
+		Sys_Printf("Usage: etxmap [-v] -scale [-tex] <value> <mapname>\n");
 		Sys_Printf("Non-zero scale value required.\n");
 		return 0;
 	}
@@ -1438,7 +1438,7 @@ int ConvertBSPMain(int argc, char **argv)
 	/* arg checking */
 	if(argc < 1)
 	{
-		Sys_Printf("Usage: xmap2 -scale <value> [-v] <mapname>\n");
+		Sys_Printf("Usage: etxmap -scale <value> [-v] <mapname>\n");
 		return 0;
 	}
 
@@ -1515,7 +1515,7 @@ int ConvertBSPMain(int argc, char **argv)
 
 /*
 main()
-xmap2 mojo...
+q3map mojo...
 */
 
 int main(int argc, char **argv)
@@ -1531,7 +1531,7 @@ int main(int argc, char **argv)
 	start = I_FloatTime();
 
 	/* this was changed to emit version number over the network */
-	printf(XMAP_VERSION "\n");
+	printf(Q3MAP_VERSION "\n");
 
 	/* set exit call */
 	atexit(ExitQ3Map);
@@ -1604,12 +1604,12 @@ int main(int argc, char **argv)
 		//% Sys_Printf( "Jitter %4d: %f\n", i, jitters[ i ] );
 	}
 
-	/* we print out two versions, xmap's main version (since it evolves a bit out of GtkRadiant)
+	/* we print out two versions, q3map's main version (since it evolves a bit out of GtkRadiant)
 	   and we put the GtkRadiant version to make it easy to track with what version of Radiant it was built with */
 
 	Sys_Printf("q3map          - v1.0r (c) 1999-2006 Id Software Inc.\n");
 	Sys_Printf("q3map2 (ydnar) - v2.5.16\n");
-	Sys_Printf("xmap2  (Tr3B)  - v" XMAP_VERSION "\n");
+	Sys_Printf("etxmap (Tr3B)  - v" Q3MAP_VERSION "\n");
 //  Sys_Printf("GtkRadiant    - v" RADIANT_VERSION " " __DATE__ " " __TIME__ "\n");
 
 	/* ydnar: new path initialization */

@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -97,7 +97,7 @@ void FinishSurface(mapDrawSurface_t * ds)
 	if(ds->shaderInfo->cloneShader != NULL && ds->shaderInfo->cloneShader[0] != '\0')
 		CloneSurface(ds, ShaderInfoForShader(ds->shaderInfo->cloneShader));
 
-	/* ydnar: xmap_backShader support */
+	/* ydnar: q3map_backShader support */
 	if(ds->shaderInfo->backShader != NULL && ds->shaderInfo->backShader[0] != '\0')
 	{
 		ds2 = CloneSurface(ds, ShaderInfoForShader(ds->shaderInfo->backShader));

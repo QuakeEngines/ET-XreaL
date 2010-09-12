@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -841,6 +841,9 @@ void RadLight(int num)
 	/* find nodraw bit */
 	contentFlags = surfaceFlags = compileFlags = 0;
 	ApplySurfaceParm("nodraw", &contentFlags, &surfaceFlags, &compileFlags);
+
+	// jal : avoid bouncing on trans surfaces
+	ApplySurfaceParm("trans", &contentFlags, &surfaceFlags, &compileFlags);
 
 	/* early outs? */
 	if(scale <= 0.0f || (si->compileFlags & C_SKY) || si->autosprite ||

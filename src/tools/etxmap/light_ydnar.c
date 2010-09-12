@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -1551,7 +1551,7 @@ float DirtForSample(trace_t * trace)
 	VectorCopy(trace->normal, normal);
 
 	/* check if the normal is aligned to the world-up */
-	if(normal[0] == 0.0f && normal[1] == 0.0f)
+	if(normal[0] == 0.0f && normal[1] == 0.0f && (normal[2] == 1.0f || normal[2] == -1.0f))
 	{
 		if(normal[2] == 1.0f)
 		{
@@ -1568,9 +1568,9 @@ float DirtForSample(trace_t * trace)
 	{
 		VectorSet(worldUp, 0.0f, 0.0f, 1.0f);
 		CrossProduct(normal, worldUp, myRt);
-		VectorNormalize2(myRt, myRt);
+		VectorNormalize(myRt);
 		CrossProduct(myRt, normal, myUp);
-		VectorNormalize2(myUp, myUp);
+		VectorNormalize(myUp);
 	}
 
 	/* 1 = random mode, 0 (well everything else) = non-random mode */
@@ -1672,6 +1672,7 @@ void DirtyRawLightmap(int rawLightmapNum)
 	rawLightmap_t  *lm;
 	surfaceInfo_t  *info;
 	trace_t         trace;
+	qboolean        noDirty;
 
 
 	/* bail if this number exceeds the number of raw lightmaps */
@@ -1705,6 +1706,20 @@ void DirtyRawLightmap(int rawLightmapNum)
 		}
 	}
 
+	noDirty = qfalse;
+	for(i = 0; i < trace.numSurfaces; i++)
+	{
+		/* get surface */
+		info = &surfaceInfos[trace.surfaces[i]];
+
+		/* check twosidedness */
+		if(info->si->noDirty)
+		{
+			noDirty = qtrue;
+			break;
+		}
+	}
+
 	/* gather dirt */
 	for(y = 0; y < lm->sh; y++)
 	{
@@ -1722,6 +1737,13 @@ void DirtyRawLightmap(int rawLightmapNum)
 			/* only look at mapped luxels */
 			if(*cluster < 0)
 				continue;
+
+			/* don't apply dirty on this surface */
+			if(noDirty)
+			{
+				*dirt = 1.0f;
+				continue;
+			}
 
 			/* copy to trace */
 			trace.cluster = *cluster;
@@ -2221,23 +2243,13 @@ void IlluminateRawLightmap(int rawLightmapNum)
 						LightContributionToSample(&trace);
 						VectorCopy(trace.color, lightLuxel);
 
+						/* add the contribution to the deluxemap */
+						if(deluxemap)
+							VectorAdd(deluxel, trace.directionContribution, deluxel);
+
 						/* add to count */
 						if(trace.color[0] || trace.color[1] || trace.color[2])
 							totalLighted++;
-					}
-
-					/* add to light direction map (fixme: use luxel normal as starting point for deluxel?) */
-					if(deluxemap)
-					{
-						if(DotProduct(normal, trace.direction) > 0)	// do not take light from the back side
-						{
-							/* color to grayscale (photoshop rgb weighting) */
-							//brightness = brightness = DotProduct(trace.color, LUMINANCE_VECTOR) + 0.0001f;
-							brightness = trace.colorNoShadow[0] * 0.3f + trace.colorNoShadow[1] * 0.59f + trace.colorNoShadow[2] * 0.11f;
-							brightness *= (1.0 / 255.0);
-							VectorScale(trace.direction, brightness, trace.direction);
-							VectorAdd(deluxel, trace.direction, deluxel);
-						}
 					}
 				}
 			}
@@ -2471,7 +2483,8 @@ void IlluminateRawLightmap(int rawLightmapNum)
 	FreeTraceLights(&trace);
 
 	/* floodlight pass */
-	FloodlightIlluminateLightmap(lm);
+	if(floodlighty)
+		FloodlightIlluminateLightmap(lm);
 
 	if(debugnormals)
 	{
@@ -2569,6 +2582,7 @@ void IlluminateRawLightmap(int rawLightmapNum)
 				   (lm->splotchFix &&
 					(luxel[0] <= ambientColor[0] || luxel[1] <= ambientColor[1] || luxel[2] <= ambientColor[2])))
 					filterColor = qtrue;
+
 				if(deluxemap && lightmapNum == 0 && (*cluster < 0 || filter))
 					filterDir = qtrue;
 
@@ -2695,6 +2709,8 @@ void IlluminateVertexes(int num)
 	rawLightmap_t  *lm;
 	bspDrawVert_t  *verts;
 	trace_t         trace;
+	float           floodLightAmount;
+	vec3_t          floodColor;
 
 
 	/* get surface, info, and raw lightmap */
@@ -2776,10 +2792,20 @@ void IlluminateVertexes(int num)
 					VectorCopy(verts[i].normal, trace.normal);
 
 					/* r7 dirt */
-					if(dirty)
+					if(dirty && !bouncing)
 						dirt = DirtForSample(&trace);
 					else
 						dirt = 1.0f;
+
+					/* jal: floodlight */
+					floodLightAmount = 0.0f;
+					VectorClear(floodColor);
+					if(floodlighty && !bouncing)
+					{
+						floodLightAmount =
+							floodlightIntensity * FloodLightForSample(&trace, floodlightDistance, floodlight_lowquality);
+						VectorScale(floodlightRGB, floodLightAmount, floodColor);
+					}
 
 					/* trace */
 					LightingAtSample(&trace, ds->vertexStyles, colors);
@@ -2789,6 +2815,9 @@ void IlluminateVertexes(int num)
 					{
 						/* r7 dirt */
 						VectorScale(colors[lightmapNum], dirt, colors[lightmapNum]);
+
+						/* jal: floodlight */
+						VectorAdd(colors[lightmapNum], floodColor, colors[lightmapNum]);
 
 						/* store */
 						radVertLuxel = RAD_VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
@@ -2838,6 +2867,9 @@ void IlluminateVertexes(int num)
 								{
 									/* r7 dirt */
 									VectorScale(colors[lightmapNum], dirt, colors[lightmapNum]);
+
+									/* jal: floodlight */
+									VectorAdd(colors[lightmapNum], floodColor, colors[lightmapNum]);
 
 									/* store */
 									radVertLuxel = RAD_VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
@@ -4041,7 +4073,7 @@ float FloodLightForSample(trace_t * trace, float floodLightDistance, qboolean fl
 	VectorCopy(trace->normal, normal);
 
 	/* check if the normal is aligned to the world-up */
-	if(normal[0] == 0.0f && normal[1] == 0.0f)
+	if(normal[0] == 0.0f && normal[1] == 0.0f && (normal[2] == 1.0f || normal[2] == -1.0f))
 	{
 		if(normal[2] == 1.0f)
 		{
@@ -4281,7 +4313,7 @@ void FloodLightRawLightmap(int rawLightmapNum)
 
 	/* global pass */
 	if(floodlighty && floodlightIntensity)
-		FloodLightRawLightmapPass(lm, floodlightRGB, floodlightIntensity, floodlightDistance, floodlight_lowquality, 0);
+		FloodLightRawLightmapPass(lm, floodlightRGB, floodlightIntensity, floodlightDistance, floodlight_lowquality, 1.0f);
 
 	/* custom pass */
 	if(lm->floodlightIntensity)
@@ -4310,7 +4342,6 @@ void FloodlightIlluminateLightmap(rawLightmap_t * lm)
 	float          *luxel, *floodlight, *deluxel, *normal;
 	int            *cluster;
 	float           brightness;
-	vec3_t          lightvector;
 	int             x, y, lightmapNum;
 
 	/* walk lightmaps */
@@ -4352,9 +4383,15 @@ void FloodlightIlluminateLightmap(rawLightmap_t * lm)
 				/* add to deluxemap */
 				if(deluxemap && floodlight[3] > 0)
 				{
+					vec3_t          lightvector;
+
 					normal = SUPER_NORMAL(x, y);
-					brightness = floodlight[0] * 0.3f + floodlight[1] * 0.59f + floodlight[2] * 0.11f;
-					brightness *= (1.0f / 255.0f) * floodlight[3];
+					brightness = RGBTOGRAY(floodlight) * (1.0f / 255.0f) * floodlight[3];
+
+					// use AT LEAST this amount of contribution from ambient for the deluxemap, fixes points that receive ZERO light
+					if(brightness < 0.00390625f)
+						brightness = 0.00390625f;
+
 					VectorScale(normal, brightness, lightvector);
 					VectorAdd(deluxel, lightvector, deluxel);
 				}

@@ -301,6 +301,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\common\md4.c"
+					>
+				</File>
+				<File
+					RelativePath="..\common\md4.h"
+					>
+				</File>
+				<File
 					RelativePath="..\common\mutex.c"
 					>
 				</File>
@@ -873,15 +881,15 @@
 			Filter="h"
 			>
 			<File
-				RelativePath=".\etxmap.h"
-				>
-			</File>
-			<File
 				RelativePath=".\game_etxreal.h"
 				>
 			</File>
 			<File
 				RelativePath=".\game_xreal.h"
+				>
+			</File>
+			<File
+				RelativePath=".\q3map2.h"
 				>
 			</File>
 		</Filter>

@@ -34,7 +34,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* dependencies */
-#include "etxmap.h"
+#include "q3map2.h"
 
 
 
@@ -578,7 +578,7 @@ void WriteXBSPFile(const char *filename)
 
 	/* add marker lump */
 	time(&t);
-	sprintf(marker, "I LOVE MY XMAP2 %s on %s)", XMAP_VERSION, asctime(localtime(&t)));
+	sprintf(marker, "I LOVE MY ETXMAP %s on %s)", Q3MAP_VERSION, asctime(localtime(&t)));
 	AddLump(file, (bspHeader_t *) header, 0, marker, strlen(marker) + 1);
 
 	/* add lumps */
