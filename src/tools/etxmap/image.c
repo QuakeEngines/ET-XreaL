@@ -402,7 +402,7 @@ image_t        *ImageLoad(const char *filename)
 			LoadPNGBuffer(buffer, &image->pixels, &image->width, &image->height);
 		else
 		{
-#if 1
+#if 0
 			/* attempt to load jpg */
 			StripExtension(name);
 			strcat(name, ".jpg");
