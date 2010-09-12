@@ -214,7 +214,7 @@ ydnar: changed to allow a number of test points to be supplied that
 must be within an epsilon distance of the plane
 */
 // *INDENT-OFF*
-int FindFloatPlane(vec3_t normal, vec_t dist, int numPoints, vec3_t * points)
+int FindFloatPlane(vec3_t innormal, vec_t dist, int numPoints, vec3_t * points)
 #ifdef USE_HASHING
 {
 	int             i, j, hash, h;
@@ -222,12 +222,14 @@ int FindFloatPlane(vec3_t normal, vec_t dist, int numPoints, vec3_t * points)
 	plane_t        *p;
 	vec_t           d;
 	vec3_t          centerofweight;
+	vec3_t          normal;
 
 	VectorClear(centerofweight);
 	for(i = 0; i < numPoints; ++i)
 		VectorMA(centerofweight, 1.0 / numPoints, points[i], centerofweight);
 
 	/* hash the plane */
+	VectorCopy(innormal, normal);
 	SnapPlane(normal, &dist, centerofweight);
 	hash = (PLANE_HASHES - 1) & (int)fabs(dist);
 
@@ -268,6 +270,7 @@ int FindFloatPlane(vec3_t normal, vec_t dist, int numPoints, vec3_t * points)
 {
 	int             i;
 	plane_t        *p;
+	vec3_t          normal;
 
 
 	vec3_t          centerofweight;
@@ -276,6 +279,7 @@ int FindFloatPlane(vec3_t normal, vec_t dist, int numPoints, vec3_t * points)
 	for(i = 0; i < numPoints; ++i)
 		VectorMA(centerofweight, 1.0 / numPoints, points[i], centerofweight);
 
+	VectorCopy(innormal, normal);
 	SnapPlane(normal, &dist, centerofweight);
 	for(i = 0, p = mapplanes; i < nummapplanes; i++, p++)
 	{
