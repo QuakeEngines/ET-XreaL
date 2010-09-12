@@ -2031,6 +2031,7 @@ static void ParseShaderFile(const char *filename)
 			while(TokenAvailable() && GetTokenAppend(shaderText, qfalse));
 		}
 
+#if 0
 		if(!si->hasPasses && si->implicitMap == IM_NONE)
 		{
 			Sys_FPrintf(SYS_VRB, "shader '%s' has no passes\n", si->shader);
@@ -2038,7 +2039,7 @@ static void ParseShaderFile(const char *filename)
 			ApplySurfaceParm("nomarks", &si->contentFlags, &si->surfaceFlags, &si->compileFlags);
 			ApplySurfaceParm("nolightmap", &si->contentFlags, &si->surfaceFlags, &si->compileFlags);
 
-			if(!(si->compileFlags & (C_COLLISION | C_FOG)))
+			if(!(si->compileFlags & (C_COLLISION | C_FOG)) && !si->legacyTerrain && !si->forceMeta)
 			{
 				ApplySurfaceParm("nodraw", &si->contentFlags, &si->surfaceFlags, &si->compileFlags);
 			}
@@ -2048,6 +2049,7 @@ static void ParseShaderFile(const char *filename)
 				ApplySurfaceParm("translucent", &si->contentFlags, &si->surfaceFlags, &si->compileFlags);
 			}
 		}
+#endif
 	}
 }
 
