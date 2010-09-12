@@ -1254,11 +1254,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 		}
 		else if(samples == 4)
 		{
-			if(image->bits & IF_INTENSITY)
-			{
-				internalFormat = GL_INTENSITY8;
-			}
-			else if(image->bits & IF_ALPHA)
+			if(image->bits & IF_ALPHA)
 			{
 				internalFormat = GL_ALPHA8;
 			}
@@ -1645,7 +1641,6 @@ static void ParseHeightMap(char **text, byte ** pic, int *width, int *height, in
 
 	R_HeightMapToNormalMap(*pic, *width, *height, scale);
 
-	*bits &= ~IF_INTENSITY;
 	*bits &= ~IF_ALPHA;
 	*bits |= IF_NORMALMAP;
 }
@@ -1706,7 +1701,6 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 
 	ri.Free(pic2);
 
-	*bits &= ~IF_INTENSITY;
 	*bits &= ~IF_ALPHA;
 	*bits |= IF_NORMALMAP;
 	*bits |= IF_DISPLACEMAP;
@@ -1768,7 +1762,6 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 
 	ri.Free(pic2);
 
-	*bits &= ~IF_INTENSITY;
 	*bits &= ~IF_ALPHA;
 	*bits |= IF_NORMALMAP;
 }
@@ -1856,7 +1849,6 @@ static void ParseMakeIntensity(char **text, byte ** pic, int *width, int *height
 
 	R_MakeIntensity(*pic, *width, *height);
 
-//	*bits |= IF_INTENSITY;
 	*bits &= ~IF_ALPHA;
 	*bits &= ~IF_NORMALMAP;
 }
@@ -1888,7 +1880,6 @@ static void ParseMakeAlpha(char **text, byte ** pic, int *width, int *height, in
 
 	R_MakeAlpha(*pic, *width, *height);
 
-	*bits &= ~IF_INTENSITY;
 //	*bits |= IF_ALPHA;
 	*bits &= IF_NORMALMAP;
 }
