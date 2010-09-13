@@ -799,7 +799,6 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 		Q_strncpyz(mapName, bspName, sizeof(mapName));
 		COM_StripExtension3(mapName, mapName, sizeof(mapName));
 
-#if !defined(USE_D3D10)
 		if(tr.worldHDR_RGBE)
 		{
 			// we are about to upload textures
@@ -938,7 +937,6 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			}
 		}
 		else
-#endif
 		{
 			lightmapFiles = ri.FS_ListFiles(mapName, ".png", &numLightmaps);
 
@@ -5645,6 +5643,19 @@ void R_LoadEntities(lump_t * l)
 			tr.worldDeluxeMapping = qtrue;
 			continue;
 		}
+
+		// check for deluxe mapping provided by NetRadiant's q3map2
+		if(!Q_stricmp(keyname, "_q3map2_cmdline"))
+		{
+			s = strstr(value, "-deluxe");
+			if(s)
+			{
+				ri.Printf(PRINT_ALL, "map features directional light mapping\n");
+				tr.worldDeluxeMapping = qtrue;
+			}
+			continue;
+		}
+
 
 		// check for HDR light mapping support
 		if(!Q_stricmp(keyname, "hdrRGBE") && !Q_stricmp(value, "1"))
