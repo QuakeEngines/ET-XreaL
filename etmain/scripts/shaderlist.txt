@@ -29,7 +29,6 @@ egypt_trim_sd
 egypt_walls_sd
 egypt_windows_sd
 egypt_wood_sd
-#eX
 factory_sd
 fueldump
 gfx_2d
@@ -70,7 +69,6 @@ props_sd
 radar
 railgun_props
 railway_sd
-#reflex_layout
 rock
 rubble
 seawall_wall
@@ -105,3 +103,10 @@ wood
 xlab_door
 xlab_props
 xlab_wall
+
+
+# XreaL BEGIN
+#eX
+#reflex_layout
+#tr3b_parallax
+# XreaL END
