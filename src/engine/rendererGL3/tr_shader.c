@@ -1419,7 +1419,7 @@ static qboolean LoadMap(shaderStage_t * stage, char *buffer)
 		stage->bundle[0].image[0] = tr.flatImage;
 		return qtrue;
 	}
-#if defined(COMPAT_ET)
+#if defined(COMPAT_ET) || defined(COMPAT_Q3A)
 	else if(!Q_stricmp(token, "$lightmap"))
 	{
 		stage->type = ST_LIGHTMAP;
@@ -1539,6 +1539,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 		// lightmap <name>
 		else if(!Q_stricmp(token, "lightmap"))
 		{
+#if defined(COMPAT_ET)
 			if(!ParseMap(stage, text, buffer, sizeof(buffer)))
 			{
 				//ri.Printf(PRINT_WARNING, "WARNING: ParseMap could not create '%s' in shader '%s'\n", token, shader.name);
@@ -1548,6 +1549,12 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 			{
 				loadMap = qtrue;
 			}
+
+			//stage->type = ST_LIGHTMAP;
+#else
+			ri.Printf(PRINT_WARNING, "WARNING: lightmap keyword not supported in shader '%s'\n", shader.name);
+			SkipRestOfLine(text);
+#endif
 		}
 		// remoteRenderMap <int> <int>
 		else if(!Q_stricmp(token, "remoteRenderMap"))

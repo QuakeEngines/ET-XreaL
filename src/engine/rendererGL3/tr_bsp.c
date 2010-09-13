@@ -1640,10 +1640,23 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 	srfTriangle_t  *tri;
 	int             i, j;
 	int             numVerts, numTriangles;
+	int             realLightmapNum;
 	static surfaceType_t skipData = SF_SKIP;
 
 	// get lightmap
+#if defined(COMPAT_Q3A)
 	surf->lightmapNum = -1;		// FIXME LittleLong(ds->lightmapNum);
+#else
+	realLightmapNum = LittleLong(ds->lightmapNum);
+	if(r_vertexLighting->integer || !r_precomputedLighting->integer)
+	{
+		surf->lightmapNum = -1;
+	}
+	else
+	{
+		surf->lightmapNum = realLightmapNum;
+#endif
+	}
 
 	// get shader
 	surf->shader = ShaderForShaderNum(ds->shaderNum);

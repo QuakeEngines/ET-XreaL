@@ -3167,6 +3167,11 @@ static void Render_lightMapping(int stage, qboolean asColorMap)
 		stateBits |= (GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
 	}
 
+	if(r_showLightMaps->integer)
+	{
+		stateBits &= ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS | GLS_ATEST_BITS);
+	}
+
 	GL_State(stateBits);
 
 	// enable shader, set arrays
