@@ -539,7 +539,7 @@ void ProcessSubModel(void)
 	ClipSidesIntoTree(e, tree);
 
 	/* Tr3B: create drawsurfs for triangle models in Doom3 style */
-	AddTriangleModel(e);
+	//AddTriangleModel(e);
 
 	/* create drawsurfs for surface models */
 	AddEntitySurfaceModels(e);
@@ -940,7 +940,7 @@ int BSPMain(int argc, char **argv)
 
 	/* fixme: print more useful usage here */
 	if(i != (argc - 1))
-		Error("usage: xmap [options] mapfile");
+		Error("usage: etxmap [options] mapfile");
 
 	/* copy source name */
 	strcpy(source, ExpandArg(argv[i]));

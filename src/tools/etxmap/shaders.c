@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -811,12 +811,14 @@ ShaderInfoForShader()
 finds a shaderinfo for a named shader
 */
 
+#define MAX_SHADER_DEPRECATION_DEPTH 16
+
 shaderInfo_t   *ShaderInfoForShader(const char *shaderName)
 {
 	int             i;
+	int             deprecationDepth;
 	shaderInfo_t   *si;
 	char            shader[MAX_QPATH];
-
 
 	/* dummy check */
 	if(shaderName == NULL || shaderName[0] == '\0')
@@ -830,11 +832,28 @@ shaderInfo_t   *ShaderInfoForShader(const char *shaderName)
 	StripExtension(shader);
 
 	/* search for it */
+	deprecationDepth = 0;
 	for(i = 0; i < numShaderInfo; i++)
 	{
 		si = &shaderInfo[i];
 		if(!Q_stricmp(shader, si->shader))
 		{
+			/* check if shader is deprecated */
+			if(deprecationDepth < MAX_SHADER_DEPRECATION_DEPTH && si->deprecateShader && si->deprecateShader[0])
+			{
+				/* override name */
+				strcpy(shader, si->deprecateShader);
+				StripExtension(shader);
+				/* increase deprecation depth */
+				deprecationDepth++;
+				if(deprecationDepth == MAX_SHADER_DEPRECATION_DEPTH)
+					Sys_Printf("WARNING: Max deprecation depth of %i is reached on shader '%s'\n", MAX_SHADER_DEPRECATION_DEPTH,
+							   shader);
+				/* search again from beginning */
+				i = -1;
+				continue;
+			}
+
 			/* load image if necessary */
 			if(si->finished == qfalse)
 			{
@@ -1676,6 +1695,18 @@ static void ParseShaderFile(const char *filename)
 					{
 						si->remapShader = safe_malloc(strlen(token) + 1);
 						strcpy(si->remapShader, token);
+					}
+				}
+
+				/* q3map_deprecateShader <shader> */
+				else if(!Q_stricmp(token, "q3map_deprecateShader"))
+				{
+					GetTokenAppend(shaderText, qfalse);
+					if(token[0] != '\0')
+					{
+
+						si->deprecateShader = safe_malloc(strlen(token) + 1);
+						strcpy(si->deprecateShader, token);
 					}
 				}
 

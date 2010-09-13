@@ -42,7 +42,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 /* -------------------------------------------------------------------------------
 
 this file was copied out of the common directory in order to not break
-compatibility with the xmap 1.x tree. it was moved out in order to support
+compatibility with the q3map 1.x tree. it was moved out in order to support
 the raven bsp format (RBSP) used in soldier of fortune 2 and jedi knight 2.
 
 since each game has its own set of particular features, the data structures
@@ -234,7 +234,7 @@ void SwapBSPFile(void)
 	SwapBlock((int *)bspDrawIndexes, numBSPDrawIndexes * sizeof(bspDrawIndexes[0]));
 
 	/* drawsurfs */
-	/* note: rbsp files (and hence xmap2 abstract bsp) have byte lightstyles index arrays, this follows sof2map convention */
+	/* note: rbsp files (and hence q3map2 abstract bsp) have byte lightstyles index arrays, this follows sof2map convention */
 	SwapBlock((int *)bspDrawSurfaces, numBSPDrawSurfaces * sizeof(bspDrawSurfaces[0]));
 
 	/* fogs */
@@ -568,7 +568,7 @@ void InjectCommandLine(char **argv, int beginArgs, int endArgs)
 	char           *sentinel = newCommandLine + sizeof(newCommandLine) - 1;
 	int             i;
 
-	previousCommandLine = ValueForKey(&entities[0], "_etq3map_cmdline");
+	previousCommandLine = ValueForKey(&entities[0], "_etxmap_cmdline");
 	if(previousCommandLine && *previousCommandLine)
 	{
 		inpos = previousCommandLine;
@@ -591,8 +591,8 @@ void InjectCommandLine(char **argv, int beginArgs, int endArgs)
 	}
 
 	*outpos = 0;
-	SetKeyValue(&entities[0], "_etq3map_cmdline", newCommandLine);
-	SetKeyValue(&entities[0], "_etq3map_version", Q3MAP_VERSION);
+	SetKeyValue(&entities[0], "_etxmap_cmdline", newCommandLine);
+	SetKeyValue(&entities[0], "_etxmap_version", Q3MAP_VERSION);
 }
 
 /*
@@ -925,6 +925,10 @@ entity_t       *FindTargetEntity(const char *target)
 	for(i = 0; i < numEntities; i++)
 	{
 		n = ValueForKey(&entities[i], "name");
+		if(!strcmp(n, target))
+			return &entities[i];
+
+		n = ValueForKey(&entities[i], "targetname");
 		if(!strcmp(n, target))
 			return &entities[i];
 	}

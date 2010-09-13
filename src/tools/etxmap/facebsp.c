@@ -131,8 +131,8 @@ static void SelectSplitPlaneNum(node_t * node, face_t * list, int *splitPlaneNum
 
 	for(split = list; split; split = split->next)
 	{
-		//if(split->checked)
-		//	continue;
+		//if ( split->checked )
+		//  continue;
 
 		plane = &mapplanes[split->planenum];
 		splits = 0;

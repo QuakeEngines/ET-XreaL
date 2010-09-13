@@ -131,7 +131,7 @@ game_t struct
 	qfalse,				/* flares */
 	"flareshader",		/* default flare shader */
 	qtrue,				/* wolf lighting model? */
-	1024,				/* lightmap width/height */
+	2048,				/* lightmap width/height */
 	1.0f,				/* lightmap gamma */
 	1.0f,				/* lightmap exposure */
 	1.0f,				/* lightmap compensate */
@@ -141,7 +141,7 @@ game_t struct
 	qtrue,				/* disable shader lightstyles hack */
 	qtrue,				/* keep light entities on bsp */
 	8,					/* default patchMeta subdivisions tolerance */
-	qfalse,				/* patch casting enabled */
+	qtrue,				/* patch casting enabled */
 	qtrue,				/* compile deluxemaps */
 	0,					/* deluxemaps default mode */
 	512,                /* minimap size */

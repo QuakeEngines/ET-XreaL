@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -1818,18 +1818,8 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 			Sys_Printf("Entity %d (%s) has lightmap scale of %.4f\n", mapEnt->mapEntityNum, classname, lightmapScale);
 	}
 
-	/* ydnar: get cel shader :) for this entity */
-	value = ValueForKey(mapEnt, "_celshader");
-	if(value[0] == '\0')
-		value = ValueForKey(&entities[0], "_celshader");
-	if(value[0] != '\0')
-	{
-		sprintf(shader, "textures/%s", value);
-		celShader = ShaderInfoForShader(shader);
-		Sys_Printf("Entity %d (%s) has cel shader %s\n", mapEnt->mapEntityNum, classname, celShader->shader);
-	}
-	else
-		celShader = NULL;
+	// Tr3B: removed cel shader support
+	celShader = NULL;
 
 	/* jal : entity based _shadeangle */
 	shadeAngle = 0.0f;
@@ -1966,6 +1956,7 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 #endif
 
 	/* get entity origin and adjust brushes */
+	// Tr3B: moved this up before SetEntityBounds() is called
 	if(mapEnt->origin[0] || mapEnt->origin[1] || mapEnt->origin[2])
 	{
 		if((name[0] != '\0' && model[0] != '\0' && !Q_stricmp(name, model)))

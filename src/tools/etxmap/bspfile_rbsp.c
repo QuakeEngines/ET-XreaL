@@ -42,7 +42,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 /* -------------------------------------------------------------------------------
 
 this file handles translating the bsp file format used by quake 3, rtcw, and ef
-into the abstracted bsp file used by xmap2.
+into the abstracted bsp file used by q3map2.
 
 ------------------------------------------------------------------------------- */
 

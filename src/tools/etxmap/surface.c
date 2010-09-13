@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -1975,6 +1975,51 @@ int FilterPointIntoTree_r(vec3_t point, mapDrawSurface_t * ds, node_t * node)
 	return AddReferenceToLeaf(ds, node);
 }
 
+/*
+FilterPointConvexHullIntoTree_r() - ydnar
+filters the convex hull of multiple points from a surface into the tree
+*/
+
+int FilterPointConvexHullIntoTree_r(vec3_t ** points, int npoints, mapDrawSurface_t * ds, node_t * node)
+{
+	float           d, dmin, dmax;
+	plane_t        *plane;
+	int             refs = 0;
+	int             i;
+
+	if(!points)
+		return 0;
+
+	/* is this a decision node? */
+	if(node->planenum != PLANENUM_LEAF)
+	{
+		/* classify the point in relation to the plane */
+		plane = &mapplanes[node->planenum];
+
+		dmin = dmax = DotProduct(*(points[0]), plane->normal) - plane->dist;
+		for(i = 1; i < npoints; ++i)
+		{
+			d = DotProduct(*(points[i]), plane->normal) - plane->dist;
+			if(d > dmax)
+				dmax = d;
+			if(d < dmin)
+				dmin = d;
+		}
+
+		/* filter by this plane */
+		refs = 0;
+		if(dmax >= -ON_EPSILON)
+			refs += FilterPointConvexHullIntoTree_r(points, npoints, ds, node->children[0]);
+		if(dmin <= ON_EPSILON)
+			refs += FilterPointConvexHullIntoTree_r(points, npoints, ds, node->children[1]);
+
+		/* return */
+		return refs;
+	}
+
+	/* add a reference */
+	return AddReferenceToLeaf(ds, node);
+}
 
 
 /*
@@ -2001,14 +2046,25 @@ int FilterWindingIntoTree_r(winding_t * w, mapDrawSurface_t * ds, node_t * node)
 	{
 		/* 'fatten' the winding by the shader mins/maxs (parsed from vertexDeform move) */
 		/* note this winding is completely invalid (concave, nonplanar, etc) */
-		fat = AllocWinding(w->numpoints * 3);
-		fat->numpoints = w->numpoints * 3;
+		fat = AllocWinding(w->numpoints * 3 + 3);
+		fat->numpoints = w->numpoints * 3 + 3;
 		for(i = 0; i < w->numpoints; i++)
 		{
 			VectorCopy(w->p[i], fat->p[i]);
-			VectorAdd(w->p[i], si->mins, fat->p[i * 2]);
-			VectorAdd(w->p[i], si->maxs, fat->p[i * 3]);
+			VectorAdd(w->p[i], si->mins, fat->p[i + (w->numpoints + 1)]);
+			VectorAdd(w->p[i], si->maxs, fat->p[i + (w->numpoints + 1) * 2]);
 		}
+		VectorCopy(w->p[0], fat->p[i]);
+		VectorAdd(w->p[0], si->mins, fat->p[i + w->numpoints]);
+		VectorAdd(w->p[0], si->maxs, fat->p[i + w->numpoints * 2]);
+
+		/*
+		 * note: this winding is STILL not suitable for ClipWindingEpsilon, and
+		 * also does not really fulfill the intention as it only contains
+		 * origin, +mins, +maxs, but thanks to the "closing" points I just
+		 * added to the three sub-windings, the fattening at least doesn't make
+		 * it worse
+		 */
 
 		FreeWinding(w);
 		w = fat;
@@ -2100,48 +2156,25 @@ subdivides a patch into an approximate curve and filters it into the tree
 
 static int FilterPatchIntoTree(mapDrawSurface_t * ds, tree_t * tree)
 {
-	int             i, x, y, refs;
-	mesh_t          src, *mesh;
-	winding_t      *w;
+	int             x, y, refs;
 
-
-	/* subdivide the surface */
-	src.width = ds->patchWidth;
-	src.height = ds->patchHeight;
-	src.verts = ds->verts;
-	mesh = SubdivideMesh(src, FILTER_SUBDIVISION, 32);
-
-
-	/* filter each quad into the tree (fixme: use new patch x-triangulation code?) */
-	refs = 0;
-	for(y = 0; y < (mesh->height - 1); y++)
-	{
-		for(x = 0; x < (mesh->width - 1); x++)
+	for(y = 0; y + 2 < ds->patchHeight; y += 2)
+		for(x = 0; x + 2 < ds->patchWidth; x += 2)
 		{
-			/* triangle 1 */
-			w = AllocWinding(3);
-			w->numpoints = 3;
-			VectorCopy(mesh->verts[y * mesh->width + x].xyz, w->p[0]);
-			VectorCopy(mesh->verts[y * mesh->width + x + 1].xyz, w->p[1]);
-			VectorCopy(mesh->verts[(y + 1) * mesh->width + x].xyz, w->p[2]);
-			refs += FilterWindingIntoTree_r(w, ds, tree->headnode);
+			vec3_t         *points[9];
 
-			/* triangle 2 */
-			w = AllocWinding(3);
-			w->numpoints = 3;
-			VectorCopy(mesh->verts[y * mesh->width + x + 1].xyz, w->p[0]);
-			VectorCopy(mesh->verts[(y + 1) * mesh->width + x + 1].xyz, w->p[1]);
-			VectorCopy(mesh->verts[(y + 1) * mesh->width + x].xyz, w->p[2]);
-			refs += FilterWindingIntoTree_r(w, ds, tree->headnode);
+			points[0] = &ds->verts[(y + 0) * ds->patchWidth + (x + 0)].xyz;
+			points[1] = &ds->verts[(y + 0) * ds->patchWidth + (x + 1)].xyz;
+			points[2] = &ds->verts[(y + 0) * ds->patchWidth + (x + 2)].xyz;
+			points[3] = &ds->verts[(y + 1) * ds->patchWidth + (x + 0)].xyz;
+			points[4] = &ds->verts[(y + 1) * ds->patchWidth + (x + 1)].xyz;
+			points[5] = &ds->verts[(y + 1) * ds->patchWidth + (x + 2)].xyz;
+			points[6] = &ds->verts[(y + 2) * ds->patchWidth + (x + 0)].xyz;
+			points[7] = &ds->verts[(y + 2) * ds->patchWidth + (x + 1)].xyz;
+			points[8] = &ds->verts[(y + 2) * ds->patchWidth + (x + 2)].xyz;
+			refs += FilterPointConvexHullIntoTree_r(points, 9, ds, tree->headnode);
 		}
-	}
 
-	/* use point filtering as well */
-	for(i = 0; i < (mesh->width * mesh->height); i++)
-		refs += FilterPointIntoTree_r(mesh->verts[i].xyz, ds, tree->headnode);
-
-	/* free the subdivided mesh and return */
-	FreeMesh(mesh);
 	return refs;
 }
 
@@ -2511,7 +2544,7 @@ void EmitPatchSurface(entity_t * e, mapDrawSurface_t * ds)
 	/* set it up */
 	out->surfaceType = MST_PATCH;
 	if(debugSurfaces)
-		out->shaderNum = EmitShader("debugSurfaces", NULL, NULL);
+		out->shaderNum = EmitShader("debugsurfaces", NULL, NULL);
 	else if(patchMeta || forcePatchMeta)
 	{
 		/* patch meta requires that we have nodraw patches for collision */
@@ -2732,7 +2765,7 @@ void EmitTriangleSurface(mapDrawSurface_t * ds)
 
 	/* set it up */
 	if(debugSurfaces)
-		out->shaderNum = EmitShader("debugSurfaces", NULL, NULL);
+		out->shaderNum = EmitShader("debugsurfaces", NULL, NULL);
 	else
 		out->shaderNum = EmitShader(ds->shaderInfo->shader, &ds->shaderInfo->contentFlags, &ds->shaderInfo->surfaceFlags);
 	out->patchWidth = ds->patchWidth;
@@ -2910,11 +2943,12 @@ void MakeDebugPortalSurfs(tree_t * tree)
 {
 	shaderInfo_t   *si;
 
+
 	/* note it */
 	Sys_FPrintf(SYS_VRB, "--- MakeDebugPortalSurfs ---\n");
 
 	/* get portal debug shader */
-	si = ShaderInfoForShader("debugPortals");
+	si = ShaderInfoForShader("debugportals");
 
 	/* walk the tree */
 	MakeDebugPortalSurfs_r(tree->headnode, si);
@@ -3428,6 +3462,7 @@ void FilterDrawsurfsIntoTree(entity_t * e, tree_t * tree)
 	vec3_t          origin, mins, maxs;
 	int             refs;
 	int             numSurfs, numRefs, numSkyboxSurfaces;
+	qboolean        sb;
 
 
 	/* note it */
@@ -3452,9 +3487,12 @@ void FilterDrawsurfsIntoTree(entity_t * e, tree_t * tree)
 		{
 			refs = AddReferenceToTree_r(ds, tree->headnode, qtrue);
 			ds->skybox = qfalse;
+			sb = qtrue;
 		}
 		else
 		{
+			sb = qfalse;
+
 			/* refs initially zero */
 			refs = 0;
 
@@ -3574,6 +3612,11 @@ void FilterDrawsurfsIntoTree(entity_t * e, tree_t * tree)
 				refs = 0;
 				break;
 		}
+
+		/* maybe surface got marked as skybox again */
+		/* if we keep that flag, it will get scaled up AGAIN */
+		if(sb)
+			ds->skybox = qfalse;
 
 		/* tot up the references */
 		if(refs > 0)

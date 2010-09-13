@@ -353,10 +353,10 @@ static void AddDrawVertsLump(FILE * file, ibspHeader_t * header)
 
 		VectorCopy(in->normal, out->normal);
 
-		out->color[0] = in->lightColor[0][0];
-		out->color[1] = in->lightColor[0][1];
-		out->color[2] = in->lightColor[0][2];
-		out->color[3] = in->lightColor[0][3];
+		out->color[0] = (byte)Q_rint(in->lightColor[0][0]);
+		out->color[1] = (byte)Q_rint(in->lightColor[0][1]);
+		out->color[2] = (byte)Q_rint(in->lightColor[0][2]);
+		out->color[3] = (byte)Q_rint(in->lightColor[0][3]);
 
 		in++;
 		out++;
@@ -437,8 +437,13 @@ static void AddLightGridLumps(FILE * file, ibspHeader_t * header)
 	out = buffer;
 	for(i = 0; i < numBSPGridPoints; i++)
 	{
-		VectorCopy(in->ambient[0], out->ambient);
-		VectorCopy(in->directed[0], out->directed);
+		out->ambient[0] = (byte) Q_rint(in->ambient[0][0]);
+		out->ambient[1] = (byte) Q_rint(in->ambient[0][1]);
+		out->ambient[2] = (byte) Q_rint(in->ambient[0][2]);
+
+		out->directed[0] = (byte) Q_rint(in->directed[0][0]);
+		out->directed[1] = (byte) Q_rint(in->directed[0][1]);
+		out->directed[2] = (byte) Q_rint(in->directed[0][2]);
 
 		out->latLong[0] = in->latLong[0];
 		out->latLong[1] = in->latLong[1];
@@ -486,7 +491,7 @@ void LoadIBSPFile(const char *filename)
 	numBSPPlanes =
 		CopyLump_Allocate((bspHeader_t *) header, LUMP_PLANES, (void **)&bspPlanes, sizeof(bspPlane_t), &allocatedBSPPlanes);
 
-	numBSPLeafs = CopyLump((bspHeader_t *) header, LUMP_LEAFS, bspLeafs, sizeof(bspLeaf_t));
+	numBSPLeafs = CopyLump((bspHeader_t *) header, LUMP_LEAFS, bspLeafs, sizeof(bspLeaf_t));	// TODO fix overflow
 
 	numBSPNodes =
 		CopyLump_Allocate((bspHeader_t *) header, LUMP_NODES, (void **)&bspNodes, sizeof(bspNode_t), &allocatedBSPNodes);
@@ -509,13 +514,13 @@ void LoadIBSPFile(const char *filename)
 
 	CopyDrawSurfacesLump(header);
 
-	numBSPFogs = CopyLump((bspHeader_t *) header, LUMP_FOGS, bspFogs, sizeof(bspFog_t));
+	numBSPFogs = CopyLump((bspHeader_t *) header, LUMP_FOGS, bspFogs, sizeof(bspFog_t));	// TODO fix overflow
 
 	numBSPDrawIndexes = CopyLump((bspHeader_t *) header, LUMP_DRAWINDEXES, bspDrawIndexes, sizeof(bspDrawIndexes[0]));
 
-	numBSPVisBytes = CopyLump((bspHeader_t *) header, LUMP_VISIBILITY, bspVisBytes, 1);
+	numBSPVisBytes = CopyLump((bspHeader_t *) header, LUMP_VISIBILITY, bspVisBytes, 1);	// TODO fix overflow
 
-	numBSPLightBytes = GetLumpElements((bspHeader_t *) header, LUMP_LIGHTMAPS, 1);
+	numBSPLightBytes = GetLumpElements((bspHeader_t *) header, LUMP_LIGHTMAPS, 1);	// TODO change to CopyLump_Allocate
 	bspLightBytes = safe_malloc(numBSPLightBytes);
 	CopyLump((bspHeader_t *) header, LUMP_LIGHTMAPS, bspLightBytes, 1);
 
@@ -565,7 +570,7 @@ void WriteIBSPFile(const char *filename)
 
 	/* add marker lump */
 	time(&t);
-	sprintf(marker, "I LOVE MY %s on %s)", Q3MAP_VERSION, asctime(localtime(&t)));
+	sprintf(marker, "I LOVE MY Q3MAP2 %s on %s)", Q3MAP_VERSION, asctime(localtime(&t)));
 	AddLump(file, (bspHeader_t *) header, 0, marker, strlen(marker) + 1);
 
 	/* add lumps */

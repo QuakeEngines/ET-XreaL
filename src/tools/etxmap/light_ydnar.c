@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -205,9 +205,9 @@ void ColorToFloats(const float *color, float * colorFloats, float scale)
 	VectorScale(sample, (1.0f / lightmapCompensate), sample);
 
 	/* store it off */
-	colorFloats[0] = sample[0] / 255.0f;
-	colorFloats[1] = sample[1] / 255.0f;
-	colorFloats[2] = sample[2] / 255.0f;
+	colorFloats[0] = sample[0];// * (1.0f / 255.0f);
+	colorFloats[1] = sample[1];// * (1.0f / 255.0f);
+	colorFloats[2] = sample[2];// * (1.0f / 255.0f);
 }
 
 /*
@@ -478,7 +478,7 @@ static qboolean CalcTangentVectors(int numVerts, bspDrawVert_t ** dv, vec3_t * s
 		stv[i][2] = bary[0] * dv[0]->xyz[2] + bary[1] * dv[1]->xyz[2] + bary[2] * dv[2]->xyz[2];
 
 		VectorSubtract(stv[i], dv[i]->xyz, stv[i]);
-		VectorNormalize2(stv[i], stv[i]);
+		VectorNormalize(stv[i]);
 
 		/* calculate t tangent vector */
 		s = dv[i]->st[0];
@@ -492,7 +492,7 @@ static qboolean CalcTangentVectors(int numVerts, bspDrawVert_t ** dv, vec3_t * s
 		ttv[i][2] = bary[0] * dv[0]->xyz[2] + bary[1] * dv[1]->xyz[2] + bary[2] * dv[2]->xyz[2];
 
 		VectorSubtract(ttv[i], dv[i]->xyz, ttv[i]);
-		VectorNormalize2(ttv[i], ttv[i]);
+		VectorNormalize(ttv[i]);
 
 		/* debug code */
 		//% Sys_FPrintf( SYS_VRB, "%d S: (%f %f %f) T: (%f %f %f)\n", i,
@@ -534,7 +534,7 @@ static void PerturbNormal(bspDrawVert_t * dv, shaderInfo_t * si, vec3_t pNormal,
 	VectorMA(pNormal, bump[2], dv->normal, pNormal);
 
 	/* renormalize and return */
-	VectorNormalize2(pNormal, pNormal);
+	VectorNormalize(pNormal);
 }
 
 
@@ -1322,7 +1322,7 @@ void MapRawLightmap(int rawLightmapNum)
 
 			/* the normal data could be the sum of multiple samples */
 			if(luxel[3] > 1.0f)
-				VectorNormalize2(normal, normal);
+				VectorNormalize(normal);
 
 			/* mark this luxel as having only one normal */
 			luxel[3] = 1.0f;
@@ -1396,7 +1396,7 @@ void MapRawLightmap(int rawLightmapNum)
 				/* average */
 				VectorDivide(fake.xyz, samples, fake.xyz);
 				//% VectorDivide( fake.normal, samples, fake.normal );
-				if(VectorNormalize2(fake.normal, fake.normal) == 0.0f)
+				if(VectorNormalize(fake.normal) == 0.0f)
 					continue;
 
 				/* map the fake vert */
@@ -1425,7 +1425,7 @@ void MapRawLightmap(int rawLightmapNum)
 
 			/* the normal data could be the sum of multiple samples */
 			if(luxel[3] > 1.0f)
-				VectorNormalize2(normal, normal);
+				VectorNormalize(normal);
 
 			/* mark this luxel as having only one normal */
 			luxel[3] = 1.0f;
@@ -2156,7 +2156,7 @@ void IlluminateRawLightmap(int rawLightmapNum)
 					if(deluxemap)
 					{
 						//brightness = DotProduct(ambientColor, LUMINANCE_VECTOR) + 0.0001f;
-						brightness = ambientColor[0] * 0.3f + ambientColor[1] * 0.59f + ambientColor[2] * 0.11f;
+						brightness = RGBTOGRAY(ambientColor) * (1.0f / 255.0f);
 						brightness *= (1.0 / 255.0);
 						// use AT LEAST this amount of contribution from ambient for the deluxemap, fixes points that receive ZERO light
 						if(brightness < 0.00390625f)
@@ -2749,7 +2749,11 @@ void IlluminateVertexes(int num)
 		{
 			/* get vertex luxel */
 			radVertLuxel = RAD_VERTEX_LUXEL(0, ds->firstVert + i);
-			vertDeluxel = VERTEX_DELUXEL(0, ds->firstVert + i);
+
+			if(deluxemap)
+			{
+				vertDeluxel = VERTEX_DELUXEL(0, ds->firstVert + i);
+			}
 
 			/* color the luxel with raw lightmap num? */
 			if(debugSurfaces)
@@ -2779,7 +2783,11 @@ void IlluminateVertexes(int num)
 			{
 				/* clear vertex luxel */
 				VectorSet(radVertLuxel, -1.0f, -1.0f, -1.0f);
-				VectorClear(vertDeluxel);
+
+				if(deluxemap)
+				{
+					VectorClear(vertDeluxel);
+				}
 
 				/* try at initial origin */
 				trace.cluster =
@@ -2824,8 +2832,11 @@ void IlluminateVertexes(int num)
 						VectorCopy(colors[lightmapNum], radVertLuxel);
 						VectorAdd(avgColors[lightmapNum], colors[lightmapNum], colors[lightmapNum]);
 
-						vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
-						VectorCopy(trace.direction, vertDeluxel);
+						if(deluxemap)
+						{
+							vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
+							VectorCopy(trace.direction, vertDeluxel);
+						}
 					}
 				}
 
@@ -2875,8 +2886,11 @@ void IlluminateVertexes(int num)
 									radVertLuxel = RAD_VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
 									VectorCopy(colors[lightmapNum], radVertLuxel);
 
-									vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
-									VectorCopy(trace.direction, vertDeluxel);
+									if(deluxemap)
+									{
+										vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
+										VectorCopy(trace.direction, vertDeluxel);
+									}
 								}
 
 								/* bright enough? */
@@ -2942,18 +2956,30 @@ void IlluminateVertexes(int num)
 				/* get luxels */
 				vertLuxel = VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
 				radVertLuxel = RAD_VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
-				vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
 
 				/* store */
 				if(bouncing || bounce == 0 || !bounceOnly)
 					VectorAdd(vertLuxel, radVertLuxel, vertLuxel);
 
-				VectorNormalize(vertDeluxel);
+				if(deluxemap)
+				{
+					vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
+					VectorNormalize(vertDeluxel);
+				}
+				
 
 				if(!info->si->noVertexLight)
 				{
 					ColorToFloats(vertLuxel, verts[i].lightColor[lightmapNum], info->si->vertexScale);
-					VectorCopy(vertDeluxel, verts[i].lightDirection[lightmapNum]);
+
+					if(deluxemap)
+					{	
+						VectorCopy(vertDeluxel, verts[i].lightDirection[lightmapNum]);
+					}
+					else
+					{
+						VectorCopy(verts[i].normal, verts[i].lightDirection[lightmapNum]);
+					}
 				}
 			}
 		}
@@ -3003,7 +3029,11 @@ void IlluminateVertexes(int num)
 			/* get vertex luxels */
 			vertLuxel = VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
 			radVertLuxel = RAD_VERTEX_LUXEL(lightmapNum, ds->firstVert + i);
-			vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
+
+			if(deluxemap)
+			{
+				vertDeluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + i);
+			}
 
 			/* color the luxel with the normal? */
 			if(normalmap)
@@ -3022,7 +3052,11 @@ void IlluminateVertexes(int num)
 			{
 				/* increasing radius */
 				VectorClear(radVertLuxel);
-				VectorClear(vertDeluxel);
+
+				if(deluxemap)
+				{
+					VectorClear(vertDeluxel);
+				}
 				samples = 0.0f;
 				for(radius = 0; radius < maxRadius && samples <= 0.0f; radius++)
 				{
@@ -3037,12 +3071,12 @@ void IlluminateVertexes(int num)
 							if(sx < 0 || sx >= lm->sw)
 								continue;
 
-							/* get luxel particulars */
-							luxel = SUPER_LUXEL(lightmapNum, sx, sy);
-							deluxel = SUPER_DELUXEL(sx, sy);
 							cluster = SUPER_CLUSTER(sx, sy);
 							if(*cluster < 0)
 								continue;
+
+							/* get luxel particulars */
+							luxel = SUPER_LUXEL(lightmapNum, sx, sy);
 
 							/* testing: must be brigher than ambient color */
 							//% if( luxel[ 0 ] <= ambientColor[ 0 ] || luxel[ 1 ] <= ambientColor[ 1 ] || luxel[ 2 ] <= ambientColor[ 2 ] )
@@ -3050,8 +3084,13 @@ void IlluminateVertexes(int num)
 
 							/* add its distinctiveness to our own */
 							VectorAdd(radVertLuxel, luxel, radVertLuxel);
-							VectorAdd(vertDeluxel, deluxel, vertDeluxel);
 							samples += luxel[3];
+
+							if(deluxemap)
+							{
+								deluxel = SUPER_DELUXEL(sx, sy);
+								VectorAdd(vertDeluxel, deluxel, vertDeluxel);
+							}
 						}
 					}
 				}
@@ -3065,14 +3104,25 @@ void IlluminateVertexes(int num)
 
 			/* store into floating point storage */
 			VectorAdd(vertLuxel, radVertLuxel, vertLuxel);
-			VectorNormalize(vertDeluxel);
+			if(deluxemap)
+			{
+				VectorNormalize(vertDeluxel);
+			}
 			numVertsIlluminated++;
 
 			/* store into bytes (for vertex approximation) */
 			if(!info->si->noVertexLight)
 			{
 				ColorToFloats(vertLuxel, verts[i].lightColor[lightmapNum], 1.0f);
-				VectorCopy(vertDeluxel, verts[i].lightDirection[lightmapNum]);
+
+				if(deluxemap)
+				{	
+					VectorCopy(vertDeluxel, verts[i].lightDirection[lightmapNum]);
+				}
+				else
+				{
+					VectorCopy(verts[i].normal, verts[i].lightDirection[lightmapNum]);
+				}
 			}
 		}
 	}
@@ -4134,7 +4184,7 @@ float FloodLightForSample(trace_t * trace, float floodLightDistance, qboolean fl
 				VectorSubtract(trace->hit, trace->origin, displacement);
 				d = VectorLength(displacement);
 
-				// d=trace->distance;
+				// d=trace->distance;            
 				//if (d>256) gatherDirt+=1;
 				contribution = d / dd;
 				if(contribution > 1)

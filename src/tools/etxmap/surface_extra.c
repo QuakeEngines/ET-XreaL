@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -115,7 +115,7 @@ void SetDefaultSampleSize(int sampleSize)
 
 /*
 SetSurfaceExtra()
-stores extra (xmap2) data for the specific numbered drawsurface
+stores extra (q3map2) data for the specific numbered drawsurface
 */
 
 void SetSurfaceExtra(mapDrawSurface_t * ds, int num)

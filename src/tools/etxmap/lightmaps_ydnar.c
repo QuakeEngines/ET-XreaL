@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -1238,8 +1238,11 @@ void SetupSurfaceLightmaps(void)
 		radVertexLuxels[k] = safe_malloc(numBSPDrawVerts * VERTEX_LUXEL_SIZE * sizeof(float));
 		memset(radVertexLuxels[k], 0, numBSPDrawVerts * VERTEX_LUXEL_SIZE * sizeof(float));
 
-		vertexDeluxels[k] = safe_malloc(numBSPDrawVerts * VERTEX_DELUXEL_SIZE * sizeof(float));
-		memset(vertexDeluxels[k], 0, numBSPDrawVerts * VERTEX_DELUXEL_SIZE * sizeof(float));
+		if(deluxemap)
+		{
+			vertexDeluxels[k] = safe_malloc(numBSPDrawVerts * VERTEX_DELUXEL_SIZE * sizeof(float));
+			memset(vertexDeluxels[k], 0, numBSPDrawVerts * VERTEX_DELUXEL_SIZE * sizeof(float));
+		}
 	}
 
 	/* emit some stats */
@@ -3259,8 +3262,11 @@ void StoreSurfaceLightmaps(void)
 					VectorCopy(luxel, color);
 
 					/* get vertex light direction */
-					deluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + j);
-					VectorCopy(deluxel, lightDirection);
+					if(deluxemap)
+					{
+						deluxel = VERTEX_DELUXEL(lightmapNum, ds->firstVert + j);
+						VectorCopy(deluxel, lightDirection);
+					}
 
 					/* set minimum light */
 					if(lightmapNum == 0)
@@ -3275,7 +3281,15 @@ void StoreSurfaceLightmaps(void)
 				if(!info->si->noVertexLight)
 				{
 					ColorToFloats(color, dv[j].lightColor[lightmapNum], info->si->vertexScale);
-					VectorCopy(lightDirection, dv[j].lightDirection[lightmapNum]);
+
+					if(deluxemap)
+					{
+						VectorCopy(lightDirection, dv[j].lightDirection[lightmapNum]);
+					}
+					else
+					{
+						VectorCopy(dv[j].normal, dv[j].lightDirection[lightmapNum]);
+					}
 				}
 			}
 		}

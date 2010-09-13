@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------------
+/* -------------------------------------------------------------------------------;
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -796,20 +796,10 @@ int MiniMapBSPMain(int argc, char **argv)
 
 
 /*
-MD4BlockChecksum()
-calculates an md4 checksum for a block of data
-*/
-
-static int MD4BlockChecksum(void *buffer, int length)
-{
-	return Com_BlockChecksum(buffer, length);
-}
-
-/*
 FixAAS()
 resets an aas checksum to match the given BSP
 */
-#if 0
+
 int FixAAS(int argc, char **argv)
 {
 	int             length, checksum;
@@ -870,7 +860,7 @@ int FixAAS(int argc, char **argv)
 	/* return to sender */
 	return 0;
 }
-#endif
+
 
 
 /*
