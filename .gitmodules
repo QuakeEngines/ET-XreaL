@@ -1,0 +1,3 @@
+[submodule "etmain"]
+	path = etmain
+	url = git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL_etmain
