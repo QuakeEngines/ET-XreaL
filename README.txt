@@ -93,16 +93,9 @@ ___________________________________
 
 This project's SourceForge.net Git repository can be checked out through Git with the following instruction set: 
 
-	> git clone git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL
-	
-	> cd ET-XreaL
-
-	> git submodule init
-
-	> git submodule update
+	> git clone --recursive git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL
 
 
-It is necessary to run the submodule commands to get the etmain/ contents.
 
 ___________________________________________________________________
 
