@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // deal with in/out tasks, for either stdin/stdout or network/XML stream
 //
 
+#include <assert.h>
 #include "cmdlib.h"
 #include "mathlib.h"
 #include "polylib.h"
@@ -383,6 +384,10 @@ void Error(const char *error, ...)
 	Sys_Sleep(1000);
 
 	Broadcast_Shutdown();
+
+#if defined(_DEBUG)
+	assert(0);
+#endif
 
 	exit(1);
 }
