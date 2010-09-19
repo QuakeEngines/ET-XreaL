@@ -106,7 +106,7 @@ __________________________________________________________
 2. Use the VC9 solutions to compile what you need:
 	ET-XreaL/src/wolf.sln
 	ET-XreaL/src/tools/etxmap/etxmap.sln
-	ET-XreaL/src/tools/etxradiant/ETXRadiant.sln
+	ET-XreaL/src/tools/etxradiant/tools/vcprojects/ETXRadiant.sln
 
 	To have the required Win32 dependencies to build the ETXRadiant copy them from the DarkRadiant Subversion repository:
 	
