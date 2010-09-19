@@ -268,7 +268,7 @@ void SetModelNumbers(void)
 		model = ValueForKey(ent, "model");
 
 		if(ent->brushes || ent->patches ||
-		   (!ent->brushes && !ent->patches && model[0] != '\0' && Q_stricmp("misc_model", classname)))
+		   (inlineEntityModels && !ent->brushes && !ent->patches && model[0] != '\0' && Q_stricmp("misc_model", classname)))
 		{
 			sprintf(value, "*%i", models);
 			models++;

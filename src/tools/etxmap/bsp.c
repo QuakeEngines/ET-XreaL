@@ -156,7 +156,7 @@ static void SetCloneModelNumbers(void)
 
 		/* only entities with brushes or patches get a model number */
 		if(ent->brushes || ent->patches ||
-		   (!ent->brushes && !ent->patches && model[0] != '\0' && Q_stricmp("misc_model", classname)))
+		   (inlineEntityModels && !ent->brushes && !ent->patches && model[0] != '\0' && Q_stricmp("misc_model", classname)))
 		{
 			/* is this a clone? */
 			/*
@@ -621,7 +621,7 @@ void ProcessModels(void)
 		name = ValueForKey(entity, "name");
 
 		if(entity->brushes || entity->patches ||
-		   (!entity->brushes && !entity->patches && model[0] != '\0' && Q_stricmp("misc_model", classname)))
+		   (inlineEntityModels && !entity->brushes && !entity->patches && model[0] != '\0' && Q_stricmp("misc_model", classname)))
 		{
 			/* process the model */
 			Sys_FPrintf(SYS_VRB, "############### model %i '%s' ###############\n", numBSPModels, name);
