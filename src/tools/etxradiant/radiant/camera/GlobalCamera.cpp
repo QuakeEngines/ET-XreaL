@@ -22,7 +22,8 @@ GlobalCameraManager::GlobalCameraManager() :
 	_parent(NULL)
 {}
 
-void GlobalCameraManager::construct() {
+void GlobalCameraManager::registerCommands()
+{
 	GlobalCommandSystem().addCommand("CenterView", boost::bind(&GlobalCameraManager::resetCameraAngles, this, _1));
 	GlobalCommandSystem().addCommand("CubicClipZoomIn", boost::bind(&GlobalCameraManager::cubicScaleIn, this, _1));
 	GlobalCommandSystem().addCommand("CubicClipZoomOut", boost::bind(&GlobalCameraManager::cubicScaleOut, this, _1));
@@ -52,7 +53,7 @@ void GlobalCameraManager::construct() {
 	// Bind the events to the commands
 	GlobalEventManager().addCommand("CenterView", "CenterView");
 
-	GlobalEventManager().addToggle("ToggleCubicClip", MemberCaller<CameraSettings, &CameraSettings::toggleFarClip>(*getCameraSettings()));
+	GlobalEventManager().addToggle("ToggleCubicClip", boost::bind(&CameraSettings::toggleFarClip, getCameraSettings(), _1));
 	// Set the default status of the cubic clip
 	GlobalEventManager().setToggled("ToggleCubicClip", getCameraSettings()->farClipEnabled());
 
@@ -84,34 +85,12 @@ void GlobalCameraManager::construct() {
 	GlobalEventManager().addCommand("CameraAngleUp", "CameraAngleUp");
 	GlobalEventManager().addCommand("CameraAngleDown", "CameraAngleDown");
 	
-	GlobalEventManager().addKeyEvent("CameraFreeMoveForward",
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveForwardKeyUp>(*this),
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveForwardKeyDown>(*this));
-	GlobalEventManager().addKeyEvent("CameraFreeMoveBack",
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveBackKeyUp>(*this),
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveBackKeyDown>(*this));
-	GlobalEventManager().addKeyEvent("CameraFreeMoveLeft",
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveLeftKeyUp>(*this),
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveLeftKeyDown>(*this));
-	GlobalEventManager().addKeyEvent("CameraFreeMoveRight",
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveRightKeyUp>(*this),
-	                       MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveRightKeyDown>(*this));
-	GlobalEventManager().addKeyEvent("CameraFreeMoveUp",
-	                      MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveUpKeyUp>(*this),
-	                      MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveUpKeyDown>(*this));
-	GlobalEventManager().addKeyEvent("CameraFreeMoveDown",
-	                      MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveDownKeyUp>(*this),
-	                      MemberCaller<GlobalCameraManager, &GlobalCameraManager::freelookMoveDownKeyDown>(*this));
-	
-	CamWnd::captureStates();
-}
-
-void GlobalCameraManager::destroy() {
-	// Remove all weak references
-	_cameras.clear();
-
-	// Release shaders
-	CamWnd::releaseStates();
+	GlobalEventManager().addKeyEvent("CameraFreeMoveForward", boost::bind(&GlobalCameraManager::onFreelookMoveForwardKey, this, _1));
+	GlobalEventManager().addKeyEvent("CameraFreeMoveBack", boost::bind(&GlobalCameraManager::onFreelookMoveBackKey, this, _1));
+	GlobalEventManager().addKeyEvent("CameraFreeMoveLeft", boost::bind(&GlobalCameraManager::onFreelookMoveLeftKey, this, _1));
+	GlobalEventManager().addKeyEvent("CameraFreeMoveRight", boost::bind(&GlobalCameraManager::onFreelookMoveRightKey, this, _1));
+	GlobalEventManager().addKeyEvent("CameraFreeMoveUp", boost::bind(&GlobalCameraManager::onFreelookMoveUpKey, this, _1));
+	GlobalEventManager().addKeyEvent("CameraFreeMoveDown", boost::bind(&GlobalCameraManager::onFreelookMoveDownKey, this, _1));
 }
 
 CamWndPtr GlobalCameraManager::getActiveCamWnd() {
@@ -326,88 +305,94 @@ void GlobalCameraManager::focusCamera(const Vector3& point, const Vector3& angle
 
 // --------------- Keyboard movement methods ------------------------------------------
 
-void GlobalCameraManager::freelookMoveForwardKeyUp() {
+void GlobalCameraManager::onFreelookMoveForwardKey(ui::KeyEventType eventType)
+{
 	CamWndPtr camWnd = getActiveCamWnd();
 	if (camWnd == NULL) return;
 
-	camWnd->getCamera().clearMovementFlags(MOVE_FORWARD);
+	if (eventType == ui::KeyPressed)
+	{
+		camWnd->getCamera().setMovementFlags(MOVE_FORWARD);
+	}
+	else
+	{
+		camWnd->getCamera().clearMovementFlags(MOVE_FORWARD);
+	}
 }
 
-void GlobalCameraManager::freelookMoveForwardKeyDown() {
+void GlobalCameraManager::onFreelookMoveBackKey(ui::KeyEventType eventType)
+{
 	CamWndPtr camWnd = getActiveCamWnd();
 	if (camWnd == NULL) return;
 
-	camWnd->getCamera().setMovementFlags(MOVE_FORWARD);
+	if (eventType == ui::KeyPressed)
+	{
+		camWnd->getCamera().setMovementFlags(MOVE_BACK);
+	}
+	else
+	{
+		camWnd->getCamera().clearMovementFlags(MOVE_BACK);
+	}
 }
 
-void GlobalCameraManager::freelookMoveBackKeyUp() {
+void GlobalCameraManager::onFreelookMoveLeftKey(ui::KeyEventType eventType)
+{
 	CamWndPtr camWnd = getActiveCamWnd();
 	if (camWnd == NULL) return;
 
-	camWnd->getCamera().clearMovementFlags(MOVE_BACK);
+	if (eventType == ui::KeyPressed)
+	{
+		camWnd->getCamera().setMovementFlags(MOVE_STRAFELEFT);
+	}
+	else
+	{
+		camWnd->getCamera().clearMovementFlags(MOVE_STRAFELEFT);
+	}
 }
 
-void GlobalCameraManager::freelookMoveBackKeyDown() {
+void GlobalCameraManager::onFreelookMoveRightKey(ui::KeyEventType eventType)
+{
 	CamWndPtr camWnd = getActiveCamWnd();
 	if (camWnd == NULL) return;
 
-	camWnd->getCamera().setMovementFlags(MOVE_BACK);
+	if (eventType == ui::KeyPressed)
+	{
+		camWnd->getCamera().setMovementFlags(MOVE_STRAFERIGHT);
+	}
+	else
+	{
+		camWnd->getCamera().clearMovementFlags(MOVE_STRAFERIGHT);
+	}
 }
 
-void GlobalCameraManager::freelookMoveLeftKeyUp() {
+void GlobalCameraManager::onFreelookMoveUpKey(ui::KeyEventType eventType)
+{
 	CamWndPtr camWnd = getActiveCamWnd();
 	if (camWnd == NULL) return;
 
-	camWnd->getCamera().clearMovementFlags(MOVE_STRAFELEFT);
+	if (eventType == ui::KeyPressed)
+	{
+		camWnd->getCamera().setMovementFlags(MOVE_UP);
+	}
+	else
+	{
+		camWnd->getCamera().clearMovementFlags(MOVE_UP);
+	}
 }
 
-void GlobalCameraManager::freelookMoveLeftKeyDown() {
+void GlobalCameraManager::onFreelookMoveDownKey(ui::KeyEventType eventType)
+{
 	CamWndPtr camWnd = getActiveCamWnd();
 	if (camWnd == NULL) return;
 
-	camWnd->getCamera().setMovementFlags(MOVE_STRAFELEFT);
-}
-
-void GlobalCameraManager::freelookMoveRightKeyUp() {
-	CamWndPtr camWnd = getActiveCamWnd();
-	if (camWnd == NULL) return;
-
-	camWnd->getCamera().clearMovementFlags(MOVE_STRAFERIGHT);
-}
-
-void GlobalCameraManager::freelookMoveRightKeyDown() {
-	CamWndPtr camWnd = getActiveCamWnd();
-	if (camWnd == NULL) return;
-
-	camWnd->getCamera().setMovementFlags(MOVE_STRAFERIGHT);
-}
-
-void GlobalCameraManager::freelookMoveUpKeyUp() {
-	CamWndPtr camWnd = getActiveCamWnd();
-	if (camWnd == NULL) return;
-
-	camWnd->getCamera().clearMovementFlags(MOVE_UP);
-}
-
-void GlobalCameraManager::freelookMoveUpKeyDown() {
-	CamWndPtr camWnd = getActiveCamWnd();
-	if (camWnd == NULL) return;
-
-	camWnd->getCamera().setMovementFlags(MOVE_UP);
-}
-
-void GlobalCameraManager::freelookMoveDownKeyUp() {
-	CamWndPtr camWnd = getActiveCamWnd();
-	if (camWnd == NULL) return;
-
-	camWnd->getCamera().clearMovementFlags(MOVE_DOWN);
-}
-
-void GlobalCameraManager::freelookMoveDownKeyDown() {
-	CamWndPtr camWnd = getActiveCamWnd();
-	if (camWnd == NULL) return;
-
-	camWnd->getCamera().setMovementFlags(MOVE_DOWN);
+	if (eventType == ui::KeyPressed)
+	{
+		camWnd->getCamera().setMovementFlags(MOVE_DOWN);
+	}
+	else
+	{
+		camWnd->getCamera().clearMovementFlags(MOVE_DOWN);
+	}
 }
 
 void GlobalCameraManager::moveForwardDiscrete(const cmd::ArgumentList& args) {
@@ -486,23 +471,38 @@ const std::string& GlobalCameraManager::getName() const {
 	return _name;
 }
 
-const StringSet& GlobalCameraManager::getDependencies() const {
+const StringSet& GlobalCameraManager::getDependencies() const
+{
 	static StringSet _dependencies;
 	
-	if (_dependencies.empty()) {
+	if (_dependencies.empty())
+	{
 		_dependencies.insert(MODULE_XMLREGISTRY);
 		_dependencies.insert(MODULE_EVENTMANAGER);
 		_dependencies.insert(MODULE_RENDERSYSTEM);
+		_dependencies.insert(MODULE_COMMANDSYSTEM);
 	}
 	
 	return _dependencies;
 }
 
-void GlobalCameraManager::initialiseModule(const ApplicationContext& ctx) {
-	globalOutputStream() << "GlobalCameraManager::initialiseModule called.\n";
+void GlobalCameraManager::initialiseModule(const ApplicationContext& ctx)
+{
+	globalOutputStream() << getName() << "::initialiseModule called." << std::endl;
+
+	registerCommands();
+
+	CamWnd::captureStates();
 }
 
-// Define the static SelectionSystem module
+void GlobalCameraManager::shutdownModule()
+{
+	CamWnd::releaseStates();
+
+	_cameras.clear();
+}
+
+// Define the static Camera module
 module::StaticModule<GlobalCameraManager> cameraModule;
 
 // ------------------------------------------------------------------------------------

@@ -1,16 +1,20 @@
 #ifndef DEFERREDDRAW_H_
 #define DEFERREDDRAW_H_
 
-#include "generic/callbackfwd.h"
+#include <boost/function/function_fwd.hpp>
 #include "map/Map.h"
 
 class DeferredDraw
 {
-	Callback m_draw;
+public:
+	typedef boost::function<void()> DrawCallback;
+
+private:
+	DrawCallback m_draw;
 	bool m_defer;
 	bool m_deferred;
 public:
-	DeferredDraw(const Callback& draw) : 
+	DeferredDraw(const DrawCallback& draw) : 
 		m_draw(draw), 
 		m_defer(false), 
 		m_deferred(false)
@@ -36,16 +40,19 @@ public:
 		m_deferred = false;
 		m_defer = false;
 	}
-};
 
-inline void DeferredDraw_onMapValidChanged(DeferredDraw& self) {
-	if (GlobalMap().isValid()) {
-		self.flush();
+	// Callback target
+	void onMapValidChanged()
+	{
+		if (GlobalMap().isValid())
+		{
+			flush();
+		}
+		else
+		{
+			defer();
+		}
 	}
-	else {
-		self.defer();
-	}
-}
-typedef ReferenceCaller<DeferredDraw, DeferredDraw_onMapValidChanged> DeferredDrawOnMapValidChangedCaller;
+};
 
 #endif /*DEFERREDDRAW_H_*/

@@ -20,14 +20,15 @@ namespace entity {
  * the change, so that the name can be associated with a Target object.
  */
 class TargetableNode :
-	public Entity::Observer
+	public Entity::Observer,
+	public KeyObserver
 {
 	mutable Vertex3f m_position;
 	Doom3Entity& _d3entity;
 	TargetKeyCollection _targetKeys;
 	mutable RenderableTargetLines _renderableLines;
 
-	// The current name of this entity (used for comparison in "targetNameChanged")
+	// The current name of this entity (used for comparison in "onKeyValueChanged")
 	std::string _targetName;
 
 	// The node we're associated with
@@ -41,12 +42,8 @@ public:
 	// Disconnect this class from the entity
 	void destruct();
 
-	void setTargetsChanged(const Callback& targetsChanged);
-	void targetsChanged();
-
 	// Gets called as soon as the "name" keyvalue changes
-	void targetnameChanged(const std::string& name);
-	typedef MemberCaller1<TargetableNode, const std::string&, &TargetableNode::targetnameChanged> TargetnameChangedCaller;
+	void onKeyValueChanged(const std::string& name);
 
 	// Entity::Observer implementation, gets called on key insert
 	void onKeyInsert(const std::string& key, EntityKeyValue& value);

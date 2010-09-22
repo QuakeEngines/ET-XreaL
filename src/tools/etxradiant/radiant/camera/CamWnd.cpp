@@ -244,14 +244,14 @@ gboolean disable_freelook_button_release(GtkWidget* widget, GdkEventButton* even
 CamWnd::CamWnd() :
 	_id(++_maxId),
 	m_view(true),
-	m_Camera(&m_view, CamWndQueueDraw(*this)),
-	m_cameraview(m_Camera, &m_view, CamWndUpdate(*this)),
+	m_Camera(&m_view, Callback(boost::bind(&CamWnd::queueDraw, this))),
+	m_cameraview(m_Camera, &m_view, Callback(boost::bind(&CamWnd::update, this))),
 	m_drawing(false),
 	m_bFreeMove(false),
 	m_gl_widget(true, "CamWnd"),
 	_parentWidget(NULL),
 	m_window_observer(NewWindowObserver()),
-	m_deferredDraw(WidgetQueueDrawCaller(*m_gl_widget)),
+	m_deferredDraw(boost::bind(widget_queue_draw, m_gl_widget)),
 	m_deferred_motion(selection_motion, m_window_observer),
 	m_selection_button_press_handler(0),
 	m_selection_button_release_handler(0),
@@ -273,7 +273,7 @@ CamWnd::CamWnd() :
 	m_sizeHandler = g_signal_connect(G_OBJECT(glWidget), "size_allocate", G_CALLBACK(camera_size_allocate), this);
 	m_exposeHandler = g_signal_connect(G_OBJECT(glWidget), "expose_event", G_CALLBACK(camera_expose), this);
 
-	_mapValidHandle = GlobalMap().addValidCallback(DeferredDrawOnMapValidChangedCaller(m_deferredDraw));
+	_mapValidHandle = GlobalMap().addValidCallback(boost::bind(&DeferredDraw::onMapValidChanged, &m_deferredDraw));
 
 	// Deactivate all commands, just to make sure
 	disableDiscreteMoveEvents();
@@ -697,9 +697,9 @@ void CamWnd::draw() {
 	gtkutil::GLWidgetSentry sentry(m_gl_widget);
 
 	if (GlobalMap().isValid() && GlobalMainFrame().screenUpdatesEnabled()) {
-		GlobalOpenGL_debugAssertNoErrors();
+		GlobalOpenGL().assertNoErrors();
 		Cam_Draw();
-		GlobalOpenGL_debugAssertNoErrors();
+		GlobalOpenGL().assertNoErrors();
 	}
 
 	m_drawing = false;

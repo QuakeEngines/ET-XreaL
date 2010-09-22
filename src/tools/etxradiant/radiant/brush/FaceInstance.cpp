@@ -3,6 +3,7 @@
 #include "ifilter.h"
 #include "irenderable.h"
 #include "math/frustum.h"
+#include <boost/bind.hpp>
 
 extern FaceInstanceSet g_SelectedFaceInstances;
 
@@ -25,14 +26,14 @@ inline bool triangles_same_winding(const BasicVector3<Element>& x1, const BasicV
 
 FaceInstance::FaceInstance(Face& face, const SelectionChangeCallback& observer) :
 		m_face(&face),
-		m_selectable(SelectedChangedCaller(*this)),
+		m_selectable(boost::bind(&FaceInstance::selectedChanged, this, _1)),
 		m_selectableVertices(observer),
 		m_selectableEdges(observer),
 		m_selectionChanged(observer) {}
 
 FaceInstance::FaceInstance(const FaceInstance& other) :
 		m_face(other.m_face),
-		m_selectable(SelectedChangedCaller(*this)),
+		m_selectable(boost::bind(&FaceInstance::selectedChanged, this, _1)),
 		m_selectableVertices(other.m_selectableVertices),
 		m_selectableEdges(other.m_selectableEdges),
 		m_selectionChanged(other.m_selectionChanged) {}
@@ -57,7 +58,11 @@ void FaceInstance::selectedChanged(const Selectable& selectable) {
 	else {
 		g_SelectedFaceInstances.erase(*this);
 	}
-	m_selectionChanged(selectable);
+
+	if (m_selectionChanged)
+	{
+		m_selectionChanged(selectable);
+	}
 }
 
 bool FaceInstance::selectedVertices() const {
@@ -142,14 +147,18 @@ void FaceInstance::submitRenderables(RenderableCollector& collector,
                                      const VolumeTest& volume,
                                      const Matrix4& localToWorld) const 
 {
-	if (m_face->contributes() && intersectVolume(volume, localToWorld)) {
-			collector.PushState();
-			if (selectedComponents()) {
-					collector.Highlight(RenderableCollector::eFace);
-				}
-			m_face->submitRenderables(collector, localToWorld);
-			collector.PopState();
+	if (m_face->contributes() && intersectVolume(volume, localToWorld))
+	{
+		collector.PushState();
+
+		if (selectedComponents())
+		{
+			collector.Highlight(RenderableCollector::eFace);
 		}
+
+		m_face->submitRenderables(collector, localToWorld);
+		collector.PopState();
+	}
 }
 
 void FaceInstance::testSelect(SelectionTest& test, SelectionIntersection& best) {

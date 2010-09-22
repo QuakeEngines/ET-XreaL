@@ -22,11 +22,7 @@ private:
 	typedef std::map<std::string, TargetKey> TargetKeyMap;
 	TargetKeyMap _targetKeys;
 
-	Callback _targetsChanged;
-
 public:
-	void setTargetsChanged(const Callback& targetsChanged);
-
 	// Entity::Observer implementation, gets called on key insert/erase
 	void onKeyInsert(const std::string& key, EntityKeyValue& value);
 	void onKeyErase(const std::string& key, EntityKeyValue& value);
@@ -39,9 +35,6 @@ public:
 
 	// Returns TRUE if there are no "target" keys observed
 	bool empty() const;
-
-	// Triggers a callback that the targets have been changed
-	void targetsChanged();
 
 private:
 	// Returns TRUE if the given key matches the pattern for target keys

@@ -4,7 +4,6 @@
 #include "imodel.h"
 #include "math/aabb.h"
 #include <vector>
-#include "generic/callbackfwd.h"
 #include "parser/DefTokeniser.h"
 
 #include "MD5Surface.h"
@@ -35,8 +34,6 @@ class MD5Model :
 
 public:
 	MD5Model();
-
-	Callback _lightsChanged;
 
 	typedef SurfaceList::const_iterator const_iterator;
 

@@ -149,8 +149,6 @@ public:
 		Faces m_faces;
 	};
 	
-	Callback m_lightsChanged;
-	
 	// static data
 	static ShaderPtr m_state_point;
 	// ----
@@ -167,7 +165,10 @@ public:
 	// BrushNode
 	BrushNode& getBrushNode();
 
-	virtual IFace& getFace(std::size_t index);
+	IFace& getFace(std::size_t index);
+
+	IFace& addFace(const Plane3& plane);
+	IFace& addFace(const Plane3& plane, const Matrix4& texDef, const std::string& shader);
 	
 	/** greebo: This translates the brush about the given translation vector,
 	 * this is used by the Doom3Group entity to add/substract the origin from
@@ -197,6 +198,9 @@ public:
 
 	// Returns TRUE if any of the faces has the given shader
 	bool hasShader(const std::string& name);
+
+	// Returns TRUE if any face materials are visible
+	bool hasVisibleMaterial() const;
 
 	void evaluateBRep() const;
 	

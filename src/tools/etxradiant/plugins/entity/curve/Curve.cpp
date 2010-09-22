@@ -12,10 +12,7 @@ namespace entity {
 			SelectionTest& test, SelectionIntersection& best) 
 		{
 			test.TestLineStrip(
-			    VertexPointer(
-			        reinterpret_cast<VertexPointer::pointer>(&first->vertex),
-			        sizeof(PointVertex)
-			    ),
+			    VertexPointer(&first->vertex, sizeof(PointVertex)),
 			    IndexPointer::index_type(count),
 			    best
 			);
@@ -45,12 +42,14 @@ std::string Curve::getEntityKeyValue() {
 	return value;
 }
 
-SignalHandlerId Curve::connect(const SignalHandler& curveChanged) {
+std::size_t Curve::connect(const CurveChangedCallback& curveChanged)
+{
 	curveChanged();
-	return _curveChanged.connectLast(curveChanged);
+	return _curveChanged.connect(curveChanged);
 }
 
-void Curve::disconnect(SignalHandlerId id) {
+void Curve::disconnect(std::size_t id)
+{
 	_curveChanged.disconnect(id);
 }
 
@@ -147,7 +146,7 @@ void Curve::curveChanged() {
 	_curveChanged();
 }
 
-void Curve::curveKeyChanged(const std::string& value) {
+void Curve::onKeyValueChanged(const std::string& value) {
 	// Try to parse and check for validity
 	if (value.empty() || !parseCurve(value)) {
 		clearCurve();

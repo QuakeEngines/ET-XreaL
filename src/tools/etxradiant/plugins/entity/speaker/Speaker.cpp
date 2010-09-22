@@ -1,27 +1,29 @@
 #include "Speaker.h"
 
+#include "itextstream.h"
 #include "iregistry.h"
 #include "irenderable.h"
 #include "isound.h"
 #include <stdlib.h>
 #include "SpeakerNode.h"
 #include "../EntitySettings.h"
+#include <boost/bind.hpp>
 
 namespace entity {
 
-	namespace
+	namespace 
 	{
 		const std::string KEY_S_MAXDISTANCE("s_maxdistance");
 		const std::string KEY_S_MINDISTANCE("s_mindistance");
-		const std::string KEY_S_SOUND("s_sound");
+		const std::string KEY_S_SHADER("s_sound");
 	}
 
-Speaker::Speaker(SpeakerNode& node,
-		const Callback& transformChanged,
+Speaker::Speaker(SpeakerNode& node, 
+		const Callback& transformChanged, 
 		const Callback& boundsChanged) :
 	_owner(node),
 	m_entity(node._entity),
-	m_originKey(OriginChangedCaller(*this)),
+	m_originKey(boost::bind(&Speaker::originChanged, this)),
 	m_origin(ORIGINKEY_IDENTITY),
 	_renderableRadii(m_origin, _radiiTransformed),
 	m_useSpeakerRadii(true),
@@ -33,13 +35,13 @@ Speaker::Speaker(SpeakerNode& node,
 	m_boundsChanged(boundsChanged)
 {}
 
-Speaker::Speaker(const Speaker& other,
-		SpeakerNode& node,
-		const Callback& transformChanged,
+Speaker::Speaker(const Speaker& other, 
+		SpeakerNode& node, 
+		const Callback& transformChanged, 
 		const Callback& boundsChanged) :
 	_owner(node),
 	m_entity(node._entity),
-	m_originKey(OriginChangedCaller(*this)),
+	m_originKey(boost::bind(&Speaker::originChanged, this)),
 	m_origin(ORIGINKEY_IDENTITY),
 	_renderableRadii(m_origin, _radiiTransformed),
 	m_useSpeakerRadii(true),
@@ -61,7 +63,7 @@ const AABB& Speaker::localAABB() const {
 }
 
 // Submit renderables for solid mode
-void Speaker::renderSolid(RenderableCollector& collector,
+void Speaker::renderSolid(RenderableCollector& collector, 
                           const VolumeTest& volume,
                           const Matrix4& localToWorld,
                           bool isSelected) const
@@ -78,7 +80,7 @@ void Speaker::renderSolid(RenderableCollector& collector,
 }
 
 // Submit renderables for wireframe mode
-void Speaker::renderWireframe(RenderableCollector& collector,
+void Speaker::renderWireframe(RenderableCollector& collector, 
                               const VolumeTest& volume,
                               const Matrix4& localToWorld,
                               bool isSelected) const
@@ -94,7 +96,7 @@ void Speaker::renderWireframe(RenderableCollector& collector,
     }
 }
 
-void Speaker::testSelect(Selector& selector,
+void Speaker::testSelect(Selector& selector, 
 	SelectionTest& test, const Matrix4& localToWorld)
 {
 	test.BeginMesh(localToWorld);
@@ -219,19 +221,19 @@ void Speaker::construct()
 {
 	m_aabb_local = m_entity.getEntityClass()->getBounds();
 	m_aabb_border = m_aabb_local;
-
-	_owner.addKeyObserver("origin", OriginKey::OriginChangedCaller(m_originKey));
-	_owner.addKeyObserver(KEY_S_SOUND, Speaker::sSoundChangedCaller(*this));
-	_owner.addKeyObserver(KEY_S_MINDISTANCE, Speaker::sMinChangedCaller(*this));
-	_owner.addKeyObserver(KEY_S_MAXDISTANCE, Speaker::sMaxChangedCaller(*this));
+	
+	_owner.addKeyObserver("origin", m_originKey);
+	_owner.addKeyObserver(KEY_S_SHADER, _shaderObserver);
+	_owner.addKeyObserver(KEY_S_MINDISTANCE, _radiusMinObserver);
+	_owner.addKeyObserver(KEY_S_MAXDISTANCE, _radiusMaxObserver);
 }
 
 void Speaker::destroy()
 {
-	_owner.removeKeyObserver("origin", OriginKey::OriginChangedCaller(m_originKey));
-	_owner.removeKeyObserver(KEY_S_SOUND, Speaker::sSoundChangedCaller(*this));
-	_owner.removeKeyObserver(KEY_S_MINDISTANCE, Speaker::sMinChangedCaller(*this));
-	_owner.removeKeyObserver(KEY_S_MAXDISTANCE, Speaker::sMaxChangedCaller(*this));
+	_owner.removeKeyObserver("origin", m_originKey);
+	_owner.removeKeyObserver(KEY_S_SHADER, _shaderObserver);
+	_owner.removeKeyObserver(KEY_S_MINDISTANCE, _radiusMinObserver);
+	_owner.removeKeyObserver(KEY_S_MAXDISTANCE, _radiusMaxObserver);
 }
 
 void Speaker::updateAABB()
@@ -291,7 +293,7 @@ void Speaker::sMinChanged(const std::string& value)
 		// we need to parse in metres
 		_radii.setMin(strToFloat(value), true);
 	}
-	else
+	else 
 	{
 		_radii.setMin(_defaultRadii.getMin());
 	}
@@ -311,7 +313,7 @@ void Speaker::sMaxChanged(const std::string& value)
 		// we need to parse in metres
 		_radii.setMax(strToFloat(value), true);
 	}
-	else
+	else 
 	{
 		_radii.setMax(_defaultRadii.getMax());
 	}

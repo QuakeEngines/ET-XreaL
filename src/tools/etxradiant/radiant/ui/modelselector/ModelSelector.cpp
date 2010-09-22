@@ -11,16 +11,17 @@
 #include "itextstream.h"
 #include "iregistry.h"
 #include "imainframe.h"
+#include "imodelpreview.h"
+#include "imodel.h"
+#include "i18n.h"
 
+#include <gtk/gtk.h>
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
 #include <vector>
 #include <map>
 #include <sstream>
-#include <GL/glew.h>
-
-#include "generic/callback.h"
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/lexical_cast.hpp>
@@ -28,11 +29,17 @@
 namespace ui
 {
 
+// CONSTANTS
+namespace
+{	
+	const char* MODELSELECTOR_TITLE = N_("Choose Model");
+}
+
 // Constructor.
 
 ModelSelector::ModelSelector()
 : _widget(gtk_window_new(GTK_WINDOW_TOPLEVEL)),
-  _modelPreview(new ModelPreview),
+  _modelPreview(GlobalUIManager().createModelPreview()),
   _treeStore(gtk_tree_store_new(N_COLUMNS, 
   								G_TYPE_STRING,
   								G_TYPE_STRING,
@@ -50,42 +57,20 @@ ModelSelector::ModelSelector()
   _lastSkin(""),
   _populated(false)
 {
-	// Set the tree store to sort on this column
-    gtk_tree_sortable_set_sort_column_id(
-        GTK_TREE_SORTABLE(_treeStore),
-        NAME_COLUMN,
-        GTK_SORT_ASCENDING
-    );
-
-	// Set the tree store to sort on this column
-    gtk_tree_sortable_set_sort_column_id(
-        GTK_TREE_SORTABLE(_treeStoreWithSkins),
-        NAME_COLUMN,
-        GTK_SORT_ASCENDING
-    );
-
-	// Set the custom sort function
-	gtk_tree_sortable_set_sort_func(
-		GTK_TREE_SORTABLE(_treeStore),
-		NAME_COLUMN,		// sort column
-		treeViewSortFunc,	// function
-		this,				// userdata
-		NULL				// no destroy notify
+	// Set the tree store's sort behaviour
+	gtkutil::TreeModel::applyFoldersFirstSortFunc(
+		GTK_TREE_MODEL(_treeStore), NAME_COLUMN, IS_FOLDER_COLUMN
 	);
 
-	// Set the custom sort function
-	gtk_tree_sortable_set_sort_func(
-		GTK_TREE_SORTABLE(_treeStoreWithSkins),
-		NAME_COLUMN,		// sort column
-		treeViewSortFunc,	// function
-		this,				// userdata
-		NULL				// no destroy notify
+	// Set the tree store's sort behaviour
+	gtkutil::TreeModel::applyFoldersFirstSortFunc(
+		GTK_TREE_MODEL(_treeStoreWithSkins), NAME_COLUMN, IS_FOLDER_COLUMN
 	);
 
 	// Window properties
 	gtk_window_set_transient_for(GTK_WINDOW(_widget), GlobalMainFrame().getTopLevelWindow());
 	gtk_window_set_modal(GTK_WINDOW(_widget), TRUE);
-	gtk_window_set_title(GTK_WINDOW(_widget), MODELSELECTOR_TITLE);
+	gtk_window_set_title(GTK_WINDOW(_widget), _(MODELSELECTOR_TITLE));
     gtk_window_set_position(GTK_WINDOW(_widget), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_container_set_border_width(GTK_CONTAINER(_widget), 6);
 
@@ -108,7 +93,7 @@ ModelSelector::ModelSelector()
 
 	// Signals
 	g_signal_connect(G_OBJECT(_widget), 
-					 "delete_event", 
+					 "delete-event", 
 					 G_CALLBACK(callbackHide), 
 					 this);
 	
@@ -163,7 +148,7 @@ ModelSelectorPtr& ModelSelector::InstancePtr() {
 void ModelSelector::onRadiantShutdown() {
 	globalOutputStream() << "ModelSelector shutting down.\n";
 
-	_modelPreview = ModelPreviewPtr();
+	_modelPreview.reset();
 }
 
 // Show the dialog and enter recursive main loop
@@ -201,23 +186,10 @@ ModelSelectorResult ModelSelector::showAndBlock(const std::string& curModel,
 	// If an empty string was passed for the current model, use the last selected one
 	std::string previouslySelected = (!curModel.empty()) ? curModel : _lastModel;
 
-	if (!previouslySelected.empty()) {
+	if (!previouslySelected.empty())
+	{
 		// Lookup the model path in the treemodel
-		gtkutil::TreeModel::SelectionFinder finder(previouslySelected, FULLNAME_COLUMN);
-		
-		GtkTreeModel* model = gtk_tree_view_get_model(GTK_TREE_VIEW(_treeView));
-		gtk_tree_model_foreach(model, gtkutil::TreeModel::SelectionFinder::forEach, &finder);
-		
-		// Get the found TreePath (may be NULL)
-		GtkTreePath* path = finder.getPath();
-		if (path != NULL) {
-			// Expand the treeview to display the target row
-			gtk_tree_view_expand_to_path(_treeView, path);
-			// Highlight the target row
-			gtk_tree_view_set_cursor(_treeView, path, NULL, false);
-			// Make the selected row visible 
-			gtk_tree_view_scroll_to_cell(_treeView, path, NULL, true, 0.3f, 0.0f);
-		}
+		gtkutil::TreeModel::findAndSelectString(GTK_TREE_VIEW(_treeView), previouslySelected, FULLNAME_COLUMN);
 	}
 
 	// Update the model preview widget, forcing an update of the selected model
@@ -261,21 +233,9 @@ GtkWidget* ModelSelector::createTreeView()
 
 	// Single visible column, containing the directory/model name and the icon
 	GtkTreeViewColumn* nameCol = gtkutil::IconTextColumn(
-		"Model Path", NAME_COLUMN, IMAGE_COLUMN
+		_("Model Path"), NAME_COLUMN, IMAGE_COLUMN
 	);
-	gtk_tree_view_append_column(_treeView, nameCol);				
-
-    // Set the tree stores to sort on this column
-    gtk_tree_sortable_set_sort_column_id(
-        GTK_TREE_SORTABLE(_treeStore),
-        NAME_COLUMN,
-        GTK_SORT_ASCENDING
-    );
-    gtk_tree_sortable_set_sort_column_id(
-        GTK_TREE_SORTABLE(_treeStoreWithSkins),
-        NAME_COLUMN,
-        GTK_SORT_ASCENDING
-    );
+	gtk_tree_view_append_column(_treeView, nameCol);
 
 	// Use the TreeModel's full string search function
 	gtk_tree_view_set_search_equal_func(_treeView, gtkutil::TreeModel::equalFuncStringContains, NULL, NULL);
@@ -305,7 +265,7 @@ void ModelSelector::populateModels()
 	ModelFileFunctor functor(pop, popSkins);
 	GlobalFileSystem().forEachFile(MODELS_FOLDER, 
 								   "*", 
-								   makeCallback1(functor), 
+								   functor,
 								   0);
 	
 	// Fill in the column data (TRUE = including skins)
@@ -340,8 +300,8 @@ GtkWidget* ModelSelector::createButtons() {
 
 // Create the advanced buttons panel
 GtkWidget* ModelSelector::createAdvancedButtons() {
-	_advancedOptions = GTK_EXPANDER(gtk_expander_new("advanced"));
-	_clipCheckButton = GTK_CHECK_BUTTON(gtk_check_button_new_with_label("create MonsterClip brush"));
+	_advancedOptions = GTK_EXPANDER(gtk_expander_new(_("Advanced")));
+	_clipCheckButton = GTK_CHECK_BUTTON(gtk_check_button_new_with_label(_("Create MonsterClip Brush")));
 	gtk_container_add(GTK_CONTAINER(_advancedOptions), GTK_WIDGET(_clipCheckButton));
 	return GTK_WIDGET(_advancedOptions);
 }
@@ -358,7 +318,7 @@ GtkWidget* ModelSelector::createInfoPanel() {
 	GtkTreeViewColumn* col;
 	
 	rend = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes("Attribute",
+	col = gtk_tree_view_column_new_with_attributes(_("Attribute"),
 												   rend,
 												   "text", 0,
 												   NULL);
@@ -366,7 +326,7 @@ GtkWidget* ModelSelector::createInfoPanel() {
 	gtk_tree_view_append_column(GTK_TREE_VIEW(infTreeView), col);
 	
 	rend = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes("Value",
+	col = gtk_tree_view_column_new_with_attributes(_("Value"),
 												   rend,
 												   "text", 1,
 												   NULL);
@@ -422,31 +382,31 @@ void ModelSelector::updateSelected() {
 	// Update the text in the info table
 	gtk_list_store_append(_infoStore, &iter);
 	gtk_list_store_set(_infoStore, &iter, 
-					   0, "Model name",
+					   0, _("Model name"),
 					   1, mName.c_str(),
 					   -1);
 					   
 	gtk_list_store_append(_infoStore, &iter);
 	gtk_list_store_set(_infoStore, &iter, 
-					   0, "Skin name",
+					   0, _("Skin name"),
 					   1, skinName.c_str(),
 					   -1);
 
 	gtk_list_store_append(_infoStore, &iter);
 	gtk_list_store_set(_infoStore, &iter,
-					   0, "Total vertices",
+					   0, _("Total vertices"),
 					   1, boost::lexical_cast<std::string>(mdl->getVertexCount()).c_str(),
 					   -1);
 
 	gtk_list_store_append(_infoStore, &iter);
 	gtk_list_store_set(_infoStore, &iter,
-					   0, "Total polys",
+					   0, _("Total polys"),
 					   1, boost::lexical_cast<std::string>(mdl->getPolyCount()).c_str(),
 					   -1);
 
 	gtk_list_store_append(_infoStore, &iter);
 	gtk_list_store_set(_infoStore, &iter,
-					   0, "Material surfaces",
+					   0, _("Material surfaces"),
 					   1, boost::lexical_cast<std::string>(mdl->getSurfaceCount()).c_str(),
 					   -1);
 
@@ -458,7 +418,7 @@ void ModelSelector::updateSelected() {
 		// First line		
 		gtk_list_store_append(_infoStore, &iter);
 		gtk_list_store_set(_infoStore, &iter,
-						   0, "Active materials",
+						   0, _("Active materials"),
 						   1, i->c_str(),
 						   -1);
 		// Subsequent lines (if any)
@@ -499,47 +459,6 @@ void ModelSelector::callbackCancel(GtkWidget* widget, ModelSelector* self) {
 	self->_lastSkin = "";
 	gtk_main_quit();
 	gtk_widget_hide(self->_widget);
-}
-
-gint ModelSelector::treeViewSortFunc(GtkTreeModel *model, 
-									GtkTreeIter *a, 
-									GtkTreeIter *b, 
-									gpointer user_data)
-{
-	// Check if A or B are folders
-	bool aIsFolder = gtkutil::TreeModel::getBoolean(model, a, IS_FOLDER_COLUMN);
-	bool bIsFolder = gtkutil::TreeModel::getBoolean(model, b, IS_FOLDER_COLUMN);
-
-	if (aIsFolder) {
-		// A is a folder, check if B is as well
-		if (bIsFolder) {
-			// A and B are both folders, compare names
-			std::string aName = gtkutil::TreeModel::getString(model, a, NAME_COLUMN);
-			std::string bName = gtkutil::TreeModel::getString(model, b, NAME_COLUMN);
-
-			// greebo: We're not checking for equality here, shader names are unique
-			return (aName < bName) ? -1 : 1;
-		}
-		else {
-			// A is a folder, B is not, A sorts before
-			return -1;
-		}
-	}
-	else {
-		// A is not a folder, check if B is one
-		if (bIsFolder) {
-			// A is not a folder, B is, so B sorts before A
-			return 1;
-		}
-		else {
-			// Neither A nor B are folders, compare names
-			std::string aName = gtkutil::TreeModel::getString(model, a, NAME_COLUMN);
-			std::string bName = gtkutil::TreeModel::getString(model, b, NAME_COLUMN);
-
-			// greebo: We're not checking for equality here, shader names are unique
-			return (aName < bName) ? -1 : 1;
-		}
-	}
 }
 
 } // namespace ui

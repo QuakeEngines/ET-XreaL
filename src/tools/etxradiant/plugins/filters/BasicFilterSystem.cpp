@@ -11,7 +11,7 @@
 #include "igame.h"
 #include "ishaders.h"
 
-#include "generic/callback.h"
+#include <boost/bind.hpp>
 
 namespace filters
 {
@@ -19,7 +19,7 @@ namespace filters
 namespace {
 	
 	// Registry key for .game-defined filters
-	const std::string RKEY_GAME_FILTERS = "game/filtersystem//filter";
+	const std::string RKEY_GAME_FILTERS = "/filtersystem//filter";
 
 	const std::string RKEY_USER_FILTER_BASE = "user/ui/filtersystem";
 
@@ -31,9 +31,13 @@ namespace {
 }
 
 // Initialise the filter system
-void BasicFilterSystem::initialiseModule(const ApplicationContext& ctx) {
-	// Ask the XML Registry for filter nodes
-	xml::NodeList filters = GlobalRegistry().findXPath(RKEY_GAME_FILTERS);
+void BasicFilterSystem::initialiseModule(const ApplicationContext& ctx)
+{
+	game::IGamePtr game = GlobalGameManager().currentGame();
+	assert(game != NULL);
+
+	// Ask the XML Registry for filter nodes (from .game file and from user's filters.xml)
+	xml::NodeList filters = game->getLocalXPath(RKEY_GAME_FILTERS);
 	xml::NodeList userFilters = GlobalRegistry().findXPath(RKEY_USER_FILTERS);
 
 	std::cout << "[filters] Loaded " << (filters.size() + userFilters.size())
@@ -90,7 +94,7 @@ void BasicFilterSystem::addFiltersFromXML(const xml::NodeList& nodes, bool readO
 		// Add the according toggle command to the eventmanager
 		IEventPtr fEvent = GlobalEventManager().addToggle(
 			filter.getEventName(),
-			MemberCaller<XMLFilter, &XMLFilter::toggle>(inserted) 
+			boost::bind(&XMLFilter::toggle, &inserted, _1) 
 		);
 		
 		// If this filter is in our active set, enable it
@@ -158,9 +162,13 @@ void BasicFilterSystem::removeObserver(const ObserverPtr& observer) {
 	_observers.erase(observer);
 }
 
-void BasicFilterSystem::update() {
-	updateScene();
+void BasicFilterSystem::update()
+{
+	// Update shaders first, so that nodes can judge whether they're hidden on basis of their texture
 	updateShaders();
+
+	// Now update the scene
+	updateScene();
 }
 
 void BasicFilterSystem::forEachFilter(IFilterVisitor& visitor) {
@@ -264,7 +272,7 @@ bool BasicFilterSystem::addFilter(const std::string& filterName, const FilterRul
 	// Add the according toggle command to the eventmanager
 	IEventPtr fEvent = GlobalEventManager().addToggle(
 		result.first->second.getEventName(),
-		MemberCaller<XMLFilter, &XMLFilter::toggle>(result.first->second) 
+		boost::bind(&XMLFilter::toggle, &result.first->second, _1) 
 	);
 
 	// Clear the cache, the rules have changed
@@ -356,7 +364,7 @@ bool BasicFilterSystem::renameFilter(const std::string& oldFilterName, const std
 		// Add the according toggle command to the eventmanager
 		IEventPtr fEvent = GlobalEventManager().addToggle(
 			result.first->second.getEventName(),
-			MemberCaller<XMLFilter, &XMLFilter::toggle>(result.first->second) 
+			boost::bind(&XMLFilter::toggle, &result.first->second, _1) 
 		);
 
 		if (!fEvent->empty()) {

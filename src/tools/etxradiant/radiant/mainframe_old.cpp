@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "mainframe_old.h"
 
+#include "i18n.h"
 #include "imainframe.h"
 #include "debugging/debugging.h"
 #include "version.h"
@@ -90,7 +91,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <gtk/gtktable.h>
 
 #include "scenelib.h"
-#include "signal/isignal.h"
 #include "os/path.h"
 #include "os/file.h"
 #include "moduleobservers.h"
@@ -138,11 +138,11 @@ extern FaceInstanceSet g_SelectedFaceInstances;
 void Radiant_Initialise() 
 {
 	// Create the empty Settings node and set the title to empty.
-	ui::PrefDialog::Instance().createOrFindPage("Game");
-	ui::PrefPagePtr settingsPage = ui::PrefDialog::Instance().createOrFindPage("Settings");
+	ui::PrefDialog::Instance().createOrFindPage(_("Game"));
+	ui::PrefPagePtr settingsPage = ui::PrefDialog::Instance().createOrFindPage(_("Settings"));
 	settingsPage->setTitle("");
 	
-	ui::Splash::Instance().setProgressAndText("Constructing Menu", 0.89f);
+	ui::Splash::Instance().setProgressAndText(_("Constructing Menu"), 0.89f);
 	
 	// Construct the MRU commands and menu structure
 	GlobalMRU().constructMenu();
@@ -154,7 +154,7 @@ void Radiant_Initialise()
 }
 
 void Exit(const cmd::ArgumentList& args) {
-	if (GlobalMap().askForSave("Exit Radiant")) {
+	if (GlobalMap().askForSave(_("Exit Radiant"))) {
 		gtk_main_quit();
 	}
 }
@@ -224,9 +224,9 @@ void updateTextureBrowser() {
 void SetClipMode(bool enable);
 void ModeChangeNotify();
 
-void DragMode();
+void DragMode(bool);
 
-typedef void(*ToolMode)();
+typedef void(*ToolMode)(bool);
 ToolMode g_currentToolMode = DragMode;
 bool g_currentToolModeSupportsComponentEditing = false;
 ToolMode g_defaultToolMode = DragMode;
@@ -254,7 +254,8 @@ bool FaceMode() {
 	       && GlobalSelectionSystem().ComponentMode() == SelectionSystem::eFace;
 }
 
-void ComponentModeChanged() {
+void ComponentModeChanged()
+{
 	GlobalEventManager().setToggled("DragVertices", VertexMode());
 	GlobalEventManager().setToggled("DragEdges", EdgeMode());
 	GlobalEventManager().setToggled("DragFaces", FaceMode());
@@ -268,8 +269,38 @@ void ComponentMode_SelectionChanged(const Selectable& selectable) {
 	}
 }
 
-void ToggleEntityMode() {
-	if (GlobalSelectionSystem().Mode() == SelectionSystem::eEntity) {
+void ModeChanged()
+{
+	GlobalEventManager().setToggled("DragEntities", GlobalSelectionSystem().Mode() == SelectionSystem::eEntity);
+	GlobalEventManager().setToggled("SelectionModeGroupPart", GlobalSelectionSystem().Mode() == SelectionSystem::eGroupPart);
+}
+
+void ToggleGroupPartMode(bool newState)
+{
+	if (GlobalSelectionSystem().Mode() == SelectionSystem::eGroupPart)
+	{
+		SelectionSystem_DefaultMode();
+	}
+	else
+	{
+		// De-select everything when switching to group part mode
+		GlobalSelectionSystem().setSelectedAll(false);
+		GlobalSelectionSystem().setSelectedAllComponents(false);
+
+		GlobalSelectionSystem().SetMode(SelectionSystem::eGroupPart);
+		GlobalSelectionSystem().SetComponentMode(SelectionSystem::eDefault);
+	}
+
+	ModeChanged();
+	ComponentModeChanged();
+
+	ModeChangeNotify();
+}
+
+void ToggleEntityMode(bool newState)
+{
+	if (GlobalSelectionSystem().Mode() == SelectionSystem::eEntity)
+	{
 		SelectionSystem_DefaultMode();
 	}
 	else {
@@ -277,12 +308,13 @@ void ToggleEntityMode() {
 		GlobalSelectionSystem().SetComponentMode(SelectionSystem::eDefault);
 	}
 
+	ModeChanged();
 	ComponentModeChanged();
 
 	ModeChangeNotify();
 }
 
-void ToggleEdgeMode() {
+void ToggleEdgeMode(bool newState) {
 	if (EdgeMode()) {
 		// De-select all the selected edges before switching back
 		GlobalSelectionSystem().setSelectedAllComponents(false);
@@ -290,7 +322,7 @@ void ToggleEdgeMode() {
 	}
 	else if (GlobalSelectionSystem().countSelected() != 0) {
 		if (!g_currentToolModeSupportsComponentEditing) {
-			g_defaultToolMode();
+			g_defaultToolMode(true);
 		}
 
 		GlobalSelectionSystem().SetMode(SelectionSystem::eComponent);
@@ -302,7 +334,7 @@ void ToggleEdgeMode() {
 	ModeChangeNotify();
 }
 
-void ToggleVertexMode() {
+void ToggleVertexMode(bool newState) {
 	if (VertexMode()) {
 		// De-select all the selected vertices before switching back
 		GlobalSelectionSystem().setSelectedAllComponents(false);
@@ -310,7 +342,7 @@ void ToggleVertexMode() {
 	}
 	else if(GlobalSelectionSystem().countSelected() != 0) {
 		if (!g_currentToolModeSupportsComponentEditing) {
-			g_defaultToolMode();
+			g_defaultToolMode(true);
 		}
 
 		GlobalSelectionSystem().SetMode(SelectionSystem::eComponent);
@@ -322,7 +354,7 @@ void ToggleVertexMode() {
 	ModeChangeNotify();
 }
 
-void ToggleFaceMode() {
+void ToggleFaceMode(bool newState) {
 	if (FaceMode()) {
 		// De-select all the selected faces before switching back
 		GlobalSelectionSystem().setSelectedAllComponents(false);
@@ -330,7 +362,7 @@ void ToggleFaceMode() {
 	}
 	else if (GlobalSelectionSystem().countSelected() != 0) {
 		if (!g_currentToolModeSupportsComponentEditing) {
-			g_defaultToolMode();
+			g_defaultToolMode(true);
 		}
 
 		GlobalSelectionSystem().SetMode(SelectionSystem::eComponent);
@@ -378,11 +410,11 @@ void ToolChanged() {
 	GlobalEventManager().setToggled("MouseDrag", GlobalSelectionSystem().ManipulatorMode() == SelectionSystem::eDrag);
 }
 
-void DragMode()
+void DragMode(bool newState)
 {
   if(g_currentToolMode == DragMode && g_defaultToolMode != DragMode)
   {
-    g_defaultToolMode();
+    g_defaultToolMode(true);
   }
   else
   {
@@ -397,11 +429,11 @@ void DragMode()
   }
 }
 
-void TranslateMode()
+void TranslateMode(bool newState)
 {
   if(g_currentToolMode == TranslateMode && g_defaultToolMode != TranslateMode)
   {
-    g_defaultToolMode();
+    g_defaultToolMode(true);
   }
   else
   {
@@ -416,11 +448,11 @@ void TranslateMode()
   }
 }
 
-void RotateMode()
+void RotateMode(bool newState)
 {
   if(g_currentToolMode == RotateMode && g_defaultToolMode != RotateMode)
   {
-    g_defaultToolMode();
+    g_defaultToolMode(true);
   }
   else
   {
@@ -435,7 +467,7 @@ void RotateMode()
   }
 }
 
-void ScaleMode()
+void ScaleMode(bool newState)
 {
   /*if(g_currentToolMode == ScaleMode && g_defaultToolMode != ScaleMode)
   {
@@ -455,9 +487,9 @@ void ScaleMode()
 }
 
 
-void ClipperMode() {
+void ClipperMode(bool newState) {
 	if (g_currentToolMode == ClipperMode && g_defaultToolMode != ClipperMode) {
-		g_defaultToolMode();
+		g_defaultToolMode(true);
 	}
 	else {
 		g_currentToolMode = ClipperMode;
@@ -540,7 +572,7 @@ void Selection_SnapToGrid(const cmd::ArgumentList& args)
 
 void ModeChangeNotify()
 {
-  SceneChangeNotify();
+	SceneChangeNotify();
 }
 
 void ClipperChangeNotify() {
@@ -550,7 +582,7 @@ void ClipperChangeNotify() {
 // The "Flush & Reload Shaders" command target 
 void RefreshShaders(const cmd::ArgumentList& args) {
 	// Disable screen updates for the scope of this function
-	ui::ScreenUpdateBlocker blocker("Processing...", "Loading Shaders");
+	ui::ScreenUpdateBlocker blocker(_("Processing..."), _("Loading Shaders"));
 	
 	// Destroy all the OpenGLShader objects
 	GlobalRenderSystem().unrealise();
@@ -603,7 +635,7 @@ void BenchmarkPatches(const cmd::ArgumentList& args) {
 
 void MainFrame_Construct()
 {
-	DragMode();
+	DragMode(true);
 
 #if 0
 	GlobalCommandSystem().addCommand("BenchmarkPatches", BenchmarkPatches);
@@ -653,6 +685,7 @@ void MainFrame_Construct()
 	GlobalCommandSystem().addCommand("RotateSelectionZ", Selection_Rotatez);
 
 	GlobalCommandSystem().addCommand("FindBrush", DoFind);
+	GlobalCommandSystem().addCommand("ConvertSelectedToFuncStatic", selection::algorithm::convertSelectedToFuncStatic);
 	GlobalCommandSystem().addCommand("RevertToWorldspawn", selection::algorithm::revertGroupToWorldSpawn);
 	GlobalCommandSystem().addCommand("MapInfo", ui::MapInfoDialog::showDialog);
 	GlobalCommandSystem().addCommand("EditFiltersDialog", ui::FilterDialog::showDialog);
@@ -745,14 +778,16 @@ void MainFrame_Construct()
 	GlobalEventManager().addCommand("HideSelected", "HideSelected");
 	GlobalEventManager().addCommand("HideDeselected", "HideDeselected");
 	
-	GlobalEventManager().addToggle("DragVertices", FreeCaller<ToggleVertexMode>());
-	GlobalEventManager().addToggle("DragEdges", FreeCaller<ToggleEdgeMode>());
-	GlobalEventManager().addToggle("DragFaces", FreeCaller<ToggleFaceMode>());
-	GlobalEventManager().addToggle("DragEntities", FreeCaller<ToggleEntityMode>());
+	GlobalEventManager().addToggle("DragVertices", ToggleVertexMode);
+	GlobalEventManager().addToggle("DragEdges", ToggleEdgeMode);
+	GlobalEventManager().addToggle("DragFaces", ToggleFaceMode);
+	GlobalEventManager().addToggle("DragEntities", ToggleEntityMode);
+	GlobalEventManager().addToggle("SelectionModeGroupPart", ToggleGroupPartMode);
 	GlobalEventManager().setToggled("DragVertices", false);
 	GlobalEventManager().setToggled("DragEdges", false);
 	GlobalEventManager().setToggled("DragFaces", false); 
 	GlobalEventManager().setToggled("DragEntities", false);
+	GlobalEventManager().setToggled("SelectionModeGroupPart", false);
 	
 	GlobalEventManager().addCommand("MirrorSelectionX", "MirrorSelectionX");
 	GlobalEventManager().addCommand("RotateSelectionX", "RotateSelectionX");
@@ -762,18 +797,17 @@ void MainFrame_Construct()
 	GlobalEventManager().addCommand("RotateSelectionZ", "RotateSelectionZ");
 	
 	GlobalEventManager().addCommand("FindBrush", "FindBrush");
+	GlobalEventManager().addCommand("ConvertSelectedToFuncStatic", "ConvertSelectedToFuncStatic");
 	GlobalEventManager().addCommand("RevertToWorldspawn", "RevertToWorldspawn");
 	GlobalEventManager().addCommand("MapInfo", "MapInfo");
 	GlobalEventManager().addCommand("EditFiltersDialog", "EditFiltersDialog");
 	
-	GlobalEventManager().addRegistryToggle("ToggleShowSizeInfo", RKEY_SHOW_SIZE_INFO);
-
-	GlobalEventManager().addToggle("ToggleClipper", FreeCaller<ClipperMode>());
+	GlobalEventManager().addToggle("ToggleClipper", ClipperMode);
 	
-	GlobalEventManager().addToggle("MouseTranslate", FreeCaller<TranslateMode>());
-	GlobalEventManager().addToggle("MouseRotate", FreeCaller<RotateMode>());
+	GlobalEventManager().addToggle("MouseTranslate", TranslateMode);
+	GlobalEventManager().addToggle("MouseRotate", RotateMode);
 	//GlobalEventManager().addToggle("MouseScale", FreeCaller<ScaleMode>());
-	GlobalEventManager().addToggle("MouseDrag", FreeCaller<DragMode>());
+	GlobalEventManager().addToggle("MouseDrag", DragMode);
 	
 	GlobalEventManager().addCommand("CSGSubtract", "CSGSubtract");
 	GlobalEventManager().addCommand("CSGMerge", "CSGMerge");
@@ -836,12 +870,9 @@ void MainFrame_Construct()
 	GlobalEventManager().addCommand("ShowCommandList", "ShowCommandList");
 	GlobalEventManager().addCommand("About", "About");
 
-	ui::LayerControlDialog::registerCommands();
-
 	ui::TexTool::registerCommands();
 
   Patch_registerCommands();
 
-  typedef FreeCaller1<const Selectable&, ComponentMode_SelectionChanged> ComponentModeSelectionChangedCaller;
-  GlobalSelectionSystem().addSelectionChangeCallback(ComponentModeSelectionChangedCaller());
+	GlobalSelectionSystem().addSelectionChangeCallback(ComponentMode_SelectionChanged);
 }

@@ -1,5 +1,6 @@
 #include "TextureBrowser.h"
 
+#include "i18n.h"
 #include "ieventmanager.h"
 #include "iuimanager.h"
 #include "igroupdialog.h"
@@ -17,6 +18,7 @@
 #include "ui/mediabrowser/MediaBrowser.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/bind.hpp>
 
 namespace ui {
 
@@ -30,7 +32,7 @@ namespace {
 	const std::string RKEY_TEXTURE_CONTEXTMENU_EPSILON = "user/ui/textures/browser/contextMenuMouseEpsilon";
 	const std::string RKEY_TEXTURE_MAX_NAME_LENGTH = "user/ui/textures/browser/maxShadernameLength";
 	
-	const std::string SEEK_IN_MEDIA_BROWSER_TEXT = "Seek in Media Browser";
+	const char* const SEEK_IN_MEDIA_BROWSER_TEXT = "Seek in Media Browser";
 	const char* TEXTURE_ICON = "icon_texture.png";
 }
 
@@ -41,7 +43,7 @@ TextureBrowser::TextureBrowser() :
 	_epsilon(GlobalRegistry().getFloat(RKEY_TEXTURE_CONTEXTMENU_EPSILON)),
 	_popupMenu(gtk_menu_new()),
 	m_filter(0),
-	m_filterEntry(TextureBrowserQueueDrawCaller(*this), ClearFilterCaller(*this)),
+	m_filterEntry(Callback(boost::bind(&TextureBrowser::queueDraw, this)), Callback(boost::bind(&TextureBrowser::clearFilter, this))),
 	m_texture_scroll(0),
 	m_heightChanged(true),
 	m_originInvalid(true),
@@ -68,11 +70,11 @@ TextureBrowser::TextureBrowser() :
 	// Construct the popup context menu
 	_seekInMediaBrowser = gtkutil::IconTextMenuItem(
 		GlobalUIManager().getLocalPixbuf(TEXTURE_ICON), 
-		SEEK_IN_MEDIA_BROWSER_TEXT
+		_(SEEK_IN_MEDIA_BROWSER_TEXT)
 	);
 	g_signal_connect(G_OBJECT(_seekInMediaBrowser), "activate", G_CALLBACK(onSeekInMediaBrowser), this);
 	
-	_shaderLabel = gtk_menu_item_new_with_label("No shader");
+	_shaderLabel = gtk_menu_item_new_with_label(_("No shader"));
 	gtk_widget_set_sensitive(_shaderLabel, FALSE);
 	
 	gtk_menu_shell_append(GTK_MENU_SHELL(_popupMenu), _shaderLabel);
@@ -244,27 +246,29 @@ void TextureBrowser::heightChanged() {
 	queueDraw();
 }
 
-void TextureBrowser::evaluateHeight() {
+void TextureBrowser::evaluateHeight() 
+{
 	// greebo: Let the texture browser re-evaluate the scrollbar each frame
-	//if (m_heightChanged) {
-		m_heightChanged = false;
+   m_heightChanged = false;
 
-		m_nTotalHeight = 0;
+   m_nTotalHeight = 0;
 
-		TextureLayout layout;
-		
-	    for(QERApp_ActiveShaders_IteratorBegin(); !QERApp_ActiveShaders_IteratorAtEnd(); QERApp_ActiveShaders_IteratorIncrement())
-	    {
-	      MaterialPtr shader = QERApp_ActiveShaders_IteratorCurrent();
-	
-	      if (!shaderIsVisible(shader))
-	        continue;
-	
-	      int   x, y;
-	      nextTexturePos(layout, shader->getEditorImage(), &x, &y);
-	      m_nTotalHeight = std::max(m_nTotalHeight, abs(layout.current_y) + getFontHeight() + getTextureHeight(shader->getEditorImage()) + 4);
-	    }
-	//}
+   TextureLayout layout;
+   
+   if (GlobalMaterialManager().isRealised())
+   {
+    for(QERApp_ActiveShaders_IteratorBegin(); !QERApp_ActiveShaders_IteratorAtEnd(); QERApp_ActiveShaders_IteratorIncrement())
+    {
+      MaterialPtr shader = QERApp_ActiveShaders_IteratorCurrent();
+
+      if (!shaderIsVisible(shader))
+        continue;
+
+      int   x, y;
+      nextTexturePos(layout, shader->getEditorImage(), &x, &y);
+      m_nTotalHeight = std::max(m_nTotalHeight, abs(layout.current_y) + getFontHeight() + getTextureHeight(shader->getEditorImage()) + 4);
+    }
+   }
 }
 
 int TextureBrowser::getTotalHeight() {
@@ -300,7 +304,8 @@ void TextureBrowser::setOriginY(int newOriginY) {
 	queueDraw();
 }
 
-void TextureBrowser::activeShadersChanged() {
+void TextureBrowser::onActiveShadersChanged()
+{
 	heightChanged();
 	m_originInvalid = true;
 }
@@ -418,16 +423,11 @@ void TextureBrowser::trackingDelta(int x, int y, unsigned int state, void* data)
 	}
 }
 
-/*
-============
-Texture_Draw
-TTimo: relying on the shaders list to display the textures
-we must query all Texture* to manage and display through the Materials interface
-this allows a plugin to completely override the texture system
-============
-*/
-void TextureBrowser::draw() {
+void TextureBrowser::draw() 
+{
   int originy = getOriginY();
+
+  GlobalOpenGL().assertNoErrors();
 
   Vector3 colorBackground = ColourSchemes().getColour("texture_background");
   glClearColor(colorBackground[0], colorBackground[1], colorBackground[2], 0);
@@ -531,7 +531,7 @@ void TextureBrowser::draw() {
 
       // Draw the texture
       glBindTexture (GL_TEXTURE_2D, q->getGLTexNum());
-      GlobalOpenGL_debugAssertNoErrors();
+      GlobalOpenGL().assertNoErrors();
       glColor3f (1,1,1);
       glBegin (GL_QUADS);
       glTexCoord2i (0,0);
@@ -570,7 +570,8 @@ void TextureBrowser::draw() {
 
   // reset the current texture
   glBindTexture(GL_TEXTURE_2D, 0);
-  //qglFinish();
+
+    GlobalOpenGL().assertNoErrors();
 }
 
 void TextureBrowser::doMouseWheel(bool wheelUp) {
@@ -588,7 +589,7 @@ void TextureBrowser::doMouseWheel(bool wheelUp) {
 
 void TextureBrowser::openContextMenu() {
 	
-	std::string shaderText = "No shader";
+	std::string shaderText = _("No shader");
 	
 	if (_popupX > 0 && _popupY > 0) {
 		MaterialPtr shader = getShaderAtCoords(_popupX, _popupY);
@@ -735,11 +736,11 @@ gboolean TextureBrowser::onExpose(GtkWidget* widget, GdkEventExpose* event, Text
 	// This calls glwidget_make_current() for us and swap_buffers at the end of scope
 	gtkutil::GLWidgetSentry sentry(*self->_glWidget);
 	
-    GlobalOpenGL_debugAssertNoErrors();
+    GlobalOpenGL().assertNoErrors();
     self->evaluateHeight();
 	self->updateScroll();
     self->draw();
-    GlobalOpenGL_debugAssertNoErrors();
+    GlobalOpenGL().assertNoErrors();
 
 	return FALSE;
 }
@@ -753,9 +754,7 @@ GtkWidget* TextureBrowser::constructWindow(GtkWindow* parent) {
         new gtkutil::GLWidget(false, "TextureBrowser")
     );
 	
-	GlobalMaterialManager().setActiveShadersChangedNotify(
-		MemberCaller<TextureBrowser, &TextureBrowser::activeShadersChanged>(*this)
-	);
+	GlobalMaterialManager().addActiveShadersObserver(shared_from_this());
 
 	GtkWidget* hbox = gtk_hbox_new(FALSE, 0);
 
@@ -790,9 +789,9 @@ GtkWidget* TextureBrowser::constructWindow(GtkWindow* parent) {
 	    	GtkWidget* toggle_image = GTK_WIDGET(gtk_image_new_from_pixbuf(pixBuf));
 	    	
 	    	GtkTooltips* barTips = gtk_tooltips_new();
-	    	gtk_tool_item_set_tooltip(sizeToggle, barTips, "Clamp texture thumbnails to constant size", "");
+	    	gtk_tool_item_set_tooltip(sizeToggle, barTips, _("Clamp texture thumbnails to constant size"), "");
 	    
-	    	gtk_tool_button_set_label(GTK_TOOL_BUTTON(sizeToggle), "Constant size");
+	    	gtk_tool_button_set_label(GTK_TOOL_BUTTON(sizeToggle), _("Constant size"));
 	    	gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(sizeToggle), toggle_image);
 	    	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(sizeToggle), TRUE);
 	    	
@@ -840,15 +839,16 @@ GtkWidget* TextureBrowser::constructWindow(GtkWindow* parent) {
 	return hbox;
 }
 
-void TextureBrowser::destroyWindow() {
-	GlobalMaterialManager().setActiveShadersChangedNotify(Callback());
+void TextureBrowser::destroyWindow()
+{
+	GlobalMaterialManager().removeActiveShadersObserver(shared_from_this());
 
 	_glWidget = gtkutil::GLWidgetPtr();
 }
 
 void TextureBrowser::registerPreferencesPage() {
 	// Add a page to the given group
-	PreferencesPagePtr page = GlobalPreferenceSystem().getPage("Settings/Texture Browser");
+	PreferencesPagePtr page = GlobalPreferenceSystem().getPage(_("Settings/Texture Browser"));
 	
 	// Create the string list containing the texture scalings
 	std::list<std::string> textureScaleList;
@@ -859,14 +859,14 @@ void TextureBrowser::registerPreferencesPage() {
 	textureScaleList.push_back("100%");
 	textureScaleList.push_back("200%");
 	
-	page->appendCombo("Texture Thumbnail Scale", RKEY_TEXTURE_SCALE, textureScaleList);
+	page->appendCombo(_("Texture Thumbnail Scale"), RKEY_TEXTURE_SCALE, textureScaleList);
 	
-	page->appendEntry("Uniform texture thumbnail size (pixels)", RKEY_TEXTURE_UNIFORM_SIZE);
-	page->appendCheckBox("", "Texture scrollbar", RKEY_TEXTURE_SHOW_SCROLLBAR);
-	page->appendEntry("Mousewheel Increment", RKEY_TEXTURE_MOUSE_WHEEL_INCR);
-	page->appendSpinner("Max shadername length", RKEY_TEXTURE_MAX_NAME_LENGTH, 4, 100, 1);
+	page->appendEntry(_("Uniform texture thumbnail size (pixels)"), RKEY_TEXTURE_UNIFORM_SIZE);
+	page->appendCheckBox("", _("Texture scrollbar"), RKEY_TEXTURE_SHOW_SCROLLBAR);
+	page->appendEntry(_("Mousewheel Increment"), RKEY_TEXTURE_MOUSE_WHEEL_INCR);
+	page->appendSpinner(_("Max shadername length"), RKEY_TEXTURE_MAX_NAME_LENGTH, 4, 100, 1);
 	
-	page->appendCheckBox("", "Show Texture Filter", RKEY_TEXTURE_SHOW_FILTER);
+	page->appendCheckBox("", _("Show Texture Filter"), RKEY_TEXTURE_SHOW_FILTER);
 }
 
 void TextureBrowser::construct() {
@@ -886,6 +886,6 @@ void TextureBrowser::update() {
 /** greebo: The accessor method, use this to call non-static TextureBrowser methods
  */
 ui::TextureBrowser& GlobalTextureBrowser() {
-	static ui::TextureBrowser _instance;
-	return _instance;
+	static boost::shared_ptr<ui::TextureBrowser> _instance(new ui::TextureBrowser);
+	return *_instance;
 }

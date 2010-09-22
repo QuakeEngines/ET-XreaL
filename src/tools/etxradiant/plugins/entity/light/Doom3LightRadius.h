@@ -1,11 +1,11 @@
 #ifndef DOOM3LIGHTRADIUS_H_
 #define DOOM3LIGHTRADIUS_H_
 
-#include "generic/callback.h"
 #include "math/Vector3.h"
 #include "iregistry.h"
 #include "iscenegraph.h"
 #include <string>
+#include <boost/function.hpp>
 
 /* greebo: The Doom3LightRadius class manages the light center and the light radius.
  * Some of the light callbacks are connected to member methods of this class 
@@ -24,7 +24,7 @@ public:
 	// The colour of the light center point
 	Vector3 _centerColour;
 	
-	Callback m_changed;
+	boost::function<void()> m_changed;
 	
 	Doom3LightRadius() :
 		_defaultRadius(GlobalRegistry().get("game/defaults/lightRadius")), 
@@ -56,14 +56,15 @@ public:
 		m_radiusTransformed = m_radius;
 		
 		// Notify the callback function
-    	m_changed();
+		if (m_changed)
+		{
+    		m_changed();
+		}
     	
     	// Update the scene
 		SceneChangeNotify();
 	}
 	
-	typedef MemberCaller1<Doom3LightRadius, const std::string&, &Doom3LightRadius::lightRadiusChanged> LightRadiusChangedCaller;
-
 	/* greebo: This gets called by the keyObserver when the light center value is changed.
 	 * Note: this gets immediately after a new light is constructed as well.
 	 */
@@ -86,8 +87,6 @@ public:
 		// Update the scene graph
 		SceneChangeNotify();
 	}
-	
-	typedef MemberCaller1<Doom3LightRadius, const std::string&, &Doom3LightRadius::lightCenterChanged> LightCenterChangedCaller;
 }; // class Doom3LightRadius
 
 #endif /*DOOM3LIGHTRADIUS_H_*/

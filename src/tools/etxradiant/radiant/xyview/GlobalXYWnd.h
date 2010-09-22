@@ -3,34 +3,15 @@
 
 #include <list>
 
+#include "iorthoview.h"
 #include "iclipper.h"
 #include "iregistry.h"
 #include "icommandsystem.h"
 
 #include "XYWnd.h"
 
-	namespace {
-		const std::string RKEY_XYVIEW_ROOT = "user/ui/xyview";
-		
-		const std::string RKEY_CHASE_MOUSE = RKEY_XYVIEW_ROOT + "/chaseMouse";
-		const std::string RKEY_CAMERA_XY_UPDATE = RKEY_XYVIEW_ROOT + "/camXYUpdate";
-		const std::string RKEY_SHOW_CROSSHAIRS = RKEY_XYVIEW_ROOT + "/showCrossHairs";
-		const std::string RKEY_SHOW_GRID = RKEY_XYVIEW_ROOT + "/showGrid";
-		const std::string RKEY_SHOW_SIZE_INFO = RKEY_XYVIEW_ROOT + "/showSizeInfo";
-		const std::string RKEY_SHOW_ENTITY_ANGLES = RKEY_XYVIEW_ROOT + "/showEntityAngles";
-		const std::string RKEY_SHOW_ENTITY_NAMES = RKEY_XYVIEW_ROOT + "/showEntityNames";
-		const std::string RKEY_SHOW_BLOCKS = RKEY_XYVIEW_ROOT + "/showBlocks";
-		const std::string RKEY_SHOW_COORDINATES = RKEY_XYVIEW_ROOT + "/showCoordinates";
-		const std::string RKEY_SHOW_OUTLINE = RKEY_XYVIEW_ROOT + "/showOutline";
-		const std::string RKEY_SHOW_AXES = RKEY_XYVIEW_ROOT + "/showAxes";
-		const std::string RKEY_SHOW_WORKZONE = RKEY_XYVIEW_ROOT + "/showWorkzone";
-		const std::string RKEY_DEFAULT_BLOCKSIZE = "user/ui/xyview/defaultBlockSize";
-		const std::string RKEY_TRANSLATE_CONSTRAINED = "user/ui/xyview/translateConstrained";
-		const std::string RKEY_HIGHER_ENTITY_PRIORITY = "user/ui/xyview/higherEntitySelectionPriority";
-		
-	}
-
 class XYWndManager : 
+	public IXWndManager,
 	public RegistryKeyObserver
 {
 	// Store an indexed map of XYWnds. When one is deleted, it will notify
@@ -91,12 +72,6 @@ public:
 	// Passes a queueDraw() call to each allocated view
 	void updateAllViews();
 	
-	// Register the commands and capture the renderer states
-	void construct();
-	
-	// Release the shader states
-	void destroy();
-	
 	// Free all the allocated views from the heap
 	void destroyViews();
 	
@@ -135,7 +110,7 @@ public:
 	
 	// Positions the view of all available views / the active view
 	void positionAllViews(const Vector3& origin);
-	void positionView(const Vector3& origin);
+	void positionActiveView(const Vector3& origin);
 	
 	// Returns the view type of the currently active view
 	EViewType getActiveViewType() const;
@@ -175,11 +150,18 @@ public:
 	// Determines the global parent the xyviews are children of
 	void setGlobalParentWindow(GtkWindow* globalParentWindow);
 	
+	// RegisterableModule implementation
+	const std::string& getName() const;
+	const StringSet& getDependencies() const;
+	void initialiseModule(const ApplicationContext& ctx);
+	void shutdownModule();
+
+private:
 	/* greebo: This function determines the point currently being "looked" at, it is used for toggling the ortho views
 	 * If something is selected the center of the selection is taken as new origin, otherwise the camera
 	 * position is considered to be the new origin of the toggled orthoview. */
 	Vector3 getFocusPosition();
-	
+
 	// Construct the orthoview preference page and add it to the given group
 	void constructPreferences();
 	

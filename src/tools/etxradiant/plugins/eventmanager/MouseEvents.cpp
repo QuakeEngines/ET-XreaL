@@ -4,6 +4,7 @@
 #include "iregistry.h"
 #include "iuimanager.h"
 #include "iselection.h"
+#include "i18n.h"
 
 #include "gdk/gdkkeys.h"
 
@@ -19,6 +20,11 @@
 		
 		const float DEFAULT_STRAFE_SPEED = 0.65f;
 		const int DEFAULT_MIN_SELECTION_COUNT = -1;
+
+		inline std::string makeBold(const std::string& input)
+		{
+			return "<b>" + input + "</b>";
+		}
 	}
 
 MouseEventManager::MouseEventManager(Modifiers& modifiers) : 
@@ -164,6 +170,9 @@ void MouseEventManager::loadObserverEventDefinitions() {
 				else if (eventName == "ToggleSelection") {
 					_observerConditions[ui::obsToggle] = getCondition(eventList[i]);
 				}
+				else if (eventName == "ToggleGroupPartSelection") {
+					_observerConditions[ui::obsToggleGroupPart] = getCondition(eventList[i]);
+				}
 				else if (eventName == "ToggleFaceSelection") {
 					_observerConditions[ui::obsToggleFace] = getCondition(eventList[i]);
 				}
@@ -303,7 +312,7 @@ void MouseEventManager::loadButtonDefinitions() {
 }
 
 // Retrieves the button from an GdkEventMotion state 
-unsigned int MouseEventManager::getButtonFlags(const unsigned int& state) {
+unsigned int MouseEventManager::getButtonFlags(const unsigned int state) {
 	if ((state & GDK_BUTTON1_MASK) != 0) return 1;
 	if ((state & GDK_BUTTON2_MASK) != 0) return 2;
 	if ((state & GDK_BUTTON3_MASK) != 0) return 3;
@@ -313,7 +322,7 @@ unsigned int MouseEventManager::getButtonFlags(const unsigned int& state) {
 	return 0;
 }
 
-ui::CamViewEvent MouseEventManager::findCameraViewEvent(const unsigned int& button, const unsigned int& modifierFlags) {
+ui::CamViewEvent MouseEventManager::findCameraViewEvent(const unsigned int button, const unsigned int modifierFlags) {
 	
 	if (_selectionSystem == NULL) {
 		globalErrorStream() << "MouseEventManager: No connection to SelectionSystem\n";
@@ -333,7 +342,7 @@ ui::CamViewEvent MouseEventManager::findCameraViewEvent(const unsigned int& butt
 	return ui::camNothing;
 }
 
-ui::XYViewEvent MouseEventManager::findXYViewEvent(const unsigned int& button, const unsigned int& modifierFlags) {
+ui::XYViewEvent MouseEventManager::findXYViewEvent(const unsigned int button, const unsigned int modifierFlags) {
 	
 	if (_selectionSystem == NULL) {
 		globalErrorStream() << "MouseEventManager: No connection to SelectionSystem\n";
@@ -354,7 +363,7 @@ ui::XYViewEvent MouseEventManager::findXYViewEvent(const unsigned int& button, c
 	return ui::xyNothing;
 }
 
-ui::ObserverEvent MouseEventManager::findObserverEvent(const unsigned int& button, const unsigned int& modifierFlags) {
+ui::ObserverEvent MouseEventManager::findObserverEvent(const unsigned int button, const unsigned int modifierFlags) {
 
 	if (_selectionSystem == NULL) {
 		globalErrorStream() << "MouseEventManager: No connection to SelectionSystem\n";
@@ -390,7 +399,7 @@ ui::XYViewEvent MouseEventManager::getXYViewEvent(GdkEventButton* event) {
 }
 
 // The same as above, just with a state as argument rather than a GdkEventButton
-ui::XYViewEvent MouseEventManager::getXYViewEvent(const unsigned int& state) {
+ui::XYViewEvent MouseEventManager::getXYViewEvent(const unsigned int state) {
 	unsigned int button = getButtonFlags(state);
 	unsigned int modifierFlags = _modifiers.getKeyboardFlags(state);
 	
@@ -398,8 +407,8 @@ ui::XYViewEvent MouseEventManager::getXYViewEvent(const unsigned int& state) {
 }
 
 bool MouseEventManager::matchXYViewEvent(const ui::XYViewEvent& xyViewEvent, 
-										 const unsigned int& button, 
-										 const unsigned int& modifierFlags) 
+										 const unsigned int button, 
+										 const unsigned int modifierFlags) 
 {
 	if (_selectionSystem == NULL) {
 		globalErrorStream() << "MouseEventManager: No connection to SelectionSystem\n";
@@ -422,8 +431,8 @@ bool MouseEventManager::matchXYViewEvent(const ui::XYViewEvent& xyViewEvent,
 }
 
 bool MouseEventManager::matchObserverEvent(const ui::ObserverEvent& observerEvent, 
-										   const unsigned int& button, 
-										   const unsigned int& modifierFlags) 
+										   const unsigned int button, 
+										   const unsigned int modifierFlags) 
 {
 	if (_selectionSystem == NULL) {
 		globalErrorStream() << "MouseEventManager: No connection to SelectionSystem\n";
@@ -446,8 +455,8 @@ bool MouseEventManager::matchObserverEvent(const ui::ObserverEvent& observerEven
 }
 
 bool MouseEventManager::matchCameraViewEvent(const ui::CamViewEvent& camViewEvent, 
-											 const unsigned int& button, 
-											 const unsigned int& modifierFlags) 
+											 const unsigned int button, 
+											 const unsigned int modifierFlags) 
 {
 	if (_selectionSystem == NULL) {
 		globalErrorStream() << "MouseEventManager: No connection to SelectionSystem\n";
@@ -474,7 +483,7 @@ bool MouseEventManager::stateMatchesXYViewEvent(const ui::XYViewEvent& xyViewEve
 }
 
 // The same as above, just with a state as argument rather than a GdkEventButton
-bool MouseEventManager::stateMatchesXYViewEvent(const ui::XYViewEvent& xyViewEvent, const unsigned int& state) {
+bool MouseEventManager::stateMatchesXYViewEvent(const ui::XYViewEvent& xyViewEvent, const unsigned int state) {
 	return matchXYViewEvent(xyViewEvent, getButtonFlags(state), _modifiers.getKeyboardFlags(state));
 }
 
@@ -493,7 +502,7 @@ ui::ObserverEvent MouseEventManager::getObserverEvent(GdkEventButton* event) {
 	return findObserverEvent(button, modifierFlags);
 }
 
-ui::ObserverEvent MouseEventManager::getObserverEvent(const unsigned int& state) {
+ui::ObserverEvent MouseEventManager::getObserverEvent(const unsigned int state) {
 	unsigned int button = getButtonFlags(state);
 	unsigned int modifierFlags = _modifiers.getKeyboardFlags(state);
 	
@@ -503,34 +512,34 @@ ui::ObserverEvent MouseEventManager::getObserverEvent(const unsigned int& state)
 std::string MouseEventManager::printXYViewEvent(const ui::XYViewEvent& xyViewEvent) {
 	
 	switch (xyViewEvent) {
-		case ui::xyNothing: return "<b>Nothing</b>";
-		case ui::xyMoveView: return "<b>Move View</b>";
-		case ui::xySelect: return "<b>Select</b>";
-		case ui::xyZoom: return "<b>Zoom View</b>";
-		case ui::xyCameraMove: return "<b>Drag Camera</b>";
-		case ui::xyCameraAngle: return "<b>Point Camera</b>";
-		case ui::xyNewBrushDrag: return "<b>Create New Brush</b>";
-		default: return "<b>Unknown event</b>";
+		case ui::xyNothing: return makeBold(_("Nothing"));
+		case ui::xyMoveView: return makeBold(_("Move View"));
+		case ui::xySelect: return makeBold(_("Select"));
+		case ui::xyZoom: return makeBold(_("Zoom View"));
+		case ui::xyCameraMove: return makeBold(_("Drag Camera"));
+		case ui::xyCameraAngle: return makeBold(_("Point Camera"));
+		case ui::xyNewBrushDrag: return makeBold(_("Create New Brush"));
+		default: return makeBold(_("Unknown event"));
 	}
 }
 
 std::string MouseEventManager::printObserverEvent(const ui::ObserverEvent& observerEvent) {
 	
 	switch (observerEvent) {
-		case ui::obsNothing: return "<b>Nothing</b>";
-		case ui::obsManipulate: return "<b>Manipulate</b>";
-		case ui::obsSelect: return "<b>Select</b>"; 
-		case ui::obsToggle: return "<b>Toggle Selection</b>";
-		case ui::obsToggleFace: return "<b>Toggle Face Selection</b>";
-		case ui::obsReplace: return "<b>Cycle Selection</b>";
-		case ui::obsReplaceFace: return "<b>Cycle Face Selection</b>";
-		case ui::obsCopyTexture: return "<b>Copy Texture</b>";
-		case ui::obsPasteTextureProjected: return "<b>PasteTexture Projected</b>";		
-		case ui::obsPasteTextureNatural: return "<b>PasteTexture Natural</b>";
-		case ui::obsPasteTextureCoordinates: return "<b>PasteTexture Coordinates</b>";
-		case ui::obsPasteTextureToBrush: return "<b>Paste Texture to all Brush Faces</b>";
-		case ui::obsJumpToObject: return "<b>Jump to Object</b>";
-		default: return "<b>Unknown event</b>";
+		case ui::obsNothing: return makeBold(_("Nothing"));
+		case ui::obsManipulate: return makeBold(_("Manipulate"));
+		case ui::obsSelect: return makeBold(_("Select")); 
+		case ui::obsToggle: return makeBold(_("Toggle Selection"));
+		case ui::obsToggleFace: return makeBold(_("Toggle Face Selection"));
+		case ui::obsReplace: return makeBold(_("Cycle Selection"));
+		case ui::obsReplaceFace: return makeBold(_("Cycle Face Selection"));
+		case ui::obsCopyTexture: return makeBold(_("Copy Texture"));
+		case ui::obsPasteTextureProjected: return makeBold(_("PasteTexture Projected"));		
+		case ui::obsPasteTextureNatural: return makeBold(_("PasteTexture Natural"));
+		case ui::obsPasteTextureCoordinates: return makeBold(_("PasteTexture Coordinates"));
+		case ui::obsPasteTextureToBrush: return makeBold(_("Paste Texture to all Brush Faces"));
+		case ui::obsJumpToObject: return makeBold(_("Jump to Object"));
+		default: return makeBold(_("Unknown event"));
 	}
 }
 
@@ -542,11 +551,11 @@ float MouseEventManager::getCameraForwardStrafeFactor() {
 	return _forwardStrafeFactor;
 }
 
-bool MouseEventManager::strafeActive(unsigned int& state) {
+bool MouseEventManager::strafeActive(unsigned int state) {
 	return ((_modifiers.getKeyboardFlags(state) & _toggleStrafeCondition.modifierFlags) != 0);
 }
 
-bool MouseEventManager::strafeForwardActive(unsigned int& state) {
+bool MouseEventManager::strafeForwardActive(unsigned int state) {
 	return ((_modifiers.getKeyboardFlags(state) & _toggleForwardStrafeCondition.modifierFlags) != 0);
 }
 

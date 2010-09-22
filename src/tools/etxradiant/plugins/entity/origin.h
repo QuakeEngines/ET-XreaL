@@ -25,8 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ientity.h"
 
 #include "math/matrix.h"
-#include "generic/callback.h"
 #include <boost/format.hpp>
+#include <boost/function.hpp>
 
 const Vector3 ORIGINKEY_IDENTITY = Vector3(0, 0, 0);
 
@@ -35,25 +35,27 @@ inline Vector3 origin_snapped(const Vector3& origin, float snap)
   return vector3_snapped(origin, snap);
 }
 
-class OriginKey
+class OriginKey :
+	public KeyObserver
 {
-	Callback _originChanged;
+private:
+	boost::function<void()> _originChanged;
+
 public:
 	Vector3 m_origin;
 
-	OriginKey(const Callback& originChanged) :
+	OriginKey(const boost::function<void()>& originChanged) :
 		_originChanged(originChanged), 
 		m_origin(ORIGINKEY_IDENTITY)
 	{}
 
-	void originChanged(const std::string& value)
+	void onKeyValueChanged(const std::string& value)
 	{
 		// Try to construct a Vector3 from the given string, will fall back to 0,0,0
 		m_origin = Vector3(value);
 
 		_originChanged();
 	}
-	typedef MemberCaller1<OriginKey, const std::string&, &OriginKey::originChanged> OriginChangedCaller;
 
 	void write(Entity* entity) const
 	{

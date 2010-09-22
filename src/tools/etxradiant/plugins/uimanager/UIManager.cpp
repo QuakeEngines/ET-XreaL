@@ -5,11 +5,12 @@
 #include "iradiant.h"
 #include "icommandsystem.h"
 #include "ieventmanager.h"
-#include "generic/callback.h"
 #include "colourscheme/ColourSchemeEditor.h"
 #include "GroupDialog.h"
 #include "ShutdownListener.h"
 #include "debugging/debugging.h"
+#include "FilterMenu.h"
+#include "ModelPreview.h"
 
 namespace ui {
 
@@ -97,6 +98,16 @@ GdkPixbuf* UIManager::getLocalPixbufWithMask(const std::string& fileName) {
 		globalErrorStream() << "Couldn't load pixbuf " << fullFileName << std::endl; 
 		return NULL;
 	}
+}
+
+IFilterMenuPtr UIManager::createFilterMenu()
+{
+	return IFilterMenuPtr(new FilterMenu);
+}
+
+IModelPreviewPtr UIManager::createModelPreview()
+{
+	return IModelPreviewPtr(new ModelPreview);
 }
 
 void UIManager::clear()

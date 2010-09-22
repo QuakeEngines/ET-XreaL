@@ -15,32 +15,26 @@
 #include "Doom3MapFormat.h"
 #include "InfoFile.h"
 
+#include "i18n.h"
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 
 namespace map {
 
 	namespace {
 		const std::string RKEY_MAP_LOAD_STATUS_INTERLEAVE = "user/ui/map/loadStatusInterleave";
-
-		inline MapImporterPtr Node_getMapImporter(scene::INodePtr node) {
-			return boost::dynamic_pointer_cast<MapImporter>(node);
-		}
 	}
 
 // Constructor
-NodeImporter::NodeImporter(const MapImportInfo& importInfo, 
-						   InfoFile& infoFile, 
-						   const PrimitiveParser& parser) 
+NodeImporter::NodeImporter(const MapImportInfo& importInfo) 
 : _root(importInfo.root),
   _inputStream(importInfo.inputStream),
   _fileSize(importInfo.inputStreamSize),
   _tok(_inputStream),
-  _infoFile(infoFile),
   _entityCount(0),
   _primitiveCount(0),
   _layerInfoCount(0),
   _dialogEventLimiter(GlobalRegistry().getInt(RKEY_MAP_LOAD_STATUS_INTERLEAVE)),
-  _parser(parser),
   _debug(GlobalRegistry().get("user/debug") == "1")
 {
 	bool showProgressDialog = (GlobalRegistry().get(RKEY_MAP_SUPPRESS_LOAD_STATUS_DIALOG) != "1");
@@ -49,8 +43,8 @@ NodeImporter::NodeImporter(const MapImportInfo& importInfo,
 	{
 		_dialog = gtkutil::ModalProgressDialogPtr(
 			new gtkutil::ModalProgressDialog(
-            GlobalMainFrame().getTopLevelWindow(), "Loading map"
-         )
+				GlobalMainFrame().getTopLevelWindow(), _("Loading map")
+			)
 		);
 	}
 }
@@ -68,15 +62,16 @@ bool NodeImporter::parse() {
 		// Update the dialog text. This will throw an exception if the cancel
 		// button is clicked, which we must catch and handle.
 		if (_dialog && _dialogEventLimiter.readyForEvent()) 
-      {
+		{
 			try 
-         {
-				_dialog->setTextAndFraction("Loading entity " + sizetToStr(_entityCount), getProgressFraction());
+			{
+				std::string text = (boost::format(_("Loading entity %d")) % _entityCount).str();
+				_dialog->setTextAndFraction(text, getProgressFraction());
 			}
-			catch (gtkutil::ModalProgressDialog::OperationAbortedException&) 
-         {
+			catch (gtkutil::ModalProgressDialog::OperationAbortedException&)
+			{
 				gtkutil::errorDialog(
-					"Map loading cancelled", 
+					_("Map loading cancelled"), 
 					GlobalMainFrame().getTopLevelWindow()
 				);
 
@@ -93,9 +88,11 @@ bool NodeImporter::parse() {
 		try {
 			parseEntity();
 		}
-		catch (std::runtime_error& e) {
+		catch (std::runtime_error& e)
+		{
+			std::string text = (boost::format(_("Failed on entity %d")) % _entityCount).str();
 			gtkutil::errorDialog(
-				"Failed on entity " + sizetToStr(_entityCount) + "\n\n" + e.what(), 
+				text + "\n\n" + e.what(), 
 				GlobalMainFrame().getTopLevelWindow()
 			);
 
@@ -121,13 +118,15 @@ bool NodeImporter::parseMapVersion() {
         _tok.assertNextToken(VERSION);
         version = boost::lexical_cast<float>(_tok.nextToken());
     }
-    catch (parser::ParseException& e) {
+    catch (parser::ParseException& e)
+	{
         globalErrorStream() 
             << "[mapdoom3] Unable to parse map version: " 
             << e.what() << "\n";
         return false;
     }
-    catch (boost::bad_lexical_cast& e) {
+    catch (boost::bad_lexical_cast& e)
+	{
         globalErrorStream() 
             << "[mapdoom3] Unable to parse map version: " 
             << e.what() << "\n";
@@ -135,7 +134,8 @@ bool NodeImporter::parseMapVersion() {
     }
 
     // Check we have the correct version for this module
-    if (version != MAPVERSION) {
+    if (version != MAPVERSION)
+	{
         globalErrorStream() 
             << "Incorrect map version: required " << MAPVERSION 
             << ", found " << version << "\n";
@@ -157,17 +157,29 @@ void NodeImporter::parsePrimitive(const scene::INodePtr& parentEntity)
     }
 
     _primitiveCount++;
-    
-    // Try to parse the primitive, throwing exception if failed
-    scene::INodePtr primitive(_parser.parsePrimitive(_tok));
 
-    if (!primitive || !Node_getMapImporter(primitive)->importTokens(_tok)) {
-        throw std::runtime_error("Primitive #" + sizetToStr(_primitiveCount) 
-                                 + ": parse error\n");
+	std::string primitiveKeyword = _tok.nextToken();
+
+	// Get a parser for this keyword
+	PrimitiveParserPtr parser = GlobalMapFormatManager().getPrimitiveParser(primitiveKeyword);
+
+	if (parser == NULL)
+	{
+		throw parser::ParseException("Unknown primitive type: " + primitiveKeyword);
+	}
+
+	// Try to parse the primitive, throwing exception if failed
+    scene::INodePtr primitive = parser->parse(_tok);
+
+    if (!primitive)
+	{
+		std::string text = (boost::format(_("Primitive #%d: parse error")) % _primitiveCount).str();
+        throw std::runtime_error(text + "\n");
     }
     
     // Now add the primitive as a child of the entity
-    if (Node_getEntity(parentEntity)->isContainer()) {
+    if (Node_getEntity(parentEntity)->isContainer())
+	{
         parentEntity->addChildNode(primitive);
     }
 }
@@ -210,7 +222,7 @@ scene::INodePtr NodeImporter::createEntity(const EntityKeyValues& keyValues) {
 
 void NodeImporter::parseEntity() {
 	// Set up the progress dialog text
-	_dlgEntityText = "Loading entity " + sizetToStr(_entityCount);
+	_dlgEntityText = (boost::format(_("Loading entity %d")) % _entityCount).str();
 	
     // Map of keyvalues for this entity
     EntityKeyValues keyValues;
@@ -251,10 +263,10 @@ void NodeImporter::parseEntity() {
 	        std::string value = _tok.nextToken();
 
 	        // Sanity check (invalid number of tokens will get us out of sync)
-	        if (value == "{" || value == "}") {
-	            throw std::runtime_error(
-	                "Parsed invalid value '" + value + "' for key '" + token + "'"
-	            );
+	        if (value == "{" || value == "}")
+			{
+				std::string text = (boost::format(_("Parsed invalid value '%s' for key '%s'")) % value % token).str();
+	            throw std::runtime_error(text);
 	        }
 	        
 	        // Otherwise add the keyvalue pair to our map

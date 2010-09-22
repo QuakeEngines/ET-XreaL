@@ -6,12 +6,12 @@
 
 #include "math/Vector3.h"
 #include "entitylib.h"
-#include "generic/callback.h"
 
 #include "../origin.h"
 #include "../angle.h"
 #include "../rotation.h"
 #include "../Doom3Entity.h"
+#include "../KeyObserverDelegate.h"
 #include "transformlib.h"
 
 #include "RenderableArrow.h"
@@ -24,6 +24,7 @@ class GenericEntity :
 	public Bounded,
 	public Snappable
 {
+private:
 	GenericEntityNode& _owner;
 
 	Doom3Entity& m_entity;
@@ -50,21 +51,20 @@ class GenericEntity :
 	RenderableSolidAABB m_aabb_solid;
 	RenderableWireframeAABB m_aabb_wire;
 
-	Callback m_transformChanged;
-	Callback m_evaluateTransform;
-
 	// TRUE if this entity's arrow can be rotated in all directions, 
 	// FALSE if the arrow is caught in the xy plane
 	bool _allow3Drotations;
+
+	KeyObserverDelegate _rotationObserver;
+	KeyObserverDelegate _angleObserver;
+
 public:
 	// Constructor
-	GenericEntity(GenericEntityNode& node, 
-				  const Callback& transformChanged);
+	GenericEntity(GenericEntityNode& node);
 	
 	// Copy constructor
 	GenericEntity(const GenericEntity& other, 
-				  GenericEntityNode& node, 
-				  const Callback& transformChanged);
+				  GenericEntityNode& node);
 
 	~GenericEntity();
 
@@ -90,16 +90,10 @@ public:
 	void destroy();
 
 	void updateTransform();
-	typedef MemberCaller<GenericEntity, &GenericEntity::updateTransform> UpdateTransformCaller;
 	
 	void originChanged();
-	typedef MemberCaller<GenericEntity, &GenericEntity::originChanged> OriginChangedCaller;
-	
 	void angleChanged();
-	typedef MemberCaller<GenericEntity, &GenericEntity::angleChanged> AngleChangedCaller;
-
 	void rotationChanged();
-	typedef MemberCaller<GenericEntity, &GenericEntity::rotationChanged> RotationChangedCaller;
 };
 
 } // namespace entity

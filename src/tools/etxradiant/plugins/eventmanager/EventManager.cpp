@@ -17,7 +17,6 @@
 
 #include "xmlutil/Node.h"
 
-#include "Command.h"
 #include "Statement.h"
 #include "Toggle.h"
 #include "WidgetToggle.h"
@@ -168,7 +167,8 @@ IEventPtr EventManager::findEvent(GdkEventKey* event) {
 	}
 }
 
-std::string EventManager::getEventName(IEventPtr event) {
+std::string EventManager::getEventName(const IEventPtr& event)
+{
 	// Try to lookup the given eventptr
 	for (EventMap::iterator i = _events.begin(); i != _events.end(); i++) {
 		if (i->second == event) {
@@ -179,7 +179,7 @@ std::string EventManager::getEventName(IEventPtr event) {
 	return "";
 }
 
-std::string EventManager::getAcceleratorStr(const IEventPtr event, bool forMenu) {
+std::string EventManager::getAcceleratorStr(const IEventPtr& event, bool forMenu) {
 	std::string returnValue = "";
 	
 	IAccelerator& accelerator = findAccelerator(event);
@@ -217,20 +217,6 @@ bool EventManager::alreadyRegistered(const std::string& eventName) {
 }
 
 // Add the given command to the internal list
-IEventPtr EventManager::addCommand(const std::string& name, const Callback& callback, bool reactOnKeyUp) {
-	
-	if (!alreadyRegistered(name)) {
-		// Add the command to the list
-		_events[name] = IEventPtr(new Command(callback, reactOnKeyUp));
-		
-		// Return the pointer to the newly created event
-		return _events[name];
-	}
-	
-	return _emptyEvent;
-}
-
-// Add the given command to the internal list
 IEventPtr EventManager::addCommand(const std::string& name, const std::string& statement, bool reactOnKeyUp) {
 	
 	if (!alreadyRegistered(name)) {
@@ -244,11 +230,12 @@ IEventPtr EventManager::addCommand(const std::string& name, const std::string& s
 	return _emptyEvent;
 }
 
-IEventPtr EventManager::addKeyEvent(const std::string& name, const Callback& keyUpCallback, const Callback& keyDownCallback) {
-	
-	if (!alreadyRegistered(name)) {
+IEventPtr EventManager::addKeyEvent(const std::string& name, const ui::KeyStateChangeCallback& keyStateChangeCallback)
+{
+	if (!alreadyRegistered(name))
+	{
 		// Add the new keyevent to the list (implicitly cast onto Event&)  
-		_events[name] = IEventPtr(new KeyEvent(keyUpCallback, keyDownCallback));
+		_events[name] = IEventPtr(new KeyEvent(keyStateChangeCallback));
 		
 		// Return the pointer to the newly created event
 		return _events[name];
@@ -270,8 +257,8 @@ IEventPtr EventManager::addWidgetToggle(const std::string& name) {
 	return _emptyEvent;
 }
 
-IEventPtr EventManager::addRegistryToggle(const std::string& name, const std::string& registryKey) {
-	
+IEventPtr EventManager::addRegistryToggle(const std::string& name, const std::string& registryKey)
+{
 	if (!alreadyRegistered(name)) {
 		// Add the command to the list (implicitly cast the pointer on Event&)  
 		_events[name] = IEventPtr(new RegistryToggle(registryKey));
@@ -283,8 +270,8 @@ IEventPtr EventManager::addRegistryToggle(const std::string& name, const std::st
 	return _emptyEvent;
 }
 
-IEventPtr EventManager::addToggle(const std::string& name, const Callback& onToggled) {
-	
+IEventPtr EventManager::addToggle(const std::string& name, const ToggleCallback& onToggled)
+{
 	if (!alreadyRegistered(name)) {
 		// Add the command to the list (implicitly cast the pointer on Event&)  
 		_events[name] = IEventPtr(new Toggle(onToggled));
@@ -296,7 +283,8 @@ IEventPtr EventManager::addToggle(const std::string& name, const Callback& onTog
 	return _emptyEvent;
 }
 
-void EventManager::setToggled(const std::string& name, const bool toggled) {
+void EventManager::setToggled(const std::string& name, const bool toggled)
+{
 	// Check could be placed here by boost::shared_ptr's dynamic_pointer_cast 
 	if (!findEvent(name)->setToggled(toggled)) {
 		globalWarningStream() << "EventManager: Event " << name 
@@ -501,7 +489,7 @@ void EventManager::foreachEvent(IEventVisitor& eventVisitor) {
 }
 
 // Tries to locate an accelerator, that is connected to the given command
-IAccelerator& EventManager::findAccelerator(const IEventPtr event) {
+IAccelerator& EventManager::findAccelerator(const IEventPtr& event) {
 	// Cycle through the accelerators and check for matches
 	for (AcceleratorList::iterator i = _accelerators.begin(); i != _accelerators.end(); i++) {
 		if (i->match(event)) {
@@ -515,7 +503,7 @@ IAccelerator& EventManager::findAccelerator(const IEventPtr event) {
 }
 
 // Returns the string representation of the given modifier flags 
-std::string EventManager::getModifierStr(const unsigned int& modifierFlags, bool forMenu) {
+std::string EventManager::getModifierStr(const unsigned int modifierFlags, bool forMenu) {
 	// Pass the call to the modifiers helper class
 	return _modifiers.getModifierStr(modifierFlags, forMenu);
 }
@@ -543,7 +531,10 @@ EventManager::AcceleratorList EventManager::findAccelerator(
 	return findAccelerator(keyVal, modifierFlags);
 }
 
-bool EventManager::duplicateAccelerator(const std::string& key, const std::string& modifiers, IEventPtr event) {
+bool EventManager::duplicateAccelerator(const std::string& key, 
+										const std::string& modifiers, 
+										const IEventPtr& event)
+{
 	AcceleratorList accelList = findAccelerator(key, modifiers);
 	
 	for (AcceleratorList::iterator i = accelList.begin(); i != accelList.end(); i++) {
@@ -556,8 +547,8 @@ bool EventManager::duplicateAccelerator(const std::string& key, const std::strin
 	return false;
 }
 
-EventManager::AcceleratorList EventManager::findAccelerator(
-	const guint& keyVal, const unsigned int& modifierFlags)
+EventManager::AcceleratorList EventManager::findAccelerator(guint keyVal, 
+															const unsigned int modifierFlags)
 {
 	AcceleratorList returnList;
 	

@@ -1,5 +1,6 @@
 #include "SplitPaneLayout.h"
 
+#include "i18n.h"
 #include "itextstream.h"
 #include "ieventmanager.h"
 #include "iuimanager.h"
@@ -8,11 +9,9 @@
 #include "ientityinspector.h"
 
 #include "gtkutil/FramedWidget.h"
-#include "gtkutil/Paned.h"
 
 #include "camera/GlobalCamera.h"
 #include "ui/texturebrowser/TextureBrowser.h"
-#include "xyview/GlobalXYWnd.h"
 
 namespace ui {
 
@@ -20,13 +19,40 @@ namespace ui {
 	{
 		const std::string RKEY_SPLITPANE_ROOT = "user/ui/mainFrame/splitPane";
 		const std::string RKEY_SPLITPANE_TEMP_ROOT = RKEY_SPLITPANE_ROOT + "/temp";
+
+		const std::string RKEY_SPLITPANE_CAMPOS = RKEY_SPLITPANE_ROOT + "/cameraPosition";
+		const std::string RKEY_SPLITPANE_VIEWTYPES = RKEY_SPLITPANE_ROOT + "/viewTypes";
 	}
 
-std::string SplitPaneLayout::getName() {
+SplitPaneLayout::SplitPaneLayout()
+{
+	clearQuadrantInfo();
+}
+
+void SplitPaneLayout::clearQuadrantInfo()
+{
+	_quadrants[QuadrantTopLeft] = QuadrantInfo();
+	_quadrants[QuadrantTopRight] = QuadrantInfo();
+	_quadrants[QuadrantBottomLeft] = QuadrantInfo();
+	_quadrants[QuadrantBottomRight] = QuadrantInfo();
+}
+
+std::string SplitPaneLayout::getName()
+{
 	return SPLITPANE_LAYOUT_NAME;
 }
 
-void SplitPaneLayout::activate() {
+void SplitPaneLayout::activate()
+{
+	constructLayout();
+	constructMenus();
+}
+
+void SplitPaneLayout::constructLayout()
+{
+	_splitPane = SplitPaneView();
+
+	_cameraPosition = getCameraPositionFromRegistry();
 
 	GtkWindow* parent = GlobalMainFrame().getTopLevelWindow();
 
@@ -35,58 +61,29 @@ void SplitPaneLayout::activate() {
 	 // greebo: The mainframe window acts as parent for the camwindow
 	_camWnd->setContainer(parent);
 
-	GtkWidget* camera = _camWnd->getWidget();
-
-	// Allocate the three ortho views
-    XYWndPtr xyWnd = GlobalXYWnd().createEmbeddedOrthoView();
-    xyWnd->setViewType(XY);
-    GtkWidget* xy = xyWnd->getWidget();
-    
-    XYWndPtr yzWnd = GlobalXYWnd().createEmbeddedOrthoView();
-    yzWnd->setViewType(YZ);
-    GtkWidget* yz = yzWnd->getWidget();
-
-    XYWndPtr xzWnd = GlobalXYWnd().createEmbeddedOrthoView();
-    xzWnd->setViewType(XZ);
-    GtkWidget* xz = xzWnd->getWidget();
-
-	// Cam / YZ Pane
-	gtkutil::Paned vertPane1(gtkutil::Paned::Vertical);
-
-	vertPane1.setFirstChild(gtkutil::FramedWidget(camera), true); // allow shrinking
-	vertPane1.setSecondChild(gtkutil::FramedWidget(yz), true); // allow shrinking
-
-	gtkutil::Paned vertPane2(gtkutil::Paned::Vertical);
-
-	vertPane2.setFirstChild(gtkutil::FramedWidget(xy), true); // allow shrinking
-	vertPane2.setSecondChild(gtkutil::FramedWidget(xz), true); // allow shrinking
+	_camera = gtkutil::FramedWidget(_camWnd->getWidget());
 
 	// Arrange the widgets into the paned views
-	_splitPane.vertPane1 = vertPane1.getWidget();
-	_splitPane.vertPane2 = vertPane2.getWidget();
-
-	// The overall horizontal pane, containing the other two as children
-	gtkutil::Paned horizPane(gtkutil::Paned::Horizontal);
-
-	horizPane.setFirstChild(_splitPane.vertPane1, true);
-	horizPane.setSecondChild(_splitPane.vertPane2, true);
-
-	_splitPane.horizPane = horizPane.getWidget();
+	_splitPane.horizPane.setFirstChild(_splitPane.vertPane1.getWidget(), true);
+	_splitPane.horizPane.setSecondChild(_splitPane.vertPane2.getWidget(), true);
 
 	// Retrieve the main container of the main window
 	GtkWidget* mainContainer = GlobalMainFrame().getMainContainer();
-	gtk_container_add(GTK_CONTAINER(mainContainer), GTK_WIDGET(_splitPane.horizPane));
+	gtk_container_add(GTK_CONTAINER(mainContainer), _splitPane.horizPane.getWidget());
 
-	gtk_paned_set_position(GTK_PANED(_splitPane.horizPane), 200);
-	gtk_paned_set_position(GTK_PANED(_splitPane.vertPane1), 200);
-	gtk_paned_set_position(GTK_PANED(_splitPane.vertPane2), 400);
+	gtk_paned_set_position(GTK_PANED(_splitPane.horizPane.getWidget()), 200);
+	gtk_paned_set_position(GTK_PANED(_splitPane.vertPane1.getWidget()), 200);
+	gtk_paned_set_position(GTK_PANED(_splitPane.vertPane2.getWidget()), 400);
 
-	_splitPane.posHPane.connect(_splitPane.horizPane);
-	_splitPane.posVPane1.connect(_splitPane.vertPane1);
-	_splitPane.posVPane2.connect(_splitPane.vertPane2);
+	_splitPane.posHPane.connect(_splitPane.horizPane.getWidget());
+	_splitPane.posVPane1.connect(_splitPane.vertPane1.getWidget());
+	_splitPane.posVPane2.connect(_splitPane.vertPane2.getWidget());
 	
-	// Attempt to restore this layout's state
+	// Attempt to restore this layout's state, this will also construct the orthoviews
 	restoreStateFromPath(RKEY_SPLITPANE_ROOT);
+
+	// Distribute widgets among quadrants
+	distributeWidgets();
 	
     {      
 		GtkWidget* textureBrowser = gtkutil::FramedWidget(
@@ -99,7 +96,7 @@ void SplitPaneLayout::activate() {
 	    	"Textures", // tab title
 	    	"icon_texture.png", // tab icon 
 	    	GTK_WIDGET(textureBrowser), // page widget
-	    	"Texture Browser"
+	    	_("Texture Browser")
 	    );
     }
 
@@ -112,12 +109,58 @@ void SplitPaneLayout::activate() {
 	GlobalGroupDialog().hideDialogWindow();
 
 	gtk_widget_show_all(mainContainer);
+}
 
+void SplitPaneLayout::constructMenus()
+{
 	// Hide the camera toggle option for non-floating views
-    GlobalUIManager().getMenuManager().setVisibility("main/view/cameraview", false);
+	IMenuManager& menuManager = GlobalUIManager().getMenuManager();
+	menuManager.setVisibility("main/view/cameraview", false);
+
+	// Add the commands for changing the camera position
+	GlobalEventManager().addToggle("CameraPositionTopLeft", boost::bind(&SplitPaneLayout::setCameraTopLeft, this, _1));
+	GlobalEventManager().addToggle("CameraPositionTopRight", boost::bind(&SplitPaneLayout::setCameraTopRight, this, _1));
+	GlobalEventManager().addToggle("CameraPositionBottomLeft", boost::bind(&SplitPaneLayout::setCameraBottomLeft, this, _1));
+	GlobalEventManager().addToggle("CameraPositionBottomRight", boost::bind(&SplitPaneLayout::setCameraBottomRight, this, _1));
+	
+	// Add the corresponding menu items
+	menuManager.insert("main/view/camera", "cameraposition", 
+					ui::menuFolder, _("Camera Position"), "", "");
+
+	menuManager.add("main/view/cameraposition", "camtopleft", 
+					ui::menuItem, _("Top Left"), "", "CameraPositionTopLeft");
+	menuManager.add("main/view/cameraposition", "camtopright", 
+					ui::menuItem, _("Top Right"), "", "CameraPositionTopRight");
+	menuManager.add("main/view/cameraposition", "cambottomleft", 
+					ui::menuItem, _("Bottom Left"), "", "CameraPositionBottomLeft");
+	menuManager.add("main/view/cameraposition", "cambottomright", 
+					ui::menuItem, _("Bottom Right"), "", "CameraPositionBottomRight");
+
+	updateCameraPositionToggles();
+}
+
+void SplitPaneLayout::deconstructMenus()
+{
+	// Show the camera toggle option again
+    GlobalUIManager().getMenuManager().setVisibility("main/view/cameraview", true);
+
+	// Remove the camera position menu items
+	GlobalUIManager().getMenuManager().remove("main/view/cameraposition");
+
+	// Remove the camera position events
+	GlobalEventManager().removeEvent("CameraPositionTopLeft");
+	GlobalEventManager().removeEvent("CameraPositionTopRight");
+	GlobalEventManager().removeEvent("CameraPositionBottomLeft");
+	GlobalEventManager().removeEvent("CameraPositionBottomRight");
 }
 
 void SplitPaneLayout::deactivate()
+{
+	deconstructMenus();
+	deconstructLayout();
+}
+
+void SplitPaneLayout::deconstructLayout()
 {
 	if (GlobalRegistry().keyExists(RKEY_SPLITPANE_TEMP_ROOT))
 	{
@@ -125,8 +168,8 @@ void SplitPaneLayout::deactivate()
 		restorePanePositions();
 	}
 
-	// Show the camera toggle option again
-    GlobalUIManager().getMenuManager().setVisibility("main/view/cameraview", true);
+	// Save camera position
+	saveCameraPositionToRegistry();
 
 	// Remove all previously saved pane information 
 	GlobalRegistry().deleteXPath(RKEY_SPLITPANE_ROOT + "//pane");
@@ -134,8 +177,11 @@ void SplitPaneLayout::deactivate()
 	// Save the pane info
 	saveStateToPath(RKEY_SPLITPANE_ROOT);
 
+	// Reset quadrant information
+	clearQuadrantInfo();
+
 	// Delete all active views
-	GlobalXYWnd().destroyViews();
+	GlobalXYWndManager().destroyViews();
 
 	// Delete the CamWnd
 	_camWnd = CamWndPtr();
@@ -148,7 +194,7 @@ void SplitPaneLayout::deactivate()
 	GlobalTextureBrowser().destroyWindow();
 
 	// Destroy the widget, so it gets removed from the main container
-	gtk_widget_destroy(GTK_WIDGET(_splitPane.horizPane));
+	gtk_widget_destroy(_splitPane.horizPane.getWidget());
 }
 
 void SplitPaneLayout::maximiseCameraSize()
@@ -189,6 +235,48 @@ void SplitPaneLayout::restoreStateFromPath(const std::string& path)
 		_splitPane.posVPane2.loadFromPath(path + "/pane[@name='vertical2']");
 		_splitPane.posVPane2.applyPosition();
 	}
+
+	int topLeft = strToInt(GlobalRegistry().getAttribute(RKEY_SPLITPANE_VIEWTYPES, "topleft"), -1);
+	int topRight = strToInt(GlobalRegistry().getAttribute(RKEY_SPLITPANE_VIEWTYPES, "topright"), XY);
+	int bottomLeft = strToInt(GlobalRegistry().getAttribute(RKEY_SPLITPANE_VIEWTYPES, "bottomleft"), YZ);
+	int bottomRight = strToInt(GlobalRegistry().getAttribute(RKEY_SPLITPANE_VIEWTYPES, "bottomright"), XZ);
+
+	// Load mapping, but leave widget pointer NULL
+	_quadrants[QuadrantTopLeft] = QuadrantInfo();
+	_quadrants[QuadrantTopLeft].isCamera = (topLeft == -1);
+
+	if (!_quadrants[QuadrantTopLeft].isCamera)
+	{
+		_quadrants[QuadrantTopLeft].xyWnd = GlobalXYWnd().createEmbeddedOrthoView();
+		_quadrants[QuadrantTopLeft].xyWnd->setViewType(static_cast<EViewType>(topLeft));
+	}
+
+	_quadrants[QuadrantTopRight] = QuadrantInfo();
+	_quadrants[QuadrantTopRight].isCamera = (topRight == -1);
+
+	if (!_quadrants[QuadrantTopRight].isCamera)
+	{
+		_quadrants[QuadrantTopRight].xyWnd = GlobalXYWnd().createEmbeddedOrthoView();
+		_quadrants[QuadrantTopRight].xyWnd->setViewType(static_cast<EViewType>(topRight));
+	}
+
+	_quadrants[QuadrantBottomLeft] = QuadrantInfo();
+	_quadrants[QuadrantBottomLeft].isCamera = (bottomLeft == -1);
+
+	if (!_quadrants[QuadrantBottomLeft].isCamera)
+	{
+		_quadrants[QuadrantBottomLeft].xyWnd = GlobalXYWnd().createEmbeddedOrthoView();
+		_quadrants[QuadrantBottomLeft].xyWnd->setViewType(static_cast<EViewType>(bottomLeft));
+	}
+
+	_quadrants[QuadrantBottomRight] = QuadrantInfo();
+	_quadrants[QuadrantBottomRight].isCamera = (bottomRight == -1);
+
+	if (!_quadrants[QuadrantBottomRight].isCamera)
+	{
+		_quadrants[QuadrantBottomRight].xyWnd = GlobalXYWnd().createEmbeddedOrthoView();
+		_quadrants[QuadrantBottomRight].xyWnd->setViewType(static_cast<EViewType>(bottomRight));
+	}
 }
 
 void SplitPaneLayout::saveStateToPath(const std::string& path)
@@ -201,6 +289,20 @@ void SplitPaneLayout::saveStateToPath(const std::string& path)
 
 	GlobalRegistry().createKeyWithName(path, "pane", "vertical2");
 	_splitPane.posVPane2.saveToPath(path + "/pane[@name='vertical2']");
+
+	GlobalRegistry().deleteXPath(RKEY_SPLITPANE_VIEWTYPES);
+	xml::Node node = GlobalRegistry().createKey(RKEY_SPLITPANE_VIEWTYPES);
+
+	// Camera is assigned -1 as viewtype
+	int topLeft = _quadrants[QuadrantTopLeft].xyWnd != NULL ? _quadrants[QuadrantTopLeft].xyWnd->getViewType() : -1;
+	int topRight = _quadrants[QuadrantTopRight].xyWnd != NULL ? _quadrants[QuadrantTopRight].xyWnd->getViewType() : -1;
+	int bottomLeft = _quadrants[QuadrantBottomLeft].xyWnd != NULL ? _quadrants[QuadrantBottomLeft].xyWnd->getViewType() : -1;
+	int bottomRight = _quadrants[QuadrantBottomRight].xyWnd != NULL ? _quadrants[QuadrantBottomRight].xyWnd->getViewType() : -1;
+
+	node.setAttributeValue("topleft", intToStr(topLeft));
+	node.setAttributeValue("topright", intToStr(topRight));
+	node.setAttributeValue("bottomleft", intToStr(bottomLeft));
+	node.setAttributeValue("bottomright", intToStr(bottomRight));
 }
 
 void SplitPaneLayout::toggleFullscreenCameraView()
@@ -214,6 +316,130 @@ void SplitPaneLayout::toggleFullscreenCameraView()
 		// No saved info found in registry, maximise cam
 		maximiseCameraSize();
 	}
+}
+
+SplitPaneLayout::Position SplitPaneLayout::getCameraPositionFromRegistry()
+{
+	int value = GlobalRegistry().getInt(RKEY_SPLITPANE_CAMPOS);
+
+	if (value < QuadrantTopLeft || value > QuadrantBottomRight)
+	{
+		value = static_cast<int>(QuadrantTopLeft);
+	}
+
+	return static_cast<Position>(value);
+}
+
+void SplitPaneLayout::saveCameraPositionToRegistry()
+{
+	GlobalRegistry().setInt(RKEY_SPLITPANE_CAMPOS, static_cast<int>(_cameraPosition));
+}
+
+void SplitPaneLayout::setCameraTopLeft(bool newState)
+{
+	if (_cameraPosition == QuadrantTopLeft && newState) return; // nop
+
+	// Only react to "activate" events or same type
+	if (newState || _cameraPosition == QuadrantTopLeft)
+	{
+		_cameraPosition = QuadrantTopLeft;
+		
+		deconstructLayout();
+		constructLayout();
+
+		updateCameraPositionToggles();
+	}
+}
+
+void SplitPaneLayout::setCameraTopRight(bool newState)
+{
+	if (_cameraPosition == QuadrantTopRight && newState) return; // nop
+
+	// Only react to "activate" events
+	if (newState || _cameraPosition == QuadrantTopRight)
+	{
+		_cameraPosition = QuadrantTopRight;
+		
+		deconstructLayout();
+		constructLayout();
+
+		updateCameraPositionToggles();
+	}
+}
+
+void SplitPaneLayout::setCameraBottomLeft(bool newState)
+{
+	if (_cameraPosition == QuadrantBottomLeft && newState) return; // nop
+
+	// Only react to "activate" events
+	if (newState || _cameraPosition == QuadrantBottomLeft)
+	{
+		_cameraPosition = QuadrantBottomLeft;
+
+		deconstructLayout();
+		constructLayout();
+
+		updateCameraPositionToggles();
+	}
+}
+
+void SplitPaneLayout::setCameraBottomRight(bool newState)
+{
+	if (_cameraPosition == QuadrantBottomRight && newState) return; // nop
+
+	// Only react to "activate" events
+	if (newState || _cameraPosition == QuadrantBottomRight)
+	{
+		_cameraPosition = QuadrantBottomRight;
+		
+		deconstructLayout();
+		constructLayout();
+
+		updateCameraPositionToggles();
+	}
+}
+
+void SplitPaneLayout::updateCameraPositionToggles()
+{
+	// Update toggle state
+	GlobalEventManager().setToggled("CameraPositionTopLeft", _cameraPosition == QuadrantTopLeft);
+	GlobalEventManager().setToggled("CameraPositionTopRight", _cameraPosition == QuadrantTopRight);
+	GlobalEventManager().setToggled("CameraPositionBottomLeft", _cameraPosition == QuadrantBottomLeft);
+	GlobalEventManager().setToggled("CameraPositionBottomRight", _cameraPosition == QuadrantBottomRight);
+}
+
+void SplitPaneLayout::distributeWidgets()
+{
+	// Set camera position afresh
+	_quadrants[_cameraPosition].widget = _camera;
+	_quadrants[_cameraPosition].isCamera = true;
+
+	for (WidgetMap::iterator i = _quadrants.begin(); i != _quadrants.end(); ++i)
+	{
+		if (i->second.widget == NULL)
+		{
+			// Missing widget, this must be an orthoview
+			i->second.isCamera = false;
+
+			// Ensure we have an XYWnd instance at hand
+			if (i->second.xyWnd == NULL)
+			{
+				i->second.xyWnd = GlobalXYWnd().createEmbeddedOrthoView();
+
+				// FIXME: This could be the third complementing viewtype
+				i->second.xyWnd->setViewType(XY);
+			}
+
+			// Frame the widget to make it ready for packing
+			i->second.widget = gtkutil::FramedWidget(i->second.xyWnd->getWidget());
+		}
+	}
+
+	_splitPane.vertPane1.setFirstChild(_quadrants[QuadrantTopLeft].widget, true); // allow shrinking
+	_splitPane.vertPane1.setSecondChild(_quadrants[QuadrantBottomLeft].widget, true); // allow shrinking
+
+	_splitPane.vertPane2.setFirstChild(_quadrants[QuadrantTopRight].widget, true); // allow shrinking
+	_splitPane.vertPane2.setSecondChild(_quadrants[QuadrantBottomRight].widget, true); // allow shrinking
 }
 
 // The creation function, needed by the mainframe layout manager

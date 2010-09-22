@@ -6,42 +6,24 @@
 #include "math/matrix.h"
 #include "PlanePoints.h"
 
-class FacePlane {
-	
-	PlanePoints m_planepts;
-	Plane3 m_planeCached;
+class FacePlane
+{
+private:
 	Plane3 m_plane;
 
 public:
-	Vector3 m_funcStaticOrigin;
+	class SavedState
+	{
+	public:
+		Plane3 m_plane;
 
-	static bool isDoom3Plane() {
-		return true;
-	}
+		SavedState(const FacePlane& facePlane) :
+			m_plane(facePlane.m_plane)
+		{}
 
-	class SavedState {
-		public:
-			PlanePoints m_planepts;
-			Plane3 m_plane;
-
-		SavedState(const FacePlane& facePlane) {
-			if (facePlane.isDoom3Plane()) {
-				m_plane = facePlane.m_plane;
-			}
-			else {
-				planepts_assign(m_planepts, facePlane.planePoints());
-			}
-		}
-
-		void exportState(FacePlane& facePlane) const {
-			if (facePlane.isDoom3Plane()) {
-				facePlane.m_plane = m_plane;
-				facePlane.updateTranslated();
-			}
-			else {
-				planepts_assign(facePlane.planePoints(), m_planepts);
-				facePlane.MakePlane();
-			}
+		void exportState(FacePlane& facePlane) const
+		{
+			facePlane.m_plane = m_plane;
 		}
 	}; // class SavedState
 
@@ -49,23 +31,14 @@ public:
 	FacePlane();
 	FacePlane(const FacePlane& other);
 
-	void MakePlane();
 	void reverse();
 
 	void transform(const Matrix4& matrix, bool mirror);
 	
 	void offset(float offset);
 
-	void updateTranslated();
-	
-	void updateSource();
-
-	PlanePoints& planePoints();
-	const PlanePoints& planePoints() const;
-	
-	const Plane3& plane3() const;
-	void setDoom3Plane(const Plane3& plane);
-	const Plane3& getDoom3Plane() const;
+	void setPlane(const Plane3& plane);
+	const Plane3& getPlane() const;
 
 	void copy(const FacePlane& other);
 	void copy(const Vector3& p0, const Vector3& p1, const Vector3& p2);

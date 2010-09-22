@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ifiletypes.h"
 #include "iregistry.h"
 #include "icommandsystem.h"
+#include "itextstream.h"
 #include "ifilesystem.h"
 #include "iuimanager.h"
 #include "ieclass.h"
@@ -33,14 +34,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ieventmanager.h"
 #include "iclipper.h"
 
+#include "scene/Node.h"
+
 #include "entity.h"
 #include "map/AutoSaver.h"
 #include "map/PointFile.h"
-#include "camera/GlobalCamera.h"
-#include "xyview/GlobalXYWnd.h"
 #include "ui/texturebrowser/TextureBrowser.h"
 #include "ui/mediabrowser/MediaBrowser.h"
-#include "ui/common/ModelPreview.h"
 #include "gtkutil/FileChooser.h"
 
 #include "modulesystem/StaticModule.h"
@@ -50,26 +50,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace radiant
 {
 
-ui::IModelPreviewPtr RadiantModule::createModelPreview()
+void RadiantModule::addEventListener(const RadiantEventListenerPtr& listener)
 {
-	return ui::IModelPreviewPtr(new ui::ModelPreview);
-}
-
-void RadiantModule::addEventListener(RadiantEventListenerPtr listener) {
 	_eventListeners.insert(RadiantEventListenerWeakPtr(listener));
 }
 	
-void RadiantModule::removeEventListener(RadiantEventListenerPtr listener) {
+void RadiantModule::removeEventListener(const RadiantEventListenerPtr& listener)
+{
 	EventListenerList::iterator found = _eventListeners.find(
 		RadiantEventListenerWeakPtr(listener)
 	);
+
 	if (found != _eventListeners.end()) {
 		_eventListeners.erase(found);
 	}
 }
 	
 // Broadcasts a "shutdown" event to all the listeners, this also clears all listeners!
-void RadiantModule::broadcastShutdownEvent() {
+void RadiantModule::broadcastShutdownEvent()
+{
 	for (EventListenerList::iterator i = _eventListeners.begin();
 	     i != _eventListeners.end(); /* in-loop increment */)
 	{
@@ -92,7 +91,8 @@ void RadiantModule::broadcastShutdownEvent() {
 }
 
 // Broadcasts a "startup" event to all the listeners
-void RadiantModule::broadcastStartupEvent() {
+void RadiantModule::broadcastStartupEvent()
+{
 	for (EventListenerList::iterator i = _eventListeners.begin();
 	     i != _eventListeners.end(); /* in-loop increment */)
 	{
@@ -112,22 +112,21 @@ void RadiantModule::broadcastStartupEvent() {
 }
 
 // RegisterableModule implementation
-const std::string& RadiantModule::getName() const {
+const std::string& RadiantModule::getName() const
+{
 	static std::string _name(MODULE_RADIANT);
 	return _name;
 }
 
-const StringSet& RadiantModule::getDependencies() const {
+const StringSet& RadiantModule::getDependencies() const
+{
 	static StringSet _dependencies;
 	
 	if (_dependencies.empty()) {
 		_dependencies.insert(MODULE_COMMANDSYSTEM);
-		_dependencies.insert(MODULE_FILETYPES);
-		_dependencies.insert(MODULE_SCENEGRAPH);
 		_dependencies.insert(MODULE_XMLREGISTRY);
 		_dependencies.insert(MODULE_PREFERENCESYSTEM);
 		_dependencies.insert(MODULE_EVENTMANAGER);
-		_dependencies.insert(MODULE_ECLASSMANAGER);
 		_dependencies.insert(MODULE_SELECTIONSYSTEM);
 		_dependencies.insert(MODULE_RENDERSYSTEM);
 		_dependencies.insert(MODULE_CLIPPER);
@@ -136,32 +135,28 @@ const StringSet& RadiantModule::getDependencies() const {
 	return _dependencies;
 }
 
-void RadiantModule::initialiseModule(const ApplicationContext& ctx) {
-	globalOutputStream() << "RadiantModule::initialiseModule called.\n";
+void RadiantModule::initialiseModule(const ApplicationContext& ctx)
+{
+	globalOutputStream() << "RadiantModule::initialiseModule called." << std::endl;
 	
 	// Reset the node id count
   	scene::Node::resetIds();
   	
-    GlobalFiletypes().addType(
-    	"sound", "wav", FileTypePattern("PCM sound files", "*.wav"));
-
     map::PointFile::Instance().registerCommands();
     MainFrame_Construct();
-    GlobalCamera().construct();
-    GlobalXYWnd().construct();
 	ui::MediaBrowser::registerPreferences();
     GlobalTextureBrowser().construct();
-    Entity_Construct();
+	entity::registerCommands();
     map::AutoSaver().init();
 }
 
-void RadiantModule::shutdownModule() {
-	globalOutputStream() << "RadiantModule::shutdownModule called.\n";
+void RadiantModule::shutdownModule()
+{
+	globalOutputStream() << "RadiantModule::shutdownModule called." << std::endl;
 	
 	GlobalFileSystem().shutdown();
 
 	map::PointFile::Instance().destroy();
-    Entity_Destroy();
     
     // Remove all the event listeners, otherwise the shared_ptrs 
     // lock the instances. This is just for safety, usually all

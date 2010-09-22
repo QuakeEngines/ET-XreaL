@@ -7,6 +7,7 @@
  * On undo, the Undoables are called to re-import the states stored in the UndoMementos.  
  */
 #include "imodule.h"
+#include "i18n.h"
 
 #include "icommandsystem.h"
 #include "itextstream.h"
@@ -37,8 +38,9 @@ class RadiantUndoSystem :
 	public RegistryKeyObserver
 {
 	// The operation Observers which get notified on certain events
-	typedef std::set<Observer*> ObserverSet;
-	ObserverSet _observers;
+	// This is not a set to retain the order of the observers
+	typedef std::list<Observer*> Observers;
+	Observers _observers;
 
 	static const std::size_t MAX_UNDO_LEVELS = 1024;
 
@@ -163,7 +165,7 @@ public:
 			finishRedo(operation->_command.c_str());
 			_undoStack.pop_back();
 
-			for (ObserverSet::iterator i = _observers.begin(); i != _observers.end(); /* in-loop */) {
+			for (Observers::iterator i = _observers.begin(); i != _observers.end(); /* in-loop */) {
 				Observer* observer = *(i++);
 				observer->postUndo();
 			}
@@ -186,7 +188,7 @@ public:
 			finishUndo(operation->_command);
 			_redoStack.pop_back();
 
-			for (ObserverSet::iterator i = _observers.begin(); i != _observers.end(); /* in-loop */) {
+			for (Observers::iterator i = _observers.begin(); i != _observers.end(); /* in-loop */) {
 				Observer* observer = *(i++);
 				observer->postRedo();
 			}
@@ -205,12 +207,26 @@ public:
 		// there are some "persistent" observers like EntityInspector and ShaderClipboard
 	}
 
-	void addObserver(Observer* observer) {
-		_observers.insert(observer);
+	void addObserver(Observer* observer)
+	{
+		// Ensure no observer is added twice
+		assert(std::find(_observers.begin(), _observers.end(), observer) == _observers.end());
+		
+		// Observers are added to the end of the list
+		_observers.push_back(observer);
 	}
 
-	void removeObserver(Observer* observer) {
-		_observers.erase(observer);
+	void removeObserver(Observer* observer)
+	{
+		Observers::iterator i = std::find(_observers.begin(), _observers.end(), observer);
+
+		// Ensure that the observer is actually registered
+		assert(i != _observers.end());
+
+		if (i != _observers.end())
+		{
+			_observers.erase(i);
+		}
 	}
 
 	void trackerAttach(UndoTracker& tracker) {
@@ -249,8 +265,8 @@ public:
 	
 	// Gets called by the PreferenceSystem as request to create the according settings page
 	void constructPreferences() {
-		PreferencesPagePtr page = GlobalPreferenceSystem().getPage("Settings/Undo System");
-		page->appendSpinner("Undo Queue Size", RKEY_UNDO_QUEUE_SIZE, 0, 1024, 1);
+		PreferencesPagePtr page = GlobalPreferenceSystem().getPage(_("Settings/Undo System"));
+		page->appendSpinner(_("Undo Queue Size"), RKEY_UNDO_QUEUE_SIZE, 0, 1024, 1);
 	}
 
 	// RegisterableModule implementation

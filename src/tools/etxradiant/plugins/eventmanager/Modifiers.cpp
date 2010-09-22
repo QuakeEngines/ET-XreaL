@@ -1,5 +1,6 @@
 #include "Modifiers.h"
 
+#include "i18n.h"
 #include "itextstream.h"
 #include "iregistry.h"
 
@@ -24,7 +25,8 @@ void Modifiers::loadModifierDefinitions() {
 		if (modifierList.size() > 0) {
 			globalOutputStream() << "EventManager: Modifiers found: " 
 								 << modifierList.size() << "\n";
-			for (unsigned int i = 0; i < modifierList.size(); i++) {
+			for (std::size_t i = 0; i < modifierList.size(); ++i)
+			{
 				const std::string name = modifierList[i].getAttributeValue("name");
 				
 				int bitIndex;
@@ -84,7 +86,7 @@ unsigned int Modifiers::getModifierFlags(const std::string& modifierStr) {
 	}
 }
 
-GdkModifierType Modifiers::getGdkModifierType(const unsigned int& modifierFlags) {
+GdkModifierType Modifiers::getGdkModifierType(const unsigned int modifierFlags) {
 	unsigned int returnValue = 0;
 	
 	if ((modifierFlags & (1 << getModifierBitIndex("CONTROL"))) != 0) {
@@ -114,7 +116,7 @@ int Modifiers::getModifierBitIndex(const std::string& modifierName) {
 }
 
 // Returns a bit field with the according modifier flags set 
-unsigned int Modifiers::getKeyboardFlags(const unsigned int& state) {
+unsigned int Modifiers::getKeyboardFlags(const unsigned int state) {
 	unsigned int returnValue = 0;
 	
 	if ((state & GDK_CONTROL_MASK) != 0) {
@@ -133,12 +135,12 @@ unsigned int Modifiers::getKeyboardFlags(const unsigned int& state) {
 }
 
 // Returns a string for the given modifier flags set (e.g. "SHIFT+CONTROL") 
-std::string Modifiers::getModifierStr(const unsigned int& modifierFlags, bool forMenu) {
+std::string Modifiers::getModifierStr(const unsigned int modifierFlags, bool forMenu) {
 	std::string returnValue = "";
 	
-	const std::string controlStr = (forMenu) ? "Ctrl" : "CONTROL";
-	const std::string shiftStr = (forMenu) ? "Shift" : "SHIFT";
-	const std::string altStr = (forMenu) ? "Alt" : "ALT";
+	const std::string controlStr = (forMenu) ? _("Ctrl") : "CONTROL";
+	const std::string shiftStr = (forMenu) ? _("Shift") : "SHIFT";
+	const std::string altStr = (forMenu) ? _("Alt") : "ALT";
 	const std::string connector = (forMenu) ? "-" : "+";
 	
 	if ((modifierFlags & (1 << getModifierBitIndex("CONTROL"))) != 0) {

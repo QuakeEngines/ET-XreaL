@@ -25,8 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "TexDef.h"
 #include "ibrush.h"
 #include "Brush.h"
-#include "BrushTokenImporter.h"
-#include "BrushTokenExporter.h"
 #include "nameable.h"
 #include "selectionlib.h"
 #include "FaceInstance.h"
@@ -48,8 +46,6 @@ class BrushNode :
 	public Snappable,
 	public IdentityTransform,
 	public BrushDoom3,
-	public BrushTokenImporter, // implements MapImporter
-	public BrushTokenExporter, // implements MapExporter
 	public IBrushNode,
 	public Selectable,
 	public BrushObserver,
@@ -60,9 +56,10 @@ class BrushNode :
 	public PlaneSelectable,
 	public LightCullable,
 	public Renderable,
-	public Bounded,
 	public Transformable
 {
+	const LightList* m_lightList;
+
 	// The actual contained brush (NO reference)
 	Brush m_brush;
 
@@ -85,8 +82,6 @@ class BrushNode :
 	BrushClipPlane m_clipPlane;
 
 	static ShaderPtr m_state_selpoint;
-
-	const LightList* m_lightList;
 	
 public:
 	// Constructor
@@ -106,7 +101,6 @@ public:
 	}
 
 	void lightsChanged();
-	typedef MemberCaller<BrushNode, &BrushNode::lightsChanged> LightsChangedCaller;
 
 	// Bounded implementation
 	virtual const AABB& localAABB() const;
@@ -133,10 +127,8 @@ public:
 
 	// The callback for the ObservedSelectable
 	void selectedChanged(const Selectable& selectable);
-	typedef MemberCaller1<BrushNode, const Selectable&, &BrushNode::selectedChanged> SelectedChangedCaller;
 
 	void selectedChangedComponent(const Selectable& selectable);
-	typedef MemberCaller1<BrushNode, const Selectable&, &BrushNode::selectedChangedComponent> SelectedChangedComponentCaller;
 
 	// PlaneSelectable implementation
 	void selectPlanes(Selector& selector, SelectionTest& test, const PlaneCallback& selectedPlaneCallback);
@@ -182,7 +174,6 @@ public:
 	void viewChanged() const;
 
 	void evaluateTransform();
-	typedef MemberCaller<BrushNode, &BrushNode::evaluateTransform> EvaluateTransformCaller;
 
 	void setClipPlane(const Plane3& plane);
 

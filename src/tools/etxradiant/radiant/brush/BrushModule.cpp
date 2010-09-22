@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "BrushModule.h"
 
+#include "i18n.h"
 #include "iradiant.h"
 
 #include "itextstream.h"
@@ -40,14 +41,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 void BrushModuleClass::constructPreferences() {
 	// Add a page to the given group
-	PreferencesPagePtr page = GlobalPreferenceSystem().getPage("Settings/Primitives");
+	PreferencesPagePtr page = GlobalPreferenceSystem().getPage(_("Settings/Primitives"));
 	
 	// Add the default texture scale preference and connect it to the according registryKey
 	// Note: this should be moved somewhere else, I think
-	page->appendEntry("Default texture scale", "user/ui/textures/defaultTextureScale");
+	page->appendEntry(_("Default texture scale"), "user/ui/textures/defaultTextureScale");
 
 	// The checkbox to enable/disable the texture lock option
-	page->appendCheckBox("", "Enable Texture Lock (for Brushes)", "user/ui/brush/textureLock");
+	page->appendCheckBox("", _("Enable Texture Lock (for Brushes)"), "user/ui/brush/textureLock");
 }
 
 void BrushModuleClass::construct() {
@@ -92,11 +93,13 @@ void BrushModuleClass::toggleTextureLock() {
 
 // ------------ BrushCreator implementation --------------------------------------------
 
-scene::INodePtr BrushModuleClass::createBrush() {
+scene::INodePtr BrushModuleClass::createBrush()
+{
 	// Determine the first visible layer
 	int layer = GlobalLayerSystem().getFirstVisibleLayer();
 
-	if (layer != -1) {
+	if (layer != -1)
+	{
 		scene::INodePtr node(new BrushNode);
 		
 		// Move it to the first visible layer

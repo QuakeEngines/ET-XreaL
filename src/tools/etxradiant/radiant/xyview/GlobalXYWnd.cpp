@@ -1,6 +1,7 @@
 #include "GlobalXYWnd.h"
 #include "FloatingOrthoView.h"
 
+#include "i18n.h"
 #include "ieventmanager.h"
 #include "iuimanager.h"
 #include "ipreferencesystem.h"
@@ -8,56 +9,36 @@
 #include "gtkutil/window/PersistentTransientWindow.h"
 #include "gtkutil/FramedWidget.h"
 
+#include "modulesystem/StaticModule.h"
 #include "selection/algorithm/General.h"
 #include "camera/GlobalCamera.h"
 #include <boost/bind.hpp>
 
+namespace
+{
+	const std::string RKEY_XYVIEW_ROOT = "user/ui/xyview";
+	
+	const std::string RKEY_CHASE_MOUSE = RKEY_XYVIEW_ROOT + "/chaseMouse";
+	const std::string RKEY_CAMERA_XY_UPDATE = RKEY_XYVIEW_ROOT + "/camXYUpdate";
+	const std::string RKEY_SHOW_CROSSHAIRS = RKEY_XYVIEW_ROOT + "/showCrossHairs";
+	const std::string RKEY_SHOW_GRID = RKEY_XYVIEW_ROOT + "/showGrid";
+	const std::string RKEY_SHOW_SIZE_INFO = RKEY_XYVIEW_ROOT + "/showSizeInfo";
+	const std::string RKEY_SHOW_ENTITY_ANGLES = RKEY_XYVIEW_ROOT + "/showEntityAngles";
+	const std::string RKEY_SHOW_ENTITY_NAMES = RKEY_XYVIEW_ROOT + "/showEntityNames";
+	const std::string RKEY_SHOW_BLOCKS = RKEY_XYVIEW_ROOT + "/showBlocks";
+	const std::string RKEY_SHOW_COORDINATES = RKEY_XYVIEW_ROOT + "/showCoordinates";
+	const std::string RKEY_SHOW_OUTLINE = RKEY_XYVIEW_ROOT + "/showOutline";
+	const std::string RKEY_SHOW_AXES = RKEY_XYVIEW_ROOT + "/showAxes";
+	const std::string RKEY_SHOW_WORKZONE = RKEY_XYVIEW_ROOT + "/showWorkzone";
+	const std::string RKEY_DEFAULT_BLOCKSIZE = "user/ui/xyview/defaultBlockSize";
+	const std::string RKEY_TRANSLATE_CONSTRAINED = "user/ui/xyview/translateConstrained";
+	const std::string RKEY_HIGHER_ENTITY_PRIORITY = "user/ui/xyview/higherEntitySelectionPriority";
+}
+
 // Constructor
 XYWndManager::XYWndManager() :
 	_globalParentWindow(NULL)
-{
-	// Connect self to the according registry keys
-	GlobalRegistry().addKeyObserver(this, RKEY_CHASE_MOUSE);
-	GlobalRegistry().addKeyObserver(this, RKEY_CAMERA_XY_UPDATE);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_CROSSHAIRS);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_GRID);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_SIZE_INFO);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_ENTITY_ANGLES);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_ENTITY_NAMES);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_BLOCKS);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_COORDINATES);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_OUTLINE);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_AXES);
-	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_WORKZONE);
-	GlobalRegistry().addKeyObserver(this, RKEY_DEFAULT_BLOCKSIZE);
-	
-	// Trigger loading the values of the observed registry keys
-	keyChanged("", "");
-	
-	// Construct the preference settings widgets
-	constructPreferences();
-	
-	// Add the commands to the EventManager
-	registerCommands();
-
-	GlobalUIManager().getStatusBarManager().addTextElement(
-		"XYZPos", 
-		"",  // no icon
-		IStatusBarManager::POS_POSITION
-	);
-}
-
-void XYWndManager::construct() {
-	XYWnd::captureStates();
-}
-
-// Release resources
-void XYWndManager::destroy() {
-	// Release all owned XYWndPtrs
-	destroyViews();
-
-	XYWnd::releaseStates();
-}
+{}
 
 /* greebo: This method restores all xy views from the information stored in the registry.
  * 
@@ -146,6 +127,7 @@ void XYWndManager::destroyViews()
 		// double-deletions are prevented.
 		candidate = XYWndPtr();
 	}
+
 	_activeXY = XYWndPtr();
 }
 
@@ -181,25 +163,27 @@ void XYWndManager::registerCommands() {
 	GlobalEventManager().addRegistryToggle("ShowWindowOutline", RKEY_SHOW_OUTLINE);
 	GlobalEventManager().addRegistryToggle("ShowAxes", RKEY_SHOW_AXES);
 	GlobalEventManager().addRegistryToggle("ShowWorkzone", RKEY_SHOW_WORKZONE);
+	GlobalEventManager().addRegistryToggle("ToggleShowSizeInfo", RKEY_SHOW_SIZE_INFO);
 }
 
-void XYWndManager::constructPreferences() {
-	PreferencesPagePtr page = GlobalPreferenceSystem().getPage("Settings/Orthoview");
+void XYWndManager::constructPreferences()
+{
+	PreferencesPagePtr page = GlobalPreferenceSystem().getPage(_("Settings/Orthoview"));
 	
-	page->appendCheckBox("", "View chases Mouse Cursor during Drags", RKEY_CHASE_MOUSE);
-	page->appendCheckBox("", "Update Views on Camera Movement", RKEY_CAMERA_XY_UPDATE);
-	page->appendCheckBox("", "Show Crosshairs", RKEY_SHOW_CROSSHAIRS);
-	page->appendCheckBox("", "Show Grid", RKEY_SHOW_GRID);
-	page->appendCheckBox("", "Show Size Info", RKEY_SHOW_SIZE_INFO);
-	page->appendCheckBox("", "Show Entity Angle Arrow", RKEY_SHOW_ENTITY_ANGLES);
-	page->appendCheckBox("", "Show Entity Names", RKEY_SHOW_ENTITY_NAMES);
-	page->appendCheckBox("", "Show Blocks", RKEY_SHOW_BLOCKS);
-	page->appendCheckBox("", "Show Coordinates", RKEY_SHOW_COORDINATES);
-	page->appendCheckBox("", "Show Axes", RKEY_SHOW_AXES);
-	page->appendCheckBox("", "Show Window Outline", RKEY_SHOW_OUTLINE);
-	page->appendCheckBox("", "Show Workzone", RKEY_SHOW_WORKZONE);
-	page->appendCheckBox("", "Translate Manipulator always constrained to Axis", RKEY_TRANSLATE_CONSTRAINED);
-	page->appendCheckBox("", "Higher Selection Priority for Entities", RKEY_HIGHER_ENTITY_PRIORITY);
+	page->appendCheckBox("", _("View chases Mouse Cursor during Drags"), RKEY_CHASE_MOUSE);
+	page->appendCheckBox("", _("Update Views on Camera Movement"), RKEY_CAMERA_XY_UPDATE);
+	page->appendCheckBox("", _("Show Crosshairs"), RKEY_SHOW_CROSSHAIRS);
+	page->appendCheckBox("", _("Show Grid"), RKEY_SHOW_GRID);
+	page->appendCheckBox("", _("Show Size Info"), RKEY_SHOW_SIZE_INFO);
+	page->appendCheckBox("", _("Show Entity Angle Arrow"), RKEY_SHOW_ENTITY_ANGLES);
+	page->appendCheckBox("", _("Show Entity Names"), RKEY_SHOW_ENTITY_NAMES);
+	page->appendCheckBox("", _("Show Blocks"), RKEY_SHOW_BLOCKS);
+	page->appendCheckBox("", _("Show Coordinates"), RKEY_SHOW_COORDINATES);
+	page->appendCheckBox("", _("Show Axes"), RKEY_SHOW_AXES);
+	page->appendCheckBox("", _("Show Window Outline"), RKEY_SHOW_OUTLINE);
+	page->appendCheckBox("", _("Show Workzone"), RKEY_SHOW_WORKZONE);
+	page->appendCheckBox("", _("Translate Manipulator always constrained to Axis"), RKEY_TRANSLATE_CONSTRAINED);
+	page->appendCheckBox("", _("Higher Selection Priority for Entities"), RKEY_HIGHER_ENTITY_PRIORITY);
 }
 
 // Load/Reload the values from the registry
@@ -320,7 +304,7 @@ void XYWndManager::positionAllViews(const Vector3& origin) {
 	}
 }
 
-void XYWndManager::positionView(const Vector3& origin) {
+void XYWndManager::positionActiveView(const Vector3& origin) {
 	if (_activeXY != NULL) {
 		return _activeXY->positionView(origin);
 	}
@@ -352,23 +336,23 @@ void XYWndManager::toggleActiveView(const cmd::ArgumentList& args) {
 			_activeXY->setViewType(XY);
 		}
 		
-		positionView(getFocusPosition());
+		positionActiveView(getFocusPosition());
 	}
 }
 
 void XYWndManager::setActiveViewXY(const cmd::ArgumentList& args) {
 	setActiveViewType(XY);
-	positionView(getFocusPosition());
+	positionActiveView(getFocusPosition());
 }
 
 void XYWndManager::setActiveViewXZ(const cmd::ArgumentList& args) {
 	setActiveViewType(XZ);
-	positionView(getFocusPosition());
+	positionActiveView(getFocusPosition());
 }
 
 void XYWndManager::setActiveViewYZ(const cmd::ArgumentList& args) {
 	setActiveViewType(YZ);
-	positionView(getFocusPosition());
+	positionActiveView(getFocusPosition());
 }
 
 void XYWndManager::splitViewFocus(const cmd::ArgumentList& args) {
@@ -380,7 +364,7 @@ void XYWndManager::zoom100(const cmd::ArgumentList& args) {
 }
 
 void XYWndManager::focusActiveView(const cmd::ArgumentList& args) {
-	positionView(getFocusPosition());
+	positionActiveView(getFocusPosition());
 }
 
 XYWndPtr XYWndManager::getView(EViewType viewType) {
@@ -515,8 +499,81 @@ Vector3 XYWndManager::getFocusPosition() {
 	return position;
 }
 
-// Accessor function returning a reference to the static instance
-XYWndManager& GlobalXYWnd() {
-	static XYWndManager _xyWndManager;
-	return _xyWndManager;
+const std::string& XYWndManager::getName() const
+{
+	static std::string _name(MODULE_ORTHOVIEWMANAGER);
+	return _name;
+}
+
+const StringSet& XYWndManager::getDependencies() const
+{
+	static StringSet _dependencies;
+	
+	if (_dependencies.empty())
+	{
+		_dependencies.insert(MODULE_XMLREGISTRY);
+		_dependencies.insert(MODULE_EVENTMANAGER);
+		_dependencies.insert(MODULE_RENDERSYSTEM);
+		_dependencies.insert(MODULE_PREFERENCESYSTEM);
+		_dependencies.insert(MODULE_COMMANDSYSTEM);
+		_dependencies.insert(MODULE_UIMANAGER);
+	}
+	
+	return _dependencies;
+}
+
+void XYWndManager::initialiseModule(const ApplicationContext& ctx)
+{
+	globalOutputStream() << getName() << "::initialiseModule called." << std::endl;
+
+	// Connect self to the according registry keys
+	GlobalRegistry().addKeyObserver(this, RKEY_CHASE_MOUSE);
+	GlobalRegistry().addKeyObserver(this, RKEY_CAMERA_XY_UPDATE);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_CROSSHAIRS);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_GRID);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_SIZE_INFO);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_ENTITY_ANGLES);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_ENTITY_NAMES);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_BLOCKS);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_COORDINATES);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_OUTLINE);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_AXES);
+	GlobalRegistry().addKeyObserver(this, RKEY_SHOW_WORKZONE);
+	GlobalRegistry().addKeyObserver(this, RKEY_DEFAULT_BLOCKSIZE);
+	
+	// Trigger loading the values of the observed registry keys
+	keyChanged("", "");
+	
+	// Construct the preference settings widgets
+	constructPreferences();
+	
+	// Add the commands to the EventManager
+	registerCommands();
+
+	GlobalUIManager().getStatusBarManager().addTextElement(
+		"XYZPos", 
+		"",  // no icon
+		IStatusBarManager::POS_POSITION
+	);
+
+	XYWnd::captureStates();
+}
+
+void XYWndManager::shutdownModule()
+{
+	GlobalRegistry().removeKeyObserver(this);
+
+	// Release all owned XYWndPtrs
+	destroyViews();
+
+	XYWnd::releaseStates();
+}
+
+// Define the static GlobalXYWnd module
+module::StaticModule<XYWndManager> xyWndModule;
+
+// Accessor function returning the reference
+XYWndManager& GlobalXYWnd()
+{
+	return *xyWndModule.getModule();
 }

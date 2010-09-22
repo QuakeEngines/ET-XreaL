@@ -7,9 +7,9 @@
 #include "ishaders.h"
 #include "ifilter.h"
 #include "irender.h"
-#include "generic/callback.h"
 #include "texturelib.h"
 
+#include <boost/bind.hpp>
 #include <cstdio>
 
 void OpenGLShader::destroy() {
@@ -27,8 +27,8 @@ void OpenGLShader::addRenderable(const OpenGLRenderable& renderable,
 					   			 const Matrix4& modelview, 
 					   			 const LightList* lights)
 {
-	// Iterate over the list of OpenGLStateBuckets, bumpmap and non-bumpmap
-	// buckets are handled differently.
+    // Iterate over the list of OpenGLStateBuckets, bumpmap and non-bumpmap
+    // buckets are handled differently.
     for(Passes::iterator i = _shaderPasses.begin(); i != _shaderPasses.end(); ++i)
     {
       if(((*i)->state().renderFlags & RENDER_BUMP) != 0)
@@ -36,7 +36,7 @@ void OpenGLShader::addRenderable(const OpenGLRenderable& renderable,
         if(lights != 0)
         {
           OpenGLStateBucketAdd add(*(*i), renderable, modelview);
-          lights->forEachLight(makeCallback1(add));
+		  lights->forEachLight(boost::bind(&OpenGLStateBucketAdd::visit, &add, _1));
         }
       }
       else
@@ -76,8 +76,7 @@ void OpenGLShader::realise(const std::string& name)
     
     for(Passes::iterator i = _shaderPasses.begin(); i != _shaderPasses.end(); ++i) {
     	render::getOpenGLRenderSystem().insertSortedState(
-			OpenGLStates::value_type(OpenGLStateReference((*i)->state()), 
-									 *i));
+			OpenGLStates::value_type((*i)->statePtr(), *i));
     }
 
     m_observers.realise();
@@ -86,10 +85,9 @@ void OpenGLShader::realise(const std::string& name)
 void OpenGLShader::unrealise() {
     m_observers.unrealise();
 
-    for(Passes::iterator i = _shaderPasses.begin(); i != _shaderPasses.end(); ++i) {
-    	render::getOpenGLRenderSystem().eraseSortedState(
-    		OpenGLStateReference((*i)->state())
-    	);
+    for(Passes::iterator i = _shaderPasses.begin(); i != _shaderPasses.end(); ++i)
+	{
+    	render::getOpenGLRenderSystem().eraseSortedState((*i)->statePtr());
     }
 
     destroy();
@@ -100,7 +98,8 @@ unsigned int OpenGLShader::getFlags() const {
 }
 
 // Append a default shader pass onto the back of the state list
-OpenGLState& OpenGLShader::appendDefaultPass() {
+OpenGLState& OpenGLShader::appendDefaultPass() 
+{
     _shaderPasses.push_back(new OpenGLShaderPass);
     OpenGLState& state = _shaderPasses.back()->state();
     return state;
@@ -113,6 +112,43 @@ bool OpenGLShader::canUseLightingMode() const
         GlobalRenderSystem().lightingSupported()  // hw supports lighting mode
     	&& GlobalRenderSystem().lightingEnabled()  // user enable lighting mode
     );
+}
+
+void OpenGLShader::setGLTexturesFromTriplet(OpenGLState& pass,
+                                            const DBSTriplet& triplet)
+{
+    // Get texture components. If any of the triplet is missing, look up the
+    // default from the shader system.
+    if (triplet.diffuse)
+    {
+        pass.texture0 = triplet.diffuse->getTexture()->getGLTexNum();
+    }
+    else
+    {
+        pass.texture0 = GlobalMaterialManager().getDefaultInteractionTexture(
+            ShaderLayer::DIFFUSE
+        )->getGLTexNum();
+    }
+    if (triplet.bump)
+    {
+        pass.texture1 = triplet.bump->getTexture()->getGLTexNum();
+    }
+    else
+    {
+        pass.texture1 = GlobalMaterialManager().getDefaultInteractionTexture(
+            ShaderLayer::BUMP
+        )->getGLTexNum();
+    }
+    if (triplet.specular)
+    {
+        pass.texture2 = triplet.specular->getTexture()->getGLTexNum();
+    }
+    else
+    {
+        pass.texture2 = GlobalMaterialManager().getDefaultInteractionTexture(
+            ShaderLayer::SPECULAR
+        )->getGLTexNum();
+    }
 }
 
 // Add an interaction layer
@@ -137,57 +173,28 @@ void OpenGLShader::appendInteractionLayer(const DBSTriplet& triplet)
         state.m_colour[3] = 1;
         state.m_sort = OpenGLState::eSortOpaque;
         
-        state.m_program = render::GLProgramFactory::getProgram("depthFill").get();
+        state.glProgram = render::GLProgramFactory::getProgram("depthFill").get();
     }
     
     // Add the DBS pass
     OpenGLState& dbsPass = appendDefaultPass();
 
-    // Get texture components. If any of the triplet is missing, look up the
-    // default from the shader system.
-    if (triplet.diffuse)
-    {
-        dbsPass.texture0 = triplet.diffuse->getTexture()->getGLTexNum();
-    }
-    else
-    {
-        dbsPass.texture0 = GlobalMaterialManager().getDefaultInteractionTexture(
-            ShaderLayer::DIFFUSE
-        )->getGLTexNum();
-    }
-    if (triplet.bump)
-    {
-        dbsPass.texture1 = triplet.bump->getTexture()->getGLTexNum();
-    }
-    else
-    {
-        dbsPass.texture1 = GlobalMaterialManager().getDefaultInteractionTexture(
-            ShaderLayer::BUMP
-        )->getGLTexNum();
-    }
-    if (triplet.specular)
-    {
-        dbsPass.texture2 = triplet.specular->getTexture()->getGLTexNum();
-    }
-    else
-    {
-        dbsPass.texture2 = GlobalMaterialManager().getDefaultInteractionTexture(
-            ShaderLayer::SPECULAR
-        )->getGLTexNum();
-    }
-    
+    // Populate the textures
+    setGLTexturesFromTriplet(dbsPass, triplet);
+
     // Set render flags
     dbsPass.renderFlags = RENDER_BLEND
                         | RENDER_FILL
                         | RENDER_TEXTURE_2D
                         | RENDER_CULLFACE
                         | RENDER_DEPTHTEST
+						| RENDER_DEPTHWRITE
                         | RENDER_COLOURWRITE
                         | RENDER_SMOOTH
                         | RENDER_BUMP
                         | RENDER_PROGRAM;
     
-    dbsPass.m_program = render::GLProgramFactory::getProgram("bumpMap").get();
+    dbsPass.glProgram = render::GLProgramFactory::getProgram("bumpMap").get();
 
     // Set layer vertex colour mode and alphatest parameters
     ShaderLayer::VertexColourMode vcolMode = ShaderLayer::VERTEX_COLOUR_NONE;
@@ -208,17 +215,22 @@ void OpenGLShader::appendInteractionLayer(const DBSTriplet& triplet)
             dbsPass.renderFlags |= RENDER_VCOL_INVERT;
         }
     }
-    if (alphaTest > 0)
-    {
-        dbsPass.renderFlags |= RENDER_ALPHATEST;
-        dbsPass.alphaFunc = GL_GEQUAL; // alpha >= threshold
-        dbsPass.alphaThreshold = alphaTest;
-    }
+    applyAlphaTestToPass(dbsPass, alphaTest);
 
     dbsPass.m_depthfunc = GL_LEQUAL;
     dbsPass.m_sort = OpenGLState::eSortMultiFirst;
     dbsPass.m_blend_src = GL_ONE;
     dbsPass.m_blend_dst = GL_ONE;
+}
+
+void OpenGLShader::applyAlphaTestToPass(OpenGLState& pass, float alphaTest)
+{
+    if (alphaTest > 0)
+    {
+        pass.renderFlags |= RENDER_ALPHATEST;
+        pass.alphaFunc = GL_GEQUAL; // alpha >= threshold
+        pass.alphaThreshold = alphaTest;
+    }
 }
 
 // Construct lighting mode render passes
@@ -231,6 +243,7 @@ void OpenGLShader::constructLightingPassesFromMaterial()
 
     DBSTriplet triplet;
     const ShaderLayerVector& allLayers = _material->getAllLayers();
+
     for (ShaderLayerVector::const_iterator i = allLayers.begin();
          i != allLayers.end();
          ++i)
@@ -270,55 +283,96 @@ void OpenGLShader::constructLightingPassesFromMaterial()
                 appendInteractionLayer(triplet);
                 triplet.reset();
             }
+
             appendBlendLayer(*i);
         }
     }
 
     // Submit final pass if we reach the end
     if (triplet.specular || triplet.bump || triplet.diffuse)
-    appendInteractionLayer(triplet);
+	{
+		appendInteractionLayer(triplet);
+	}
+}
+
+void OpenGLShader::determineBlendModeForEditorPass(OpenGLState& pass)
+{
+    bool hasDiffuseLayer = false;
+    int numLayers = 0;
+
+    // Determine alphatest from first diffuse layer
+    const ShaderLayerVector& allLayers = _material->getAllLayers();
+    for (ShaderLayerVector::const_iterator i = allLayers.begin();
+         i != allLayers.end();
+         ++i)
+    {
+        ++numLayers;
+
+        ShaderLayerPtr layer = *i;
+        if (layer->getType() == ShaderLayer::DIFFUSE)
+        {
+            hasDiffuseLayer = true;
+            if (layer->getAlphaTest() > 0)
+            {
+                applyAlphaTestToPass(pass, layer->getAlphaTest());
+                break;
+            }
+        }
+    }
+
+    // If this is a purely blend material (no DBS layers), set the editor blend
+    // mode from the first blend layer.
+    if (!hasDiffuseLayer && numLayers > 0)
+    {
+        pass.renderFlags |= RENDER_BLEND;
+        pass.m_sort = OpenGLState::eSortTranslucent;
+
+        BlendFunc bf = allLayers[0]->getBlendFunc();
+        pass.m_blend_src = bf.src;
+        pass.m_blend_dst = bf.dest;
+    }
 }
 
 // Construct editor-image-only render passes
 void OpenGLShader::constructEditorPreviewPassFromMaterial()
 {
-    OpenGLState& state = appendDefaultPass();
+    OpenGLState& previewPass = appendDefaultPass();
 
     // Render the editor texture in legacy mode
-    state.texture0 = _material->getEditorImage()->getGLTexNum();
-    state.renderFlags = RENDER_FILL
-                      | RENDER_TEXTURE_2D
-                      | RENDER_DEPTHTEST
-                      | RENDER_COLOURWRITE
-                      | RENDER_LIGHTING
-                      | RENDER_SMOOTH
-                      | RENDER_BLEND;
+    previewPass.texture0 = _material->getEditorImage()->getGLTexNum();
+    previewPass.renderFlags = RENDER_FILL
+                              | RENDER_TEXTURE_2D
+                              | RENDER_DEPTHTEST
+                              | RENDER_DEPTHWRITE
+                              | RENDER_COLOURWRITE
+                              | RENDER_LIGHTING
+                              | RENDER_SMOOTH;
 
     // Handle certain shader flags
     if ((_material->getFlags() & QER_CULL) == 0
         || _material->getCull() == Material::eCullBack)
     {
-        state.renderFlags |= RENDER_CULLFACE;
+        previewPass.renderFlags |= RENDER_CULLFACE;
     }
 
-    // Set the GL color to white
-    state.m_colour = Vector4(1, 1, 1, 1);
+    // Set up blend properties
+    determineBlendModeForEditorPass(previewPass);
 
-    // Opaque blending, write to depth buffer
-    state.renderFlags |= RENDER_DEPTHWRITE;
+    // Set the GL color to white
+    previewPass.m_colour = Vector4(1, 1, 1, 1);
 
     // Sort position
     if (_material->getSortRequest() == Material::SORT_DECAL)
     {
-        state.m_sort = OpenGLState::eSortOverlayFirst;
+        previewPass.m_sort = OpenGLState::eSortOverlayFirst;
     }
-    else
+    else if (previewPass.m_sort != OpenGLState::eSortTranslucent)
     {
-        state.m_sort = OpenGLState::eSortFullbright;
+        previewPass.m_sort = OpenGLState::eSortFullbright;
     }
 
     // Polygon offset
-    state.polygonOffset = _material->getPolygonOffset();
+    previewPass.polygonOffset = _material->getPolygonOffset();
 }
 
 // Append a blend (non-interaction) layer
@@ -339,9 +393,12 @@ void OpenGLShader::appendBlendLayer(ShaderLayerPtr layer)
     BlendFunc blendFunc = layer->getBlendFunc();
     state.m_blend_src = blendFunc.src;
     state.m_blend_dst = blendFunc.dest;
-    if(state.m_blend_src == GL_SRC_ALPHA || state.m_blend_dst == GL_SRC_ALPHA)
+
+	// Alpha-tested stages or one-over-zero blends should use the depth buffer
+    if (state.m_blend_src == GL_SRC_ALPHA || state.m_blend_dst == GL_SRC_ALPHA || 
+		(state.m_blend_src == GL_ONE && state.m_blend_dst == GL_ZERO))
     {
-      state.renderFlags |= RENDER_DEPTHWRITE;
+		state.renderFlags |= RENDER_DEPTHWRITE;
     }
 
     // Set texture dimensionality (cube map or 2D)
@@ -360,6 +417,18 @@ void OpenGLShader::appendBlendLayer(ShaderLayerPtr layer)
 
     state.m_sort = OpenGLState::eSortFullbright;
 
+	// Sort position
+    if (_material->getSortRequest() == Material::SORT_DECAL)
+    {
+        state.m_sort = OpenGLState::eSortOverlayFirst;
+    }
+    else
+    {
+        state.m_sort = OpenGLState::eSortFullbright;
+	}
+
+    // Polygon offset
+    state.polygonOffset = _material->getPolygonOffset();
 }
 
 // Construct a normal shader

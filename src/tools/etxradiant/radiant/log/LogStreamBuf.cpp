@@ -1,6 +1,6 @@
 #include "LogStreamBuf.h"
 
-#include <cstdio>
+#include <stdio.h>
 #include <stdexcept>
 #include "LogWriter.h"
 

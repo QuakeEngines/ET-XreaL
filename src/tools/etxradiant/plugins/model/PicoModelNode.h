@@ -19,7 +19,6 @@ class PicoModelNode :
 	public SelectionTestable,
 	public LightCullable,
 	public Renderable,
-	public Bounded,
 	public SkinnedModel
 {
 	// The actual model
@@ -67,7 +66,6 @@ public:
 	void lightsChanged() {
 		_lightList.lightsChanged();
 	}
-	typedef MemberCaller<PicoModelNode, &PicoModelNode::lightsChanged> LightsChangedCaller;
 
 	// SelectionTestable implementation
 	void testSelect(Selector& selector, SelectionTest& test);

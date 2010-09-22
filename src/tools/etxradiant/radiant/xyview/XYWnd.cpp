@@ -1,5 +1,6 @@
 #include "XYWnd.h"
 
+#include "i18n.h"
 #include "iregistry.h"
 #include "iscenegraph.h"
 #include "iundo.h"
@@ -50,12 +51,17 @@ inline float normalised_to_world(float normalised, float world_origin, float nor
 	return world_origin + normalised * normalised2world_scale;
 }
 
+namespace
+{
+	const std::string RKEY_XYVIEW_ROOT = "user/ui/xyview";
+}
+
 // Constructors
 XYWnd::XYWnd(int id) :
 	_id(id),
 	_glWidget(false, "XYWnd"),
 	m_gl_widget(static_cast<GtkWidget*>(_glWidget)),
-	m_deferredDraw(WidgetQueueDrawCaller(*m_gl_widget)),
+	m_deferredDraw(boost::bind(widget_queue_draw, m_gl_widget)),
 	m_deferred_motion(callbackMouseMotion, this),
 	_minWorldCoord(GlobalRegistry().getFloat("game/defaults/minWorldCoord")),
 	_maxWorldCoord(GlobalRegistry().getFloat("game/defaults/maxWorldCoord")),
@@ -110,7 +116,7 @@ XYWnd::XYWnd(int id) :
 	g_signal_connect(G_OBJECT(m_gl_widget), "scroll_event", G_CALLBACK(callbackMouseWheelScroll), this);
 
 	_validCallbackHandle = GlobalMap().addValidCallback(
-		DeferredDrawOnMapValidChangedCaller(m_deferredDraw)
+		boost::bind(&DeferredDraw::onMapValidChanged, &m_deferredDraw)
 	);
 
 	updateProjection();
@@ -225,13 +231,13 @@ void XYWnd::releaseStates() {
 
 const std::string XYWnd::getViewTypeTitle(EViewType viewtype) {
 	if (viewtype == XY) {
-		return "XY Top";
+		return _("XY Top");
 	}
 	if (viewtype == XZ) {
-		return "XZ Front";
+		return _("XZ Front");
 	}
 	if (viewtype == YZ) {
-		return "YZ Side";
+		return _("YZ Side");
 	}
 	return "";
 }
@@ -545,7 +551,7 @@ void XYWnd::onContextMenu() {
 	Vector3 point;
 	mouseToPoint(m_entityCreate_x, m_entityCreate_y, point);
 	// Display the menu, passing the coordinates for creation
-	ui::OrthoContextMenu::displayInstance(point);
+	ui::OrthoContextMenu::Instance().show(point);
 }
 
 void XYWnd::beginMove() {
@@ -693,7 +699,7 @@ void XYWnd::mouseMoved(int x, int y, const unsigned int& state) {
 
 	GlobalUIManager().getStatusBarManager().setText(
 		"XYZPos", 
-		(boost::format("x: %6.1lf y: %6.1lf z: %6.1lf") 
+		(boost::format(_("x: %6.1lf y: %6.1lf z: %6.1lf")) 
 			% m_mousePosition[0] 
 			% m_mousePosition[1] 
 			% m_mousePosition[2]).str()
@@ -756,6 +762,10 @@ void XYWnd::EntityCreate_MouseUp(int x, int y) {
 	if (m_entityCreate) {
 		m_entityCreate = false;
 		onContextMenu();
+
+		// Tell the other window observers to cancel their operation, 
+		// the context menu will be stealing focus.
+		m_window_observer->cancelOperation();
 	}
 }
 
@@ -1378,8 +1388,10 @@ void XYWnd::draw()
 	glDisable(GL_COLOR_MATERIAL);
 	glDisable(GL_DEPTH_TEST);
 
+	XYWndManager& xyWndManager = GlobalXYWnd();
+
 	drawGrid();
-	if (GlobalXYWnd().showBlocks())
+	if (xyWndManager.showBlocks())
 		drawBlockGrid();
 
 	glLoadMatrixd(m_modelview);
@@ -1402,36 +1414,36 @@ void XYWnd::draw()
 
 	glDepthMask(GL_FALSE);
 
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 
 	glLoadMatrixd(m_modelview);
 
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glDisable(GL_LINE_STIPPLE);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glLineWidth(1);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	if (GLEW_VERSION_1_3) {
 		glActiveTexture(GL_TEXTURE0);
 		glClientActiveTexture(GL_TEXTURE0);
 	}
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glDisableClientState(GL_NORMAL_ARRAY);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glDisableClientState(GL_COLOR_ARRAY);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glDisable(GL_TEXTURE_2D);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glDisable(GL_LIGHTING);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 	glDisable(GL_COLOR_MATERIAL);
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 
 	// greebo: Check, if the size info should be displayed (if there are any items selected)
-	if (GlobalXYWnd().showSizeInfo() && GlobalSelectionSystem().countSelected() != 0)
+	if (xyWndManager.showSizeInfo() && GlobalSelectionSystem().countSelected() != 0)
 	{
 		const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
 
@@ -1441,7 +1453,7 @@ void XYWnd::draw()
 		}
 	}
 
-	if (GlobalXYWnd().showCrossHairs()) {
+	if (xyWndManager.showCrossHairs()) {
 		Vector3 colour = ColourSchemes().getColour("xyview_crosshairs");
 		glColor4d(colour[0], colour[1], colour[2], 0.8f);
 		glBegin (GL_LINES);
@@ -1478,7 +1490,7 @@ void XYWnd::draw()
 		glPointSize(1);
 	}
 
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 
 	// reset modelview
 	glLoadIdentity();
@@ -1530,7 +1542,7 @@ void XYWnd::draw()
 		glDisable(GL_BLEND);
 	}
 
-	if (GlobalXYWnd().showOutline()) {
+	if (xyWndManager.showOutline()) {
 		if (isActive()) {
 			glMatrixMode (GL_PROJECTION);
 			glLoadIdentity();
@@ -1560,7 +1572,7 @@ void XYWnd::draw()
 		}
 	}
 
-	GlobalOpenGL_debugAssertNoErrors();
+	GlobalOpenGL().assertNoErrors();
 
 	glFinish();
 }
@@ -1574,13 +1586,6 @@ void XYWnd::mouseToPoint(int x, int y, Vector3& point) {
 	const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
 
 	point[nDim] = float_snapped(wz.bounds.getOrigin()[nDim], GlobalGrid().getGridSize());
-}
-
-void XYWnd::onEntityCreate(const std::string& item) {
-	UndoableCommand undo("entityCreate -class " + item);
-	Vector3 point;
-	mouseToPoint(m_entityCreate_x, m_entityCreate_y, point);
-	Entity_createFromSelection(item.c_str(), point);
 }
 
 void XYWnd::updateSelectionBox(const Rectangle& area)
@@ -1716,7 +1721,8 @@ gboolean XYWnd::callbackMouseWheelScroll(GtkWidget* widget, GdkEventScroll* even
 	return FALSE;
 }
 
-gboolean XYWnd::callbackSizeAllocate(GtkWidget* widget, GtkAllocation* allocation, XYWnd* self) {
+gboolean XYWnd::callbackSizeAllocate(GtkWidget* widget, GtkAllocation* allocation, XYWnd* self) 
+{
 	self->_width = allocation->width;
 	self->_height = allocation->height;
 	self->updateProjection();
@@ -1725,14 +1731,17 @@ gboolean XYWnd::callbackSizeAllocate(GtkWidget* widget, GtkAllocation* allocatio
 	return FALSE;
 }
 
-gboolean XYWnd::callbackExpose(GtkWidget* widget, GdkEventExpose* event, XYWnd* self) {
+gboolean XYWnd::callbackExpose(GtkWidget* widget, GdkEventExpose* event, XYWnd* self) 
+{
 	gtkutil::GLWidgetSentry sentry(self->getWidget());
 	
+    GlobalOpenGL().assertNoErrors();
+
 	if (GlobalMap().isValid() && GlobalMainFrame().screenUpdatesEnabled()) {
-		GlobalOpenGL_debugAssertNoErrors();
 		self->draw();
-		GlobalOpenGL_debugAssertNoErrors();
 	}
+
+    GlobalOpenGL().assertNoErrors();
 
 	return FALSE;
 }

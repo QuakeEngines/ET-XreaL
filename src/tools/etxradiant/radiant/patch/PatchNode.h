@@ -6,7 +6,6 @@
 #include "iscenegraph.h"
 #include "imap.h"
 #include "Patch.h"
-#include "PatchImportExport.h"
 #include "selectionlib.h"
 #include "PatchControlInstance.h"
 #include "dragplanes.h"
@@ -17,8 +16,6 @@ class PatchNode :
 	public Nameable,
 	public Snappable,
 	public IdentityTransform,
-	public MapImporter,
-	public MapExporter,
 	public IPatchNode,
 	public Selectable,
 	public SelectionTestable,
@@ -28,7 +25,6 @@ class PatchNode :
 	public PlaneSelectable,
 	public LightCullable,
 	public Renderable,
-	public Bounded,
 	public Transformable
 {
 	DragPlanes m_dragPlanes;
@@ -43,16 +39,14 @@ class PatchNode :
 	// An array of renderable points
 	mutable RenderablePointVector m_render_selected;
 
+	const LightList* m_lightList;
+
 	Patch m_patch;
-	PatchDoom3TokenImporter m_importMap;
-	PatchDoom3TokenExporter m_exportMap;
 	
 	// An internal AABB variable to calculate the bounding box of the selected components (has to be mutable) 
 	mutable AABB m_aabb_component;
 
 	static ShaderPtr m_state_selpoint;
-
-	const LightList* m_lightList;
 
 public:
 	// Construct a PatchNode with no arguments
@@ -70,7 +64,6 @@ public:
 	std::string name() const;
 
 	void lightsChanged();
-	typedef MemberCaller<PatchNode, &PatchNode::lightsChanged> LightsChangedCaller;
 
 	// Bounded implementation
 	const AABB& localAABB() const;
@@ -81,12 +74,6 @@ public:
 
 	// Snappable implementation
 	virtual void snapto(float snap);
-
-  	// MapImporter implementation
-	virtual bool importTokens(parser::DefTokeniser& tokeniser);
-	
-	// MapExporter implementation
-	virtual void exportTokens(std::ostream& os) const;
 
 	// Test the Patch instance for selection (SelectionTestable)
 	void testSelect(Selector& selector, SelectionTest& test);
@@ -115,6 +102,9 @@ public:
 	// Returns true if this patch can be rendered
 	bool isVisible() const;
 
+	// Returns true if the material itself is visible
+	bool hasVisibleMaterial() const;
+
 	// greebo: snaps all the _selected_ components to the grid (should be called "snapSelectedComponents")
 	void snapComponents(float snap);
 
@@ -131,12 +121,10 @@ public:
 
 	// The callback function that gets called when the attached selectable gets changed
 	void selectedChanged(const Selectable& selectable);
-	typedef MemberCaller1<PatchNode, const Selectable&, &PatchNode::selectedChanged> SelectedChangedCaller;
 
 	// greebo: This gets called by the ObservedSelectable as soon as its selection state changes 
 	// (see ObservedSelectable and PatchControlInstance)
 	void selectedChangedComponent(const Selectable& selectable);
-	typedef MemberCaller1<PatchNode, const Selectable&, &PatchNode::selectedChangedComponent> SelectedChangedComponentCaller;
 
 	// LightCullable implementation
 	bool testLight(const RendererLight& light) const;
@@ -155,7 +143,6 @@ public:
 	void renderComponents(RenderableCollector& collector, const VolumeTest& volume) const;
 
 	void evaluateTransform();
-	typedef MemberCaller<PatchNode, &PatchNode::evaluateTransform> EvaluateTransformCaller;
 
 protected:
 	// Gets called by the Transformable implementation whenever
@@ -178,5 +165,6 @@ private:
 	void renderComponentsSelected(RenderableCollector& collector, const VolumeTest& volume) const;
 };
 typedef boost::shared_ptr<PatchNode> PatchNodePtr;
+typedef boost::weak_ptr<PatchNode> PatchNodeWeakPtr;
 
 #endif /*PATCHNODE_H_*/

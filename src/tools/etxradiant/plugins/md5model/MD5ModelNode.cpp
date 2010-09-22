@@ -2,6 +2,7 @@
 
 #include "ivolumetest.h"
 #include "imodelcache.h"
+#include <boost/bind.hpp>
 
 namespace md5 {
 
@@ -23,9 +24,7 @@ MD5ModelNode::MD5ModelNode(const MD5ModelPtr& model) :
 {
 	_lightList = &GlobalRenderSystem().attach(*this);
 
-	_model->_lightsChanged = LightsChangedCaller(*this);
-
-	Node::setTransformChangedCallback(LightsChangedCaller(*this));
+	Node::setTransformChangedCallback(Callback((boost::bind(&MD5ModelNode::lightsChanged, this))));
 
 	constructRemaps();
 }
@@ -87,19 +86,27 @@ void MD5ModelNode::clearLights() {
 	}
 }
 
-void MD5ModelNode::renderSolid(RenderableCollector& collector, const VolumeTest& volume) const {
+void MD5ModelNode::renderSolid(RenderableCollector& collector, const VolumeTest& volume) const
+{
 	_lightList->evaluateLights();
 
 	render(collector, volume, localToWorld());
 }
 
-void MD5ModelNode::renderWireframe(RenderableCollector& collector, const VolumeTest& volume) const {
+void MD5ModelNode::renderWireframe(RenderableCollector& collector, const VolumeTest& volume) const
+{
 	renderSolid(collector, volume);
 }
 
 void MD5ModelNode::render(RenderableCollector& collector, const VolumeTest& volume,
 		const Matrix4& localToWorld) const
 {
+	// Do some rough culling (per model, not per surface)
+	if (volume.TestAABB(localAABB(), localToWorld) == VOLUME_OUTSIDE)
+	{
+		return;
+	}
+
 	SurfaceLightLists::const_iterator j = _surfaceLightLists.begin();
 	SurfaceRemaps::const_iterator k = _surfaceRemaps.begin();
 
@@ -108,11 +115,8 @@ void MD5ModelNode::render(RenderableCollector& collector, const VolumeTest& volu
 		 i != _model->end(); 
 		 ++i, ++j, ++k)
 	{
-		if (volume.TestAABB((*i)->localAABB(), localToWorld) != VOLUME_OUTSIDE)
-		{
-			collector.setLights(*j);
-			(*i)->render(collector, localToWorld, k->shader != NULL ? k->shader : (*i)->getState());
-		}
+		collector.setLights(*j);
+		(*i)->render(collector, localToWorld, k->shader != NULL ? k->shader : (*i)->getState());
 	}
 }
 
@@ -167,26 +171,5 @@ void MD5ModelNode::skinChanged(const std::string& newSkinName) {
 
 	constructRemaps();
 }
-
-/*void MD5ModelNode::refreshModel() {
-	std::string modelPath = _model->getModelPath();
-	
-	// Acquire the model from the ModelCache
-	model::IModelPtr freshModel = GlobalModelCache().getModel(modelPath);
-
-	MD5ModelPtr freshMD5Model = 
-		boost::dynamic_pointer_cast<MD5Model>(freshModel);
-
-	if (freshMD5Model == NULL) {
-		globalErrorStream() << "[MD5ModelNode]: Warning, could not refresh model"
-			<< modelPath.c_str() << "\n";
-	}
-
-	// Overwrite the old model
-	_model = freshMD5Model;
-
-	// Refresh the shader mappings
-	skinChanged(_skin);
-}*/
 
 } // namespace md5

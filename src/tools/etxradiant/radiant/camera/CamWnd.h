@@ -52,7 +52,7 @@ class CamWnd :
 	gtkutil::GLWidget m_gl_widget;
 	GtkWindow* _parentWidget;
 
-	SignalHandlerId _mapValidHandle;
+	std::size_t _mapValidHandle;
 
 	Rectangle _dragRectangle;
 
@@ -142,8 +142,5 @@ private:
  */
 typedef boost::shared_ptr<CamWnd> CamWndPtr;
 typedef boost::weak_ptr<CamWnd> CamWndWeakPtr;
-
-typedef MemberCaller<CamWnd, &CamWnd::queueDraw> CamWndQueueDraw;
-typedef MemberCaller<CamWnd, &CamWnd::update> CamWndUpdate;
 
 #endif /*CAMWND_H_*/

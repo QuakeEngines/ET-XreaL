@@ -2,9 +2,8 @@
 #define MAPRESOURCE_H_
 
 #include "imapresource.h"
-#include "imap.h"
+#include "imapformat.h"
 #include "imodel.h"
-#include "generic/callback.h"
 #include <set>
 #include <boost/utility.hpp>
 
@@ -75,7 +74,6 @@ public:
   void refresh();
   
 	void onMapChanged();
-	typedef MemberCaller<MapResource, &MapResource::onMapChanged> MapChangedCaller;
 
 	// Save the map contents to the given filename using the given MapFormat export module
 	static bool saveFile(const MapFormat& format, const scene::INodePtr& root, 
@@ -91,7 +89,7 @@ private:
 	
 	MapFormatPtr getMapFormat();
 
-	bool loadFile(const MapFormat& format, scene::INodePtr root, const std::string& filename);
+	bool loadFile(const MapFormat& format, const scene::INodePtr& root, const std::string& filename);
 };
 // Resource pointer types
 typedef boost::shared_ptr<MapResource> MapResourcePtr;

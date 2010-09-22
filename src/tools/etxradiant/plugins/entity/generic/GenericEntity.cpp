@@ -6,39 +6,36 @@
 
 #include "../EntitySettings.h"
 #include "GenericEntityNode.h"
+#include <boost/bind.hpp>
 
 namespace entity {
 
-GenericEntity::GenericEntity(GenericEntityNode& node, 
-		const Callback& transformChanged) :
+GenericEntity::GenericEntity(GenericEntityNode& node) :
 	_owner(node),
 	m_entity(node._entity),
-	m_originKey(OriginChangedCaller(*this)),
+	m_originKey(boost::bind(&GenericEntity::originChanged, this)),
 	m_origin(ORIGINKEY_IDENTITY),
-	m_angleKey(AngleChangedCaller(*this)),
+	m_angleKey(boost::bind(&GenericEntity::angleChanged, this)),
 	m_angle(ANGLEKEY_IDENTITY),
-	m_rotationKey(RotationChangedCaller(*this)),
+	m_rotationKey(boost::bind(&GenericEntity::rotationChanged, this)),
 	m_arrow(m_ray),
 	m_aabb_solid(m_aabb_local),
 	m_aabb_wire(m_aabb_local),
-	m_transformChanged(transformChanged),
 	_allow3Drotations(m_entity.getKeyValue("editor_rotatable") == "1")
 {}
 
 GenericEntity::GenericEntity(const GenericEntity& other, 
-		GenericEntityNode& node, 
-		const Callback& transformChanged) :
+		GenericEntityNode& node) :
 	_owner(node),
 	m_entity(node._entity),
-	m_originKey(OriginChangedCaller(*this)),
+	m_originKey(boost::bind(&GenericEntity::originChanged, this)),
 	m_origin(ORIGINKEY_IDENTITY),
-	m_angleKey(AngleChangedCaller(*this)),
+	m_angleKey(boost::bind(&GenericEntity::angleChanged, this)),
 	m_angle(ANGLEKEY_IDENTITY),
-	m_rotationKey(RotationChangedCaller(*this)),
+	m_rotationKey(boost::bind(&GenericEntity::rotationChanged, this)),
 	m_arrow(m_ray),
 	m_aabb_solid(m_aabb_local),
 	m_aabb_wire(m_aabb_local),
-	m_transformChanged(transformChanged),
 	_allow3Drotations(m_entity.getKeyValue("editor_rotatable") == "1")
 {}
 
@@ -146,7 +143,8 @@ void GenericEntity::freezeTransform() {
 	}
 }
 
-void GenericEntity::construct() {
+void GenericEntity::construct()
+{
 	m_aabb_local = m_entity.getEntityClass()->getBounds();
 	m_ray.origin = m_aabb_local.getOrigin();
 	m_ray.direction = Vector3(1, 0, 0);
@@ -154,17 +152,22 @@ void GenericEntity::construct() {
 
 	if (!_allow3Drotations)
 	{
+		_angleObserver.setCallback(boost::bind(&AngleKey::angleChanged, &m_angleKey, _1));
+
 		// Ordinary rotation (2D around z axis), use angle key observer
-		_owner.addKeyObserver("angle", AngleKey::AngleChangedCaller(m_angleKey));
+		_owner.addKeyObserver("angle", _angleObserver);
 	}
 	else
 	{
+		_angleObserver.setCallback(boost::bind(&RotationKey::angleChanged, &m_rotationKey, _1));
+		_rotationObserver.setCallback(boost::bind(&RotationKey::rotationChanged, &m_rotationKey, _1));
+
 		// Full 3D rotations allowed, observe both keys using the rotation key observer
-		_owner.addKeyObserver("angle", RotationKey::AngleChangedCaller(m_rotationKey));
-		_owner.addKeyObserver("rotation", RotationKey::RotationChangedCaller(m_rotationKey));
+		_owner.addKeyObserver("angle", _angleObserver);
+		_owner.addKeyObserver("rotation", _rotationObserver);
 	}
 
-	_owner.addKeyObserver("origin", OriginKey::OriginChangedCaller(m_originKey));
+	_owner.addKeyObserver("origin", m_originKey);
 }
 
 void GenericEntity::destroy()
@@ -172,16 +175,16 @@ void GenericEntity::destroy()
 	if (!_allow3Drotations)
 	{
 		// Ordinary rotation (2D around z axis), use angle key observer
-		_owner.removeKeyObserver("angle", AngleKey::AngleChangedCaller(m_angleKey));
+		_owner.removeKeyObserver("angle", _angleObserver);
 	}
 	else
 	{
 		// Full 3D rotations allowed, observe both keys using the rotation key observer
-		_owner.removeKeyObserver("angle", RotationKey::AngleChangedCaller(m_rotationKey));
-		_owner.removeKeyObserver("rotation", RotationKey::RotationChangedCaller(m_rotationKey));
+		_owner.removeKeyObserver("angle", _angleObserver);
+		_owner.removeKeyObserver("rotation", _rotationObserver);
 	}
 
-	_owner.removeKeyObserver("origin", OriginKey::OriginChangedCaller(m_originKey));
+	_owner.removeKeyObserver("origin", m_originKey);
 }
 
 void GenericEntity::updateTransform()
@@ -198,7 +201,7 @@ void GenericEntity::updateTransform()
 		m_ray.direction = matrix4_transformed_direction(matrix4_rotation_for_z(degrees_to_radians(m_angle)), Vector3(1, 0, 0));
 	}
 
-	m_transformChanged();
+	_owner.transformChanged();
 }
 
 void GenericEntity::originChanged() {

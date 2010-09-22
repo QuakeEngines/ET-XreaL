@@ -1,6 +1,7 @@
 #include "EntityNode.h"
 
 #include "EntitySettings.h"
+#include "target/RenderableTargetInstances.h"
 
 namespace entity {
 
@@ -26,6 +27,7 @@ EntityNode::EntityNode(const EntityNode& other) :
 	Transformable(other),
 	MatrixTransform(other),
 	scene::Cloneable(other),
+	IEntityClass::Observer(other),
 	_eclass(other._eclass),
 	_entity(other._entity),
 	_namespaceManager(_entity),
@@ -47,24 +49,24 @@ void EntityNode::construct()
 
 	TargetableNode::construct();
 
-	addKeyObserver("name", NameKey::NameChangedCaller(_nameKey));
+	addKeyObserver("name", _nameKey);
 }
 
 void EntityNode::destruct()
 {
-	removeKeyObserver("name", NameKey::NameChangedCaller(_nameKey));
+	removeKeyObserver("name", _nameKey);
 
 	TargetableNode::destruct();
 
 	_eclass->removeObserver(this);
 }
 
-void EntityNode::addKeyObserver(const std::string& key, const KeyObserver& observer)
+void EntityNode::addKeyObserver(const std::string& key, KeyObserver& observer)
 {
 	_keyObservers.insert(key, observer);
 }
 
-void EntityNode::removeKeyObserver(const std::string& key, const KeyObserver& observer)
+void EntityNode::removeKeyObserver(const std::string& key, KeyObserver& observer)
 {
 	_keyObservers.erase(key, observer);
 }
@@ -110,6 +112,9 @@ void EntityNode::onInsertIntoScene()
 {
 	_entity.instanceAttach(scene::findMapFile(getSelf()));
 
+	// Register our TargetableNode, now that we're in the scene
+	RenderableTargetInstances::Instance().attach(*this);
+
 	SelectableNode::onInsertIntoScene();
 }
 
@@ -117,6 +122,7 @@ void EntityNode::onRemoveFromScene()
 {
 	SelectableNode::onRemoveFromScene();
 
+	RenderableTargetInstances::Instance().detach(*this);
 	_entity.instanceDetach(scene::findMapFile(getSelf()));
 }
 

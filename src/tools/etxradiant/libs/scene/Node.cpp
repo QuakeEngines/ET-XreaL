@@ -62,6 +62,7 @@ Node::Node() :
 
 Node::Node(const Node& other) :
 	INode(other),
+	boost::enable_shared_from_this<Node>(other),
 	_state(other._state),
 	_isRoot(other._isRoot),
 	_id(getNewId()),	// ID is incremented on copy
@@ -110,7 +111,8 @@ void Node::disable(unsigned int state)
 
 bool Node::visible() const
 {
-	return _state == eVisible;
+	// Only instantiated nodes can be considered visible
+	return _state == eVisible && _instantiated;
 }
 
 bool Node::excluded() const
@@ -289,13 +291,9 @@ void Node::evaluateBounds() const
 
 		_bounds = childBounds();
 
-		const Bounded* bounded = dynamic_cast<const Bounded*>(this);
-
-		if (bounded != NULL) {
-			_bounds.includeAABB(
-			    aabb_for_oriented_aabb_safe(bounded->localAABB(), localToWorld())
-			);
-		}
+		_bounds.includeAABB(
+		    aabb_for_oriented_aabb_safe(localAABB(), localToWorld())
+		);
 
 		_boundsMutex = false;
 		_boundsChanged = false;
@@ -379,7 +377,10 @@ void Node::transformChangedLocal() {
 	_boundsChanged = true;
 	_childBoundsChanged = true;
 
-	_transformChangedCallback();
+	if (_transformChangedCallback)
+	{
+		_transformChangedCallback();
+	}
 }
 
 void Node::transformChanged() {

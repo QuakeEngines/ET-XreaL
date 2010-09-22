@@ -3,36 +3,22 @@
 
 #include "modelskin.h"
 #include "iradiant.h"
-#include "ui/common/ModelPreview.h"
+#include "iuimanager.h"
 
-#include <gtk/gtkwidget.h>
-#include <gtk/gtktreestore.h>
-#include <gtk/gtkliststore.h>
-#include <gtk/gtkliststore.h>
+typedef struct _GtkWidget GtkWidget;
+typedef struct _GtkTreeStore GtkTreeStore;
+typedef struct _GtkTreeView GtkTreeView;
+typedef struct _GtkListStore GtkListStore;
+typedef struct _GtkExpander GtkExpander;
+typedef struct _GtkCheckButton GtkCheckButton;
+typedef struct _GtkTreeSelection GtkTreeSelection;
+
 #include "gtkutil/WindowPosition.h"
 
 #include <string>
 
 namespace ui
 {
-
-/* CONSTANTS */
-namespace {
-	
-	const char* MODELSELECTOR_TITLE = "Choose model";
-	const char* MODELS_FOLDER = "models/";
-
-	// Treestore enum
-	enum {
-		NAME_COLUMN,		// e.g. "chair1.lwo"
-		FULLNAME_COLUMN,	// e.g. "models/darkmod/props/chair1.lwo"
-		SKIN_COLUMN,		// e.e. "chair1_brown_wood", or "" for no skin
-		IMAGE_COLUMN,		// icon to display
-		IS_FOLDER_COLUMN,	// whether this is a folder
-		N_COLUMNS
-	};
-	
-}
 
 /** 
  * Data structure containing the model, the skin name and the options to be returned from
@@ -66,7 +52,7 @@ private:
 	GtkWidget* _widget;
 
 	// Model preview widget
-	ModelPreviewPtr _modelPreview;
+	IModelPreviewPtr _modelPreview;
 	
 	// Tree store containing model names (one with and one without skins)
 	GtkTreeStore* _treeStore;
@@ -135,12 +121,6 @@ private:
 	static void callbackOK(GtkWidget*, ModelSelector*);
 	static void callbackCancel(GtkWidget*, ModelSelector*);
 
-	// Custom sort function to allow folder-first sort order
-	static gint treeViewSortFunc(GtkTreeModel *model, 
-									GtkTreeIter *a, 
-									GtkTreeIter *b, 
-									gpointer user_data);
-	
 public:
 
 	/** 

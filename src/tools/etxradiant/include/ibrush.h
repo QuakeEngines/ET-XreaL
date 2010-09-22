@@ -8,6 +8,9 @@
 #include "math/Vector3.h"
 #include <vector>
 
+class Matrix4;
+class Plane3;
+
 const std::string RKEY_ENABLE_TEXTURE_LOCK("user/ui/brush/textureLock");
 
 class BrushCreator :
@@ -79,6 +82,16 @@ public:
 	// Get access to the actual Winding object
 	virtual IWinding& getWinding() = 0;
 	virtual const IWinding& getWinding() const = 0;
+
+	virtual const Plane3& getPlane3() const = 0;
+
+	/**
+	 * Returns the 3x3 texture matrix for this face, containing shift, scale and rotation.
+	 * 
+	 * xx, yx, xy and yy hold the scale and rotation
+	 * tx and ty hold the shift
+	 */
+	virtual Matrix4 getTexDefMatrix() const = 0;
 };
 
 // Brush Interface
@@ -92,6 +105,12 @@ public:
 
 	// Get a reference to the face by index in [0..getNumFaces).
 	virtual IFace& getFace(std::size_t index) = 0;
+
+	// Add a new face to this brush, using the given plane object, returns a reference to the new face
+	virtual IFace& addFace(const Plane3& plane) = 0;
+
+	// Add a new face to this brush, using the given plane, texdef matrix and shader name
+	virtual IFace& addFace(const Plane3& plane, const Matrix4& texDef, const std::string& shader) = 0;
 
 	// Returns true when this brush has no faces
 	virtual bool empty() const = 0;
@@ -110,6 +129,9 @@ public:
 
 	// Returns TRUE if any of the faces has the given shader
 	virtual bool hasShader(const std::string& name) = 0;
+
+	// Returns TRUE if any of the brush's faces has a visible material, FALSE if all faces are effectively hidden
+	virtual bool hasVisibleMaterial() const = 0;
 
 	// Saves the current state to the undo stack.
 	// Call this before manipulating the brush to make your action undo-able.

@@ -28,14 +28,11 @@ RenderablePicoSurface::RenderablePicoSurface(picoSurface_t* surf,
         {
 	    	_originalShaderName = PicoGetShaderName(shader);
 		}
-		else if (fExt == "ase") {
-
-			//Tr3B - disabled this .ase specific mess: artists should be able to provide proper *MATERIAL_NAME properties
-
-			/*
+		else if (fExt == "ase") 
+        {
 			std::string rawMapName = PicoGetShaderMapName(shader);
 			boost::algorithm::replace_all(rawMapName, "\\", "/");
-
+			
 			// Take off the everything before "base/", and everything after
 			// the first period if it exists (i.e. strip off ".tga")
 			std::size_t basePos = rawMapName.find("base");
@@ -58,14 +55,10 @@ RenderablePicoSurface::RenderablePicoSurface(picoSurface_t* surf,
 				// Unrecognised shader path
 				_originalShaderName = "";
 			}
-			*/
-
-			_originalShaderName = PicoGetShaderName(shader);
 		}
     }
-
+    
     _mappedShaderName = _originalShaderName; // no skin at this time
-
     
     // Capture the shader
     _shader = GlobalRenderSystem().capture(_originalShaderName);
@@ -80,15 +73,12 @@ RenderablePicoSurface::RenderablePicoSurface(picoSurface_t* surf,
     // Stream in the vertex data from the raw struct, expanding the local AABB 
     // to include each vertex.
     for (int vNum = 0; vNum < nVerts; ++vNum) {
-
     	
     	// Get the vertex position and colour
 		Vertex3f vertex(PicoGetSurfaceXYZ(surf, vNum));
-
 		
 		// Expand the AABB to include this new vertex
     	_localAABB.includePoint(vertex);
-
     	
     	_vertices[vNum].vertex = vertex;
     	_vertices[vNum].normal = Normal3f(PicoGetSurfaceNormal(surf, vNum));
@@ -96,17 +86,14 @@ RenderablePicoSurface::RenderablePicoSurface(picoSurface_t* surf,
     	_vertices[vNum].colour = 
     		getColourVector(PicoGetSurfaceColor(surf, 0, vNum));
     }
-
     
     // Stream in the index data
     picoIndex_t* ind = PicoGetSurfaceIndexes(surf, 0);
     for (unsigned int i = 0; i < _nIndices; i++)
     	_indices[i] = ind[i];
-
 	
 	// Calculate the tangent and bitangent vectors
 	calculateTangents();
-
 	
 	// Construct the DLs
 	createDisplayLists();
@@ -133,7 +120,6 @@ Vector3 RenderablePicoSurface::getColourVector(unsigned char* array) {
 
 // Tangent calculation
 void RenderablePicoSurface::calculateTangents() {
-
 	
 	// Calculate the tangents and bitangents using the indices into the vertex
 	// array.
@@ -144,12 +130,10 @@ void RenderablePicoSurface::calculateTangents() {
 		ArbitraryMeshVertex& a = _vertices[*i];
 		ArbitraryMeshVertex& b = _vertices[*(i + 1)];
 		ArbitraryMeshVertex& c = _vertices[*(i + 2)];
-
 		
 		// Call the tangent calculation function from render.h
 		ArbitraryMeshTriangle_sumTangents(a, b, c);
 	}
-
 	
 	// Normalise all of the tangent and bitangent vectors
 	for (VertexVector::iterator j = _vertices.begin();
@@ -222,6 +206,7 @@ GLuint RenderablePicoSurface::compileProgramList(
 			glVertexAttrib3dvARB(ATTR_BITANGENT, v.bitangent);
 			glVertexAttrib3dvARB(ATTR_NORMAL, v.normal);
 		}
+
         // Optional vertex colour
         if (mode == ShaderLayer::VERTEX_COLOUR_MULTIPLY)
         {
@@ -239,6 +224,7 @@ GLuint RenderablePicoSurface::compileProgramList(
         // Submit the vertex itself
 		glVertex3dv(v.vertex);	
 	}
+
     // Set vertex colour back to white
     // HACK: find out why other objects are not setting their correct colour,
     // and fix them.
@@ -275,7 +261,6 @@ void RenderablePicoSurface::createDisplayLists()
 	{
 		// Get the vertex for this index
 		ArbitraryMeshVertex& v = _vertices[*i];
-
 		
 		// Submit attributes
 		glNormal3dv(v.normal);
@@ -283,7 +268,6 @@ void RenderablePicoSurface::createDisplayLists()
 		glVertex3dv(v.vertex);	
 	}
 	glEnd();
-
 	
 	glEndList();
 }
@@ -321,13 +305,11 @@ void RenderablePicoSurface::testSelect(Selector& selector,
 		SelectionIntersection result;
 
 		test.TestTriangles(
-			VertexPointer(VertexPointer::pointer(&_vertices[0].vertex), 
-						  sizeof(ArbitraryMeshVertex)),
+			VertexPointer(&_vertices[0].vertex, sizeof(ArbitraryMeshVertex)),
       		IndexPointer(&_indices[0], 
       					 IndexPointer::index_type(_indices.size())),
 			result
 		);
-
 		
 		// Add the intersection to the selector if it is valid
 		if(result.valid()) {

@@ -80,23 +80,20 @@ public:
 	IEventPtr findEvent(const std::string& name);
 	IEventPtr findEvent(GdkEventKey* event);
 	
-	std::string getEventName(IEventPtr event);
+	std::string getEventName(const IEventPtr& event);
 	
-	std::string getAcceleratorStr(const IEventPtr event, bool forMenu);
+	std::string getAcceleratorStr(const IEventPtr& event, bool forMenu);
 	
 	// Checks if the eventName is already registered and writes to globalOutputStream, if so 
 	bool alreadyRegistered(const std::string& eventName);
 	
-	// Add the given command to the internal list
-	IEventPtr addCommand(const std::string& name, const Callback& callback, bool reactOnKeyUp);
-
 	// Add a command and specify the statement to execute when triggered
 	IEventPtr addCommand(const std::string& name, const std::string& statement, bool reactOnKeyUp);
 
-	IEventPtr addKeyEvent(const std::string& name, const Callback& keyUpCallback, const Callback& keyDownCallback);
+	IEventPtr addKeyEvent(const std::string& name, const ui::KeyStateChangeCallback& keyStateChangeCallback);
 	IEventPtr addWidgetToggle(const std::string& name);
 	IEventPtr addRegistryToggle(const std::string& name, const std::string& registryKey);
-	IEventPtr addToggle(const std::string& name, const Callback& onToggled);
+	IEventPtr addToggle(const std::string& name, const ToggleCallback& onToggled);
 	
 	void setToggled(const std::string& name, const bool toggled);
 	
@@ -137,10 +134,10 @@ public:
 	void foreachEvent(IEventVisitor& eventVisitor);
 	
 	// Tries to locate an accelerator, that is connected to the given command
-	IAccelerator& findAccelerator(const IEventPtr event);
+	IAccelerator& findAccelerator(const IEventPtr& event);
 
 	// Returns the string representation of the given modifier flags 
-	std::string getModifierStr(const unsigned int& modifierFlags, bool forMenu = false);
+	std::string getModifierStr(const unsigned int modifierFlags, bool forMenu = false);
 
 	unsigned int getModifierState();
 
@@ -150,9 +147,9 @@ private:
 
 	AcceleratorList findAccelerator(const std::string& key, const std::string& modifierStr);
 
-	bool duplicateAccelerator(const std::string& key, const std::string& modifiers, IEventPtr event);
+	bool duplicateAccelerator(const std::string& key, const std::string& modifiers, const IEventPtr& event);
 
-	AcceleratorList findAccelerator(const guint& keyVal, const unsigned int& modifierFlags);
+	AcceleratorList findAccelerator(guint keyVal, const unsigned int modifierFlags);
 
 	// Returns the pointer to the accelerator for the given GdkEvent, but convert the key to uppercase before passing it
 	AcceleratorList findAccelerator(GdkEventKey* event);

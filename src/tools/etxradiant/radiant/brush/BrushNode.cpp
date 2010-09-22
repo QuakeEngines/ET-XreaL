@@ -5,23 +5,22 @@
 #include "iradiant.h"
 #include "icounter.h"
 #include "math/frustum.h"
+#include <boost/bind.hpp>
 
 // Constructor
 BrushNode::BrushNode() :
-	BrushTokenImporter(m_brush),
-	BrushTokenExporter(m_brush),
-	m_brush(*this, EvaluateTransformCaller(*this), Node::BoundsChangedCaller(*this)),
-	_selectable(SelectedChangedCaller(*this)),
+	m_lightList(&GlobalRenderSystem().attach(*this)),
+	m_brush(*this, 
+			Callback(boost::bind(&BrushNode::evaluateTransform, this)), 
+			Callback(boost::bind(&Node::boundsChanged, this))),
+	_selectable(boost::bind(&BrushNode::selectedChanged, this, _1)),
 	m_render_selected(GL_POINTS),
 	_faceCentroidPointsCulled(GL_POINTS),
 	m_viewChanged(false)
 {
 	m_brush.attach(*this); // BrushObserver
-	m_lightList = &GlobalRenderSystem().attach(*this);
 
-	m_brush.m_lightsChanged = LightsChangedCaller(*this);
-
-	Node::setTransformChangedCallback(LightsChangedCaller(*this));
+	Node::setTransformChangedCallback(boost::bind(&BrushNode::lightsChanged, this));
 }
 
 // Copy Constructor
@@ -31,8 +30,6 @@ BrushNode::BrushNode(const BrushNode& other) :
 	Nameable(other),
 	Snappable(other),
 	BrushDoom3(other),
-	BrushTokenImporter(m_brush),
-	BrushTokenExporter(m_brush),
 	IBrushNode(other),
 	Selectable(other),
 	BrushObserver(other),
@@ -43,16 +40,17 @@ BrushNode::BrushNode(const BrushNode& other) :
 	PlaneSelectable(other),
 	LightCullable(other),
 	Renderable(other),
-	Bounded(other),
 	Transformable(other),
-	m_brush(*this, other.m_brush, EvaluateTransformCaller(*this), Node::BoundsChangedCaller(*this)),
-	_selectable(SelectedChangedCaller(*this)),
+	m_lightList(&GlobalRenderSystem().attach(*this)),
+	m_brush(*this, other.m_brush, 
+			Callback(boost::bind(&BrushNode::evaluateTransform, this)), 
+			Callback(boost::bind(&Node::boundsChanged, this))),
+	_selectable(boost::bind(&BrushNode::selectedChanged, this, _1)),
 	m_render_selected(GL_POINTS),
 	_faceCentroidPointsCulled(GL_POINTS),
 	m_viewChanged(false)
 {
 	m_brush.attach(*this); // BrushObserver
-	m_lightList = &GlobalRenderSystem().attach(*this);
 }
 
 BrushNode::~BrushNode() {
@@ -282,7 +280,7 @@ void BrushNode::reserve(std::size_t size) {
 }
 
 void BrushNode::push_back(Face& face) {
-	m_faceInstances.push_back(FaceInstance(face, SelectedChangedComponentCaller(*this)));
+	m_faceInstances.push_back(FaceInstance(face, boost::bind(&BrushNode::selectedChangedComponent, this, _1)));
 }
 
 void BrushNode::pop_back() {
@@ -432,6 +430,9 @@ void BrushNode::renderSolid(RenderableCollector& collector,
          i != m_faceInstances.end();
          ++i) 
     {
+		// Skip invisible faces before traversing further
+		if (!i->getFace().getFaceShader().getGLShader()->getMaterial()->isVisible()) continue;
+
         collector.setLights(i->m_lights);
         i->submitRenderables(collector, volume, localToWorld);
     }

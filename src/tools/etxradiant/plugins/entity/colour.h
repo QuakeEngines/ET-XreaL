@@ -25,8 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ientity.h"
 #include "irender.h"
 
-#include "generic/callback.h"
-
 namespace entity
 {
 
@@ -34,22 +32,23 @@ namespace entity
  * greebo: this is a class encapsulating the "_color" spawnarg
  * of entity, observing it and maintaining the corresponding shader.
  */
-class Colour
+class Colour :
+	public KeyObserver
 {
-	Callback _colourChanged;
+private:
 	ShaderPtr _wireShader;
 
 public:
 	Vector3 m_colour;
 
-	Colour(const Callback& colourChanged) : 
-		_colourChanged(colourChanged),
+	Colour() :
 		m_colour(1,1,1)
 	{
 		captureShader();
 	}
 
-	void colourChanged(const std::string& value)
+	// Called when "_color" keyvalue changes
+	void onKeyValueChanged(const std::string& value)
 	{
 		// Initialise the colour with white, in case the string parse fails
 		m_colour[0] = m_colour[1] = m_colour[2] = 1;
@@ -63,9 +62,7 @@ public:
 		strm >> m_colour.z();
 		
 		captureShader();
-		_colourChanged();
 	}
-	typedef MemberCaller1<Colour, const std::string&, &Colour::colourChanged> ColourChangedCaller;
 
 	const ShaderPtr& getWireShader() const
 	{

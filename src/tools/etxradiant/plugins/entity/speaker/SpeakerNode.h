@@ -21,7 +21,6 @@ class SpeakerNode :
 	public EntityNode,
 	public Snappable,
 	public SelectionTestable,
-	public Bounded,
 	public PlaneSelectable,
 	public ComponentSelectionTestable
 {
@@ -68,7 +67,6 @@ public:
 	void renderWireframe(RenderableCollector& collector, const VolumeTest& volume) const;
 
 	void selectedChangedComponent(const Selectable& selectable);
-	typedef MemberCaller1<SpeakerNode, const Selectable&, &SpeakerNode::selectedChangedComponent> SelectedChangedComponentCaller;
 
 protected:
 	// Gets called by the Transformable implementation whenever

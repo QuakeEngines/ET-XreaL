@@ -1,7 +1,6 @@
 #include "TargetableNode.h"
 
 #include "TargetManager.h"
-#include "RenderableTargetInstances.h"
 
 namespace entity {
 
@@ -15,31 +14,22 @@ TargetableNode::TargetableNode(Doom3Entity& entity, scene::Node& node) :
 	// Execute initialisation code in construct()
 }
 
-void TargetableNode::construct() {
+void TargetableNode::construct()
+{
 	_d3entity.attachObserver(this);
 	_d3entity.attachObserver(&_targetKeys);
-
-	RenderableTargetInstances::Instance().attach(*this);
 }
 
 // Disconnect this class from the entity
-void TargetableNode::destruct() {
-	RenderableTargetInstances::Instance().detach(*this);
-
+void TargetableNode::destruct()
+{
 	_d3entity.detachObserver(&_targetKeys);
 	_d3entity.detachObserver(this);
 }
 
-void TargetableNode::setTargetsChanged(const Callback& targetsChanged) {
-	_targetKeys.setTargetsChanged(targetsChanged);
-}
-
-void TargetableNode::targetsChanged() {
-	_targetKeys.targetsChanged();
-}
-
 // Gets called as soon as the "name" keyvalue changes
-void TargetableNode::targetnameChanged(const std::string& name) {
+void TargetableNode::onKeyValueChanged(const std::string& name)
+{
 	// Check if we were registered before
 	if (!_targetName.empty()) {
 		// Old name is not empty
@@ -61,9 +51,10 @@ void TargetableNode::targetnameChanged(const std::string& name) {
 
 // Entity::Observer implementation, gets called on key insert
 void TargetableNode::onKeyInsert(const std::string& key, EntityKeyValue& value) {
-	if (key == "name") {
+	if (key == "name")
+	{
 		// Subscribe to this keyvalue to get notified about "name" changes
-		value.attach(TargetnameChangedCaller(*this));
+		value.attach(*this);
 	}
 }
 
@@ -71,7 +62,7 @@ void TargetableNode::onKeyInsert(const std::string& key, EntityKeyValue& value) 
 void TargetableNode::onKeyErase(const std::string& key, EntityKeyValue& value) {
 	if (key == "name") {
 		// Unsubscribe from this keyvalue
-		value.detach(TargetnameChangedCaller(*this));
+		value.detach(*this);
 	}
 }
 

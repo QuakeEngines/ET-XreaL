@@ -1,5 +1,4 @@
-#ifndef ARBBUMPPROGRAM_H_
-#define ARBBUMPPROGRAM_H_
+#pragma once
 
 #include "GLProgramAttributes.h"
 #include "iglrender.h"
@@ -10,7 +9,8 @@ namespace render {
 class ARBBumpProgram 
 : public GLProgram
 {
-	// The value all lights should be scaled by, obtained from the game description
+    // The value all lights should be scaled by, obtained from the game
+    // description
 	double _lightScale;
 
     // Uniform/program-local parameter IDs.
@@ -20,18 +20,9 @@ class ARBBumpProgram
     int _locLightScale;
     int _locAmbientFactor;
 
-#ifdef RADIANT_USE_GLSL
-
-    // Program object identifier
-    GLuint _programObj;
-
-#else
-
     // Vertex and fragment program identifiers
     GLuint m_vertex_program;
     GLuint m_fragment_program;
-
-#endif
 
 public:
 
@@ -52,4 +43,3 @@ public:
 
 } // namespace render
 
-#endif /*ARBBUMPPROGRAM_H_*/

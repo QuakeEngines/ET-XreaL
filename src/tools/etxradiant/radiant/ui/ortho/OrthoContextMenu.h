@@ -1,8 +1,14 @@
 #ifndef ORTHOCONTEXTMENU_H_
 #define ORTHOCONTEXTMENU_H_
 
+#include "iorthocontextmenu.h"
+#include "iradiant.h"
+
 #include <map>
+#include <list>
 #include "math/Vector3.h"
+
+#include <boost/enable_shared_from_this.hpp>
 
 typedef struct _GtkMenuItem GtkMenuItem;
 typedef struct _GtkWidget GtkWidget;
@@ -10,16 +16,14 @@ typedef struct _GtkWidget GtkWidget;
 namespace ui
 {
 
-// Forward declaration
-class LayerContextMenu;
-typedef boost::shared_ptr<LayerContextMenu> LayerContextMenuPtr;
-
 /** Displays a menu when the mouse is right-clicked in the ortho window.
- * This is a singleton class which remains in existence once constructed,
+ * This is a singleton module which remains in existence once initialised,
  * and is hidden and displayed as appropriate.
  */
-
-class OrthoContextMenu
+class OrthoContextMenu :
+	public IOrthoContextMenu,
+	public RadiantEventListener,
+	public boost::enable_shared_from_this<OrthoContextMenu>
 {
 	// The GtkWidget representing the menu
 	GtkWidget* _widget;
@@ -27,64 +31,35 @@ class OrthoContextMenu
 	// Last provided 3D point for action
 	Vector3 _lastPoint;
 
-	// The widgets, indexed by an enum
-	std::map<int, GtkWidget*> _widgets;
-	
-	LayerContextMenuPtr _addToLayerSubmenu;
-	LayerContextMenuPtr _moveToLayerSubmenu;
-	LayerContextMenuPtr _removeFromLayerSubmenu;
+	// A list of menu items
+	typedef std::list<IMenuItemPtr> MenuItems;
 
-private:
+	// The menu sections, distinguished by section number
+	typedef std::map<int, MenuItems> MenuSections;
+	MenuSections _sections;
 
-    static std::string getRegistryKeyWithDefault(const std::string&,
-                                                 const std::string&);
+	struct ExtendedSelectionInfo
+	{
+		bool anythingSelected;
 
-	// Enable or disable the "convert to static" option based on the number
-	// of selected brushes.
-	void checkConvertStatic();
-	
-	/** greebo: Enable or disables the "revert to worldspawn" option 
-	 */
-	void checkRevertToWorldspawn();
-	
-	/** greebo: Disables the "entity/light/speaker/playerStart" options according to the selection,
-	 *			and change "playerStart" if another playerStart is found.
-	 */
-	void checkAddOptions();
+		bool onlyPrimitivesSelected;
+		bool onlyBrushesSelected;
+		bool onlyPatchesSelected;
+		bool singlePrimitiveSelected;
 
-	// Disables the "add MonsterClip" option according to the selection,
-	void checkMonsterClip();
+		bool onlyEntitiesSelected;
 
-	// mohij: changes the "Add PlayerStart" entry if an info_player_start already exists
-	void checkPlayerStart();
+		bool onlyGroupsSelected;
+		bool singleGroupSelected;
 
-	void checkMakeVisportal();
+		bool onlyModelsSelected;
 
-	// Refreshes the layer submenus
-	void repopulateLayerMenus();
+		bool playerStartExists;
+	};
 
-	/* Gtk Callbacks */
-	
-	static void callbackAddEntity(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackAddPlayerStart(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackMovePlayerStart(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackAddModel(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackAddMonsterClip(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackAddLight(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackAddPrefab(GtkMenuItem* item, OrthoContextMenu* self);
-	static void callbackAddSpeaker(GtkMenuItem*, OrthoContextMenu* self);
-	static void callbackConvertToStatic(GtkMenuItem* item, OrthoContextMenu* self);
+	ExtendedSelectionInfo _selectionInfo;
 
-	// Gets called by the items in the "Add to Layer" submenu
-	static void callbackAddToLayer(int layerID);
-	static void callbackMoveToLayer(int layerID);
-	static void callbackRemoveFromLayer(int layerID);
-	
 public:
-
-	/** Constructor. Create the GTK content here.
-	 */
-
 	OrthoContextMenu();
 
 	/** Display the menu at the current mouse position, and act on the
@@ -94,19 +69,55 @@ public:
 	 * The point in 3D space at which the chosen operation should take
 	 * place.
 	 */
-	 
 	void show(const Vector3& point);
 	
-	/** Static instance display function. Obtain the singleton instance and
-	 * call its show() function.
-	 * 
-	 * @param point
-	 * The point in 3D space at which the chosen operation should take
-	 * place.
-	 */
-	 
-	static void displayInstance(const Vector3& point);
+	// Retrieve the singleton instance
+	static OrthoContextMenu& Instance();
 
+	// RegisterableModule implementation
+	const std::string& getName() const;
+	const StringSet& getDependencies() const;
+	void initialiseModule(const ApplicationContext& ctx);
+
+	// IOrthoContextMenu implementation
+	void addItem(const IMenuItemPtr& item, int section);
+	void removeItem(const IMenuItemPtr& item);
+
+	void onRadiantStartup();
+
+private:
+
+    static std::string getRegistryKeyWithDefault(const std::string&,
+                                                 const std::string&);
+
+	void analyseSelection();
+
+	// Visibility/Sensitivity checks
+	bool checkConvertStatic();
+	bool checkRevertToWorldspawn();
+	bool checkMergeEntities();
+	bool checkRevertToWorldspawnPartial();
+	bool checkAddPlayerStart();
+	bool checkMovePlayerStart();
+	bool checkMakeVisportal();
+	bool checkAddMonsterclip();
+	bool checkAddEntity();
+	bool checkAddModel();
+	
+	void callbackAddEntity();
+	void callbackAddPlayerStart();
+	void callbackMovePlayerStart();
+	void callbackAddModel();
+	void callbackAddLight();
+	void callbackAddPrefab();
+	void callbackAddSpeaker();
+
+	void registerDefaultItems();
+
+	// Pack widgets
+	void constructMenu();
+
+	void addSectionItems(int section, bool noSpacer = false);
 };
 
 }

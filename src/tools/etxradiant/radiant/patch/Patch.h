@@ -36,6 +36,9 @@ class Patch :
 private:
 	PatchNode& _node;
 
+	typedef std::set<IPatch::Observer*> Observers;
+	Observers _observers;
+
 	AABB m_aabb_local; // local bbox
 
 	// greebo: The name of the shader
@@ -101,8 +104,6 @@ private:
 	void construct();
 
 public:
-	Callback m_lightsChanged;
-
 	static int m_CycleCapIndex;// = 0;
 	
 	// Constructor
@@ -114,6 +115,9 @@ public:
 	PatchNode& getPatchNode();
 	
 	InstanceCounter m_instanceCounter;
+
+	void attachObserver(Observer* observer);
+	void detachObserver(Observer* observer);
 
 	void instanceAttach(MapFile* map);
 	// Remove the attached instance and decrease the counters
@@ -172,6 +176,9 @@ public:
 	// Gets the shader name or sets the shader to <name>
 	const std::string& getShader() const;
 	void setShader(const std::string& name);
+
+	// greebo: returns true if the patch's shader is visible, false otherwise
+	bool hasVisibleMaterial() const;
 	
 	// As the name states: get the shader flags of the m_state shader
 	int getShaderFlags() const;
@@ -239,6 +246,13 @@ public:
 	void ConstructPrefab(const AABB& aabb, EPatchPrefab eType, EViewType viewType, std::size_t width = 3, std::size_t height = 3);
 	void constructPlane(const AABB& aabb, int axis, std::size_t width, std::size_t height);
 	void InvertMatrix();
+
+	/**
+	 * greebo: This algorithm will transpose the patch matrix 
+	 * such that the actual control vertex contents remain the same
+	 * but their indices in the patch matrix change.
+	 * Rows become columns and vice versa.
+	 */
 	void TransposeMatrix();
 	void Redisperse(EMatrixMajor mt);
 	void InsertRemove(bool bInsert, bool bColumn, bool bFirst);
@@ -304,7 +318,7 @@ public:
 	 * 
 	 * @axis: 0 = x-axis, 1 = y-axis, 2 = z-axis, 3 = vertex normals
 	 */
-	void createThickenedOpposite(const Patch& sourcePatch, const float& thickness, const int& axis);
+	void createThickenedOpposite(const Patch& sourcePatch, const float thickness, const int axis);
 
 	/** greebo: This creates on of the "wall" patches when thickening patches.
 	 * 
@@ -313,7 +327,7 @@ public:
 	 *  
 	 * @wallIndex: 0..3 (cycle through them to create all four walls).
 	 */
-	void createThickenedWall(const Patch& sourcePatch, const Patch& targetPatch, const int& wallIndex);
+	void createThickenedWall(const Patch& sourcePatch, const Patch& targetPatch, const int wallIndex);
 
 	// called just before an action to save the undo state
 	void undoSave();
@@ -354,7 +368,7 @@ public:
 
 private:
 	// This notifies the surfaceinspector/patchinspector about the texture change
-	static void textureChanged();
+	void textureChanged();
 
 	void updateTesselation();
 

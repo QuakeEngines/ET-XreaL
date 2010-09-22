@@ -23,6 +23,8 @@ public:
       glDrawArrays(GL_TRIANGLE_FAN, 0, 0);
   #endif
 
+	  if (m_tess.vertices.empty()) return;
+
       std::size_t n = 0;
       glVertexPointer(3, GL_DOUBLE, sizeof(ArbitraryMeshVertex), &m_tess.vertices.front().vertex);
       for(std::size_t i = 0; i <= m_tess.curveTreeV.size(); ++i)
@@ -72,6 +74,8 @@ public:
   }
   void render(const RenderInfo& info) const
   {
+	  if (m_tess.vertices.empty() || m_tess.indices.empty()) return;
+
     glVertexPointer(3, GL_DOUBLE, sizeof(ArbitraryMeshVertex), &m_tess.vertices.front().vertex);
     const RenderIndex* strip_indices = &m_tess.indices.front();
     for(std::size_t i = 0; i<m_tess.m_numStrips; i++, strip_indices += m_tess.m_lenStrips)

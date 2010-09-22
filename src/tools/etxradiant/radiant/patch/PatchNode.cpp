@@ -7,22 +7,17 @@
 
 // Construct a PatchNode with no arguments
 PatchNode::PatchNode(bool patchDef3) :
-	m_dragPlanes(SelectedChangedComponentCaller(*this)),
-	_selectable(SelectedChangedCaller(*this)),
+	m_dragPlanes(boost::bind(&PatchNode::selectedChangedComponent, this, _1)),
+	_selectable(boost::bind(&PatchNode::selectedChanged, this, _1)),
 	m_render_selected(GL_POINTS),
+	m_lightList(&GlobalRenderSystem().attach(*this)),
 	m_patch(*this, 
-			EvaluateTransformCaller(*this), 
-			Node::BoundsChangedCaller(*this)), // create the m_patch member with the node parameters
-	m_importMap(m_patch),
-	m_exportMap(m_patch),
-	m_lightList(NULL)
+			Callback(boost::bind(&PatchNode::evaluateTransform, this)), 
+			Callback(boost::bind(&Node::boundsChanged, this))) // create the m_patch member with the node parameters
 {
 	m_patch.m_patchDef3 = patchDef3;
-	m_lightList = &GlobalRenderSystem().attach(*this);
 
-	m_patch.m_lightsChanged = LightsChangedCaller(*this);
-
-	Node::setTransformChangedCallback(LightsChangedCaller(*this));
+	Node::setTransformChangedCallback(Callback(boost::bind(&PatchNode::lightsChanged, this)));
 }
   
 // Copy Constructor
@@ -31,8 +26,6 @@ PatchNode::PatchNode(const PatchNode& other) :
 	scene::Cloneable(other),
 	Nameable(other),
 	Snappable(other),
-	MapImporter(other),
-	MapExporter(other),
 	IPatchNode(other),
 	Selectable(other),
 	SelectionTestable(other),
@@ -42,22 +35,17 @@ PatchNode::PatchNode(const PatchNode& other) :
 	PlaneSelectable(other),
 	LightCullable(other),
 	Renderable(other),
-	Bounded(other),
 	Transformable(other),
-	m_dragPlanes(SelectedChangedComponentCaller(*this)),
-	_selectable(SelectedChangedCaller(*this)),
+	m_dragPlanes(boost::bind(&PatchNode::selectedChangedComponent, this, _1)),
+	_selectable(boost::bind(&PatchNode::selectedChanged, this, _1)),
 	m_render_selected(GL_POINTS),
-	m_patch(other.m_patch, *this, EvaluateTransformCaller(*this), 
-		    Node::BoundsChangedCaller(*this)), // create the patch out of the <other> one
-	m_importMap(m_patch),
-	m_exportMap(m_patch),
-	m_lightList(NULL)
+	m_lightList(&GlobalRenderSystem().attach(*this)),
+	m_patch(other.m_patch, 
+			*this, 
+			Callback(boost::bind(&PatchNode::evaluateTransform, this)), 
+			Callback(boost::bind(&Node::boundsChanged, this))) // create the patch out of the <other> one
 {
-	m_lightList = &GlobalRenderSystem().attach(*this);
-
-	m_patch.m_lightsChanged = LightsChangedCaller(*this);
-
-	Node::setTransformChangedCallback(LightsChangedCaller(*this));
+	Node::setTransformChangedCallback(Callback(boost::bind(&PatchNode::lightsChanged, this)));
 }
 
 PatchNode::~PatchNode()
@@ -73,8 +61,11 @@ void PatchNode::allocate(std::size_t size) {
 	// greebo: Cycle through the patch's control vertices and add them as PatchControlInstance to the vector
 	// The PatchControlInstance constructor takes a pointer to a PatchControl and the SelectionChanged callback
 	// The passed callback points back to this class (the member method selectedChangedComponent() is called).  
-	for(PatchControlIter i = m_patch.begin(); i != m_patch.end(); ++i) {
-		m_ctrl_instances.push_back(PatchControlInstance(&(*i), SelectedChangedComponentCaller(*this)));
+	for(PatchControlIter i = m_patch.begin(); i != m_patch.end(); ++i)
+	{
+		m_ctrl_instances.push_back(
+			PatchControlInstance(&(*i), boost::bind(&PatchNode::selectedChangedComponent, this, _1))
+		);
 	}
 }
 
@@ -101,16 +92,6 @@ void PatchNode::lightsChanged() {
 // Snappable implementation
 void PatchNode::snapto(float snap) {
 	m_patch.snapto(snap);
-}
-
-// MapImporter implementation
-bool PatchNode::importTokens(parser::DefTokeniser& tokeniser) {
-	return m_importMap.importTokens(tokeniser);
-}
-
-// MapExporter implementation
-void PatchNode::exportTokens(std::ostream& os) const {
-	m_exportMap.exportTokens(os);
 }
 
 bool PatchNode::selectedVertices() {
@@ -222,8 +203,14 @@ const AABB& PatchNode::getSelectedComponentsBounds() const {
 	return m_aabb_component;
 }
 
-bool PatchNode::isVisible() const {
-	return visible() && m_patch.getState()->getMaterial()->isVisible();
+bool PatchNode::isVisible() const
+{
+	return visible() && hasVisibleMaterial();
+}
+
+bool PatchNode::hasVisibleMaterial() const
+{
+	return m_patch.getState()->getMaterial()->isVisible();
 }
 
 void PatchNode::setSelected(bool select) {
@@ -302,12 +289,11 @@ void PatchNode::destroyStatic() {
 	m_state_selpoint = ShaderPtr();
 }
 
-void PatchNode::renderSolid(RenderableCollector& collector, const VolumeTest& volume) const {
-	// If not visible, there's nothing to do for us
-	if (!isVisible())
-		return;
+void PatchNode::renderSolid(RenderableCollector& collector, const VolumeTest& volume) const
+{
+	// Don't render invisible shaders
+	if (!m_patch.getState()->getMaterial()->isVisible()) return;
 
-	// greebo: Don't know yet, what evaluateTransform() is really doing
 	const_cast<Patch&>(m_patch).evaluateTransform();
 	collector.setLights(*m_lightList);
 	
@@ -318,12 +304,11 @@ void PatchNode::renderSolid(RenderableCollector& collector, const VolumeTest& vo
 	renderComponentsSelected(collector, volume);
 }
 
-void PatchNode::renderWireframe(RenderableCollector& collector, const VolumeTest& volume) const {
-	// If not visible, there's nothing to do for us
-	if (!isVisible())
-		return;
-	
-	// greebo: Don't know yet, what evaluateTransform() is really doing
+void PatchNode::renderWireframe(RenderableCollector& collector, const VolumeTest& volume) const
+{
+	// Don't render invisible shaders
+	if (!m_patch.getState()->getMaterial()->isVisible()) return;
+
 	const_cast<Patch&>(m_patch).evaluateTransform();
 	
 	// Pass the call to the patch instance, it adds the renderable
@@ -334,9 +319,10 @@ void PatchNode::renderWireframe(RenderableCollector& collector, const VolumeTest
 }
 
 // Renders the components of this patch instance, makes use of the Patch::render_component() method 
-void PatchNode::renderComponents(RenderableCollector& collector, const VolumeTest& volume) const {
-	if (!isVisible())
-		return;
+void PatchNode::renderComponents(RenderableCollector& collector, const VolumeTest& volume) const
+{
+	// Don't render invisible shaders
+	if (!m_patch.getState()->getMaterial()->isVisible()) return;
 
 	// greebo: Don't know yet, what evaluateTransform() is really doing
 	const_cast<Patch&>(m_patch).evaluateTransform();
@@ -366,11 +352,8 @@ void PatchNode::update_selected() const {
 	}
 }
 
-void PatchNode::renderComponentsSelected(RenderableCollector& collector, const VolumeTest& volume) const {
-	// If not visible, there's nothing to do for us
-	if (!isVisible())
-		return;
-
+void PatchNode::renderComponentsSelected(RenderableCollector& collector, const VolumeTest& volume) const
+{
 	// greebo: Don't know yet, what evaluateTransform() is really doing
 	const_cast<Patch&>(m_patch).evaluateTransform();
 	

@@ -16,6 +16,8 @@
 #include "xyview/GlobalXYWnd.h"
 #include "modulesystem/StaticModule.h"
 
+#include <boost/bind.hpp>
+
 // Initialise the shader pointer
 ShaderPtr RadiantSelectionSystem::_state;
 
@@ -165,6 +167,20 @@ void RadiantSelectionSystem::testSelectScene(SelectablesList& targetList, Select
 		}
 		break;
 
+		case eGroupPart:
+		{
+			// Retrieve all the selectable primitives of group nodes
+			GroupChildPrimitiveSelector primitiveTester(selector, test);
+			GlobalSceneGraph().foreachVisibleNodeInVolume(view, primitiveTester);
+			
+			// Add the selection crop to the target vector
+			for (SelectionPool::iterator i = selector.begin(); i != selector.end(); ++i)
+			{
+				targetList.push_back(i->second);
+			}
+		}
+		break;
+
 		case eComponent:
 		{
 			ComponentSelector selectionTester(selector, test, componentMode);
@@ -181,9 +197,11 @@ void RadiantSelectionSystem::testSelectScene(SelectablesList& targetList, Select
 
 /* greebo: This is true if nothing is selected (either in component mode or in primitive mode)  
  */
-bool RadiantSelectionSystem::nothingSelected() const {
-    return (Mode() == eComponent && _countComponent == 0)
-		|| (Mode() == ePrimitive && _countPrimitive == 0);
+bool RadiantSelectionSystem::nothingSelected() const
+{
+    return (Mode() == eComponent && _countComponent == 0) || 
+		   (Mode() == ePrimitive && _countPrimitive == 0) ||
+		   (Mode() == eGroupPart && _countPrimitive == 0);
 }
 
 void RadiantSelectionSystem::pivotChanged() const  {
@@ -255,7 +273,7 @@ void RadiantSelectionSystem::onSelectedChanged(const scene::INodePtr& node, cons
 	int delta = isSelected ? +1 : -1;
 	
 	_countPrimitive += delta;
-	_selectionChangedCallbacks(selectable); // legacy
+	_selectionChangedSignal(selectable);
 	
 	_selectionInfo.totalCount += delta;
 	
@@ -268,12 +286,10 @@ void RadiantSelectionSystem::onSelectedChanged(const scene::INodePtr& node, cons
 	else {
 		_selectionInfo.entityCount += delta;
 	}
-	
+
 	// If the selectable is selected, add it to the local selection list, otherwise remove it 
 	if (isSelected) {
 		_selection.append(node);
-
-		_requestWorkZoneRecalculation = true;
 	}
 	else {
 		_selection.erase(node);
@@ -288,6 +304,7 @@ void RadiantSelectionSystem::onSelectedChanged(const scene::INodePtr& node, cons
 	// Schedule an idle callback
 	requestIdleCallback();
 
+	_requestWorkZoneRecalculation = true;
 	_requestSceneGraphChange = true;
 }
 
@@ -298,7 +315,7 @@ void RadiantSelectionSystem::onComponentSelection(const scene::INodePtr& node, c
 	int delta = selectable.isSelected() ? +1 : -1;
 
 	_countComponent += delta;
-	_selectionChangedCallbacks(selectable); // legacy
+	_selectionChangedSignal(selectable);
 	
 	_selectionInfo.totalCount += delta;
 	_selectionInfo.componentCount += delta;
@@ -306,8 +323,6 @@ void RadiantSelectionSystem::onComponentSelection(const scene::INodePtr& node, c
 	// If the instance got selected, add it to the list, otherwise remove it
 	if (selectable.isSelected()) {
 		_componentSelection.append(node);
-
-		_requestWorkZoneRecalculation = true;
 	}
     else {
 		_componentSelection.erase(node);
@@ -322,6 +337,7 @@ void RadiantSelectionSystem::onComponentSelection(const scene::INodePtr& node, c
 	// Schedule an idle callback
 	requestIdleCallback();
 
+	_requestWorkZoneRecalculation = true;
 	_requestSceneGraphChange = true;
 }
 
@@ -386,8 +402,9 @@ void RadiantSelectionSystem::foreachSelectedComponent(const Visitor& visitor)
 }
 
 // Add a "selection changed" callback
-void RadiantSelectionSystem::addSelectionChangeCallback(const SelectionChangeHandler& handler) {
-	_selectionChangedCallbacks.connectLast(handler);
+void RadiantSelectionSystem::addSelectionChangeCallback(const SelectionChangeCallback& callback)
+{
+	_selectionChangedSignal.connect(callback);
 }
 
 // Start a move, the current pivot point is saved as a start point
@@ -761,9 +778,19 @@ void RadiantSelectionSystem::MoveSelected(const View& view, const Vector2& devic
 }
 
 /// \todo Support view-dependent nudge.
-void RadiantSelectionSystem::NudgeManipulator(const Vector3& nudge, const Vector3& view) {
-	if(ManipulatorMode() == eTranslate || ManipulatorMode() == eDrag) {
+void RadiantSelectionSystem::NudgeManipulator(const Vector3& nudge, const Vector3& view)
+{
+	if (ManipulatorMode() == eTranslate || 
+		ManipulatorMode() == eDrag || 
+		ManipulatorMode() == eClip)
+	{
 		translateSelected(nudge);
+
+		// In clip mode, update the clipping plane
+		if (ManipulatorMode() == eClip)
+		{
+			GlobalClipper().update();
+		}
 	}
 }
 
@@ -817,6 +844,7 @@ void RadiantSelectionSystem::cancelMove() {
 	if (_undoBegun) {
 		// Cancel the undo operation, if one has been begun 
 		GlobalUndoSystem().cancel();
+		_undoBegun = false;
 	}
 	
 	// Update the views
@@ -1029,8 +1057,8 @@ void RadiantSelectionSystem::initialiseModule(const ApplicationContext& ctx) {
 	
 	SetManipulatorMode(eTranslate);
 	pivotChanged();
-	addSelectionChangeCallback(PivotChangedSelectionCaller(*this));
-	GlobalGrid().addGridChangeCallback(PivotChangedCaller(*this));
+	addSelectionChangeCallback(boost::bind(&RadiantSelectionSystem::pivotChangedSelection, this, _1));
+	GlobalGrid().addGridChangeCallback(boost::bind(&RadiantSelectionSystem::pivotChanged, this));
 	
 	GlobalRegistry().addKeyObserver(this, RKEY_ROTATION_PIVOT);
 	
@@ -1039,7 +1067,7 @@ void RadiantSelectionSystem::initialiseModule(const ApplicationContext& ctx) {
 	
 	// Connect the bounds changed caller 
 	_boundsChangedHandler =	GlobalSceneGraph().addBoundsChangedCallback(
-		SceneBoundsChangedCaller(*this)
+		boost::bind(&RadiantSelectionSystem::onSceneBoundsChanged, this)
 	);
 
 	GlobalRenderSystem().attachRenderable(*this);
@@ -1053,7 +1081,7 @@ void RadiantSelectionSystem::shutdownModule() {
 
 	GlobalRenderSystem().detachRenderable(*this);
 	GlobalSceneGraph().removeBoundsChangedCallback(_boundsChangedHandler);
-	
+
 	destroyStatic();
 }
 
@@ -1066,25 +1094,30 @@ void RadiantSelectionSystem::onGtkIdle()
 	{
 		_requestWorkZoneRecalculation = false;
 
-		// Recalculate the workzone based on the current selection
-		BoundsAccumulator walker;
-		foreachSelected(walker);
-
-		AABB bounds = walker.getBounds();
-
-		if (bounds.isValid())
+		// When no items are selected, leave a (valid) workzone alone to allow
+		// for creation of new elements within the bounds of a previous selection
+		if (_selectionInfo.totalCount > 0 || !_workZone.bounds.isValid())
 		{
-			_workZone.max = bounds.origin + bounds.extents;
-			_workZone.min = bounds.origin - bounds.extents;
-		}
-		else
-		{
-			// A zero-sized workzone doesn't make much sense, set to default
-			_workZone.max = Vector3(64,64,64);
-			_workZone.min = Vector3(-64,-64,-64);
-		}
+			// Recalculate the workzone based on the current selection
+			BoundsAccumulator walker;
+			foreachSelected(walker);
 
-		_workZone.bounds = bounds;
+			AABB bounds = walker.getBounds();
+
+			if (bounds.isValid())
+			{
+				_workZone.max = bounds.origin + bounds.extents;
+				_workZone.min = bounds.origin - bounds.extents;
+			}
+			else
+			{
+				// A zero-sized workzone doesn't make much sense, set to default
+				_workZone.max = Vector3(64,64,64);
+				_workZone.min = Vector3(-64,-64,-64);
+			}
+
+			_workZone.bounds = bounds;
+		}
 	}
 
 	// Check if we should notify the scenegraph

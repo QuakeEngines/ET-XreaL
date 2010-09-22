@@ -19,7 +19,6 @@ class LightNode :
 	public ComponentEditable,
 	public ComponentSnappable,
 	public PlaneSelectable,
-	public Bounded,
 	public RendererLight,
 	public scene::SelectableLight
 {
@@ -72,7 +71,6 @@ public:
 	* Don't know exactly what it does, but it seems to notify the shader cache that the light has moved or
 	* something like that.*/ 
 	void lightChanged();
-	typedef MemberCaller<LightNode, &LightNode::lightChanged> LightChangedCaller;
 
 	/* greebo: This snaps the components to the grid.
 	 * 
@@ -107,7 +105,6 @@ public:
 	scene::INodePtr clone() const;
 
 	void selectedChangedComponent(const Selectable& selectable);
-	typedef MemberCaller1<LightNode, const Selectable&, &LightNode::selectedChangedComponent> SelectedChangedComponentCaller;
 
 	// Renderable implementation
 	void renderSolid(RenderableCollector& collector, const VolumeTest& volume) const;  

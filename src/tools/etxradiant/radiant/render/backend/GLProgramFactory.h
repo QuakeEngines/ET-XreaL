@@ -23,14 +23,14 @@ class GLProgramFactory
 	typedef std::map<std::string, GLProgramPtr> ProgramMap;
 	ProgramMap _map;
 
+    // Using GLSL flag
+    bool _usingGLSL;
+
 private:
 
 	// Private constructor, populates internal map
 	GLProgramFactory();
 
-	// Static instance owner
-	static GLProgramFactory& getInstance();
-	
     /*
      * Convenience method to return the full path of a given GL program file on
      * disk, taking account of platform-dependent differences.
@@ -43,8 +43,6 @@ private:
     static CharBufPtr getFileAsBuffer(const std::string& filename,
                                       bool nullTerminated);
 
-#ifdef RADIANT_USE_GLSL
-
     // Get the program info log as a string
     static std::string getProgramInfoLog(GLuint program);
 
@@ -55,16 +53,26 @@ private:
     // Check the program has linked, throwing exception if failed
     static void assertProgramLinked(GLuint program);
 
-#endif
-
 public:
 
+    /**
+     * \brief
+     * Get the GLProgramFactory instance;
+     */
+	static GLProgramFactory& getInstance();
+	
 	/**
 	 * Static method to return the GLProgram instance corresponding to the given
 	 * text name.
 	 */
 	static GLProgramPtr getProgram(const std::string& name);
 	
+    /**
+     * \brief
+     * Set the program factory to use GLSL programs instead of ARB programs.
+     */
+    void setUsingGLSL(bool useGLSL);
+
 	/**
 	 * Static realise method, called by the ShaderCache when the GLPrograms
 	 * need to be initialised.
@@ -76,8 +84,6 @@ public:
 	 */
 	static void unrealise();
 	
-#ifdef RADIANT_USE_GLSL
-
     /**
      * \brief
      * Create a GLSL shader object using the given source files.
@@ -97,8 +103,6 @@ public:
     static GLuint createGLSLProgram(const std::string& vFile,
                                     const std::string& fFile);
 
-#else
-
 	/**
      * Create a GL Program from the contents of a file.
      *
@@ -114,8 +118,6 @@ public:
      * The GL program ID to be used for subsequent binding.
      */
     static GLuint createARBProgram(const std::string& filename, GLenum type);
-
-#endif
 
 };
 

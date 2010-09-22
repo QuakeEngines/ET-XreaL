@@ -112,6 +112,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\include\i18n.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\include\iarchive.h"
 			>
 		</File>
@@ -180,6 +184,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\include\ifiltermenu.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\ifonts.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\include\igame.h"
 			>
 		</File>
@@ -224,7 +236,15 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\include\imapformat.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\include\imapresource.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\imenu.h"
 			>
 		</File>
 		<File
@@ -253,6 +273,14 @@
 		</File>
 		<File
 			RelativePath="..\..\include\inode.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\iorthocontextmenu.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\iorthoview.h"
 			>
 		</File>
 		<File
@@ -301,6 +329,10 @@
 		</File>
 		<File
 			RelativePath="..\..\include\iselection.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\iselectionset.h"
 			>
 		</File>
 		<File
@@ -369,10 +401,6 @@
 		</File>
 		<File
 			RelativePath="..\..\include\ShaderLayer.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\include\stream_version.h"
 			>
 		</File>
 		<File

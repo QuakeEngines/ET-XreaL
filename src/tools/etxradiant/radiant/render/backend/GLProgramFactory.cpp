@@ -1,6 +1,8 @@
 #include "GLProgramFactory.h"
 #include "glprogram/ARBBumpProgram.h"
 #include "glprogram/ARBDepthFillProgram.h"
+#include "glprogram/GLSLDepthFillProgram.h"
+#include "glprogram/GLSLBumpProgram.h"
 
 #include "iregistry.h"
 #include "os/file.h"
@@ -15,8 +17,7 @@ namespace render
 // Constructor, populates map with GLProgram instances
 GLProgramFactory::GLProgramFactory()
 {
-	_map.insert(std::make_pair("depthFill", new ARBDepthFillProgram())); 
-	_map.insert(std::make_pair("bumpMap", new ARBBumpProgram()));
+    setUsingGLSL(false);
 }
 
 // Return static GLProgramFactory instance
@@ -26,8 +27,8 @@ GLProgramFactory& GLProgramFactory::getInstance() {
 }
 
 // Lookup a named program in the singleton instance
-GLProgramPtr GLProgramFactory::getProgram(const std::string& name) {
-	
+GLProgramPtr GLProgramFactory::getProgram(const std::string& name) 
+{
 	// Reference to static instance's map
 	ProgramMap& map = getInstance()._map;
 	
@@ -40,8 +41,23 @@ GLProgramPtr GLProgramFactory::getProgram(const std::string& name) {
 								 + name);
 }
 
+void GLProgramFactory::setUsingGLSL(bool useGLSL)
+{
+    if (useGLSL)
+    {
+        _map.insert(std::make_pair("depthFill", new GLSLDepthFillProgram())); 
+        _map.insert(std::make_pair("bumpMap", new GLSLBumpProgram()));
+    }
+    else
+    {
+        _map.insert(std::make_pair("depthFill", new ARBDepthFillProgram())); 
+        _map.insert(std::make_pair("bumpMap", new ARBBumpProgram()));
+    }
+}
+
 // Realise the program factory.
-void GLProgramFactory::realise() {
+void GLProgramFactory::realise() 
+{
 	
 	// Get static map
 	ProgramMap& map = getInstance()._map;
@@ -100,8 +116,6 @@ GLProgramFactory::getFileAsBuffer(const std::string& filename,
     file.close();
     return buffer;
 }
-
-#ifdef RADIANT_USE_GLSL
 
 void GLProgramFactory::assertShaderCompiled(GLuint shader)
 {
@@ -195,7 +209,7 @@ GLuint GLProgramFactory::createGLSLProgram(const std::string& vFile,
 
     glShaderSource(vertexShader, 1, &csVertex, NULL);
     glShaderSource(fragmentShader, 1, &csFragment, NULL);
-    GlobalOpenGL_debugAssertNoErrors();
+    GlobalOpenGL().assertNoErrors();
 
     // Compile the shaders
     glCompileShader(vertexShader);
@@ -204,12 +218,12 @@ GLuint GLProgramFactory::createGLSLProgram(const std::string& vFile,
     glCompileShader(fragmentShader);
     assertShaderCompiled(fragmentShader);
 
-    GlobalOpenGL_debugAssertNoErrors();
+    GlobalOpenGL().assertNoErrors();
 
     // Attach and link the program object itself
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
-    GlobalOpenGL_debugAssertNoErrors();
+    GlobalOpenGL().assertNoErrors();
 
     glLinkProgram(program);
 
@@ -220,8 +234,6 @@ GLuint GLProgramFactory::createGLSLProgram(const std::string& vFile,
     return program;
 }
 
-#else
-
 GLuint GLProgramFactory::createARBProgram(const std::string& filename,
                                           GLenum type) 
 {
@@ -229,7 +241,7 @@ GLuint GLProgramFactory::createARBProgram(const std::string& filename,
     CharBufPtr buffer = getFileAsBuffer(filename, false);
 
     // Bind the program data into OpenGL
-    GlobalOpenGL_debugAssertNoErrors();
+    GlobalOpenGL().assertNoErrors();
 
     GLuint programID;
     glGenProgramsARB(1, &programID);
@@ -262,8 +274,6 @@ GLuint GLProgramFactory::createARBProgram(const std::string& filename,
     // Return the new program
     return programID;
 }
-
-#endif // RADIANT_USE_GLSL
 
 // Get the path of a GL program file
 std::string GLProgramFactory::getGLProgramPath(const std::string& progName)

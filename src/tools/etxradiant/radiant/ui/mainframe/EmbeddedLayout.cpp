@@ -1,5 +1,6 @@
 #include "EmbeddedLayout.h"
 
+#include "i18n.h"
 #include "itextstream.h"
 #include "ieventmanager.h"
 #include "iuimanager.h"
@@ -105,7 +106,7 @@ void EmbeddedLayout::activate()
     	"Textures", // tab title
     	"icon_texture.png", // tab icon 
     	GTK_WIDGET(texWindow), // page widget
-    	"Texture Browser"
+    	_("Texture Browser")
     );
 
 	// Hide the camera toggle option for non-floating views
@@ -131,7 +132,7 @@ void EmbeddedLayout::deactivate() {
 	saveStateToPath(RKEY_EMBEDDED_ROOT);
 
 	// Delete all active views
-	GlobalXYWnd().destroyViews();
+	GlobalXYWndManager().destroyViews();
 
 	// Delete the CamWnd
 	_camWnd = CamWndPtr();

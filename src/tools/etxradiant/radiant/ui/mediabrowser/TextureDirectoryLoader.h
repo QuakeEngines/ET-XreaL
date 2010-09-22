@@ -7,6 +7,7 @@
 #include "gtkutil/ModalProgressDialog.h"
 #include "EventRateLimiter.h"
 
+#include "i18n.h"
 #include <string>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -29,29 +30,25 @@ class TextureDirectoryLoader
    EventRateLimiter _evLimiter;
 	
 public:
-	typedef const char* first_argument_type;
-	
 	// Constructor sets the directory to search
 	TextureDirectoryLoader(const std::string& directory)
 	: _searchDir(directory + "/"),
-	  _dialog(GlobalMainFrame().getTopLevelWindow(), "Loading textures"),
+	  _dialog(GlobalMainFrame().getTopLevelWindow(), _("Loading textures")),
      _evLimiter(100)
 	{}
 	
 	// Functor operator
-	void operator() (const char* shaderName) {
-
-		const std::string sName(shaderName);
-
+	void visit(const std::string& shaderName)
+	{
 		// Visited texture must start with the directory name
 		// separated by a slash.
-		if (boost::algorithm::istarts_with(sName, _searchDir)) 
-      {
+		if (boost::algorithm::istarts_with(shaderName, _searchDir)) 
+		{
 			// Update the text in the dialog
-         if (_evLimiter.readyForEvent())
-         {
-            _dialog.setText("<b>" + sName + "</b>");
-         }
+			if (_evLimiter.readyForEvent())
+			{
+				_dialog.setText("<b>" + shaderName + "</b>");
+			}
 
 			// Load the shader
 			MaterialPtr ref = GlobalMaterialManager().getMaterialForName(shaderName);

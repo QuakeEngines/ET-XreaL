@@ -92,7 +92,6 @@ public:
 	const AABB& childBounds() const;
 
 	void boundsChanged();
-	typedef MemberCaller<Node, &Node::boundsChanged> BoundsChangedCaller;
 
 	/**
 	 * Return the filtered status of this Instance.
@@ -119,7 +118,6 @@ public:
 	void transformChangedLocal();
 
 	void transformChanged();
-	typedef MemberCaller<Node, &Node::transformChanged> TransformChangedCaller;
 
 	void setTransformChangedCallback(const Callback& callback);
 
@@ -131,6 +129,12 @@ public:
 	// Gets called when this node is inserted into a scene graph
 	virtual void onInsertIntoScene();
 	virtual void onRemoveFromScene();
+
+	// Returns TRUE if this node is inserted in the scene, FALSE otherwise
+	bool inScene() const
+	{
+		return _instantiated;
+	}
 
 	/**
 	 * greebo: Constructs the scene path to this node. This will walk up the

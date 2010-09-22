@@ -551,6 +551,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\w32deps\libxml2\nanoftp.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\w32deps\libxml2\nanohttp.c"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\w32deps\libxml2\parser.c"
 			>
 		</File>
@@ -636,6 +644,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\w32deps\libxml2\xmlIO.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\w32deps\libxml2\xmllint.c"
 			>
 		</File>
 		<File

@@ -56,6 +56,9 @@ public:
 	GdkPixbuf* getLocalPixbuf(const std::string& fileName);
 	GdkPixbuf* getLocalPixbufWithMask(const std::string& fileName);
 
+	IFilterMenuPtr createFilterMenu();
+	IModelPreviewPtr createModelPreview();
+
 	// Called on radiant shutdown
 	void clear();
 

@@ -168,7 +168,14 @@ public:
 		return _lightFalloff;
 	}
 
+	// Add a specific layer to this template
+	void addLayer(ShaderLayer::Type type, const MapExpressionPtr& mapExpr);
+
 private:
+
+	// Add the given layer and assigns editor preview layer if applicable
+	void addLayer(const Doom3ShaderLayerPtr& layer);
+
 	/**
 	 * Parse a Doom 3 material decl. This is the master parse function, it
 	 * returns no value but exceptions may be thrown at any stage of the 

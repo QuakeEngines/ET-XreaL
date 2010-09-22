@@ -3,16 +3,12 @@
 
 #include <map>
 #include "inode.h"
-#include "imap.h"
+#include "imapformat.h"
 #include "parser/DefTokeniser.h"
 #include "gtkutil/ModalProgressDialog.h"
 #include "EventRateLimiter.h"
 
-#include "PrimitiveParser.h"
-
 namespace map {
-
-class InfoFile;
 
 class NodeImporter {
 
@@ -29,9 +25,6 @@ class NodeImporter {
 
 	// The tokeniser used to split the stream into pieces
 	parser::BasicDefTokeniser<std::istream> _tok;
-
-	// The helper class containing the meta-information for this map file
-	InfoFile& _infoFile;
 
 	// The number of entities found in this map file so far
 	std::size_t _entityCount;
@@ -51,16 +44,11 @@ class NodeImporter {
     // Event rate limiter for the progress dialog
     EventRateLimiter _dialogEventLimiter;
 
-	// The helper module, which will parse the primitive tokens
-	const PrimitiveParser& _parser;
-
 	// TRUE if we're in debugging parse mode
 	bool _debug;
 
 public:
-	NodeImporter(const MapImportInfo& importInfo, 
-		         InfoFile& infoFile, 
-				 const PrimitiveParser& parser);
+	NodeImporter(const MapImportInfo& importInfo);
 
 	// Start parsing, this should not "leak" any exceptions
 	// Returns TRUE if the parsing succeeded without errors or exceptions.

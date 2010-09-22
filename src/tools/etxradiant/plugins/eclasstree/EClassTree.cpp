@@ -9,12 +9,17 @@
 #include "gtkutil/ScrolledFrame.h"
 #include "gtkutil/IconTextColumn.h"
 #include "gtkutil/TreeModel.h"
+#include "gtkutil/MultiMonitor.h"
 
 #include "EClassTreeBuilder.h"
+#include "i18n.h"
 
 namespace ui {
 
-	namespace {
+	namespace
+	{
+		const char* const ECLASSTREE_TITLE = N_("Entity Class Tree");
+
 		// TreeView column numbers
 	    enum {
 	        PROPERTY_NAME_COLUMN,
@@ -26,7 +31,7 @@ namespace ui {
 	}
 
 EClassTree::EClassTree() :
-	gtkutil::BlockingTransientWindow(ECLASSTREE_TITLE, GlobalMainFrame().getTopLevelWindow())
+	gtkutil::BlockingTransientWindow(_(ECLASSTREE_TITLE), GlobalMainFrame().getTopLevelWindow())
 {
 	// Set the default border width in accordance to the HIG
 	gtk_container_set_border_width(GTK_CONTAINER(getWindow()), 12);
@@ -67,12 +72,13 @@ void EClassTree::populateWindow() {
 	gtk_box_pack_start(GTK_BOX(_dialogVBox), createButtons(), FALSE, FALSE, 0);
 	
 	// Set the default size of the window
-	GdkScreen* scr = gtk_window_get_screen(GTK_WINDOW(getWindow()));
-	gint w = gdk_screen_get_width(scr);
-	gint h = gdk_screen_get_height(scr);
+	GtkWindow* mainWindow = GlobalMainFrame().getTopLevelWindow();
+	GdkRectangle rect = gtkutil::MultiMonitor::getMonitorForWindow(mainWindow);
+	gtk_window_set_default_size(
+		GTK_WINDOW(getWindow()), gint(rect.width * 0.8f), gint(rect.height * 0.8f)
+	);
 
-	gtk_window_set_default_size(GTK_WINDOW(getWindow()), 2*w/3, 2*h/3);
-	gtk_paned_set_position(GTK_PANED(paned), w/4);
+	gtk_paned_set_position(GTK_PANED(paned), static_cast<gint>(rect.width * 0.25f));
 }
 
 GtkWidget* EClassTree::createEClassTreeView() {
@@ -93,7 +99,7 @@ GtkWidget* EClassTree::createEClassTreeView() {
 	// Pack the columns
 	// Single column with icon and name
 	GtkTreeViewColumn* col = 
-		gtkutil::IconTextColumn("Classname", NAME_COLUMN, ICON_COLUMN);
+		gtkutil::IconTextColumn(_("Classname"), NAME_COLUMN, ICON_COLUMN);
 	gtk_tree_view_column_set_sort_column_id(col, NAME_COLUMN);
 	
 	gtk_tree_view_append_column(GTK_TREE_VIEW(_eclassView), col);
@@ -116,7 +122,7 @@ GtkWidget* EClassTree::createPropertyTreeView() {
 
     // Create the Property column
     GtkTreeViewColumn* nameCol = gtk_tree_view_column_new();
-    gtk_tree_view_column_set_title(nameCol, "Property");
+    gtk_tree_view_column_set_title(nameCol, _("Property"));
 	gtk_tree_view_column_set_sizing(nameCol, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
     gtk_tree_view_column_set_spacing(nameCol, 3);
 
@@ -133,7 +139,7 @@ GtkWidget* EClassTree::createPropertyTreeView() {
 
 	// Create the value column
     GtkTreeViewColumn* valCol = gtk_tree_view_column_new();
-    gtk_tree_view_column_set_title(valCol, "Value");
+    gtk_tree_view_column_set_title(valCol, _("Value"));
 	gtk_tree_view_column_set_sizing(valCol, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
 
     GtkCellRenderer* valRenderer = gtk_cell_renderer_text_new();
@@ -213,24 +219,8 @@ void EClassTree::_preShow() {
 		// There is an entity selected, extract the classname
 		std::string classname = entity->getKeyValue("classname");
 
-		// Construct a finder
-		gtkutil::TreeModel::SelectionFinder finder(classname, NAME_COLUMN);
-
-		// Traverse the model and find the name
-		gtk_tree_model_foreach(
-			GTK_TREE_MODEL(_eclassStore), 
-			gtkutil::TreeModel::SelectionFinder::forEach, &finder);
-		
-		// Select the element, if something was found
-		GtkTreePath* path = finder.getPath();
-		if (path) {
-			// Expand the treeview to display the target row
-			gtk_tree_view_expand_to_path(_eclassView, path);
-			// Highlight the target row
-			gtk_tree_view_set_cursor(_eclassView, path, NULL, false);
-			// Make the selected row visible 
-			gtk_tree_view_scroll_to_cell(_eclassView, path, NULL, true, 0.3f, 0.0f);
-		}
+		// Find the classname
+		gtkutil::TreeModel::findAndSelectString(_eclassView, classname, NAME_COLUMN);
 	}
 }
 

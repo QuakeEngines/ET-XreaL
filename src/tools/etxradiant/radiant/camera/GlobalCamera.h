@@ -4,6 +4,7 @@
 #include <map>
 #include "icamera.h"
 #include "icommandsystem.h"
+#include "ieventmanager.h"
 
 #include "CamWnd.h"
 #include "FloatingCamWnd.h"
@@ -19,6 +20,7 @@
 class GlobalCameraManager :
 	public ICamera
 {
+private:
 	typedef std::map<int, CamWndWeakPtr> CamWndMap;
 	CamWndMap _cameras;
 
@@ -37,13 +39,6 @@ class GlobalCameraManager :
 public:
 	// Constructor
 	GlobalCameraManager();
-	
-	// greebo: The construct method registers all the commands and preferences 
-	// plus initialises the shader states of the camera window. 
-	void construct();
-	
-	// This releases the shader states of the CamWnd class
-	void destroy();
 	
 	/**
 	 * Specifies the parent window which should be used for the CamWnd.
@@ -117,29 +112,24 @@ public:
 	void pitchDownDiscrete(const cmd::ArgumentList& args);
 	
 public:
-	void freelookMoveForwardKeyUp();
-	void freelookMoveForwardKeyDown();
-	
-	void freelookMoveBackKeyUp();
-	void freelookMoveBackKeyDown();
-	
-	void freelookMoveLeftKeyUp();
-	void freelookMoveLeftKeyDown();
-	
-	void freelookMoveRightKeyUp();
-	void freelookMoveRightKeyDown();
-	
-	void freelookMoveUpKeyUp();
-	void freelookMoveUpKeyDown();
-	
-	void freelookMoveDownKeyUp();
-	void freelookMoveDownKeyDown();
+	// Callbacks for the named camera KeyEvents 
+	void onFreelookMoveForwardKey(ui::KeyEventType eventType);
+	void onFreelookMoveBackKey(ui::KeyEventType eventType);
+	void onFreelookMoveLeftKey(ui::KeyEventType eventType);
+	void onFreelookMoveRightKey(ui::KeyEventType eventType);
+	void onFreelookMoveUpKey(ui::KeyEventType eventType);
+	void onFreelookMoveDownKey(ui::KeyEventType eventType);
 	
 	// RegisterableModule implementation
-	virtual const std::string& getName() const;
-	virtual const StringSet& getDependencies() const;
-	virtual void initialiseModule(const ApplicationContext& ctx);
-	
+	const std::string& getName() const;
+	const StringSet& getDependencies() const;
+	void initialiseModule(const ApplicationContext& ctx);
+	void shutdownModule();
+
+private:
+	// greebo: The construct method registers all the commands
+	void registerCommands();
+
 }; // class GlobalCameraManager
 
 // The accessor function that contains the static instance of the GlobalCameraManager class 

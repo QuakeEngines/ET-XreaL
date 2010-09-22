@@ -1,24 +1,36 @@
 #include "MRU.h"
 
+#include "i18n.h"
 #include "ieventmanager.h"
+#include "imainframe.h"
 #include "icommandsystem.h"
 #include "ipreferencesystem.h"
 #include "iuimanager.h"
 #include "gtk/gtkmenu.h"
 #include "gtk/gtkcontainer.h"
 #include "string/string.h"
-#include "generic/callback.h"
 #include "os/file.h"
+
+#include "gtkutil/dialog.h"
 
 #include "map/Map.h"
 
 namespace ui { 
 
+	namespace {
+		const std::string RKEY_MAP_ROOT = "user/ui/map";
+		const std::string RKEY_MAP_MRUS = RKEY_MAP_ROOT + "/MRU";
+		const std::string RKEY_MRU_LENGTH = RKEY_MAP_ROOT + "/numMRU";
+		const std::string RKEY_LOAD_LAST_MAP = RKEY_MAP_ROOT + "/loadLastMap";
+		
+		const char* const RECENT_FILES_CAPTION = N_("Recently used Maps");
+	}
+
 MRU::MRU() :
 	_numMaxFiles(GlobalRegistry().getInt(RKEY_MRU_LENGTH)),
 	_loadLastMap(GlobalRegistry().get(RKEY_LOAD_LAST_MAP) == "1"),
 	_list(_numMaxFiles),
-	_emptyMenuItem(RECENT_FILES_CAPTION, *this, 0)
+	_emptyMenuItem(_(RECENT_FILES_CAPTION), *this, 0)
 {
 	GlobalRegistry().addKeyObserver(this, RKEY_MRU_LENGTH);
 	
@@ -76,9 +88,12 @@ void MRU::saveRecentFiles() {
 	}
 }
 
-void MRU::loadMap(const std::string& fileName) {
-	if (GlobalMap().askForSave("Open Map")) {
-		if (file_readable(fileName.c_str())) {
+void MRU::loadMap(const std::string& fileName)
+{
+	if (GlobalMap().askForSave(_("Open Map")))
+	{
+		if (file_readable(fileName.c_str()))
+		{
 			// Shut down the current map
 			GlobalMap().freeMap();
 			
@@ -87,6 +102,12 @@ void MRU::loadMap(const std::string& fileName) {
 			
 			// Update the MRU list with this file
 			insert(fileName);
+		}
+		else
+		{
+			gtkutil::errorDialog(
+				(boost::format(_("Could not read map file: %s")) % fileName).str(),
+				GlobalMainFrame().getTopLevelWindow());
 		}
 	}
 }
@@ -101,10 +122,10 @@ void MRU::keyChanged(const std::string& key, const std::string& val)
 
 // Construct the MRU preference page and add it to the given group
 void MRU::constructPreferences() {
-	PreferencesPagePtr page = GlobalPreferenceSystem().getPage("Settings/Map Files");
+	PreferencesPagePtr page = GlobalPreferenceSystem().getPage(_("Settings/Map Files"));
 		
-	page->appendEntry("Number of most recently used files", RKEY_MRU_LENGTH);
-	page->appendCheckBox("", "Open last map on startup", RKEY_LOAD_LAST_MAP);
+	page->appendEntry(_("Number of most recently used files"), RKEY_MRU_LENGTH);
+	page->appendCheckBox("", _("Open last map on startup"), RKEY_LOAD_LAST_MAP);
 }
 
 bool MRU::loadLastMap() const {

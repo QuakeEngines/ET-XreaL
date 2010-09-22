@@ -106,7 +106,7 @@ class XYWnd :
 	GtkWindow* _parent;
 
 	// The handle returned from the Map valid callback signal
-	SignalHandlerId _validCallbackHandle;
+	std::size_t _validCallbackHandle;
 	
 public:
 	// Constructor, this allocates the GL widget
@@ -184,8 +184,6 @@ public:
 	void EntityCreate_MouseMove(int x, int y);
 	void EntityCreate_MouseUp(int x, int y);
 	
-	void onEntityCreate(const std::string& item);
-	
 	virtual void setViewType(EViewType n);
 	EViewType getViewType() const;
 	
@@ -205,7 +203,7 @@ public:
 
 	// The method handling the different mouseDown situations
 	void mouseDown(int x, int y, GdkEventButton* event);
-	typedef Member3<XYWnd, int, int, GdkEventButton*, void, &XYWnd::mouseDown> MouseDownCaller;
+	//typedef Member3<XYWnd, int, int, GdkEventButton*, void, &XYWnd::mouseDown> MouseDownCaller;
 	
 	// greebo: CameraObserver implementation; gets called when the camera is moved
 	void cameraMoved();

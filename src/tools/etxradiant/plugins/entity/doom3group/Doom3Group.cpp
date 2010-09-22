@@ -7,6 +7,7 @@
 
 #include "../EntitySettings.h"
 #include "Doom3GroupNode.h"
+#include <boost/bind.hpp>
 
 namespace entity {
 
@@ -18,10 +19,7 @@ inline void PointVertexArray_testSelect(PointVertex* first, std::size_t count,
 	SelectionTest& test, SelectionIntersection& best) 
 {
 	test.TestLineStrip(
-	    VertexPointer(
-	        reinterpret_cast<VertexPointer::pointer>(&first->vertex),
-	        sizeof(PointVertex)
-	    ),
+	    VertexPointer(&first->vertex, sizeof(PointVertex)),
 	    IndexPointer::index_type(count),
 	    best
 	);
@@ -29,18 +27,15 @@ inline void PointVertexArray_testSelect(PointVertex* first, std::size_t count,
 
 Doom3Group::Doom3Group(
 		Doom3GroupNode& owner,
-		const Callback& transformChanged, 
 		const Callback& boundsChanged) :
 	_owner(owner),
 	_entity(_owner._entity),
 	m_model(owner),
-	m_originKey(OriginChangedCaller(*this)),
+	m_originKey(boost::bind(&Doom3Group::originChanged, this)),
 	m_origin(ORIGINKEY_IDENTITY),
 	m_nameOrigin(0,0,0),
-	m_rotationKey(RotationChangedCaller(*this)),
+	m_rotationKey(boost::bind(&Doom3Group::rotationChanged, this)),
 	m_renderOrigin(m_nameOrigin),
-	m_transformChanged(transformChanged),
-	_originToWorld(Matrix4::getIdentity()),
 	m_curveNURBS(boundsChanged),
 	m_curveCatmullRom(boundsChanged)
 {
@@ -49,18 +44,15 @@ Doom3Group::Doom3Group(
 
 Doom3Group::Doom3Group(const Doom3Group& other, 
 		Doom3GroupNode& owner,
-		const Callback& transformChanged, 
 		const Callback& boundsChanged) :
 	_owner(owner),
 	_entity(_owner._entity),
 	m_model(owner),
-	m_originKey(OriginChangedCaller(*this)),
+	m_originKey(boost::bind(&Doom3Group::originChanged, this)),
 	m_origin(other.m_origin),
 	m_nameOrigin(other.m_nameOrigin),
-	m_rotationKey(RotationChangedCaller(*this)),
+	m_rotationKey(boost::bind(&Doom3Group::rotationChanged, this)),
 	m_renderOrigin(m_nameOrigin),
-	m_transformChanged(transformChanged),
-	_originToWorld(Matrix4::getIdentity()),
 	m_curveNURBS(boundsChanged),
 	m_curveCatmullRom(boundsChanged)
 {
@@ -75,20 +67,10 @@ Vector3& Doom3Group::getOrigin() {
 	return m_origin;
 }
 
-const Matrix4& Doom3Group::getOriginToWorld() const
-{
-	return _originToWorld;
-}
-
 const AABB& Doom3Group::localAABB() const {
 	m_curveBounds = m_curveNURBS.getBounds();
 	m_curveBounds.includeAABB(m_curveCatmullRom.getBounds());
 
-	if (!m_isModel)
-	{
-		m_curveBounds.origin += m_origin;
-	}
-	
 	if (m_curveBounds.isValid() || !m_isModel)
 	{
 		// Include the origin as well, it might be offset
@@ -114,14 +96,14 @@ void Doom3Group::renderSolid(RenderableCollector& collector, const VolumeTest& v
 
 	if (!m_curveNURBS.isEmpty())
 	{
-		// For non-models we need to translate the curve into func_static space
-		m_curveNURBS.renderSolid(collector, volume, m_isModel ? localToWorld : _originToWorld);
+		// Always render curves relative to map origin
+		m_curveNURBS.renderSolid(collector, volume, Matrix4::getIdentity());
 	}
 	
 	if (!m_curveCatmullRom.isEmpty())
 	{
-		// For non-models we need to translate the curve into func_static space
-		m_curveCatmullRom.renderSolid(collector, volume, m_isModel ? localToWorld : _originToWorld);
+		// Always render curves relative to map origin
+		m_curveCatmullRom.renderSolid(collector, volume, Matrix4::getIdentity());
 	}
 }
 
@@ -140,12 +122,6 @@ void Doom3Group::testSelect(Selector& selector, SelectionTest& test, SelectionIn
 	{
 		selectionTestable->testSelect(selector, test);
     }
-
-	if (!m_isModel)
-	{
-		// Non-models need to translate the curve points before testing
-		test.BeginMesh(_originToWorld);
-	}
 
 	m_curveNURBS.testSelect(selector, test, best);
 	m_curveCatmullRom.testSelect(selector, test, best);
@@ -167,9 +143,6 @@ void Doom3Group::translateOrigin(const Vector3& translation)
 	}
 
 	m_renderOrigin.updatePivot();
-
-	// Update _originToWorld matrix
-	_originToWorld = Matrix4::getTranslation(m_origin);
 }
 
 void Doom3Group::translate(const Vector3& translation, bool rotation) {
@@ -191,9 +164,6 @@ void Doom3Group::translate(const Vector3& translation, bool rotation) {
 	}
 	m_renderOrigin.updatePivot();
 	translateChildren(translation);
-
-	// Update _originToWorld matrix
-	_originToWorld = Matrix4::getTranslation(m_origin);
 }
 
 void Doom3Group::rotate(const Quaternion& rotation) {
@@ -225,9 +195,6 @@ void Doom3Group::revertTransform() {
 	m_renderOrigin.updatePivot();
 	m_curveNURBS.revertTransform();
 	m_curveCatmullRom.revertTransform();
-
-	// Update _originToWorld matrix
-	_originToWorld = Matrix4::getTranslation(m_origin);
 }
 
 void Doom3Group::freezeTransform() {
@@ -247,9 +214,6 @@ void Doom3Group::freezeTransform() {
 	
 	m_curveCatmullRom.freezeTransform();
 	m_curveCatmullRom.saveToEntity(_entity);
-
-	// Update _originToWorld matrix
-	_originToWorld = Matrix4::getTranslation(m_origin);
 }
 
 void Doom3Group::appendControlPoints(unsigned int numPoints) {
@@ -278,30 +242,38 @@ void Doom3Group::convertCurveType() {
 
 void Doom3Group::construct()
 {
+	_angleObserver.setCallback(boost::bind(&RotationKey::angleChanged, &m_rotationKey, _1));
+	_rotationObserver.setCallback(boost::bind(&RotationKey::rotationChanged, &m_rotationKey, _1));
+	_modelObserver.setCallback(boost::bind(&Doom3Group::modelChanged, this, _1));
+	_nameObserver.setCallback(boost::bind(&Doom3Group::nameChanged, this, _1));
+
 	m_rotation.setIdentity();
 
 	m_isModel = false;
 
-	_owner.addKeyObserver("model", Doom3Group::ModelChangedCaller(*this));
-	_owner.addKeyObserver("origin", OriginKey::OriginChangedCaller(m_originKey));
-	_owner.addKeyObserver("angle", RotationKey::AngleChangedCaller(m_rotationKey));
-	_owner.addKeyObserver("rotation", RotationKey::RotationChangedCaller(m_rotationKey));
-	_owner.addKeyObserver("name", NameChangedCaller(*this));
-	_owner.addKeyObserver(curve_Nurbs, CurveNURBS::CurveChangedCaller(m_curveNURBS));
-	_owner.addKeyObserver(curve_CatmullRomSpline, CurveCatmullRom::CurveChangedCaller(m_curveCatmullRom));
+	_owner.addKeyObserver("model", _modelObserver);
+	_owner.addKeyObserver("origin", m_originKey);
+	_owner.addKeyObserver("angle", _angleObserver);
+	_owner.addKeyObserver("rotation", _rotationObserver);
+	_owner.addKeyObserver("name", _nameObserver);
+	_owner.addKeyObserver(curve_Nurbs, m_curveNURBS);
+	_owner.addKeyObserver(curve_CatmullRomSpline, m_curveCatmullRom);
 
 	updateIsModel();
 }
 
 void Doom3Group::destroy()
 {
-	_owner.removeKeyObserver("model", Doom3Group::ModelChangedCaller(*this));
-	_owner.removeKeyObserver("origin", OriginKey::OriginChangedCaller(m_originKey));
-	_owner.removeKeyObserver("angle", RotationKey::AngleChangedCaller(m_rotationKey));
-	_owner.removeKeyObserver("rotation", RotationKey::RotationChangedCaller(m_rotationKey));
-	_owner.removeKeyObserver("name", NameChangedCaller(*this));
-	_owner.removeKeyObserver(curve_Nurbs, CurveNURBS::CurveChangedCaller(m_curveNURBS));
-	_owner.removeKeyObserver(curve_CatmullRomSpline, CurveCatmullRom::CurveChangedCaller(m_curveCatmullRom));
+	modelChanged("");
+	m_model.setActive(false); // disable callbacks during destruction
+
+	_owner.removeKeyObserver("model", _modelObserver);
+	_owner.removeKeyObserver("origin", m_originKey);
+	_owner.removeKeyObserver("angle", _angleObserver);
+	_owner.removeKeyObserver("rotation", _rotationObserver);
+	_owner.removeKeyObserver("name", _nameObserver);
+	_owner.removeKeyObserver(curve_Nurbs, m_curveNURBS);
+	_owner.removeKeyObserver(curve_CatmullRomSpline, m_curveCatmullRom);
 }
 
 bool Doom3Group::isModel() const {
@@ -363,10 +335,6 @@ void Doom3Group::modelChanged(const std::string& value) {
 	m_renderOrigin.updatePivot();
 }
 
-void Doom3Group::setTransformChanged(Callback& callback) {
-	m_transformChanged = callback;
-}
-
 void Doom3Group::updateTransform()
 {
 	_owner.localToParent() = Matrix4::getIdentity();
@@ -378,12 +346,12 @@ void Doom3Group::updateTransform()
 	}
 	
 	// Notify the Node about this transformation change	to update the local2World matrix 
-	m_transformChanged();
+	_owner.transformChanged();
 }
 
 void Doom3Group::translateChildren(const Vector3& childTranslation)
 {
-	if (_owner._instantiated)
+	if (_owner.inScene())
 	{
 		ChildTranslator translator(childTranslation);
 		_owner.traverse(translator);

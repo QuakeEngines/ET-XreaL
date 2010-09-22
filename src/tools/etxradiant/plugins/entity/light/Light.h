@@ -15,6 +15,7 @@
 #include "../colour.h"
 #include "../ModelKey.h"
 #include "../Doom3Entity.h"
+#include "../KeyObserverDelegate.h"
 
 #include "Renderables.h"
 #include "LightShader.h"
@@ -141,6 +142,20 @@ class Light :
   Callback m_boundsChanged;
   Callback m_evaluateTransform;
 
+    KeyObserverDelegate _rotationObserver;
+	KeyObserverDelegate _angleObserver;
+	KeyObserverDelegate _modelObserver;
+
+	KeyObserverDelegate _lightRadiusObserver;
+	KeyObserverDelegate _lightCenterObserver;
+	KeyObserverDelegate _lightRotationObserver;
+	KeyObserverDelegate _lightTargetObserver;
+	KeyObserverDelegate _lightUpObserver;
+	KeyObserverDelegate _lightRightObserver;
+	KeyObserverDelegate _lightStartObserver;
+	KeyObserverDelegate _lightEndObserver;
+	KeyObserverDelegate _lightTextureObserver;
+
 	void construct();
 	void destroy();
 
@@ -157,26 +172,18 @@ public:
 	void updateOrigin();
 
 	void originChanged();
-	typedef MemberCaller<Light, &Light::originChanged> OriginChangedCaller;
 
 	void lightTargetChanged(const std::string& value);
-	typedef MemberCaller1<Light, const std::string&, &Light::lightTargetChanged> LightTargetChangedCaller;
 	void lightUpChanged(const std::string& value);
-	typedef MemberCaller1<Light, const std::string&, &Light::lightUpChanged> LightUpChangedCaller;
 	void lightRightChanged(const std::string& value);
-	typedef MemberCaller1<Light, const std::string&, &Light::lightRightChanged> LightRightChangedCaller;
 	void lightStartChanged(const std::string& value);
-	typedef MemberCaller1<Light, const std::string&, &Light::lightStartChanged> LightStartChangedCaller;
 	void lightEndChanged(const std::string& value);
-	typedef MemberCaller1<Light, const std::string&, &Light::lightEndChanged> LightEndChangedCaller;
 
 	void writeLightOrigin();
 
 	void rotationChanged();
-	typedef MemberCaller<Light, &Light::rotationChanged> RotationChangedCaller;
 
 	void lightRotationChanged(const std::string& value);
-	typedef MemberCaller1<Light, const std::string&, &Light::lightRotationChanged> LightRotationChangedCaller;
 
 	/**
      * \brief
@@ -185,7 +192,8 @@ public:
 	Light(Doom3Entity& entity,
 		  LightNode& owner,
           const Callback& transformChanged,
-          const Callback& boundsChanged);
+          const Callback& boundsChanged,
+		  const Callback& lightRadiusChanged);
 	
 	/**
      * \brief
@@ -195,7 +203,8 @@ public:
 		  LightNode& owner,
           Doom3Entity& entity,
           const Callback& transformChanged,
-          const Callback& boundsChanged);
+          const Callback& boundsChanged,
+		  const Callback& lightRadiusChanged);
 
 	~Light();
 	
@@ -238,8 +247,6 @@ public:
 	// note: move this
 	mutable Matrix4 m_localPivot;
 	const Matrix4& getLocalPivot() const;
-
-	void setLightChangedCallback(const Callback& callback);
 
     // Is this light projected or omni?
     bool isProjected() const;

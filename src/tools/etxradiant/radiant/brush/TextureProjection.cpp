@@ -195,12 +195,12 @@ void TextureProjection::flipTexture(unsigned int flipAxis) {
 	
 	// Check for x flip (x-component not zero)
 	if (flipAxis == 0) {
-		// Invert the x scale and rotate 180 degrees
+		// Invert the x scale and rotate 180°
 		texdef._scale[0] *= -1;
 		texdef._rotate -= 180;
 	}
 	else if (flipAxis == 1) {
-		// Invert the y scale and rotate 180 degrees
+		// Invert the y scale and rotate 180°
 		texdef._scale[1] *= -1;
 		texdef._rotate -= 180;
 	}

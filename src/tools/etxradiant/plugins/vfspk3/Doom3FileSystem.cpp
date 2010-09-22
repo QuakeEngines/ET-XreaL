@@ -54,7 +54,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ifilesystem.h"
 #include "igame.h"
 
-#include "generic/callback.h"
 #include "string/string.h"
 #include "os/path.h"
 #include "os/dir.h"
@@ -99,7 +98,7 @@ void Doom3FileSystem::initDirectory(const std::string& inputPath)
     try {
         Directory_forEach(path, filenameList);
     }
-    catch (DirectoryNotFoundException e) {
+    catch (DirectoryNotFoundException& e) {
         std::cout << "[vfs] Directory '" << path << "' not found." 
                   << std::endl;
     }
@@ -234,13 +233,14 @@ void Doom3FileSystem::freeFile(void *p) {
 // inside basedir.
 void Doom3FileSystem::forEachFile(const std::string& basedir, 
 				const std::string& extension,
-				const FileNameCallback& callback, 
+				Visitor& visitor, 
 				std::size_t depth)
 {
 	// Set of visited files, to avoid name conflicts
 	std::set<std::string> visitedFiles;
 	
-	FileVisitor visitor(callback, basedir, extension, visitedFiles);
+	// Wrap around the passed visitor
+	FileVisitor visitor2(visitor, basedir, extension, visitedFiles);
 
 	// Visit each Archive, applying the FileVisitor to each one (which in
 	// turn calls the callback for each matching file.
@@ -250,7 +250,7 @@ void Doom3FileSystem::forEachFile(const std::string& basedir,
     {
 		i->archive->forEachFile(
 						Archive::VisitorFunc(
-								visitor, Archive::eFiles, depth), basedir);
+								visitor2, Archive::eFiles, depth), basedir);
     }
 }
 

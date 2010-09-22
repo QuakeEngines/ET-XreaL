@@ -13,6 +13,7 @@
 #include "selectionlib.h"
 #include "../target/TargetableNode.h"
 #include "../EntityNode.h"
+#include "../KeyObserverDelegate.h"
 
 #include "EclassModel.h"
 
@@ -29,6 +30,10 @@ class EclassModelNode :
 
 	mutable bool _updateSkin;
 
+	AABB _localAABB;
+
+	KeyObserverDelegate _skinObserver;
+
 public:
 	// Constructor
 	EclassModelNode(const IEntityClassPtr& eclass);
@@ -43,6 +48,9 @@ public:
 	// EntityNode implementation
 	virtual void refreshModel();
 
+	// Bounded implementation
+	virtual const AABB& localAABB() const;
+
 	scene::INodePtr clone() const;
 
 	// Renderable implementation
@@ -53,7 +61,6 @@ public:
 	void testSelect(Selector& selector, SelectionTest& test);
 
 	void skinChanged(const std::string& value);
-	typedef MemberCaller1<EclassModelNode, const std::string&, &EclassModelNode::skinChanged> SkinChangedCaller;
 
 protected:
 	// Gets called by the Transformable implementation whenever

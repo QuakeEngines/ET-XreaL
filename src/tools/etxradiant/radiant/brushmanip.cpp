@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "brushmanip.h"
 
+#include "i18n.h"
 #include "imainframe.h"
 #include "iclipper.h"
 #include "icommandsystem.h"
@@ -699,7 +700,7 @@ void brushMakePrefab(const cmd::ArgumentList& args)
 	if (GlobalSelectionSystem().getSelectionInfo().brushCount != 1)
 	{
 		// Display a modal error dialog	
-		gtkutil::errorDialog("Exactly one brush must be selected for this operation.", GlobalMainFrame().getTopLevelWindow());
+		gtkutil::errorDialog(_("Exactly one brush must be selected for this operation."), GlobalMainFrame().getTopLevelWindow());
 		return;
 	}
 
@@ -780,6 +781,8 @@ void Brush_registerCommands()
 
 	GlobalCommandSystem().addCommand("TextureNatural", selection::algorithm::naturalTexture);
 	GlobalCommandSystem().addCommand("MakeVisportal", selection::algorithm::makeVisportal);
+	GlobalCommandSystem().addCommand("SurroundWithMonsterclip", selection::algorithm::surroundWithMonsterclip);
 	GlobalEventManager().addCommand("TextureNatural", "TextureNatural");
 	GlobalEventManager().addCommand("MakeVisportal", "MakeVisportal");
+	GlobalEventManager().addCommand("SurroundWithMonsterclip", "SurroundWithMonsterclip");
 }

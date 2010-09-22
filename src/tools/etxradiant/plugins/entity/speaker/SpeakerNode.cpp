@@ -1,27 +1,27 @@
 #include "SpeakerNode.h"
 
 #include "math/frustum.h"
+#include <boost/bind.hpp>
 
 namespace entity {
 
 SpeakerNode::SpeakerNode(const IEntityClassPtr& eclass) :
 	EntityNode(eclass),
 	_speaker(*this, 
-		Node::TransformChangedCaller(*this), 
-		Node::BoundsChangedCaller(*this)),
-	_dragPlanes(SelectedChangedComponentCaller(*this))
+		Callback(boost::bind(&Node::transformChanged, this)), 
+		Callback(boost::bind(&Node::boundsChanged, this))),
+	_dragPlanes(boost::bind(&SpeakerNode::selectedChangedComponent, this, _1))
 {}
 
 SpeakerNode::SpeakerNode(const SpeakerNode& other) :
 	EntityNode(other),
 	Snappable(other),
 	SelectionTestable(other),
-	Bounded(other),
 	_speaker(other._speaker, 
 		*this, 
-		Node::TransformChangedCaller(*this), 
-		Node::BoundsChangedCaller(*this)),
-	_dragPlanes(SelectedChangedComponentCaller(*this))
+		Callback(boost::bind(&Node::transformChanged, this)), 
+		Callback(boost::bind(&Node::boundsChanged, this))),
+	_dragPlanes(boost::bind(&SpeakerNode::selectedChangedComponent, this, _1))
 {}
 
 void SpeakerNode::construct()

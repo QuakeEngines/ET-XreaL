@@ -14,6 +14,7 @@
 #include "string/string.h"
 #include "signal/signal.h"
 
+#include "i18n.h"
 #include "GridItem.h"
 #include <boost/bind.hpp>
 
@@ -80,7 +81,7 @@ private:
 	// The currently active grid size
 	GridSize _activeGridSize;
 	
-	Signal0 _gridChangeCallbacks;
+	Signal _gridChangeCallbacks;
 	
 public:
 	GridManager() :
@@ -124,7 +125,8 @@ public:
 			toggleName += i->first; // Makes "SetGrid" to "SetGrid64", for example
 			GridItem& gridItem = i->second;
 			
-			GlobalEventManager().addToggle(toggleName, GridItem::ActivateCaller(gridItem)); 
+			GlobalEventManager().addToggle(toggleName, 
+				boost::bind(&GridItem::activate, &gridItem, _1)); 
 		}
 		
 		GlobalCommandSystem().addCommand("GridDown", boost::bind(&GridManager::gridDownCmd, this, _1));
@@ -145,14 +147,18 @@ public:
 	}
 	
 	void constructPreferences() {
-		PreferencesPagePtr page = GlobalPreferenceSystem().getPage("Settings/Grid");
+		PreferencesPagePtr page = GlobalPreferenceSystem().getPage(_("Settings/Grid"));
 		
-		page->appendCombo("Default Grid Size", RKEY_DEFAULT_GRID_SIZE, getGridList());
+		page->appendCombo(_("Default Grid Size"), RKEY_DEFAULT_GRID_SIZE, getGridList());
 	}
 	
-	void addGridChangeCallback(const SignalHandler& handler) {
-		_gridChangeCallbacks.connectLast(handler);
-		handler();
+	std::size_t addGridChangeCallback(const GridChangedFunc& callback)
+	{
+		std::size_t handle = _gridChangeCallbacks.connect(callback);
+
+		callback();
+
+		return handle;
 	}
 	
 	void gridChangeNotify() {

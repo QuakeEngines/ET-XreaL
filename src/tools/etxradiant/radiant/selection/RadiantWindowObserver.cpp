@@ -8,6 +8,7 @@
 #include "selection/algorithm/Shader.h"
 #include "selection/shaderclipboard/ShaderClipboard.h"
 #include <iostream>
+#include <boost/bind.hpp>
 
 SelectionSystemWindowObserver* NewWindowObserver() {
   return new RadiantWindowObserver;
@@ -129,6 +130,7 @@ void RadiantWindowObserver::onMouseDown(const WindowVector& position, GdkEventBu
 	// but perhaps there will be more events in the future that aren't selection events.
 	if (observerEvent == ui::obsManipulate || observerEvent == ui::obsSelect ||
 		observerEvent == ui::obsToggle || observerEvent == ui::obsToggleFace || 
+		observerEvent == ui::obsToggleGroupPart ||
 		observerEvent == ui::obsReplace || observerEvent == ui::obsReplaceFace) 
 	{
 		_mouseDown = true;
@@ -140,8 +142,8 @@ void RadiantWindowObserver::onMouseDown(const WindowVector& position, GdkEventBu
 			// This is a manipulation operation, register the callbacks
 			// Note: the mouseDown call in the if clause returned already true, 
 			// so a manipulator could be successfully selected
-			_mouseMotionCallback = MouseEventCallback(ManipulateObserver::MouseMovedCaller(_manipulateObserver));
-			_mouseUpCallback = MouseEventCallback(ManipulateObserver::MouseUpCaller(_manipulateObserver));
+			_mouseMotionCallback = boost::bind(&ManipulateObserver::mouseMoved, &_manipulateObserver, _1);
+			_mouseUpCallback = boost::bind(&ManipulateObserver::mouseUp, &_manipulateObserver, _1);
 			
 			_listenForCancelEvents = true;
 		} 
@@ -149,8 +151,8 @@ void RadiantWindowObserver::onMouseDown(const WindowVector& position, GdkEventBu
 			// Call the mouseDown method of the selector class, this covers all of the other events
 			_selectObserver.mouseDown(devicePosition);
 
-			_mouseMotionCallback = MouseEventCallback(SelectObserver::MouseMovedCaller(_selectObserver));
-			_mouseUpCallback = MouseEventCallback(SelectObserver::MouseUpCaller(_selectObserver));
+			_mouseMotionCallback = boost::bind(&SelectObserver::mouseMoved, &_selectObserver, _1);
+			_mouseUpCallback = boost::bind(&SelectObserver::mouseUp, &_selectObserver, _1);
 						
 			// greebo: the according actions (toggle face, replace, etc.) are handled in the mouseUp methods.
 		}
@@ -168,7 +170,7 @@ void RadiantWindowObserver::onMouseMotion(const WindowVector& position, const un
 	
 	/* If the mouse button is currently held, this can be considered a drag, so
 	 * notify the according mouse move callback */
-	if( _mouseDown)
+	if( _mouseDown && _mouseMotionCallback)
 	{
 		_mouseMotionCallback(window_to_normalised_device(position, _width, _height));
 	}
@@ -185,6 +187,7 @@ void RadiantWindowObserver::onMouseUp(const WindowVector& position, GdkEventButt
 	// Only react, if the "select" or "manipulate" is held, ignore this otherwise
 	bool reactToEvent = (observerEvent == ui::obsManipulate || observerEvent == ui::obsSelect ||
 						 observerEvent == ui::obsToggle || observerEvent == ui::obsToggleFace || 
+						 observerEvent == ui::obsToggleGroupPart ||
 						 observerEvent == ui::obsReplace || observerEvent == ui::obsReplaceFace); 
 	
 	if (reactToEvent)
@@ -197,22 +200,25 @@ void RadiantWindowObserver::onMouseUp(const WindowVector& position, GdkEventButt
   		_manipulateObserver.setEvent(event);
   		
   		// Get the callback and call it with the arguments
-		_mouseUpCallback(window_to_normalised_device(position, _width, _height));
+		if (_mouseUpCallback)
+		{
+			_mouseUpCallback(window_to_normalised_device(position, _width, _height));
+		}
 	}
 	
 	// Stop listening for cancel events
 	_listenForCancelEvents = false;
 
 	// Disconnect the mouseMoved and mouseUp callbacks, mouse has been released
-	_mouseMotionCallback = MouseEventCallback();
-	_mouseUpCallback = MouseEventCallback();
+	_mouseMotionCallback.clear();
+	_mouseUpCallback.clear();
 }
 
-void RadiantWindowObserver::onCancel()
+void RadiantWindowObserver::cancelOperation()
 {
 	// Disconnect the mouseMoved and mouseUp callbacks
-	_mouseMotionCallback = MouseEventCallback();
-	_mouseUpCallback = MouseEventCallback();
+	_mouseMotionCallback.clear();
+	_mouseUpCallback.clear();
 	
 	// Stop listening for cancel events
 	_listenForCancelEvents = false;
@@ -228,17 +234,17 @@ gboolean RadiantWindowObserver::onKeyPress(GtkWindow* window,
 	if (!self->_listenForCancelEvents) 
 	{
 		// Not listening, let the event pass through
-		return false;
+		return FALSE;
 	}
 
-	// Check for ESC and call the onCancel method, if found
+	// Check for ESC and call the cancelOperation method, if found
 	if (event->keyval == GDK_Escape)
 	{
-		self->onCancel();
+		self->cancelOperation();
 		
 		// Don't pass the key event to the event chain 
-		return true;
+		return TRUE;
 	}
 	
-	return false;
+	return FALSE;
 }

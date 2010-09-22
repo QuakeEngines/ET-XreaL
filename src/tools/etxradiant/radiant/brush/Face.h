@@ -97,6 +97,10 @@ public:
 	Face(Brush& owner, FaceObserver* observer);
 	Face(Brush& owner, const Vector3& p0, const Vector3& p1, const Vector3& p2,
 		const std::string& shader, const TextureProjection& projection, FaceObserver* observer);
+
+	Face(Brush& owner, const Plane3& plane, FaceObserver* observer);
+	Face(Brush& owner, const Plane3& plane, const Matrix4& texdef, 
+		 const std::string& shader, FaceObserver* observer);
 		
 	// Copy Constructor
 	Face(Brush& owner, const Face& other, FaceObserver* observer);
@@ -196,12 +200,17 @@ public:
 	Winding& getWinding();
 	
 	const Plane3& plane3() const;
-	
+
+	// Returns the Doom 3 plane
+	const Plane3& getPlane3() const;
+		
 	FacePlane& getPlane();
 	const FacePlane& getPlane() const;
 	
 	FaceTexdef& getTexdef();
 	const FaceTexdef& getTexdef() const;
+	Matrix4 getTexDefMatrix() const;
+
 	FaceShader& getFaceShader();
 	const FaceShader& getFaceShader() const;
 	

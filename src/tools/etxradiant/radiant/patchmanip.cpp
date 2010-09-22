@@ -23,18 +23,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "debugging/debugging.h"
 
+#include "i18n.h"
 #include "imainframe.h"
 #include "ieventmanager.h"
 #include "iselection.h"
 #include "ipatch.h"
 
 #include "math/aabb.h"
-#include "generic/callback.h"
-
 #include "gdk/gdkkeysyms.h"
 #include "gtkutil/dialog.h"
 #include "ui/texturebrowser/TextureBrowser.h"
 #include "select.h"
+#include "shaderlib.h"
 #include "igrid.h"
 #include "patch/PatchNode.h"
 #include "patch/PatchSceneWalk.h"
@@ -44,11 +44,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ui/patch/PatchThickenDialog.h"
 #include "ui/patch/PatchCreateDialog.h"
 #include "ui/surfaceinspector/SurfaceInspector.h"
+#include "ui/patch/PatchInspector.h"
 #include "selection/algorithm/Primitives.h"
 #include "selection/algorithm/General.h"
 #include "ui/patch/CapDialog.h"
 
-void Scene_PatchConstructPrefab(scene::Graph& graph, const AABB& aabb, const std::string& shader, EPatchPrefab eType, EViewType viewType, std::size_t width = 3, std::size_t height = 3)
+void Scene_PatchConstructPrefab(const AABB& aabb, const std::string& shader, EPatchPrefab eType, EViewType viewType, std::size_t width = 3, std::size_t height = 3)
 {
   GlobalSelectionSystem().setSelectedAll(false);
 
@@ -151,7 +152,7 @@ void Scene_PatchDoCap_Selected(scene::Graph& graph, const std::string& shader)
 {
 	if (GlobalSelectionSystem().getSelectionInfo().patchCount == 0)
 	{
-		gtkutil::errorDialog("Cannot create caps, no patches selected.", 
+		gtkutil::errorDialog(_("Cannot create caps, no patches selected."), 
 			GlobalMainFrame().getTopLevelWindow());
 		return;
 	}
@@ -214,6 +215,7 @@ public:
 void Scene_PatchInvert_Selected(scene::Graph& graph)
 {
   Scene_forEachSelectedPatch(PatchInvertMatrix());
+  SceneChangeNotify();
 }
 
 class PatchRedisperse
@@ -246,26 +248,6 @@ public:
 void Scene_PatchTranspose_Selected(scene::Graph& graph)
 {
   Scene_forEachSelectedPatch(PatchTransposeMatrix());
-}
-
-class PatchSetShader
-{
-  const std::string& m_name;
-public:
-  PatchSetShader(const std::string& name)
-    : m_name(name)
-  {
-  }
-  void operator()(Patch& patch) const
-  {
-    patch.setShader(m_name);
-  }
-};
-
-void Scene_PatchSetShader_Selected(scene::Graph& graph, const std::string& name)
-{
-  Scene_forEachSelectedPatch(PatchSetShader(name));
-  SceneChangeNotify();
 }
 
 class PatchSelectByShader :
@@ -327,49 +309,49 @@ void Patch_Cylinder(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateCylinder");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eCylinder, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eCylinder, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_DenseCylinder(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateDenseCylinder");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eDenseCylinder, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eDenseCylinder, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_VeryDenseCylinder(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateVeryDenseCylinder");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eVeryDenseCylinder, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eVeryDenseCylinder, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_SquareCylinder(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateSquareCylinder");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eSqCylinder, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eSqCylinder, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_Endcap(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateCaps");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eEndCap, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eEndCap, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_Bevel(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateBevel");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eBevel, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eBevel, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_Cone(const cmd::ArgumentList& args)
 {
   UndoableCommand undo("patchCreateCone");
 
-  Scene_PatchConstructPrefab(GlobalSceneGraph(), PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eCone, GlobalXYWnd().getActiveViewType());
+  Scene_PatchConstructPrefab(PatchCreator_getBounds(), GlobalTextureBrowser().getSelectedShader(), eCone, GlobalXYWnd().getActiveViewType());
 }
 
 void Patch_Invert(const cmd::ArgumentList& args)
@@ -398,6 +380,8 @@ void Patch_Transpose(const cmd::ArgumentList& args)
   UndoableCommand undo("patchTranspose");
 
   Scene_PatchTranspose_Selected(GlobalSceneGraph());
+
+  ui::PatchInspector::Instance().queueUpdate();
 }
 
 void Patch_Cap(const cmd::ArgumentList& args)
@@ -566,7 +550,8 @@ void thickenPatch(const PatchNodePtr& sourcePatch,
 	// Select the newly created patch
 	Node_setSelected(node, true);
 	
-	if (createSeams && thickness > 0.0f) {
+	if (createSeams && thickness > 0.0f)
+	{
 		// Allocate four new patches
 		scene::INodePtr nodes[4] = {
 			patchCreator.createPatch(),
@@ -576,18 +561,26 @@ void thickenPatch(const PatchNodePtr& sourcePatch,
 		};
 		
 		// Now create the four walls
-		for (int i = 0; i < 4; i++) {
-			// Insert each node into the same parent as the existing patch
-			parent->addChildNode(nodes[i]);
-			
+		for (int i = 0; i < 4; i++)
+		{
 			// Retrieve the contained patch from the node
 			Patch* wallPatch = Node_getPatch(nodes[i]);
 			
 			// Create the wall patch by passing i as wallIndex
 			wallPatch->createThickenedWall(sourcePatch->getPatchInternal(), *targetPatch, i);
-			
-			// Now select the newly created patch
-			Node_setSelected(nodes[i], true);
+
+			if (!wallPatch->isDegenerate())
+			{
+				// Insert each node into the same parent as the existing patch
+				parent->addChildNode(nodes[i]);
+
+				// Now select the newly created patch
+				Node_setSelected(nodes[i], true);
+			}
+			else
+			{
+				globalOutputStream() << "Thicken: Discarding degenerate patch." << std::endl;
+			}
 		}
 	}
 	
@@ -624,7 +617,7 @@ void thickenSelectedPatches(const cmd::ArgumentList& args) {
 		}
 	}
 	else {
-		gtkutil::errorDialog("Cannot thicken patch. Nothing selected.",
+		gtkutil::errorDialog(_("Cannot thicken patch. Nothing selected."),
 							 GlobalMainFrame().getTopLevelWindow());
 	}
 }
@@ -653,7 +646,7 @@ void createSimplePatch(const cmd::ArgumentList& args) {
 		}
 		
 		// Call the PatchConstruct routine (GtkRadiant legacy)
-		Scene_PatchConstructPrefab(GlobalSceneGraph(), bounds, 
+		Scene_PatchConstructPrefab(bounds, 
 								   GlobalTextureBrowser().getSelectedShader(), 
 								   ePlane, GlobalXYWnd().getActiveViewType(), 
 								   width, height);
@@ -683,7 +676,7 @@ void stitchPatchTextures(const cmd::ArgumentList& args) {
 			target->stitchTextureFrom(*source);
 		}
 		else {
-			gtkutil::errorDialog("Cannot stitch textures. \nCould not cast nodes to patches.",
+			gtkutil::errorDialog(_("Cannot stitch textures. \nCould not cast nodes to patches."),
 							 GlobalMainFrame().getTopLevelWindow());
 		}
 		
@@ -692,7 +685,7 @@ void stitchPatchTextures(const cmd::ArgumentList& args) {
 		ui::SurfaceInspector::Instance().queueUpdate();
 	}
 	else {
-		gtkutil::errorDialog("Cannot stitch patch textures. \nExactly 2 patches must be selected.",
+		gtkutil::errorDialog(_("Cannot stitch patch textures. \nExactly 2 patches must be selected."),
 							 GlobalMainFrame().getTopLevelWindow());
 	}
 }
@@ -726,13 +719,11 @@ void bulgePatch(const cmd::ArgumentList& args) {
 		}
 	}
 	else {
-		gtkutil::errorDialog("Cannot bulge patch. No patches selected.",
+		gtkutil::errorDialog(_("Cannot bulge patch. No patches selected."),
 			GlobalMainFrame().getTopLevelWindow());
 	}
 }
 } // namespace patch
-
-#include "generic/callback.h"
 
 void Patch_registerCommands() {
 	// First connect the commands to the code

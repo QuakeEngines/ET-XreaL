@@ -9,7 +9,7 @@
 
 #include "imodule.h"
 #include "iselection.h"
-#include "generic/callbackfwd.h"
+#include <boost/function/function_fwd.hpp>
 
 // GTK forward declaration
 typedef struct _GtkObject GtkObject;
@@ -47,6 +47,7 @@ namespace ui {
 		obsManipulate,	// manipulate an object by drag or click
 		obsSelect,		// selection toggle 
 		obsToggle,		// selection toggle
+		obsToggleGroupPart,	// selection toggle (part of group)
 		obsToggleFace,	// selection toggle (face)
 		obsReplace,		// replace/cycle selection through possible candidates
 		obsReplaceFace,	// replace/cycle selection through possible face candidates
@@ -57,6 +58,15 @@ namespace ui {
 		obsPasteTextureToBrush, // paste texture to all brush faces of the selected brush
 		obsJumpToObject, 		// focuses the cam & xyviews to the clicked object
 	};
+
+	// Enum used for events tracking the key state
+	enum KeyEventType
+	{
+		KeyPressed,
+		KeyReleased,
+	};
+	typedef boost::function<void (KeyEventType)> KeyStateChangeCallback;
+
 } // namespace ui
 
 class IEvent
@@ -99,15 +109,15 @@ public:
 	virtual ~IAccelerator() {}
 
 	// Get/set the GDK key value
-	virtual void setKey(const unsigned int& key) = 0;
+	virtual void setKey(const unsigned int key) = 0;
 	virtual unsigned int getKey() const = 0;
 	
 	// Get/Set the modifier flags
-	virtual void setModifiers(const unsigned int& modifiers) = 0;
+	virtual void setModifiers(const unsigned int modifiers) = 0;
 	virtual unsigned int getModifiers() const = 0;
 	
 	// Connect this IEvent to this accelerator
-	virtual void connectEvent(IEventPtr event) = 0; 
+	virtual void connectEvent(const IEventPtr& event) = 0; 
 };
 
 // Event visitor class
@@ -116,7 +126,7 @@ public:
     // destructor
 	virtual ~IEventVisitor() {}
 
-	virtual void visit(const std::string& eventName, IEventPtr event) = 0;
+	virtual void visit(const std::string& eventName, const IEventPtr& event) = 0;
 };
 
 /* greebo: The mouse event manager provides methods to interpret mouse clicks. 
@@ -131,14 +141,14 @@ public:
 
 	// Return the ObserverEvent type for a given GdkEventButton
 	virtual ui::ObserverEvent getObserverEvent(GdkEventButton* event) = 0;
-	virtual ui::ObserverEvent getObserverEvent(const unsigned int& state) = 0;
+	virtual ui::ObserverEvent getObserverEvent(const unsigned int state) = 0;
 
 	// Return the current XYView event for a GdkEventMotion state or an GdkEventButton
 	virtual ui::XYViewEvent getXYViewEvent(GdkEventButton* event) = 0;
-	virtual ui::XYViewEvent getXYViewEvent(const unsigned int& state) = 0;
+	virtual ui::XYViewEvent getXYViewEvent(const unsigned int state) = 0;
 	
 	virtual bool stateMatchesXYViewEvent(const ui::XYViewEvent& xyViewEvent, GdkEventButton* event) = 0;
-	virtual bool stateMatchesXYViewEvent(const ui::XYViewEvent& xyViewEvent, const unsigned int& state) = 0;
+	virtual bool stateMatchesXYViewEvent(const ui::XYViewEvent& xyViewEvent, const unsigned int state) = 0;
 	
 	virtual bool stateMatchesObserverEvent(const ui::ObserverEvent& observerEvent, GdkEventButton* event) = 0;
 	
@@ -149,11 +159,15 @@ public:
 	
 	virtual float getCameraStrafeSpeed() = 0;
 	virtual float getCameraForwardStrafeFactor() = 0;
-	virtual bool strafeActive(unsigned int& state) = 0;
-	virtual bool strafeForwardActive(unsigned int& state) = 0;
+	virtual bool strafeActive(unsigned int state) = 0;
+	virtual bool strafeForwardActive(unsigned int state) = 0;
 };
 
 const std::string MODULE_EVENTMANAGER("EventManager");
+
+// The function object invoked when a ToggleEvent is changing states
+// The passed boolean indicates the new toggle state (true = active/toggled)
+typedef boost::function<void(bool)> ToggleCallback;
 
 class IEventManager :
 	public RegisterableModule
@@ -181,20 +195,17 @@ public:
 	virtual IAccelerator& addAccelerator(const std::string& key, const std::string& modifierStr) = 0;
 	// The same as above, but with GDK event values as argument (event->keyval, event->state) 
 	virtual IAccelerator& addAccelerator(GdkEventKey* event) = 0;
-	virtual IAccelerator& findAccelerator(const IEventPtr event) = 0;
-	virtual std::string getAcceleratorStr(const IEventPtr event, bool forMenu) = 0;
+	virtual IAccelerator& findAccelerator(const IEventPtr& event) = 0;
+	virtual std::string getAcceleratorStr(const IEventPtr& event, bool forMenu) = 0;
 	
-	// Creates a new command that calls the given callback when invoked  
-	//virtual IEventPtr addCommand(const std::string& name, const Callback& callback, bool reactOnKeyUp = false) = 0;
-
 	// Add a command and specify the statement to execute when triggered
 	virtual IEventPtr addCommand(const std::string& name, const std::string& statement, bool reactOnKeyUp = false) = 0;
 	
-	// Creates a new keyevent that calls the given callback when invoked  
-	virtual IEventPtr addKeyEvent(const std::string& name, const Callback& keyUpCallback, const Callback& keyDownCallback) = 0;
+	// Creates a new keyevent that calls the given callback when invoked 
+	virtual IEventPtr addKeyEvent(const std::string& name, const ui::KeyStateChangeCallback& keyStateChangeCallback) = 0;
 	
 	// Creates a new toggle event that calls the given callback when toggled
-	virtual IEventPtr addToggle(const std::string& name, const Callback& onToggled) = 0;
+	virtual IEventPtr addToggle(const std::string& name, const ToggleCallback& onToggled) = 0;
 	virtual IEventPtr addWidgetToggle(const std::string& name) = 0;
 	virtual IEventPtr addRegistryToggle(const std::string& name, const std::string& registryKey) = 0;
 	
@@ -206,7 +217,7 @@ public:
 	virtual IEventPtr findEvent(GdkEventKey* event) = 0;
 	
 	// Retrieves the event name for the given IEventPtr
-	virtual std::string getEventName(IEventPtr event) = 0;
+	virtual std::string getEventName(const IEventPtr& event) = 0;
 	
 	// Connects the given accelerator to the given command (identified by the string)
 	virtual void connectAccelerator(IAccelerator& accelerator, const std::string& command) = 0;
@@ -245,7 +256,7 @@ public:
 	 * <true> yields a string of type: Ctrl-Shift
 	 * <false> results in a string of type: CTRL+SHIFT 
 	 */
-	virtual std::string getModifierStr(const unsigned int& modifierFlags, bool forMenu = false) = 0;
+	virtual std::string getModifierStr(const unsigned int modifierFlags, bool forMenu = false) = 0;
 	
 	/* greebo: Retrieves the string representation of the given GDK <event>
 	 */

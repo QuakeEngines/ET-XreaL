@@ -8,7 +8,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
-#define PID_FILENAME "xrealradiant.pid"
+#define PID_FILENAME "etxradiant.pid"
 
 namespace applog {
 

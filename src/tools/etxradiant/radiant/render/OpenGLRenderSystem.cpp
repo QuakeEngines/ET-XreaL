@@ -7,6 +7,7 @@
 #include "backend/GLProgramFactory.h"
 
 #include <boost/weak_ptr.hpp>
+#include <boost/bind.hpp>
 
 namespace render {
 
@@ -159,8 +160,14 @@ void OpenGLRenderSystem::render(RenderStateFlags globalstate,
 		i != _state_sorted.end(); 
 		++i)
 	{
-		// Render the OpenGLShaderPass
-        i->second->render(current, globalstate, viewer);
+		// Check if the render pass is applicable before calling the render() method
+		if (i->second->empty() && (globalstate & i->second->state().renderFlags & RENDER_SCREEN) == 0)
+		{
+			continue;
+		}
+
+        // Render the OpenGLShaderPass
+		i->second->render(current, globalstate, viewer);
 	}
 }
 	
@@ -239,17 +246,33 @@ void OpenGLRenderSystem::setLighting(bool supported, bool enabled)
 void OpenGLRenderSystem::extensionsInitialised() 
 {
     // Determine if lighting is available based on GL extensions
+	bool glslLightingAvailable = GLEW_VERSION_2_0 ? true : false;
+    bool arbLightingAvailable  = GLEW_VERSION_1_3
+                                 && GLEW_ARB_vertex_program
+                                 && GLEW_ARB_fragment_program;
 
-#ifdef RADIANT_USE_GLSL
-    bool lightingExtensionsAvailable = GLEW_VERSION_2_0;
-#else
-    bool lightingExtensionsAvailable = GLEW_VERSION_1_3
-                                       && GLEW_ARB_vertex_program
-                                       && GLEW_ARB_fragment_program;
-#endif
+    std::cout << "[OpenGLRenderSystem] GLSL lighting "
+              << (glslLightingAvailable ? "IS" : "IS NOT" ) << " available."
+              << std::endl;
+    std::cout << "[OpenGLRenderSystem] ARB lighting "
+              << (arbLightingAvailable ? "IS" : "IS NOT" ) << " available."
+              << std::endl;
+
+    // Tell the GLProgramFactory which to use
+    if (glslLightingAvailable)
+    {
+        GLProgramFactory::getInstance().setUsingGLSL(true);
+    }
+    else
+    {
+        GLProgramFactory::getInstance().setUsingGLSL(false);
+    }
 
     // Set internal flags
-	setLighting(lightingExtensionsAvailable, m_lightingEnabled);
+	setLighting(
+        glslLightingAvailable || arbLightingAvailable,
+         m_lightingEnabled
+    );
 
     // Inform the user of missing extensions
     if (!lightingSupported()) 
@@ -261,8 +284,6 @@ void OpenGLRenderSystem::extensionsInitialised()
 			globalOutputStream() << "  GL version 2.0 or better\n";
 		}
 		
-#ifdef RADIANT_USE_GLSL
-
 		if (!GLEW_ARB_shader_objects) {
 			globalOutputStream() << "  GL_ARB_shader_objects\n";
 		}
@@ -279,8 +300,6 @@ void OpenGLRenderSystem::extensionsInitialised()
 			globalOutputStream() << "  GL_ARB_shading_language_100\n";
 		}
 
-#else
-
 		if (!GLEW_ARB_vertex_program) {
 			globalOutputStream() << "  GL_ARB_vertex_program\n";
 		}
@@ -289,8 +308,6 @@ void OpenGLRenderSystem::extensionsInitialised()
 			globalOutputStream() << "  GL_ARB_fragment_program\n";
 		}
 
-#endif
-		
 	}
 }
 
@@ -298,8 +315,13 @@ void OpenGLRenderSystem::setLightingEnabled(bool enabled) {
 	setLighting(m_lightingSupported, enabled);
 }
 
-const LightList& OpenGLRenderSystem::attach(LightCullable& cullable) {
-	return (*m_lightLists.insert(LightLists::value_type(&cullable, LinearLightList(cullable, m_lights, EvaluateChangedCaller(*this)))).first).second;
+const LightList& OpenGLRenderSystem::attach(LightCullable& cullable)
+{
+	return m_lightLists.insert(
+		LightLists::value_type(
+			&cullable, 
+			LinearLightList(cullable, m_lights, boost::bind(&OpenGLRenderSystem::evaluateChanged, this)))
+		).first->second;
 }
 
 void OpenGLRenderSystem::detach(LightCullable& cullable) {

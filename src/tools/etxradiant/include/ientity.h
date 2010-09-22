@@ -26,13 +26,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ipath.h"
 #include "imodule.h"
 #include "inameobserver.h"
-#include "generic/callbackfwd.h"
 
 class IEntityClass;
 typedef boost::shared_ptr<IEntityClass> IEntityClassPtr;
 typedef boost::shared_ptr<const IEntityClass> IEntityClassConstPtr;
 
-typedef Callback1<const std::string&> KeyObserver;
+// Observes a single entity key value and gets notified on change
+class KeyObserver
+{
+public:
+	virtual ~KeyObserver() {}
+
+	/**
+	 * This event gets called when the observed keyvalue changes.
+	 * The new value is passed as argument, which can be an empty string.
+	 */
+	virtual void onKeyValueChanged(const std::string& newValue) = 0;
+};
 
 class EntityKeyValue :
 	public NameObserver
@@ -50,8 +60,8 @@ public:
 	/** greebo: Attaches/detaches a callback to get notified about
 	 * 			the key change.
 	 */
-	virtual void attach(const KeyObserver& observer) = 0;
-	virtual void detach(const KeyObserver& observer) = 0;
+	virtual void attach(KeyObserver& observer) = 0;
+	virtual void detach(KeyObserver& observer) = 0;
 };
 typedef boost::shared_ptr<EntityKeyValue> EntityKeyValuePtr;
 
@@ -70,6 +80,9 @@ typedef boost::shared_ptr<EntityKeyValue> EntityKeyValuePtr;
  * 
  * A valid <b>Id Tech 4</b> map must contain at least one entity: the
  * "worldspawn" which is the parent of all map geometry primitives. 
+ *
+ * greebo: Note that keys are treated case-insensitively in Doom 3, so 
+ * the Entity class will return the same result for "MYKeY" as for "mykey".
  */
 class Entity
 {
@@ -201,7 +214,7 @@ public:
 	virtual bool isInherited(const std::string& key) const = 0;
 
 	/**
-	 * Return the list of Key/Value pairs matching the given prefix.
+	 * Return the list of Key/Value pairs matching the given prefix, case ignored.
 	 * 
 	 * This method performs a search for all spawnargs whose key
 	 * matches the given prefix, with a suffix consisting of zero or more 
@@ -213,7 +226,7 @@ public:
 	 * code.
 	 * 
 	 * @param prefix
-	 * The prefix to search for.
+	 * The prefix to search for, interpreted case-insensitively.
 	 * 
 	 * @return
 	 * A list of KeyValue pairs matching the provided prefix. This

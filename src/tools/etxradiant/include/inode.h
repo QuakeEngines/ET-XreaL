@@ -1,6 +1,7 @@
 #ifndef INODE_H_
 #define INODE_H_
 
+#include "Bounded.h"
 #include "ilayer.h"
 
 #include <set>
@@ -73,7 +74,8 @@ public:
  */
 class INode :
 	public Layered,
-	public Filterable
+	public Filterable,
+	public Bounded
 {
 public:
     /**
@@ -135,6 +137,11 @@ public:
 	 * change its "selected" status or anything else.
 	 */
 	virtual void onRemoveFromScene() = 0;
+
+	/**
+	 * Returns true if this node is in the scene
+	 */
+	virtual bool inScene() const = 0;
 
 	// Call this if the node gets changed in any way or gets inserted somewhere.
 	virtual void boundsChanged() = 0;

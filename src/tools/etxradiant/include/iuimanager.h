@@ -175,7 +175,18 @@ public:
 typedef struct _GdkPixbuf GdkPixbuf;
 
 class IGroupDialog;		// see igroupdialog.h for definition
-namespace ui { class IDialogManager; }	// see idialogmanager.h for definition
+
+namespace ui
+{ 
+
+class IDialogManager;	// see idialogmanager.h for definition
+class IFilterMenu;		// see ifiltermenu.h for definition
+typedef boost::shared_ptr<IFilterMenu> IFilterMenuPtr;
+
+class IModelPreview;	// see imodelpreview.h for definition
+typedef boost::shared_ptr<IModelPreview> IModelPreviewPtr;
+
+} // namespace ui
 
 const std::string MODULE_UIMANAGER("UIManager");
 
@@ -199,6 +210,12 @@ public:
 	// and return a GdkPixBuf for use by certain GTK widgets (e.g. TreeView).
 	virtual GdkPixbuf* getLocalPixbuf(const std::string& fileName) = 0;
 	virtual GdkPixbuf* getLocalPixbufWithMask(const std::string& fileName) = 0;
+
+	// Creates and returns a new top-level filter menu bar, see ifiltermenu.h
+	virtual ui::IFilterMenuPtr createFilterMenu() = 0;
+	
+	// Creates a new model preview (GL view with draggable viewpoint, zoom and filter functionality)
+	virtual ui::IModelPreviewPtr createModelPreview() = 0;
 };
 
 // This is the accessor for the UI manager

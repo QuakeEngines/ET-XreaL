@@ -13,6 +13,7 @@
 #include "../Doom3Entity.h"
 #include "../curve/CurveCatmullRom.h"
 #include "../curve/CurveNURBS.h"
+#include "../KeyObserverDelegate.h"
 #include "scene/TraversableNodeSet.h"
 #include "transformlib.h"
 
@@ -45,8 +46,6 @@ class Doom3Group
 
 	mutable AABB m_curveBounds;
 
-	Callback m_transformChanged;
-
 	// The value of the "name" key for this Doom3Group.
 	std::string m_name;
 
@@ -57,39 +56,34 @@ class Doom3Group
 	// brushes).
 	bool m_isModel;
 
-	// A matrix transforming local entity coordinates to world coordinates
-	Matrix4 _originToWorld;
+	KeyObserverDelegate _rotationObserver;
+	KeyObserverDelegate _angleObserver;
+	KeyObserverDelegate _modelObserver;
+	KeyObserverDelegate _nameObserver;
 
 public:
 	CurveNURBS m_curveNURBS;
-	SignalHandlerId m_curveNURBSChanged;
+	std::size_t m_curveNURBSChanged;
 	CurveCatmullRom m_curveCatmullRom;
-	SignalHandlerId m_curveCatmullRomChanged;
+	std::size_t m_curveCatmullRomChanged;
 
 	/** greebo: The constructor takes the Node as argument
 	 * as well as some callbacks for transformation and bounds changes.
 	 */
 	Doom3Group(Doom3GroupNode& owner,
-			   const Callback& transformChanged, 
 			   const Callback& boundsChanged);
 	
 	// Copy constructor
 	Doom3Group(const Doom3Group& other, 
 			   Doom3GroupNode& owner,
-			   const Callback& transformChanged, 
 			   const Callback& boundsChanged);
 	
 	~Doom3Group();
-
-	TransformNode& getTransformNode();
-	const TransformNode& getTransformNode() const;
 
 	const AABB& localAABB() const;
 	
 	Vector3& getOrigin();
 
-	const Matrix4& getOriginToWorld() const;
-	
 	// Curve-related methods
 	void appendControlPoints(unsigned int numPoints);
 	void convertCurveType();
@@ -143,19 +137,13 @@ private:
 public:
 
 	void nameChanged(const std::string& value);
-	typedef MemberCaller1<Doom3Group, const std::string&, &Doom3Group::nameChanged> NameChangedCaller;
-
 	void modelChanged(const std::string& value);
-	typedef MemberCaller1<Doom3Group, const std::string&, &Doom3Group::modelChanged> ModelChangedCaller;
 
 	void updateTransform();
-	typedef MemberCaller<Doom3Group, &Doom3Group::updateTransform> UpdateTransformCaller;
 
 	void originChanged();
-	typedef MemberCaller<Doom3Group, &Doom3Group::originChanged> OriginChangedCaller;
 
 	void rotationChanged();
-	typedef MemberCaller<Doom3Group, &Doom3Group::rotationChanged> RotationChangedCaller;
 };
 
 } // namespace entity

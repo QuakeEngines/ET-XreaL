@@ -1,11 +1,17 @@
 #ifndef POPUPMENU_H_
 #define POPUPMENU_H_
 
-#include <gtk/gtkwidget.h>
-#include <gtk/gtkmenuitem.h>
+#include "imenu.h"
+
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <list>
+#include <glib/gtypes.h>
+
+#include "MenuItem.h"
+
+typedef struct _GdkEventButton GdkEventButton;
+typedef struct _GtkMenuItem GtkMenuItem;
 
 namespace gtkutil
 {
@@ -14,59 +20,24 @@ namespace gtkutil
  * A free pop-up menu populated with items and displayed on demand. Useful for
  * right-click context menus.
  */
-class PopupMenu
+class PopupMenu :
+	public ui::IMenu
 {
-public:
-	
-	/* PUBLIC TYPES */
-	
-	/**
-	 * Function callback. Each menu item is associated with one of these, which
-	 * is invoked when the menu item is activated.
-	 */
-	typedef boost::function<void (void)> Callback;
-	
-	/**
-	 * Sensitivity callback. This function object returns a true or false value,
-	 * indicating whether the associated menu item should be visible or not.
-	 */
-	typedef boost::function<bool (void)> SensitivityTest;
-
 private:
 	
 	// Main menu widget
 	GtkWidget* _menu;
 
-	// Data class containing the elements of a menu item
-	struct MenuItem {
-		GtkWidget* widget;
-		Callback callback;
-		SensitivityTest test;
-		
-		MenuItem(GtkWidget* w, Callback c, SensitivityTest t)
-		: widget(w), callback(c), test(t)
-		{ }
-	};
-	
 	// List of menu items
-	typedef std::list<MenuItem> MenuItemList;
+	typedef std::list<ui::IMenuItemPtr> MenuItemList;
 	MenuItemList _menuItems;	
 	
 private:
 	
-	/*
-	 * Default sensitivity test. Return true in all cases. If a menu item does
-	 * not specify its own sensitivity test, this will be used to ensure the
-	 * item is always visible.
-	 */
-	static bool _alwaysVisible() { return true; }
-	
 	/* GTK CALLBACKS */
 	
 	// Main activation callback from GTK
-	static void _onActivate(GtkMenuItem* item, MenuItem* menuItem) {
-		menuItem->callback();
-	}
+	static void _onActivate(GtkMenuItem* item, ui::IMenuItem* menuItem);
 	
 	// Mouse click callback (if required)
 	static gboolean _onClick(GtkWidget* w, GdkEventButton* e, PopupMenu* self);
@@ -87,9 +58,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~PopupMenu() {
-		g_object_unref(_menu);
-	}
+	virtual ~PopupMenu();
 	
 	/**
 	 * Add an item to this menu using a widget and callback function.
@@ -101,20 +70,27 @@ public:
 	 * @param callback
 	 * A callback function to be invoked when this menu item is activated.
 	 * 
-	 * @param test
+	 * @param sensTest
 	 * SensitivityTest function object to determine whether this menu item is
-	 * currently visible.
+	 * currently clickable (optional).
+	 *
+	 * @param visTest
+	 * VisibilityTest function object to determine whether this menu item is
+	 * currently visible (optional).	 
 	 */
-	void addItem(GtkWidget* widget,
-				 Callback callback,
-				 SensitivityTest test = SensitivityTest(_alwaysVisible));
+	virtual void addItem(GtkWidget* widget,
+						 const Callback& callback,
+						 const SensitivityTest& sensTest = SensitivityTest(_alwaysTrue),
+						 const VisibilityTest& visTest = VisibilityTest(_alwaysTrue));
 	
+	virtual void addItem(const ui::IMenuItemPtr& item);
+
 	/**
 	 * Show this menu. Each menu item's SensitivityTest will be invoked to 
 	 * determine whether it should be enabled or not, then the menu will be
 	 * displayed.
 	 */
-	void show();
+	virtual void show();
 };
 typedef boost::shared_ptr<PopupMenu> PopupMenuPtr;
 

@@ -6,18 +6,14 @@ namespace entity {
 
 GenericEntityNode::GenericEntityNode(const IEntityClassPtr& eclass) :
 	EntityNode(eclass),
-	m_contained(*this, 
-		Node::TransformChangedCaller(*this))
+	m_contained(*this)
 {}
 
 GenericEntityNode::GenericEntityNode(const GenericEntityNode& other) :
 	EntityNode(other),
 	Snappable(other),
 	SelectionTestable(other),
-	Bounded(other),
-	m_contained(other.m_contained, 
-		*this, 
-		Node::TransformChangedCaller(*this))
+	m_contained(other.m_contained, *this)
 {}
 
 void GenericEntityNode::construct()

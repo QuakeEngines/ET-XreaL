@@ -15,11 +15,14 @@ namespace entity {
  * 			Both curve types share a set of methods, that's why I though
  * 			it makes sense to move them here.
  */
-class Curve
+class Curve :
+	public KeyObserver
 {
 public:
 	// A list of iterators, used for communication with the CurveEditInstance
 	typedef std::vector<ControlPoints::iterator> IteratorList;
+
+	typedef boost::function<void()> CurveChangedCallback;
 
 protected:
 	ControlPoints _controlPoints;
@@ -29,15 +32,15 @@ protected:
 	AABB _bounds;
 	
 	Callback _boundsChanged;
-	Signal0 _curveChanged;
+	Signal _curveChanged;
 public:
 	Curve(const Callback& boundsChanged);
 
 	virtual ~Curve() {}
 	
 	// "Curve changed" signal stuff
-	SignalHandlerId connect(const SignalHandler& curveChanged);
-	void disconnect(SignalHandlerId id);
+	std::size_t connect(const CurveChangedCallback& curveChanged);
+	void disconnect(std::size_t id);
 	
 	bool isEmpty() const;
 	
@@ -47,8 +50,7 @@ public:
 	virtual void tesselate() = 0;
 	
 	// This gets called when the entity keyvalue changes 
-	void curveKeyChanged(const std::string& value);
-	typedef MemberCaller1<Curve, const std::string&, &Curve::curveKeyChanged> CurveChangedCaller;
+	void onKeyValueChanged(const std::string& value);
 	
 	// Appens <numPoints> elements at the end of the control point list
 	virtual void appendControlPoints(unsigned int numPoints);

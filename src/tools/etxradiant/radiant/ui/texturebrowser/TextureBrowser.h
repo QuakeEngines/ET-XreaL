@@ -24,13 +24,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "iregistry.h"
 #include "icommandsystem.h"
-#include "generic/callbackfwd.h"
-#include "signal/signalfwd.h"
 #include "gtkutil/nonmodal.h"
 #include "gtkutil/GLWidget.h"
 #include "gtkutil/cursor.h"
 #include "gtkutil/DeferredAdjustment.h"
 #include "texturelib.h"
+#include <boost/enable_shared_from_this.hpp>
 
 typedef struct _GtkMenuItem GtkMenuItem;
 
@@ -50,7 +49,9 @@ public:
 };
 
 class TextureBrowser :
-	public RegistryKeyObserver
+	public RegistryKeyObserver,
+	public MaterialManager::ActiveShadersObserver,
+	public boost::enable_shared_from_this<TextureBrowser>
 {
 	int width, height;
 	int originy;
@@ -116,7 +117,6 @@ public:
 	void update();
   
 	void clearFilter();
-	typedef MemberCaller<TextureBrowser, &TextureBrowser::clearFilter> ClearFilterCaller;
 
 	// RegistryKeyObserver implementation
 	void keyChanged(const std::string& key, const std::string& val);
@@ -133,7 +133,6 @@ public:
 	void destroyWindow();
   
 	void queueDraw();
-	typedef MemberCaller<TextureBrowser, &TextureBrowser::queueDraw> TextureBrowserQueueDrawCaller;
   
 	// Legacy function needed for DeferredAdjustment (TODO!) 
 	static void scrollChanged(void* data, gdouble value);
@@ -213,7 +212,7 @@ private:
 
 public:
 	// This gets called by the ShaderSystem
-	void activeShadersChanged();
+	void onActiveShadersChanged();
 
 private:
 	/** greebo: Returns the shader at the given coords.

@@ -1,5 +1,6 @@
 #include "Doom3GroupNode.h"
 
+#include <boost/bind.hpp>
 #include "../curve/CurveControlPointFunctors.h"
 
 namespace entity {
@@ -8,16 +9,15 @@ Doom3GroupNode::Doom3GroupNode(const IEntityClassPtr& eclass) :
 	EntityNode(eclass),
 	m_contained(
 		*this, // Pass <this> as Doom3GroupNode&
-		Node::TransformChangedCaller(*this),
-		Node::BoundsChangedCaller(*this)
+		Callback(boost::bind(&scene::Node::boundsChanged, this))
 	),
 	m_curveNURBS(m_contained.m_curveNURBS,
-				 SelectionChangedComponentCaller(*this)),
+				 boost::bind(&Doom3GroupNode::selectionChangedComponent, this, _1)),
 	m_curveCatmullRom(m_contained.m_curveCatmullRom, 
-					  SelectionChangedComponentCaller(*this)),
-	_originInstance(VertexInstance(m_contained.getOrigin(), SelectionChangedComponentCaller(*this))),
+					  boost::bind(&Doom3GroupNode::selectionChangedComponent, this, _1)),
+	_originInstance(VertexInstance(m_contained.getOrigin(), boost::bind(&Doom3GroupNode::selectionChangedComponent, this, _1))),
 	_updateSkin(true),
-	_instantiated(false)
+	_skinObserver(boost::bind(&Doom3GroupNode::skinChanged, this, _1))
 {}
 
 Doom3GroupNode::Doom3GroupNode(const Doom3GroupNode& other) :
@@ -28,34 +28,30 @@ Doom3GroupNode::Doom3GroupNode(const Doom3GroupNode& other) :
 	ComponentSelectionTestable(other),
 	ComponentEditable(other),
 	ComponentSnappable(other),
-	Bounded(other),
 	CurveNode(other),
 	m_contained(
 		other.m_contained,
 		*this, // Pass <this> as Doom3GroupNode&
-		Node::TransformChangedCaller(*this),
-		Node::BoundsChangedCaller(*this)
+		Callback(boost::bind(&scene::Node::boundsChanged, this))
 	),
 	m_curveNURBS(m_contained.m_curveNURBS,
-				 SelectionChangedComponentCaller(*this)),
+				 boost::bind(&Doom3GroupNode::selectionChangedComponent, this, _1)),
 	m_curveCatmullRom(m_contained.m_curveCatmullRom, 
-					  SelectionChangedComponentCaller(*this)),
-	_originInstance(VertexInstance(m_contained.getOrigin(), SelectionChangedComponentCaller(*this))),
+					  boost::bind(&Doom3GroupNode::selectionChangedComponent, this, _1)),
+	_originInstance(VertexInstance(m_contained.getOrigin(), boost::bind(&Doom3GroupNode::selectionChangedComponent, this, _1))),
 	_updateSkin(true),
-	_instantiated(false)
+	_skinObserver(boost::bind(&Doom3GroupNode::skinChanged, this, _1))
 {
 	// greebo: Don't call construct() here, this should be invoked by the
 	// clone() method
 }
 
-Doom3GroupNode::~Doom3GroupNode() {
+Doom3GroupNode::~Doom3GroupNode()
+{
 	m_contained.m_curveCatmullRom.disconnect(m_contained.m_curveCatmullRomChanged);
 	m_contained.m_curveNURBS.disconnect(m_contained.m_curveNURBSChanged);
 
-	removeKeyObserver("skin", SkinChangedCaller(*this));
-
-	Callback cb;
-	m_contained.setTransformChanged(cb);
+	removeKeyObserver("skin", _skinObserver);
 }
 
 void Doom3GroupNode::construct()
@@ -63,13 +59,13 @@ void Doom3GroupNode::construct()
 	m_contained.construct();
 
 	// Attach the callback as keyobserver for the skin key
-	addKeyObserver("skin", SkinChangedCaller(*this));
+	addKeyObserver("skin", _skinObserver);
 
 	m_contained.m_curveNURBSChanged = m_contained.m_curveNURBS.connect(
-		CurveEditInstance::CurveChangedCaller(m_curveNURBS)
+		boost::bind(&CurveEditInstance::curveChanged, &m_curveNURBS)
 	);
 	m_contained.m_curveCatmullRomChanged = m_contained.m_curveCatmullRom.connect(
-		CurveEditInstance::CurveChangedCaller(m_curveCatmullRom)
+		boost::bind(&CurveEditInstance::curveChanged, &m_curveCatmullRom)
 	);
 }
 
@@ -150,11 +146,6 @@ void Doom3GroupNode::testSelectComponents(Selector& selector, SelectionTest& tes
 				
 		_originInstance.testSelect(selector, test);
 
-		if (!m_contained.isModel())
-		{
-			test.BeginMesh(m_contained.getOriginToWorld());
-		}
-
 		m_curveNURBS.testSelect(selector, test);
 		m_curveCatmullRom.testSelect(selector, test);
 	}
@@ -197,9 +188,7 @@ scene::INodePtr Doom3GroupNode::clone() const
 
 void Doom3GroupNode::onInsertIntoScene()
 {
-	_instantiated = true;
-
-	Node::getTraversable().instanceAttach(scene::findMapFile(getSelf()));
+	Node::instanceAttach(scene::findMapFile(getSelf()));
 
 	EntityNode::onInsertIntoScene();
 }
@@ -207,16 +196,12 @@ void Doom3GroupNode::onInsertIntoScene()
 void Doom3GroupNode::onRemoveFromScene()
 {
 	// Call the base class first
-	SelectableNode::onRemoveFromScene();
+	EntityNode::onRemoveFromScene();
 
 	// De-select all child components as well
 	setSelectedComponents(false, SelectionSystem::eVertex);
 
-	_instantiated = false;
-
-	Node::getTraversable().instanceDetach(scene::findMapFile(getSelf()));
-
-	EntityNode::onRemoveFromScene();
+	Node::instanceDetach(scene::findMapFile(getSelf()));
 }
 
 // Snappable implementation
@@ -224,7 +209,8 @@ void Doom3GroupNode::snapto(float snap) {
 	m_contained.snapto(snap);
 }
 
-void Doom3GroupNode::testSelect(Selector& selector, SelectionTest& test) {
+void Doom3GroupNode::testSelect(Selector& selector, SelectionTest& test)
+{
 	test.BeginMesh(localToWorld());
 	SelectionIntersection best;
 
@@ -255,8 +241,9 @@ void Doom3GroupNode::renderSolid(RenderableCollector& collector, const VolumeTes
 
 	m_contained.renderSolid(collector, volume, localToWorld(), isSelected());
 
-	m_curveNURBS.renderComponentsSelected(collector, volume, m_contained.isModel() ? localToWorld() : m_contained.getOriginToWorld());
-	m_curveCatmullRom.renderComponentsSelected(collector, volume, m_contained.isModel() ? localToWorld() : m_contained.getOriginToWorld());
+	// Render curves always relative to the absolute map origin
+	m_curveNURBS.renderComponentsSelected(collector, volume, Matrix4::getIdentity());
+	m_curveCatmullRom.renderComponentsSelected(collector, volume, Matrix4::getIdentity());
 }
 
 void Doom3GroupNode::renderWireframe(RenderableCollector& collector, const VolumeTest& volume) const
@@ -265,19 +252,17 @@ void Doom3GroupNode::renderWireframe(RenderableCollector& collector, const Volum
 
 	m_contained.renderWireframe(collector, volume, localToWorld(), isSelected());
 
-	m_curveNURBS.renderComponentsSelected(collector, volume, m_contained.isModel() ? localToWorld() : m_contained.getOriginToWorld());
-	m_curveCatmullRom.renderComponentsSelected(collector, volume, m_contained.isModel() ? localToWorld() : m_contained.getOriginToWorld());
+	m_curveNURBS.renderComponentsSelected(collector, volume, Matrix4::getIdentity());
+	m_curveCatmullRom.renderComponentsSelected(collector, volume, Matrix4::getIdentity());
 }
 
 void Doom3GroupNode::renderComponents(RenderableCollector& collector, const VolumeTest& volume) const
 {
 	if (GlobalSelectionSystem().ComponentMode() == SelectionSystem::eVertex)
 	{
-		m_curveNURBS.renderComponents(collector, volume, 
-			m_contained.isModel() ? localToWorld() : m_contained.getOriginToWorld());
+		m_curveNURBS.renderComponents(collector, volume, Matrix4::getIdentity());
 
-		m_curveCatmullRom.renderComponents(collector, volume, 
-			m_contained.isModel() ? localToWorld() : m_contained.getOriginToWorld());
+		m_curveCatmullRom.renderComponents(collector, volume, Matrix4::getIdentity());
 		
 		// Register the renderable with OpenGL
 		if (!m_contained.isModel()) {
@@ -296,10 +281,10 @@ void Doom3GroupNode::evaluateTransform()
 		);
 		m_contained.rotate(getRotation());
 
-		// Don't transform curves in primitive mode
-		// Matrix4 transformation = calculateTransform();
-		//m_curveNURBS.transform(transformation, false);
-		//m_curveCatmullRom.transform(transformation, false);
+		// Transform curve control points in primitive mode
+		Matrix4 transformation = calculateTransform();
+		m_curveNURBS.transform(transformation, false);
+		m_curveCatmullRom.transform(transformation, false);
 	}
 	else {
 		// Transform the components only

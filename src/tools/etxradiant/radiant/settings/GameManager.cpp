@@ -1,7 +1,9 @@
 #include "GameManager.h"
 
+#include "i18n.h"
 #include "iregistry.h"
 #include "itextstream.h"
+#include "ifiletypes.h"
 #include "ifilesystem.h"
 #include "settings/PreferenceSystem.h"
 #include "ui/prefdialog/PrefDialog.h"
@@ -41,6 +43,7 @@ const StringSet& Manager::getDependencies() const {
 
 	if (_dependencies.empty()) {
 		_dependencies.insert(MODULE_XMLREGISTRY);
+		_dependencies.insert(MODULE_FILETYPES);
 	}
 
 	return _dependencies;
@@ -73,12 +76,17 @@ const std::string& Manager::getModPath() const {
 	return (!_modPath.empty()) ? _modPath : _modBasePath;
 }
 
+const std::string& Manager::getModBasePath() const
+{
+	return _modBasePath;
+}
+
 /** greebo: Returns the current Game.
  */
 IGamePtr Manager::currentGame() {
 	if (_currentGameName.empty()) {
 		// No game type selected, bail out, the program will crash anyway on module load
-		gtkutil::fatalErrorDialog("GameManager: No game type selected, can't continue.\n", NULL);
+		gtkutil::fatalErrorDialog(_("GameManager: No game type selected, can't continue."), NULL);
 	}
 	
 	return _games[_currentGameName];
@@ -86,17 +94,17 @@ IGamePtr Manager::currentGame() {
 
 void Manager::constructPreferences() 
 {
-	PreferencesPagePtr page = GetPreferenceSystem().getPage("Game");
+	PreferencesPagePtr page = GetPreferenceSystem().getPage(_("Game"));
 	
 	ComboBoxValueList gameList;
 	for (GameMap::iterator i = _games.begin(); i != _games.end(); i++) 
    {
 		gameList.push_back(i->second->getKeyValue("name"));
 	}
-	page->appendCombo("Select a Game:", RKEY_GAME_TYPE, gameList, true); 
-	page->appendPathEntry("Engine Path", RKEY_ENGINE_PATH, true);
-	page->appendEntry("Mod (fs_game)", RKEY_FS_GAME);
-	page->appendEntry("Mod Base (fs_game_base, optional)", RKEY_FS_GAME_BASE);
+	page->appendCombo(_("Select a Game:"), RKEY_GAME_TYPE, gameList, true); 
+	page->appendPathEntry(_("Engine Path"), RKEY_ENGINE_PATH, true);
+	page->appendEntry(_("Mod (fs_game)"), RKEY_FS_GAME);
+	page->appendEntry(_("Mod Base (fs_game_base, optional)"), RKEY_FS_GAME_BASE);
 }
 
 /** greebo: Loads the game files and the saved settings.
@@ -112,7 +120,7 @@ void Manager::initialise(const std::string& appPath)
       // No game types available, bail out, the program would crash anyway on
       // module load
       gtkutil::fatalErrorDialog(
-         "GameManager: No valid game files found, can't continue\n", NULL
+         _("GameManager: No valid game files found, can't continue."), NULL
       );
    }
 	
@@ -142,7 +150,7 @@ void Manager::initialise(const std::string& appPath)
 	}
 	else {
 		// No game type selected, bail out, the program would crash anyway on module load
-		gtkutil::fatalErrorDialog("No game type selected\n", NULL);
+		gtkutil::fatalErrorDialog(_("No game type selected."), NULL);
 	}
 }
 
@@ -266,7 +274,7 @@ void Manager::initEnginePath() {
 	while (!settingsValid())
 	{
 		// Engine path doesn't exist, ask the user
-		ui::PrefDialog::showModal("Game");
+		ui::PrefDialog::showModal(_("Game"));
 		
 		// After the dialog, the settings are located in the registry.
 		// Construct the paths with the settings found there		
@@ -276,20 +284,23 @@ void Manager::initEnginePath() {
 			std::string msg("<b>Warning:</b>\n");
 			
 			if (!file_exists(_enginePath.c_str())) {
-				msg += "Engine path does not exist.\n";
+				msg += _("Engine path does not exist.");
+				msg += "\n";
 			}
 			
 			if (!_fsGame.empty() && !file_exists(_modPath.c_str())) {
-				msg += "The fs_game folder does not exist.\n";
+				msg += _("The fs_game folder does not exist.");
+				msg += "\n";
 			}
 
 			if (!_fsGameBase.empty() && !file_exists(_modBasePath.c_str())) {
-				msg += "The fs_game_base folder does not exist.\n";
+				msg += _("The fs_game_base folder does not exist.");
+				msg += "\n";
 			}
 
-			msg += "Do you want to correct these settings?";
+			msg += _("Do you want to correct these settings?");
 
-			gtkutil::MessageBox msgBox("Invalid Settings", msg, ui::IDialog::MESSAGE_ASK);
+			gtkutil::MessageBox msgBox(_("Invalid Settings"), msg, ui::IDialog::MESSAGE_ASK);
 
 			if (msgBox.run() == ui::IDialog::RESULT_NO)
 			{
@@ -307,8 +318,8 @@ void Manager::initEnginePath() {
 	updateEnginePath(true);
 	
 	// Add the note to the preference page
-	PreferencesPagePtr page = GetPreferenceSystem().getPage("Game");
-	page->appendLabel("<b>Note</b>: You will have to restart ETXRadiant for the changes to take effect.");
+	PreferencesPagePtr page = GetPreferenceSystem().getPage(_("Game"));
+	page->appendLabel(_("<b>Note</b>: You will have to restart DarkRadiant for the changes to take effect."));
 }
 
 bool Manager::settingsValid() const {

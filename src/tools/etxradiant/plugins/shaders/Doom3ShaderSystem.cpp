@@ -6,10 +6,10 @@
 #include "ipreferencesystem.h"
 
 #include "xmlutil/Node.h"
+#include "xmlutil/MissingXMLNodeException.h"
 
 #include "ShaderDefinition.h"
 #include "ShaderFileLoader.h"
-#include "MissingXMLNodeException.h"
 
 #include "debugging/ScopedDebugTimer.h"
 
@@ -67,12 +67,12 @@ void Doom3ShaderSystem::loadMaterialFiles()
 	xml::NodeList nlShaderPath = 
 		GlobalRegistry().findXPath("game/filesystem/shaders/basepath");
 	if (nlShaderPath.empty())
-		throw MissingXMLNodeException(MISSING_BASEPATH_NODE);
+		throw xml::MissingXMLNodeException(MISSING_BASEPATH_NODE);
 
 	xml::NodeList nlShaderExt = 
 		GlobalRegistry().findXPath("game/filesystem/shaders/extension");
 	if (nlShaderExt.empty())
-		throw MissingXMLNodeException(MISSING_EXTENSION_NODE);
+		throw xml::MissingXMLNodeException(MISSING_EXTENSION_NODE);
 
 	// Load the shader files from the VFS
 	std::string sPath = nlShaderPath[0].getContent();
@@ -82,13 +82,10 @@ void Doom3ShaderSystem::loadMaterialFiles()
 	std::string extension = nlShaderExt[0].getContent();
 	
 	// Load each file from the global filesystem
-	ShaderFileLoader ldr(sPath);
+	ShaderFileLoader loader(sPath);
 	{
 		ScopedDebugTimer timer("ShaderFiles parsed: ");
-		GlobalFileSystem().forEachFile(sPath, 
-									   extension, 
-									   makeCallback1(ldr), 
-									   0);
+		GlobalFileSystem().forEachFile(sPath, extension, loader, 0);
 	}
 
 	globalOutputStream() << _library->getNumShaders() << " shaders found." << std::endl;
@@ -157,9 +154,6 @@ MaterialPtr Doom3ShaderSystem::dereferenceActiveShadersIterator() {
 }
 void Doom3ShaderSystem::incrementActiveShadersIterator() {
 	_library->incrementIterator();
-}
-void Doom3ShaderSystem::setActiveShadersChangedNotify(const Callback& notify) {
-	_activeShadersChangedNotify = notify;
 }
 
 void Doom3ShaderSystem::attach(ModuleObserver& observer) {
@@ -231,9 +225,26 @@ TexturePtr Doom3ShaderSystem::getDefaultInteractionTexture(ShaderLayer::Type t)
     return defaultTex;
 }
 
-void Doom3ShaderSystem::activeShadersChangedNotify() {
+void Doom3ShaderSystem::addActiveShadersObserver(const ActiveShadersObserverPtr& observer)
+{
+	_activeShadersObservers.insert(observer);
+}
+
+void Doom3ShaderSystem::removeActiveShadersObserver(const ActiveShadersObserverPtr& observer)
+{
+	_activeShadersObservers.erase(observer);
+}
+
+void Doom3ShaderSystem::activeShadersChangedNotify()
+{
 	if (_enableActiveUpdates)
-		_activeShadersChangedNotify();
+	{
+		for (Observers::const_iterator i = _activeShadersObservers.begin(); 
+			 i != _activeShadersObservers.end(); )
+		{
+			(*i++)->onActiveShadersChanged();
+		}
+	}
 }
 
 void Doom3ShaderSystem::foreachShader(ShaderVisitor& visitor) {

@@ -164,8 +164,20 @@ public:
      * \}
      */
 
-  Vector4 m_colour;
-  GLenum m_blend_src, m_blend_dst;
+    Vector4 m_colour;
+
+    /**
+     * \brief
+     * Source blend mode.
+     */
+    GLenum m_blend_src;
+    
+    /**
+     * \brief 
+     * Destination blend mode
+     */
+    GLenum m_blend_dst;
+
   GLenum m_depthfunc;
 
     // Alpha test function
@@ -178,7 +190,12 @@ public:
   GLfloat m_pointsize;
   GLint m_linestipple_factor;
   GLushort m_linestipple_pattern;
-  GLProgram* m_program;
+
+    /**
+     * \brief
+     * GL program or shader object.
+     */
+    GLProgram* glProgram;
 
     /**
      * \brief 
@@ -205,7 +222,7 @@ public:
 	  m_pointsize(1),
 	  m_linestipple_factor(1),
 	  m_linestipple_pattern(0xAAAA),
-	  m_program(0),
+	  glProgram(NULL),
       cubeMapMode(ShaderLayer::CUBE_MAP_NONE)
 	{ }
 };

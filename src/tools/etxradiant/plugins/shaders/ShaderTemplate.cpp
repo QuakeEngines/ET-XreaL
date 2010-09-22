@@ -81,7 +81,7 @@ void ShaderTemplate::parseLightFlags(parser::DefTokeniser& tokeniser, const std:
         fogLight = true;
     }
     else if (!fogLight && token == "lightfalloffimage") {
-        _lightFalloff = shaders::MapExpression::createForToken(tokeniser);
+        _lightFalloff = MapExpression::createForToken(tokeniser);
     }
 }
 
@@ -95,40 +95,15 @@ void ShaderTemplate::parseBlendShortcuts(parser::DefTokeniser& tokeniser,
     }
     else if (token == "diffusemap") 
     {
-        // Parse the map expression
-        MapExpressionPtr difMapExp = MapExpression::createForToken(tokeniser);
-
-        // Add the diffuse layer
-        Doom3ShaderLayerPtr layer(
-            new Doom3ShaderLayer(ShaderLayer::DIFFUSE, difMapExp)
-        );
-        m_layers.push_back(layer);
-
-        // If there is no editor texture set, use the diffusemap texture instead
-        if (!_editorTex)
-        {
-            _editorTex = difMapExp;
-        }
+        addLayer(ShaderLayer::DIFFUSE, MapExpression::createForToken(tokeniser));
     }
     else if (token == "specularmap") 
     {
-        Doom3ShaderLayerPtr layer(
-            new Doom3ShaderLayer(
-                ShaderLayer::SPECULAR, 
-                MapExpression::createForToken(tokeniser)
-            )
-        );
-        m_layers.push_back(layer);
+		addLayer(ShaderLayer::SPECULAR, MapExpression::createForToken(tokeniser));
     }
-    else if (token == "bumpmap" || token == "normalmap") 
+    else if (token == "bumpmap") 
     {
-        Doom3ShaderLayerPtr layer(
-            new Doom3ShaderLayer(
-                ShaderLayer::BUMP,
-                MapExpression::createForToken(tokeniser)
-            )
-        );
-        m_layers.push_back(layer);
+		addLayer(ShaderLayer::BUMP, MapExpression::createForToken(tokeniser));
     }
 }
 
@@ -138,7 +113,7 @@ void ShaderTemplate::parseBlendShortcuts(parser::DefTokeniser& tokeniser,
  */
 void ShaderTemplate::parseBlendType(parser::DefTokeniser& tokeniser, const std::string& token) 
 {
-    if (token == "blend" || token == "stage") 
+    if (token == "blend") 
     {
         std::string blendType = boost::algorithm::to_lower_copy(tokeniser.nextToken());
         
@@ -251,19 +226,12 @@ bool ShaderTemplate::saveLayer()
     // Append layer to list of all layers
     if (_currentLayer->getBindableTexture()) 
     {
-        m_layers.push_back(_currentLayer);
+		addLayer(_currentLayer);
     }
 
-    // If the layer we just saved was a diffusemap layer, and there is no
-    // editorimage, use the diffusemap as editor image
-    if (_currentLayer->getType() == ShaderLayer::DIFFUSE
-        && !_editorTex)
-    {
-        _editorTex = _currentLayer->getBindableTexture();
-    }
-    
     // Clear the currentLayer structure for possible future layers
     _currentLayer = Doom3ShaderLayerPtr(new Doom3ShaderLayer);
+
     return true;
 }
 
@@ -315,11 +283,30 @@ void ShaderTemplate::parseDefinition()
             } 
         }
     }
-    catch (parser::ParseException p) {
+    catch (parser::ParseException& p) {
         globalErrorStream() << "Error while parsing shader " << _name << ": "
             << p.what() << std::endl;
     }
 }
 
+void ShaderTemplate::addLayer(const Doom3ShaderLayerPtr& layer)
+{
+	// Add the layer
+	m_layers.push_back(layer);
+
+	// If there is no editor texture yet, use the bindable texture, but no Bump or speculars
+	if (!_editorTex && layer->getBindableTexture() != NULL &&
+		layer->getType() != ShaderLayer::BUMP && layer->getType() != ShaderLayer::SPECULAR)
+	{
+		_editorTex = layer->getBindableTexture();
+	}
 }
+
+void ShaderTemplate::addLayer(ShaderLayer::Type type, const MapExpressionPtr& mapExpr)
+{
+	// Construct a layer out of this mapexpression and pass the call
+	addLayer(Doom3ShaderLayerPtr(new Doom3ShaderLayer(type, mapExpr)));
+}
+
+} // namespace
 

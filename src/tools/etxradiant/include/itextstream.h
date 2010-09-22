@@ -27,13 +27,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <cstddef>
 #include <string>
+#include <stdio.h>
 #include <streambuf>
 #include <istream>
 #include <cassert>
 #include <sstream>
 #include <iostream>
-#include <cstdio>
-#include <stdio.h>
 
 #include "imodule.h"
 
@@ -43,6 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 class TextInputStream
 : public std::streambuf
 {
+protected:
     // Buffer to use for reading
     static const std::size_t BUFFER_SIZE = 8192;
     char _buffer[BUFFER_SIZE];
@@ -53,7 +53,7 @@ protected:
     
     // Replenish the controlled buffer with characters from the underlying
     // input sequence.
-    int underflow() {
+    virtual int underflow() {
         
         // Read next block of BUFFER_SIZE characters into the buffer from
         // the underlying TextInputStream.
