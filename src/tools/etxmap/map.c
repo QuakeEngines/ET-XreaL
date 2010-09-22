@@ -389,7 +389,9 @@ void SetBrushContents(brush_t * b)
 	{
 		s = &b->sides[i];
 		if(s->shaderInfo == NULL)
+		{
 			continue;
+		}
 
 		if(s->contentFlags != contentFlags || s->compileFlags != compileFlags)
 			mixed = qtrue;
@@ -749,7 +751,10 @@ brush_t        *FinishBrush(void)
 	}
 
 	/* add bevel planes */
-	AddBrushBevels();
+	if(convertType == CONVERT_NOTHING)
+	{
+		AddBrushBevels();
+	}
 
 	/* keep it */
 	b = CopyBrush(buildBrush);
@@ -781,6 +786,21 @@ brush_t        *FinishBrush(void)
 	{
 		b->nextColorModBrush = mapEnt->colorModBrushes;
 		mapEnt->colorModBrushes = b;
+	}
+
+	{
+		side_t         *s;
+		int             i;
+
+		/* get the content/compile flags for every side in the brush */
+		for(i = 0, s = &b->sides[0]; i < b->numsides; i++, s++)
+		{
+			s = &b->sides[i];
+			if(s->shaderInfo == NULL)
+			{
+				continue;
+			}
+		}
 	}
 
 	/* return to sender */
@@ -1721,52 +1741,76 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	model = ValueForKey(mapEnt, "model");
 	GetVectorForKey(mapEnt, "origin", mapEnt->origin);
 
-#if 0
-	/* Tr3B: rename targetname to name if necessary */
-	targetname = ValueForKey(mapEnt, "targetname");
-	if(targetname[0])
+
+	if(convertType == CONVERT_QUAKE3)
 	{
-		SetKeyValue(mapEnt, "name", targetname);
-		name = ValueForKey(mapEnt, "name");
-		RemoveKey(mapEnt, "targetname");
-	}
-
-
-	/* Tr3B: check for empty name */
-	if(!name[0] && numEntities != 1)
-	{
-		name = UniqueEntityName(mapEnt, classname);
-		if(!name[0])
-			xml_Select("UniqueEntityName failed", mapEnt->mapEntityNum, 0, qtrue);
-
-		SetKeyValue(mapEnt, "name", name);
-		name = ValueForKey(mapEnt, "name");
-	}
-
-	/* Tr3B: check for bad duplicated names */
-	for(i = 0; i < numEntities; i++)
-	{
-		otherEnt = &entities[i];
-
-		if(mapEnt == otherEnt)
-			continue;
-
-		name2 = ValueForKey(otherEnt, "name");
-
-		if(!Q_stricmp(name, name2))
+		/* Tr3B: rename targetname to name if necessary */
+		targetname = ValueForKey(mapEnt, "targetname");
+		if(targetname[0])
 		{
-			xml_Select("duplicated entity name", mapEnt->mapEntityNum, 0, qfalse);
+			SetKeyValue(mapEnt, "name", targetname);
+			name = ValueForKey(mapEnt, "name");
+			RemoveKey(mapEnt, "targetname");
+		}
 
+		/* Tr3B: check for empty name */
+		if(!name[0] && numEntities != 1)
+		{
 			name = UniqueEntityName(mapEnt, classname);
 			if(!name[0])
+			{
+#if defined(USE_XML)
 				xml_Select("UniqueEntityName failed", mapEnt->mapEntityNum, 0, qtrue);
+#else
+				Error("Entity %i, Brush %i: UniqueEntityName failed\n", mapEnt->mapEntityNum, 0);
+#endif
+		}
 
 			SetKeyValue(mapEnt, "name", name);
 			name = ValueForKey(mapEnt, "name");
-			break;
+		}
+
+		/* Tr3B: check for bad duplicated names */
+		for(i = 0; i < numEntities; i++)
+		{
+			otherEnt = &entities[i];
+
+			if(mapEnt == otherEnt)
+				continue;
+
+			name2 = ValueForKey(otherEnt, "name");
+
+			if(!Q_stricmp(name, name2))
+			{
+#if defined(USE_XML)
+				xml_Select("duplicated entity name", mapEnt->mapEntityNum, 0, qfalse);
+#else
+				Sys_Printf("Entity %i, Brush %i: duplicated entity name\n", mapEnt->mapEntityNum, 0);
+#endif
+				name = UniqueEntityName(mapEnt, classname);
+				if(!name[0])
+				{
+#if defined(USE_XML)
+				xml_Select("UniqueEntityName failed", mapEnt->mapEntityNum, 0, qtrue);
+#else
+				Sys_Printf("Entity %i, Brush %i: UniqueEntityName failed\n", mapEnt->mapEntityNum, 0);
+#endif
+				}
+
+				SetKeyValue(mapEnt, "name", name);
+				name = ValueForKey(mapEnt, "name");
+				break;
+			}
+		}
+
+		// Tr3B
+		if(!model[0] && (mapEnt->brushes || mapEnt->patches) && numEntities != 1)
+		{
+			SetKeyValue(mapEnt, "model", name);
+			model = ValueForKey(mapEnt, "model");
 		}
 	}
-#endif
+
 
 	/* ydnar: only lights? */
 	if(onlyLights && Q_strncasecmp(classname, "light", 5))
@@ -1875,7 +1919,7 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	}
 
 	/* Tr3B: convert Doom3's func_static entities with custom models into misc_models */
-	if(!Q_stricmp("func_static", classname) && !mapEnt->brushes && !mapEnt->patches && model[0] != '\0')
+	if(convertType == CONVERT_NOTHING && !Q_stricmp("func_static", classname) && !mapEnt->brushes && !mapEnt->patches && model[0] != '\0')
 	{
 		SetKeyValue(mapEnt, "classname", "misc_model");
 	}
@@ -1889,18 +1933,19 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	}
 #endif
 
-#if 0
+#if 1
 	// HACK:
-	if(!Q_stricmp("func_rotating", classname) && !mapEnt->brushes && !mapEnt->patches && model[0] != '\0')
+	if(!Q_stricmp("func_rotating", classname))// && !mapEnt->brushes && !mapEnt->patches && model[0] != '\0')
 	{
-		numEntities--;
-		return qtrue;
+		Sys_Printf(".\n");
+		//numEntities--;
+		//return qtrue;
 	}
 #endif
 
 #if 1
 	// HACK: determine if this is a func_static that can be merged into worldspawn
-	if(!Q_stricmp("func_static", classname) && name[0] != '\0' && model[0] != '\0' && !Q_stricmp(name, model))
+	if(convertType == CONVERT_NOTHING && !Q_stricmp("func_static", classname) && name[0] != '\0' && model[0] != '\0' && !Q_stricmp(name, model))
 	{
 		brush_t        *brush;
 		vec3_t          originNeg;
@@ -1955,19 +2000,22 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	}
 #endif
 
-	/* get entity origin and adjust brushes */
 	// Tr3B: moved this up before SetEntityBounds() is called
+	// move brushes and patches from world space into entity space
 	if(mapEnt->origin[0] || mapEnt->origin[1] || mapEnt->origin[2])
 	{
-		if((name[0] != '\0' && model[0] != '\0' && !Q_stricmp(name, model)))
+		if(mapEnt->brushes || mapEnt->patches)
 		{
-			AdjustBrushesForOrigin(mapEnt, vec3_origin);
-			AdjustPatchesForOrigin(mapEnt, mapEnt->origin);
-		}
-		else
-		{
-			AdjustBrushesForOrigin(mapEnt, mapEnt->origin);
-			AdjustPatchesForOrigin(mapEnt, mapEnt->origin);
+			if(convertType != CONVERT_QUAKE3 && (name[0] != '\0' && model[0] != '\0' && !Q_stricmp(name, model)))
+			{
+				AdjustBrushesForOrigin(mapEnt, vec3_origin);
+				AdjustPatchesForOrigin(mapEnt, mapEnt->origin);
+			}
+			else
+			{
+				AdjustBrushesForOrigin(mapEnt, mapEnt->origin);
+				AdjustPatchesForOrigin(mapEnt, mapEnt->origin);
+			}
 		}
 	}
 
@@ -1978,14 +2026,14 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	LoadEntityIndexMap(mapEnt);
 
 	/* group_info entities are just for editor grouping (fixme: leak!) */
-	if(!Q_stricmp("group_info", classname))
+	if(convertType == CONVERT_NOTHING && !Q_stricmp("group_info", classname))
 	{
 		numEntities--;
 		return qtrue;
 	}
 
 	/* group entities are just for editor convenience, toss all brushes into worldspawn */
-	if(funcGroup)
+	if(convertType == CONVERT_NOTHING && funcGroup)
 	{
 		vec3_t          originNeg;
 

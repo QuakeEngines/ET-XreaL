@@ -309,7 +309,7 @@ abstracted bsp file
 #define MAX_LIGHTMAP_SHADERS	256
 
 /* ok to increase these at the expense of more memory */
-#define	MAX_MAP_ENTITIES		0x1000		//%	0x800	/* ydnar */
+#define	MAX_MAP_ENTITIES		0x3000		// Tr3B: old 0x1000 //%	0x800	/* ydnar */
 #define	MAX_MAP_ENTSTRING		0x80000		//%	0x40000	/* ydnar */
 
 #define	MAX_MAP_AREAS			0x100		/* MAX_MAP_AREA_BYTES in q_shared must match! */
@@ -960,6 +960,10 @@ typedef struct parseMesh_s
 	qboolean        grouped;
 	float           longestCurve;
 	int             maxIterations;
+
+	// Tr3B: Doom 3 mods
+	qboolean        patchDef3;
+	vec_t           info[7];
 }
 parseMesh_t;
 
@@ -1522,6 +1526,22 @@ int             ConvertBSPToMap(char *bspName);
 
 /* convert_ase.c */
 int             ConvertBSPToASE(char *bspName);
+
+/**
+Tr3B: convertType_t is used for .map to .map conversions
+*/
+typedef enum
+{
+	CONVERT_NOTHING,
+//  CONVERT_QUAKE1,
+//  CONVERT_QUAKE2,
+	CONVERT_QUAKE3,
+	CONVERT_QUAKE4,
+//	CONVERT_DOOM3,
+//  CONVERT_PREY
+} convertType_t;
+
+extern convertType_t convertType;
 
 
 /* brush.c */

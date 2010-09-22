@@ -357,6 +357,26 @@ void ParsePatch(qboolean onlyLights, qboolean patchDef3)
 	pm = safe_malloc(sizeof(*pm));
 	memset(pm, 0, sizeof(*pm));
 
+	if(convertType != CONVERT_NOTHING)
+	{
+		pm->patchDef3 = patchDef3;
+
+		if(patchDef3)
+		{
+			for(j = 0; j < 7; j++)
+			{
+				pm->info[j] = info[j];
+			}
+		}
+		else
+		{
+			for(j = 0; j < 5; j++)
+			{
+				pm->info[j] = info[j];
+			}
+		}
+	}
+
 	/* ydnar: add entity/brush numbering */
 	pm->entityNum = mapEnt->mapEntityNum;
 	pm->brushNum = entitySourceBrushes;
