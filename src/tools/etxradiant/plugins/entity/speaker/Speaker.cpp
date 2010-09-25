@@ -15,7 +15,7 @@ namespace entity {
 	{
 		const std::string KEY_S_MAXDISTANCE("s_maxdistance");
 		const std::string KEY_S_MINDISTANCE("s_mindistance");
-		const std::string KEY_S_SHADER("s_sound");
+		const std::string KEY_S_SHADER("noise");
 	}
 
 Speaker::Speaker(SpeakerNode& node, 

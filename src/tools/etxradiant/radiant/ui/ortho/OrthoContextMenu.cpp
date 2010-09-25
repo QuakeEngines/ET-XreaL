@@ -42,7 +42,7 @@ namespace {
     
     const char* LIGHT_CLASSNAME = "light";
     const char* MODEL_CLASSNAME = "func_static";
-    const char* SPEAKER_CLASSNAME = "speaker";
+    const char* SPEAKER_CLASSNAME = "target_speaker";
     const char* PLAYERSTART_CLASSNAME = "info_player_start";
 
     // Angle key for the player start
@@ -366,7 +366,7 @@ void OrthoContextMenu::callbackAddSpeaker()
         // Set the keyvalue
         Entity* entity = Node_getEntity(spkNode);
         assert(entity);
-        entity->setKeyValue("s_shader", soundShader);
+        entity->setKeyValue("noise", soundShader);
 
         // Set initial radii according to values in sound shader
 		/*
