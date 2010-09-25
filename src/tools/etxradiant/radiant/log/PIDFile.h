@@ -38,7 +38,7 @@ public:
 
 #ifndef _DEBUG
 			boost::filesystem::path path = registry.getApplicationContext().getSettingsPath();
-			path /= "darkradiant.log";
+			path /= "etxradiant.log";
 			std::string logPath = path.file_string();
 			boost::algorithm::replace_all(logPath, "\\\\", "\\");
 			boost::algorithm::replace_all(logPath, "//", "/");
@@ -47,7 +47,7 @@ public:
 			msg += "If this is happening again, you might want to check the log file in\n";
 			msg += "<b>" + logPath + "</b>";
 
-			gtkutil::MessageBox box("DarkRadiant - Startup Failure", msg, ui::IDialog::MESSAGE_CONFIRM);
+			gtkutil::MessageBox box("ETXRadiant - Startup Failure", msg, ui::IDialog::MESSAGE_CONFIRM);
 			box.run();
 #endif
 		}
