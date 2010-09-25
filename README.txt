@@ -106,9 +106,10 @@ __________________________________________________________
 	ET-XreaL/src/tools/etxmap/etxmap.sln
 	ET-XreaL/src/tools/etxradiant/tools/vcprojects/ETXRadiant.sln
 
-	To have the required Win32 dependencies to build the ETXRadiant copy them from the DarkRadiant Subversion repository:
+	You need additional Win32 dependencies to build the ETXRadiant.
+	Copy them from the DarkRadiant Subversion repository:
 	
-	> svn export -r5171 https://darkradiant.svn.sourceforge.net/svnroot/darkradiant/trunk/w32deps/   ET-XreaL/src/tools/etxradiant/w32deps
+	> svn export -r5702 https://darkradiant.svn.sourceforge.net/svnroot/darkradiant/trunk/w32deps/   ET-XreaL/src/tools/etxradiant/w32deps
 
 __________________________________
 
