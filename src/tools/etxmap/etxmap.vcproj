@@ -181,6 +181,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\libs\glib\lib"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/ETXMap.pdb"
 				GenerateMapFile="true"
 				MapFileName=".\Release/ETXMap.map"
