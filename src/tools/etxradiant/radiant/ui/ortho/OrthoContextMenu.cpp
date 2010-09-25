@@ -361,7 +361,7 @@ void OrthoContextMenu::callbackAddSpeaker()
         SoundChooser sChooser;
 		sChooser.show();
 
-		const std::string& soundShader = sChooser.getSelectedShader();
+		const std::string& soundShader = sChooser.chooseSound();
 
         // Set the keyvalue
         Entity* entity = Node_getEntity(spkNode);
@@ -369,7 +369,8 @@ void OrthoContextMenu::callbackAddSpeaker()
         entity->setKeyValue("s_shader", soundShader);
 
         // Set initial radii according to values in sound shader
-        ISoundShaderPtr snd = GlobalSoundManager().getSoundShader(soundShader);
+		/*
+        ISoundFilePtr snd = GlobalSoundManager().getSoundFile(soundShader);
         assert(snd);
         
         SoundRadii radii = snd->getRadii();
@@ -382,6 +383,17 @@ void OrthoContextMenu::callbackAddSpeaker()
              ? lexical_cast<std
              ::string>(radii.getMax(true)) : "10")
         );
+		*/
+
+		// Set a default min and max radius
+		entity->setKeyValue(
+			"s_mindistance",
+			getRegistryKeyWithDefault(RKEY_SPEAKERMINRADIUS, "16")
+		);
+		entity->setKeyValue(
+			"s_maxdistance",
+			getRegistryKeyWithDefault(RKEY_SPEAKERMAXRADIUS, "32")
+		);
     }
 }
 

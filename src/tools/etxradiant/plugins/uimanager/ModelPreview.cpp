@@ -1,5 +1,4 @@
 #include "ModelPreview.h"
-#include "RenderableAABB.h"
 
 #include "gtkutil/GLWidgetSentry.h"
 #include "iuimanager.h"
@@ -8,8 +7,10 @@
 #include "os/path.h"
 #include "math/aabb.h"
 #include "modelskin.h"
+#include "entitylib.h"
 
 #include <gtk/gtk.h>
+#include "iuimanager.h"
 
 #include <boost/algorithm/string/case_conv.hpp>
 
@@ -29,7 +30,8 @@ namespace {
 ModelPreview::ModelPreview() :
 	_widget(gtk_frame_new(NULL)),
 	_glWidget(true),
-	_lastModel("")
+	_lastModel(""),
+	_filtersMenu(GlobalUIManager().createFilterMenu())
 {
 	// Main vbox - above is the GL widget, below is the toolbar
 	GtkWidget* vbx = gtk_vbox_new(FALSE, 0);
@@ -65,7 +67,7 @@ ModelPreview::ModelPreview() :
 	gtk_toolbar_insert(GTK_TOOLBAR(toolbar), _drawBBox, 0);
 	
 	// Create the menu
-	gtk_box_pack_end(GTK_BOX(toolHBox), _filtersMenu, FALSE, FALSE, 0);
+	gtk_box_pack_end(GTK_BOX(toolHBox), _filtersMenu->getMenuBarWidget(), FALSE, FALSE, 0);
 
 	// Pack into a frame and return
 	gtk_container_add(GTK_CONTAINER(_widget), vbx);
@@ -241,8 +243,7 @@ void ModelPreview::callbackGLDraw(GtkWidget* widget,
 		glDisable(GL_TEXTURE_2D);
 		glColor3f(0, 1, 1);
 
-		// Submit the AABB geometry
-		RenderableAABB(aabb).render(RenderInfo());
+		aabb_draw_wire(aabb); // TODO: This seems to have broken (was RenderableAABB before)
 	}
 
 	// Render the actual model.

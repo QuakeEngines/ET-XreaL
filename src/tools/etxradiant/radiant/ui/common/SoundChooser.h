@@ -54,7 +54,7 @@ public:
 	/**
 	 * Display the dialog and return the selection.
 	 */
-	std::string chooseSound();
+	const std::string& chooseSound() const;
 
 };
 

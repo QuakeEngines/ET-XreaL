@@ -1,6 +1,7 @@
 #ifndef MODELPREVIEW_H_
 #define MODELPREVIEW_H_
 
+#include "ifiltermenu.h"
 #include "imodel.h"
 #include "imodelpreview.h"
 #include "math/matrix.h"
@@ -10,7 +11,6 @@
 #include <string>
 #include <map>
 #include "gtkutil/GLWidget.h"
-#include "ui/menu/FiltersMenu.h"
 
 namespace ui
 {
@@ -25,6 +25,7 @@ namespace ui
 class ModelPreview :
 	public IModelPreview
 {
+private:
 	// Top-level widget
 	GtkWidget* _widget;
 	
@@ -54,8 +55,8 @@ class ModelPreview :
 	// Current rotation matrix
 	Matrix4 _rotation;
 
-	// Constructs the filters menu (provides a GtkWidget* operator)
-	FiltersMenu _filtersMenu;
+	// The filters menu
+	IFilterMenuPtr _filtersMenu;
 	
 private:
 
@@ -123,6 +124,6 @@ public:
 };
 typedef boost::shared_ptr<ModelPreview> ModelPreviewPtr;
 
-}
+} // namespace
 
 #endif /*MODELPREVIEW_H_*/

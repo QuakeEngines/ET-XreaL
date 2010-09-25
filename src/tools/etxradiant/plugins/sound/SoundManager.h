@@ -14,7 +14,7 @@ namespace sound {
 /**
  * SoundManager implementing class.
  */
-class SoundManager :
+class SoundManager : 
 	public ISoundManager
 {
 	typedef std::map<std::string, SoundFilePtr> SoundFileMap;
@@ -24,13 +24,13 @@ class SoundManager :
 
 	// The helper class for playing the sounds
 	boost::shared_ptr<SoundPlayer> _soundPlayer;
-
+	
 public:
 	/**
 	 * Main constructor.
 	 */
 	SoundManager();
-
+	
 	/**
 	 * Enumerate sound shaders.
 	 */

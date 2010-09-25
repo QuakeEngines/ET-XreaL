@@ -13,9 +13,9 @@ namespace ui {
 
 /** greebo: This class provides the UI elements to inspect a given
  * 			sound shader with playback option.
- *
+ * 
  * 			Use the GtkWidget* cast operator to pack this into a
- * 			parent container.
+ * 			parent container. 
  */
 class SoundShaderPreview
 {
@@ -32,19 +32,19 @@ class SoundShaderPreview
 public:
 	SoundShaderPreview();
 
-	/** greebo: Sets the soundshader to preview.
-	 * 			This updates the preview liststore and treeview.
+	/** greebo: Sets the soundshader to preview. 
+	 * 			This updates the preview liststore and treeview. 
 	 */
 	void setSoundFile(const std::string& fileName);
 
-	/** greebo: Operator cast to GtkWidget to pack this into a
+	/** greebo: Operator cast to GtkWidget to pack this into a 
 	 * 			parent container widget.
 	 */
 	operator GtkWidget*();
 
 private:
 	/** greebo: Returns the currently selected sound file (file list)
-	 *
+	 * 
 	 * @returns: the filename as defined in the shader or "" if nothing selected.
 	 */
 	std::string getSelectedSoundFile();
@@ -56,7 +56,7 @@ private:
 	/** greebo: Updates the list according to the active soundshader
 	 */
 	void update();
-
+	
 	// GTK Callbacks
 	static void onPlay(GtkButton* button, SoundShaderPreview* self);
 	static void onStop(GtkButton* button, SoundShaderPreview* self);

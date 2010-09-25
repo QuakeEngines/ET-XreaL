@@ -48,14 +48,14 @@ public:
 	{
 		// Test the extension. If it is not matching any of the known extensions,
 		// not interested
-		if (boost::algorithm::iends_with(fileName, WAV_EXTENSION) ||
-			boost::algorithm::iends_with(fileName, OGG_EXTENSION))
+		if (boost::algorithm::iends_with(filename, WAV_EXTENSION) ||
+			boost::algorithm::iends_with(filename, OGG_EXTENSION))
 		{
 			//ArchiveFilePtr file = GlobalFileSystem().openFile(fileName);
 
 			//if(file)
 			{
-				_manager.addSoundFile(fileName);
+				_manager.addSoundFile(filename);
 			}
 			/*
 			else

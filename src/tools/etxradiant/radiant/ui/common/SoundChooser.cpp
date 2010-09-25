@@ -69,36 +69,38 @@ class SoundFileFinder :
 	public gtkutil::VFSTreePopulator,
 	public gtkutil::VFSTreePopulator::Visitor
 {
-	gtkutil::VFSTreePopulator &_pop;
-
 public:
-
 	// Constructor
 	SoundFileFinder(GtkTreeStore* treeStore):
 		gtkutil::VFSTreePopulator(treeStore)
-	{ }
-
-	// Functor operator
-	void visit(const ISoundFilePtr& sound) {
-		addPath(sound->getName());
+	{}
+	
+	// Functor operator needed for the forEachShader() call
+	void visit(const ISoundFilePtr& sound) 
+	{
+		// Construct a "path" into the sound shader tree,
+		// using the mod name as first folder level
+		addPath(/*sound->getModName() + "/" +*/ sound->getName());
 	}
 
 	// Required visit function
 	void visit(GtkTreeStore* store, GtkTreeIter* iter, 
 			   const std::string& path, bool isExplicit)
 	{
-		// Get the display path, everything after rightmost slash
-		std::string displayPath = path.substr(path.rfind("/") + 1);
+		// Get the display name by stripping off everything before the last
+		// slash
+		std::string displayName = path.substr(path.rfind("/") + 1);
 
 		// Get the icon, either folder or skin
-		GdkPixbuf* pixBuf = isExplicit
+		GdkPixbuf* pixBuf = isExplicit 
 							? GlobalUIManager().getLocalPixbuf(SOUND_ICON)
 							: GlobalUIManager().getLocalPixbuf(FOLDER_ICON);
 
-		//gtk_tree_store_append(store, it, NULL);
+		// Fill in the column values
 		gtk_tree_store_set(store, iter,
-						   DISPLAYNAME_COLUMN, displayPath.c_str(),
-						   SOUNDNAME_COLUMN, path.c_str(),
+						   DISPLAYNAME_COLUMN, displayName.c_str(),
+						   SOUNDNAME_COLUMN, displayName.c_str(),
+						   //IS_FOLDER_COLUMN, isExplicit ? FALSE : TRUE,
 						   ICON_COLUMN, pixBuf,
 						   -1);
 	}
@@ -121,9 +123,6 @@ GtkWidget* SoundChooser::createTreeView()
 	g_signal_connect(G_OBJECT(_treeSelection), "changed", 
 					 G_CALLBACK(_onSelectionChange), this);
 
-	// Populate the tree store with sounds
-
-
 	// Add "All sounds" toplevel node
 	GtkTreeIter allSounds;
 	gtk_tree_store_append(_treeStore, &allSounds, NULL);
@@ -133,52 +132,62 @@ GtkWidget* SoundChooser::createTreeView()
 					   ICON_COLUMN, GlobalUIManager().getLocalPixbuf(FOLDER_ICON),
 					   -1);
 
-	// Create a TreePopulator for the tree store and pass in each of the sound names.
-	gtkutil::VFSTreePopulator pop(_treeStore, &allSounds);
-	SoundFileFinder finder(pop);
-	GlobalSoundManager().forEachSoundFile(finder);
+	// Populate the tree store with sounds, using a VFS tree populator
+	SoundFileFinder pop(_treeStore);
 
 	// Visit the tree populator in order to fill in the column data
-	SoundTreeVisitor visitor;
-	pop.forEachNode(visitor);
+	GlobalSoundManager().forEachSoundFile(pop);
 
-	// Pack treeview into a ScrolledFrame and return
-	return gtkutil::ScrolledFrame(_treeView);
+	// Let the populator iterate over all collected elements 
+	// and insert them in the treestore
+	pop.forEachNode(pop);
+
+	return gtkutil::ScrolledFrame(GTK_WIDGET(_treeView));	
 }
 
 // Create buttons panel
-GtkWidget* SoundChooser::createButtons() {
+GtkWidget* SoundChooser::createButtons()
+{
 	GtkWidget* hbx = gtk_hbox_new(TRUE, 6);
-
+	
 	GtkWidget* okButton = gtk_button_new_from_stock(GTK_STOCK_OK);
 	GtkWidget* cancelButton = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
 
-	g_signal_connect(G_OBJECT(okButton), "clicked",
+	g_signal_connect(G_OBJECT(okButton), "clicked", 
 					 G_CALLBACK(_onOK), this);
-	g_signal_connect(G_OBJECT(cancelButton), "clicked",
+	g_signal_connect(G_OBJECT(cancelButton), "clicked", 
 					 G_CALLBACK(_onCancel), this);
-
-	gtk_box_pack_end(GTK_BOX(hbx), okButton, TRUE, TRUE, 0);
+	
+	gtk_box_pack_end(GTK_BOX(hbx), okButton, TRUE, TRUE, 0);	
 	gtk_box_pack_end(GTK_BOX(hbx), cancelButton, TRUE, TRUE, 0);
-
-	return gtkutil::RightAlignment(hbx);
+					   
+	return gtkutil::RightAlignment(hbx);	
 }
 
-// Show and block
-std::string SoundChooser::chooseSound() {
-	gtk_widget_show_all(_widget);
-	gtk_main();
+void SoundChooser::_onDeleteEvent()
+{
+	_selectedSound.clear();
+
+	BlockingTransientWindow::_onDeleteEvent();
+}
+
+const std::string& SoundChooser::chooseSound() const
+{
 	return _selectedSound;
 }
 
-/* GTK CALLBACKS */
-
-// Delete dialog
-gboolean SoundChooser::_onDelete(GtkWidget* w, GdkEvent* e, SoundChooser* self) {
-	self->_selectedSound = "";
-	gtk_main_quit();
-	return false; // propagate event
+// Set the selected sound shader, and focuses the treeview to the new selection
+/*
+void SoundChooser::setSelectedShader(const std::string& shader)
+{
+	if (!gtkutil::TreeModel::findAndSelectString(_treeView, shader, SHADERNAME_COLUMN))
+	{
+		gtk_tree_selection_unselect_all(_treeSelection);
+	}
 }
+*/
+
+/* GTK CALLBACKS */
 
 // OK button
 void SoundChooser::_onOK(GtkWidget* w, SoundChooser* self)
@@ -189,13 +198,14 @@ void SoundChooser::_onOK(GtkWidget* w, SoundChooser* self)
 // Cancel button
 void SoundChooser::_onCancel(GtkWidget* w, SoundChooser* self)
 {
-	self->_selectedShader.clear();
+	self->_selectedSound.clear();
 	self->destroy();
 }
 
 // Tree Selection Change
 void SoundChooser::_onSelectionChange(GtkTreeSelection* selection, SoundChooser* self)
 {
+	/*
 	bool isFolder = gtkutil::TreeModel::getSelectedBoolean(self->_treeSelection, IS_FOLDER_COLUMN);
 
 	if (isFolder) 
@@ -203,15 +213,16 @@ void SoundChooser::_onSelectionChange(GtkTreeSelection* selection, SoundChooser*
 		self->_selectedSound.clear();
 	}
 	else
+	*/
 	{
-		self->_selectedShader = gtkutil::TreeModel::getSelectedString(
+		self->_selectedSound = gtkutil::TreeModel::getSelectedString(
 			self->_treeSelection,
 			SOUNDNAME_COLUMN
 		);
 	}
 	
 	// Notify the preview widget about the change 
-	self->_preview.setSound(self->_selectedSound);
+	self->_preview.setSoundFile(self->_selectedSound);
 }
 
 } // namespace

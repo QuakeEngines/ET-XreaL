@@ -2,6 +2,7 @@
 #include "PropertyEditorFactory.h"
 #include "ui/common/SoundChooser.h"
 
+#include "i18n.h"
 #include "ientity.h"
 
 #include <gtk/gtk.h>
@@ -50,8 +51,11 @@ void SoundPropertyEditor::_onBrowseButton(GtkWidget* w,
 {
 	// Use a SoundChooser dialog to get a selection from the user
 	SoundChooser chooser;
-	std::string selection = chooser.chooseSound(); 
-	if (!selection.empty()) {
+	const std::string& selection = chooser.chooseSound();
+
+	// Selection will be empy if user clicked cancel or X
+	if (!selection.empty())
+	{
 		// Apply the change to the entity
 		self->setKeyValue(self->_key, selection);
 	}
