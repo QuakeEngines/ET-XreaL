@@ -5391,6 +5391,11 @@ void R_LoadLightGrid(lump_t * l)
 
 	w->numLightGridPoints = w->lightGridBounds[0] * w->lightGridBounds[1] * w->lightGridBounds[2];
 
+	ri.Printf(PRINT_ALL, "grid size (%i %i %i)\n", (int)w->lightGridSize[0], (int)w->lightGridSize[1],
+				  (int)w->lightGridSize[2]);
+	ri.Printf(PRINT_ALL, "grid bounds (%i %i %i)\n", (int)w->lightGridBounds[0], (int)w->lightGridBounds[1],
+				  (int)w->lightGridBounds[2]);
+
 	if(l->filelen != w->numLightGridPoints * sizeof(dgridPoint_t))
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: light grid mismatch\n");

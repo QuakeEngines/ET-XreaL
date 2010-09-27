@@ -4856,9 +4856,12 @@ returns qtrue if request was successful, qfalse if the gods were angered
 */
 qboolean RE_LoadDynamicShader(const char *shadername, const char *shadertext)
 {
+#if 1
 	const char     *func_err = "WARNING: RE_LoadDynamicShader";
 	dynamicshader_t *dptr, *lastdptr;
 	char           *q, *token;
+
+	ri.Printf(PRINT_WARNING, "RE_LoadDynamicShader( name = '%s', text = '%s' )\n", shadername, shadertext);
 
 	if(!shadername && shadertext)
 	{
@@ -4952,6 +4955,9 @@ qboolean RE_LoadDynamicShader(const char *shadername, const char *shadertext)
 //  ri.Printf( PRINT_ALL, "Loaded dynamic shader [%s] with shadertext [%s]\n", shadername, shadertext );
 
 	return qtrue;
+#else
+	return qfalse;
+#endif
 }
 
 //========================================================================================

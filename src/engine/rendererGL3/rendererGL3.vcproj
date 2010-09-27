@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\libs\ft2\include;..\sdl\include;..\..\libs\zlib;..\..\libs\glew\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC;REF_HARD_LINKED"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=""
@@ -68,18 +68,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
+				Name="VCLibrarianTool"
 				AdditionalDependencies="opengl32.lib"
-				OutputFile="../../../rendererGL3.dll"
-				ModuleDefinitionFile="rendererGL3.def"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../../../rendererGL3.pdb"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -91,9 +84,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -101,7 +91,7 @@
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -127,7 +117,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\freetype\include;..\sdl\include;..\..\libs\zlib;..\..\libs\glew\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;BUILD_FREETYPE;FT2_BUILD_LIBRARY;GLEW_STATIC;REF_HARD_LINKED"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="false"
@@ -152,16 +142,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
+				Name="VCLibrarianTool"
 				AdditionalDependencies="opengl32.lib"
-				OutputFile="../../../rendererGL3.dll"
-				ModuleDefinitionFile="rendererGL3.def"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -171,9 +156,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
