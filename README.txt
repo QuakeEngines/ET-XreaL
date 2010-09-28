@@ -74,12 +74,14 @@ _______________________________
 3) GENERAL NOTES
 ______________________
 
+If you use a Nvidia card keep the Nvidia Threaded Optimzation ON !!!
+
+
+This release does not contain Enemy Territory's game data, the game data is still
+covered by the original EULA and must be obeyed as usual.
 
 Wolfenstein: Enemy Territory is a free release, and can be downloaded from
 http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
-
-This source release does not contain any game data, the game data is still
-covered by the original EULA and must be obeyed as usual.
 
 Install the latest version of the game for your platform to get the game data.
 
