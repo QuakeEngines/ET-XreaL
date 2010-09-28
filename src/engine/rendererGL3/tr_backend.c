@@ -7962,7 +7962,8 @@ void RB_CameraPostFX(void)
 
 	GLimp_LogComment("--- RB_CameraPostFX ---\n");
 
-	if((backEnd.refdef.rdflags & RDF_NOWORLDMODEL) || !r_cameraPostFX->integer || backEnd.viewParms.isPortal)
+	if((backEnd.refdef.rdflags & RDF_NOWORLDMODEL) || !r_cameraPostFX->integer || backEnd.viewParms.isPortal ||
+		!tr.grainImage || !tr.vignetteImage)
 		return;
 
 	// set 2D virtual screen size
