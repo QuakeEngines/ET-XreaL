@@ -7,6 +7,7 @@ DEVELOPER=../..
 RELEASE=ET-XreaL_snapshot_$DATE
 DEFAULTGAME=etmain
 COREPK3=zz-XreaL-$DATE.pk3
+DLLPK3=mp_bin-$DATE.pk3
 
 # remove previously created package
 rm $RELEASE.7z
@@ -16,14 +17,35 @@ rm -rf $RELEASE
 git clone --recursive git://xreal.git.sourceforge.net/gitroot/xreal/ET-XreaL $RELEASE
 #cp -a XreaL_export $RELEASE
 
+# add game logic
+cp $DEVELOPER/$DEFAULTGAME/ui_mp_x86.dll $RELEASE/$DEFAULTGAME/
+cp $DEVELOPER/$DEFAULTGAME/cgame_mp_x86.dll $RELEASE/$DEFAULTGAME/
+cp $DEVELOPER/$DEFAULTGAME/qagame_mp_x86.dll $RELEASE/$DEFAULTGAME/
+
+7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/ui_mp_x86.dll
+7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/cgame_mp_x86.dll
+7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/qagame_mp_x86.dll
+#7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/src
+
 # build core pk3 and delete everything else
 cd $RELEASE/$DEFAULTGAME
 rm zz-XreaL*.pk3
-zip -r $COREPK3 . -x \*.pk3 src
+
+# create mp_bin.pk3
+zip -r $DLLPK3 src
+zip $DLLPK3 ui_mp_x86.dll
+zip $DLLPK3 cgame_mp_x86.dll
+zip $DLLPK3 qagame_mp_x86.dll
+mv $DLLPK3 ..
+
+# build pk3 with XreaL addons
+#rm -rf src
+zip -r $COREPK3 . -x \*.pk3 \src \*.dll
 cd ..
 mv $DEFAULTGAME/$COREPK3 .
 rm -rf $DEFAULTGAME
 mkdir $DEFAULTGAME
+mv $DLLPK3 $DEFAULTGAME
 mv $COREPK3 $DEFAULTGAME
 cd $DEFAULTGAME
 unzip $COREPK3 MEDIA.txt
@@ -36,6 +58,7 @@ cd $ROOT
 
 # add Win32 binaries
 cp $DEVELOPER/ETXreaL.exe $RELEASE/
+cp $DEVELOPER/ETXreaL-dedicated.exe $RELEASE/
 #cp $DEVELOPER/base/cgamex86.dll $RELEASE/base/
 #cp $DEVELOPER/base/qagamex86.dll $RELEASE/base/
 #cp $DEVELOPER/base/uix86.dll $RELEASE/base/

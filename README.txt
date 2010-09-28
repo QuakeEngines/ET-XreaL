@@ -74,7 +74,7 @@ _______________________________
 3) GENERAL NOTES
 ______________________
 
-If you use a Nvidia card keep the Nvidia Threaded Optimzation ON !!!
+If you use a Nvidia card then keep the Nvidia Threaded Optimzation ON !!!
 
 
 This release does not contain Enemy Territory's game data, the game data is still
@@ -85,6 +85,11 @@ http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
 
 Install the latest version of the game for your platform to get the game data.
 
+
+For Techies Only: 
+If you want to test the engine with an OpenGL >= 3.2 core profile enabled then start it with: 
+	
+	> +set r_glCoreProfile 1
 
 ____________________________________________
 
