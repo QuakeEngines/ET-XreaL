@@ -3785,6 +3785,7 @@ typedef struct
 
 	float           identityLight;	// 1.0 / ( 1 << overbrightBits )
 	int             overbrightBits;	// r_overbrightBits->integer, but set to 0 if no hw gamma
+	int				mapOverBrightBits;	// r_mapOverbrightBits->integer, but can be overriden by mapper using the worldspawn
 
 	orientationr_t  orientation;			// for current entity
 

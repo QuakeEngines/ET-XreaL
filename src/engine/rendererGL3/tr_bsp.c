@@ -107,7 +107,7 @@ static void R_ColorShiftLightingBytes(byte in[4], byte out[4])
 	int             shift, r, g, b;
 
 	// shift the color data based on overbright range
-	shift = r_mapOverBrightBits->integer - tr.overbrightBits;
+	shift = tr.mapOverBrightBits - tr.overbrightBits;
 
 	// shift the data based on overbright range
 	r = in[0] << shift;
@@ -144,7 +144,7 @@ static void R_ColorShiftLightingFloats(const vec4_t in, vec4_t out)
 	int             shift, r, g, b;
 
 	// shift the color data based on overbright range
-	shift = r_mapOverBrightBits->integer - tr.overbrightBits;
+	shift = tr.mapOverBrightBits - tr.overbrightBits;
 
 	// shift the data based on overbright range
 	r = ((byte)(in[0] * 255)) << shift;
@@ -5647,6 +5647,12 @@ void R_LoadEntities(lump_t * l)
 			ri.Printf(PRINT_ALL, "map features directional light mapping\n");
 			tr.worldDeluxeMapping = qtrue;
 			continue;
+		}
+
+		// check for mapOverBrightBits override
+		else if(!Q_stricmp(keyname, "mapOverBrightBits"))
+		{
+			tr.mapOverBrightBits = Q_bound(0, atof(value), 3);
 		}
 
 		// check for deluxe mapping provided by NetRadiant's q3map2

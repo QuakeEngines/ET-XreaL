@@ -3190,6 +3190,8 @@ void R_SetColorMappings(void)
 	int             inf;
 	int             shift;
 
+	tr.mapOverBrightBits = r_mapOverBrightBits->integer;
+
 	// setup the overbright lighting
 	tr.overbrightBits = r_overBrightBits->integer;
 	if(!glConfig.deviceSupportsGamma)
