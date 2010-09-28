@@ -66,27 +66,27 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
-				ResourceOutputFileName="engine\win32\winquake.res"
+				ResourceOutputFileName="win32\winquake.res"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="compile libcurl"
-				CommandLine="cd libs\curl-7.12.2\lib&#x0D;&#x0A;nmake /f Makefile.vc6 CFG=debug&#x0D;&#x0A;"
+				CommandLine="cd ..\libs\curl-7.12.2\lib&#x0D;&#x0A;nmake /f Makefile.vc6 CFG=debug&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="dinput8.lib winmm.lib wsock32.lib Iphlpapi.lib libcurld.lib"
-				OutputFile="../ETXreaL.exe"
+				OutputFile="../../ETXreaL.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="libs\curl-7.12.2\lib"
-				ManifestFile="../ETXreaL.intermediate.manifest"
+				AdditionalLibraryDirectories="..\libs\curl-7.12.2\lib"
+				ManifestFile="../../ETXreaL.intermediate.manifest"
 				IgnoreDefaultLibraryNames="libcd"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../ETXreaL.pdb"
+				ProgramDatabaseFile="../../ETXreaL.pdb"
 				GenerateMapFile="true"
-				MapFileName="../ETXreaL.map"
+				MapFileName="../../ETXreaL.map"
 				SubSystem="2"
 				StackReserveSize="8388608"
 				RandomizedBaseAddress="1"
@@ -166,7 +166,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
-				ResourceOutputFileName="engine\win32\winquake.res"
+				ResourceOutputFileName="win32\winquake.res"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -175,14 +175,14 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="winmm.lib wsock32.lib .\botlib\Debug\botlib.lib Iphlpapi.lib"
-				OutputFile="../ETXreaL-Ded.exe"
+				OutputFile="../../ETXreaL-Ded.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				ManifestFile="../ETXreaL-Ded.intermediate.manifest"
+				ManifestFile="../../ETXreaL-Ded.intermediate.manifest"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../ETXreaL-Ded.pdb"
+				ProgramDatabaseFile="../../ETXreaL-Ded.pdb"
 				GenerateMapFile="true"
-				MapFileName="../ETXreaL-Ded.map"
+				MapFileName="../../ETXreaL-Ded.map"
 				SubSystem="2"
 				StackReserveSize="8388608"
 				RandomizedBaseAddress="1"
@@ -224,7 +224,7 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="cd libs\curl-7.12.2&#x0D;&#x0A;cd lib&#x0D;&#x0A;nmake /f Makefile.vc6 CFG=release&#x0D;&#x0A;"
+				CommandLine="cd ..\libs\curl-7.12.2&#x0D;&#x0A;cd lib&#x0D;&#x0A;nmake /f Makefile.vc6 CFG=release&#x0D;&#x0A;"
 				Outputs="libcurl.lib"
 			/>
 			<Tool
@@ -268,22 +268,22 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="compile libcurl"
-				CommandLine="cd libs\curl-7.12.2\lib&#x0D;&#x0A;nmake /f Makefile.vc6 CFG=release&#x0D;&#x0A;"
+				CommandLine="cd ..\libs\curl-7.12.2\lib&#x0D;&#x0A;nmake /f Makefile.vc6 CFG=release&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="dinput8.lib winmm.lib wsock32.lib Iphlpapi.lib libcurl.lib"
-				OutputFile="../ETXreaL.exe"
+				OutputFile="../../ETXreaL.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="libs\curl-7.12.2\lib"
-				ManifestFile="../ETXreaL.intermediate.manifest"
+				AdditionalLibraryDirectories="..\libs\curl-7.12.2\lib"
+				ManifestFile="../../ETXreaL.intermediate.manifest"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../ETXreaL.pdb"
+				ProgramDatabaseFile="../../ETXreaL.pdb"
 				GenerateMapFile="true"
-				MapFileName="../ETXreaL.map"
+				MapFileName="../../ETXreaL.map"
 				SubSystem="2"
 				StackReserveSize="8388608"
 				RandomizedBaseAddress="1"
@@ -370,15 +370,15 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="winmm.lib wsock32.lib .\botlib\Release\botlib.lib Iphlpapi.lib"
-				OutputFile="../ETXreaL-Ded.exe"
+				OutputFile="../../ETXreaL-Ded.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ManifestFile="../ETXreaL-Ded.intermediate.manifest"
+				ManifestFile="../../ETXreaL-Ded.intermediate.manifest"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../ETXreaL-DED.pdb"
+				ProgramDatabaseFile="../../ETXreaL-DED.pdb"
 				GenerateMapFile="true"
-				MapFileName="../ETXreaL-DED.map"
+				MapFileName="../../ETXreaL-DED.map"
 				SubSystem="2"
 				StackReserveSize="8388608"
 				RandomizedBaseAddress="1"
@@ -415,7 +415,7 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 			>
 			<File
-				RelativePath=".\engine\client\cl_cgame.c"
+				RelativePath=".\client\cl_cgame.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -435,7 +435,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_cin.c"
+				RelativePath=".\client\cl_cin.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -455,7 +455,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_console.c"
+				RelativePath=".\client\cl_console.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -475,7 +475,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_input.c"
+				RelativePath=".\client\cl_input.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -495,7 +495,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_keys.c"
+				RelativePath=".\client\cl_keys.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -515,7 +515,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_main.c"
+				RelativePath=".\client\cl_main.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -535,7 +535,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_net_chan.c"
+				RelativePath=".\client\cl_net_chan.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -555,7 +555,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_parse.c"
+				RelativePath=".\client\cl_parse.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -575,7 +575,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_scrn.c"
+				RelativePath=".\client\cl_scrn.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -595,7 +595,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\cl_ui.c"
+				RelativePath=".\client\cl_ui.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -615,59 +615,59 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_load.c"
+				RelativePath=".\qcommon\cm_load.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_patch.c"
+				RelativePath=".\qcommon\cm_patch.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_polylib.c"
+				RelativePath=".\qcommon\cm_polylib.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_test.c"
+				RelativePath=".\qcommon\cm_test.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_trace.c"
+				RelativePath=".\qcommon\cm_trace.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cmd.c"
+				RelativePath=".\qcommon\cmd.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\common.c"
+				RelativePath=".\qcommon\common.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cvar.c"
+				RelativePath=".\qcommon\cvar.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\files.c"
+				RelativePath=".\qcommon\files.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\huffman.c"
+				RelativePath=".\qcommon\huffman.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\md4.c"
+				RelativePath=".\qcommon\md4.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\msg.c"
+				RelativePath=".\qcommon\msg.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\net_chan.c"
+				RelativePath=".\qcommon\net_chan.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\null\null_client.c"
+				RelativePath=".\null\null_client.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -687,7 +687,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\null\null_input.c"
+				RelativePath=".\null\null_input.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -707,7 +707,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\null\null_snddma.c"
+				RelativePath=".\null\null_snddma.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -727,35 +727,15 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\shared\q_math.c"
+				RelativePath="..\shared\q_math.c"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\q_shared.c"
+				RelativePath="..\shared\q_shared.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\client\snd_adpcm.c"
-				>
-				<FileConfiguration
-					Name="Debug Dedicated|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Dedicated|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\engine\client\snd_dma.c"
+				RelativePath=".\client\snd_adpcm.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -775,7 +755,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\snd_mem.c"
+				RelativePath=".\client\snd_dma.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -795,7 +775,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\snd_mix.c"
+				RelativePath=".\client\snd_mem.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -815,7 +795,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\client\snd_wavelet.c"
+				RelativePath=".\client\snd_mix.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -835,63 +815,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\server\sv_bot.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_ccmds.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_client.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_game.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_init.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_main.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_net_chan.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_snapshot.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\server\sv_world.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\qcommon\unzip.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\qcommon\vm.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\qcommon\vm_interpreted.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\qcommon\vm_x86.c"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\win32\win_eh.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\engine\win32\win_input.c"
+				RelativePath=".\client\snd_wavelet.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -911,19 +835,63 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_main.c"
+				RelativePath=".\server\sv_bot.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_net.c"
+				RelativePath=".\server\sv_ccmds.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_shared.c"
+				RelativePath=".\server\sv_client.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_snd.c"
+				RelativePath=".\server\sv_game.c"
+				>
+			</File>
+			<File
+				RelativePath=".\server\sv_init.c"
+				>
+			</File>
+			<File
+				RelativePath=".\server\sv_main.c"
+				>
+			</File>
+			<File
+				RelativePath=".\server\sv_net_chan.c"
+				>
+			</File>
+			<File
+				RelativePath=".\server\sv_snapshot.c"
+				>
+			</File>
+			<File
+				RelativePath=".\server\sv_world.c"
+				>
+			</File>
+			<File
+				RelativePath=".\qcommon\unzip.c"
+				>
+			</File>
+			<File
+				RelativePath=".\qcommon\vm.c"
+				>
+			</File>
+			<File
+				RelativePath=".\qcommon\vm_interpreted.c"
+				>
+			</File>
+			<File
+				RelativePath=".\qcommon\vm_x86.c"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\win_eh.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\win_input.c"
 				>
 				<FileConfiguration
 					Name="Debug Dedicated|Win32"
@@ -943,11 +911,43 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_syscon.c"
+				RelativePath=".\win32\win_main.c"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_wndproc.c"
+				RelativePath=".\win32\win_net.c"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\win_shared.c"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\win_snd.c"
+				>
+				<FileConfiguration
+					Name="Debug Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\win32\win_syscon.c"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\win_wndproc.c"
 				>
 			</File>
 		</Filter>
@@ -956,19 +956,19 @@
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
 			<File
-				RelativePath="..\etmain\src\game\bg_public.h"
+				RelativePath="..\..\etmain\src\game\bg_public.h"
 				>
 			</File>
 			<File
-				RelativePath="..\etmain\src\botai\botai.h"
+				RelativePath="..\..\etmain\src\botai\botai.h"
 				>
 			</File>
 			<File
-				RelativePath="..\etmain\src\game\botlib.h"
+				RelativePath="..\..\etmain\src\game\botlib.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\cg_public.h"
+				RelativePath="...\shared\cg_public.h"
 				>
 			</File>
 			<File
@@ -976,91 +976,91 @@
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_local.h"
+				RelativePath=".\qcommon\cm_local.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_patch.h"
+				RelativePath=".\qcommon\cm_patch.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_polylib.h"
+				RelativePath=".\qcommon\cm_polylib.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\cm_public.h"
+				RelativePath=".\qcommon\cm_public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\g_public.h"
+				RelativePath="..\shared\g_public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\keycodes.h"
+				RelativePath="..\shared\keycodes.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\client\keys.h"
+				RelativePath=".\client\keys.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\q_shared.h"
+				RelativePath="..\shared\q_shared.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\qcommon.h"
+				RelativePath=".\qcommon\qcommon.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\qfiles.h"
+				RelativePath=".\qcommon\qfiles.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\renderer\qgl.h"
+				RelativePath=".\renderer\qgl.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\server\server.h"
+				RelativePath=".\server\server.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\client\snd_local.h"
+				RelativePath=".\client\snd_local.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\client\snd_public.h"
+				RelativePath=".\client\snd_public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\surfaceflags.h"
+				RelativePath="..\shared\surfaceflags.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\renderer\tr_local.h"
+				RelativePath=".\renderer\tr_local.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\renderer\tr_public.h"
+				RelativePath=".\renderer\tr_public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\tr_types.h"
+				RelativePath="..\shared\tr_types.h"
 				>
 			</File>
 			<File
-				RelativePath=".\shared\ui_public.h"
+				RelativePath="..\shared\ui_public.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\unzip.h"
+				RelativePath=".\qcommon\unzip.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\vm_local.h"
+				RelativePath=".\qcommon\vm_local.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\win32\win_local.h"
+				RelativePath=".\win32\win_local.h"
 				>
 			</File>
 		</Filter>
@@ -1071,267 +1071,267 @@
 				Name="ui"
 				>
 				<File
-					RelativePath="..\etmain\ui\addfilter.menu"
+					RelativePath="..\..\etmain\ui\addfilter.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\bookp.menu"
+					RelativePath="..\..\etmain\ui\bookp.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\bookv.menu"
+					RelativePath="..\..\etmain\ui\bookv.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\bookz.menu"
+					RelativePath="..\..\etmain\ui\bookz.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\cdkey.menu"
+					RelativePath="..\..\etmain\ui\cdkey.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\cinematicmenu.menu"
+					RelativePath="..\..\etmain\ui\cinematicmenu.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\clipboard.menu"
+					RelativePath="..\..\etmain\ui\clipboard.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\connect.menu"
+					RelativePath="..\..\etmain\ui\connect.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\controls.menu"
+					RelativePath="..\..\etmain\ui\controls.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\createfavorite.menu"
+					RelativePath="..\..\etmain\ui\createfavorite.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\createserver.menu"
+					RelativePath="..\..\etmain\ui\createserver.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\credit.menu"
+					RelativePath="..\..\etmain\ui\credit.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\default.menu"
+					RelativePath="..\..\etmain\ui\default.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\demo.menu"
+					RelativePath="..\..\etmain\ui\demo.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\demo_quit.menu"
+					RelativePath="..\..\etmain\ui\demo_quit.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\endofgame.menu"
+					RelativePath="..\..\etmain\ui\endofgame.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\error.menu"
+					RelativePath="..\..\etmain\ui\error.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\fight.menu"
+					RelativePath="..\..\etmain\ui\fight.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\findplayer.menu"
+					RelativePath="..\..\etmain\ui\findplayer.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\help.menu"
+					RelativePath="..\..\etmain\ui\help.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\hud.menu"
+					RelativePath="..\..\etmain\ui\hud.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\hud.txt"
+					RelativePath="..\..\etmain\ui\hud.txt"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame.menu"
+					RelativePath="..\..\etmain\ui\ingame.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame.txt"
+					RelativePath="..\..\etmain\ui\ingame.txt"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_about.menu"
+					RelativePath="..\..\etmain\ui\ingame_about.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_addbot.menu"
+					RelativePath="..\..\etmain\ui\ingame_addbot.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_callvote.menu"
+					RelativePath="..\..\etmain\ui\ingame_callvote.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_controls.menu"
+					RelativePath="..\..\etmain\ui\ingame_controls.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_help.menu"
+					RelativePath="..\..\etmain\ui\ingame_help.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_join.menu"
+					RelativePath="..\..\etmain\ui\ingame_join.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_leave.menu"
+					RelativePath="..\..\etmain\ui\ingame_leave.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_loadsave.menu"
+					RelativePath="..\..\etmain\ui\ingame_loadsave.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_options.menu"
+					RelativePath="..\..\etmain\ui\ingame_options.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_orders.menu"
+					RelativePath="..\..\etmain\ui\ingame_orders.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_player.menu"
+					RelativePath="..\..\etmain\ui\ingame_player.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_system.menu"
+					RelativePath="..\..\etmain\ui\ingame_system.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ingame_vote.menu"
+					RelativePath="..\..\etmain\ui\ingame_vote.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\joinserver.menu"
+					RelativePath="..\..\etmain\ui\joinserver.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\load.menu"
+					RelativePath="..\..\etmain\ui\load.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\main.menu"
+					RelativePath="..\..\etmain\ui\main.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\menudef.h"
+					RelativePath="..\..\etmain\ui\menudef.h"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\menus.txt"
+					RelativePath="..\..\etmain\ui\menus.txt"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\min_hud.menu"
+					RelativePath="..\..\etmain\ui\min_hud.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\mod.menu"
+					RelativePath="..\..\etmain\ui\mod.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\multiplayer.menu"
+					RelativePath="..\..\etmain\ui\multiplayer.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\notebook.menu"
+					RelativePath="..\..\etmain\ui\notebook.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\options.menu"
+					RelativePath="..\..\etmain\ui\options.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\ordershelp.menu"
+					RelativePath="..\..\etmain\ui\ordershelp.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\password.menu"
+					RelativePath="..\..\etmain\ui\password.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\play.menu"
+					RelativePath="..\..\etmain\ui\play.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\player.menu"
+					RelativePath="..\..\etmain\ui\player.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\powerup.menu"
+					RelativePath="..\..\etmain\ui\powerup.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\quit.menu"
+					RelativePath="..\..\etmain\ui\quit.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\quitcredit.menu"
+					RelativePath="..\..\etmain\ui\quitcredit.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\resetscore.menu"
+					RelativePath="..\..\etmain\ui\resetscore.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\score.menu"
+					RelativePath="..\..\etmain\ui\score.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\serverinfo.menu"
+					RelativePath="..\..\etmain\ui\serverinfo.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\setup.menu"
+					RelativePath="..\..\etmain\ui\setup.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\skirmish.menu"
+					RelativePath="..\..\etmain\ui\skirmish.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\system.menu"
+					RelativePath="..\..\etmain\ui\system.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\teamscore.menu"
+					RelativePath="..\..\etmain\ui\teamscore.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\vid_restart.menu"
+					RelativePath="..\..\etmain\ui\vid_restart.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\wm_limbo.menu"
+					RelativePath="..\..\etmain\ui\wm_limbo.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\wm_pickplayer.menu"
+					RelativePath="..\..\etmain\ui\wm_pickplayer.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\wm_pickteam.menu"
+					RelativePath="..\..\etmain\ui\wm_pickteam.menu"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\ui\wm_quickmessage.menu"
+					RelativePath="..\..\etmain\ui\wm_quickmessage.menu"
 					>
 				</File>
 			</Filter>
@@ -1339,175 +1339,175 @@
 				Name="scripts"
 				>
 				<File
-					RelativePath="..\etmain\scripts\ai.shader"
+					RelativePath="..\..\etmain\scripts\ai.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\alpha.shader"
+					RelativePath="..\..\etmain\scripts\alpha.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\blacksmokeanim.shader"
+					RelativePath="..\..\etmain\scripts\blacksmokeanim.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\blacksmokeanimb.shader"
+					RelativePath="..\..\etmain\scripts\blacksmokeanimb.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\clipboard.shader"
+					RelativePath="..\..\etmain\scripts\clipboard.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\common.shader"
+					RelativePath="..\..\etmain\scripts\common.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\cursorhints.shader"
+					RelativePath="..\..\etmain\scripts\cursorhints.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\decals.shader"
+					RelativePath="..\..\etmain\scripts\decals.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\eerie.shader"
+					RelativePath="..\..\etmain\scripts\eerie.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\expblue.shader"
+					RelativePath="..\..\etmain\scripts\expblue.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\explode1.shader"
+					RelativePath="..\..\etmain\scripts\explode1.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\fijets.shader"
+					RelativePath="..\..\etmain\scripts\fijets.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\firest.shader"
+					RelativePath="..\..\etmain\scripts\firest.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\flamethrower.shader"
+					RelativePath="..\..\etmain\scripts\flamethrower.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\funnel.shader"
+					RelativePath="..\..\etmain\scripts\funnel.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\gfx.shader"
+					RelativePath="..\..\etmain\scripts\gfx.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\heat.shader"
+					RelativePath="..\..\etmain\scripts\heat.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\lights.shader"
+					RelativePath="..\..\etmain\scripts\lights.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\liquid.shader"
+					RelativePath="..\..\etmain\scripts\liquid.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\maxx.shader"
+					RelativePath="..\..\etmain\scripts\maxx.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\menu.shader"
+					RelativePath="..\..\etmain\scripts\menu.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\metal.shader"
+					RelativePath="..\..\etmain\scripts\metal.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\models.shader"
+					RelativePath="..\..\etmain\scripts\models.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\netest.shader"
+					RelativePath="..\..\etmain\scripts\netest.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\oldwolf.shader"
+					RelativePath="..\..\etmain\scripts\oldwolf.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\organics.shader"
+					RelativePath="..\..\etmain\scripts\organics.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\particle.shader"
+					RelativePath="..\..\etmain\scripts\particle.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\q3view.shader"
+					RelativePath="..\..\etmain\scripts\q3view.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\sfx.shader"
+					RelativePath="..\..\etmain\scripts\sfx.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\skin.shader"
+					RelativePath="..\..\etmain\scripts\skin.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\sky.shader"
+					RelativePath="..\..\etmain\scripts\sky.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\solo.shader"
+					RelativePath="..\..\etmain\scripts\solo.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\terrain.shader"
+					RelativePath="..\..\etmain\scripts\terrain.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\test.shader"
+					RelativePath="..\..\etmain\scripts\test.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\twiltb.shader"
+					RelativePath="..\..\etmain\scripts\twiltb.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\twiltb2.shader"
+					RelativePath="..\..\etmain\scripts\twiltb2.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\ui.shader"
+					RelativePath="..\..\etmain\scripts\ui.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\ui_hud.shader"
+					RelativePath="..\..\etmain\scripts\ui_hud.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\ui_kc.shader"
+					RelativePath="..\..\etmain\scripts\ui_kc.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\ui_notebook.shader"
+					RelativePath="..\..\etmain\scripts\ui_notebook.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\viewflames.shader"
+					RelativePath="..\..\etmain\scripts\viewflames.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\walls.shader"
+					RelativePath="..\..\etmain\scripts\walls.shader"
 					>
 				</File>
 				<File
-					RelativePath="..\etmain\scripts\z_light.shader"
+					RelativePath="..\..\etmain\scripts\z_light.shader"
 					>
 				</File>
 			</Filter>
@@ -1528,67 +1528,11 @@
 			Name="download"
 			>
 			<File
-				RelativePath=".\engine\qcommon\dl_local.h"
+				RelativePath=".\qcommon\dl_local.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\dl_main.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug Dedicated|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Dedicated|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\engine\qcommon\dl_main_curl.c"
-				>
-				<FileConfiguration
-					Name="Debug Dedicated|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Dedicated|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\engine\qcommon\dl_main_stubs.c"
+				RelativePath=".\qcommon\dl_main.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1624,7 +1568,63 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\engine\qcommon\dl_public.h"
+				RelativePath=".\qcommon\dl_main_curl.c"
+				>
+				<FileConfiguration
+					Name="Debug Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\qcommon\dl_main_stubs.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\qcommon\dl_public.h"
 				>
 			</File>
 		</Filter>
@@ -1632,7 +1632,7 @@
 			Name="Resource Files"
 			>
 			<File
-				RelativePath=".\engine\win32\winquake.rc"
+				RelativePath=".\win32\winquake.rc"
 				>
 			</File>
 		</Filter>

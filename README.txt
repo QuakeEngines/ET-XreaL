@@ -102,7 +102,7 @@ __________________________________________________________
 
 1. Download and install the Visual C++ 2008 Express Edition.
 2. Use the VC9 solutions to compile what you need:
-	ET-XreaL/src/wolf.sln
+	ET-XreaL/src/engine/wolf.sln
 	ET-XreaL/src/tools/etxmap/etxmap.sln
 	ET-XreaL/src/tools/etxradiant/tools/vcprojects/ETXRadiant.sln
 
