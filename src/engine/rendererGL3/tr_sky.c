@@ -933,7 +933,7 @@ void Tess_StageIteratorSky(void)
 	// by the generic shader routine
 	BuildCloudData();
 
-	if(tess.numVertexes)
+	if(tess.numVertexes || tess.multiDrawPrimitives)
 		tess.stageIteratorFunc2();
 
 	// Tr3B: TODO draw the inner skybox?

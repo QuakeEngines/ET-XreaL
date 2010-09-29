@@ -1149,7 +1149,7 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 	}
 	else
 	{
-		if(r_vboFaces->integer && srf->vbo && srf->ibo && !ShaderRequiresCPUDeforms(tess.surfaceShader))
+		if(r_vboFaces->integer && srf->vbo && srf->ibo && !ShaderRequiresCPUDeforms(tess.surfaceShader) && tess.stageIteratorFunc != Tess_StageIteratorSky)
 		{
 			if(tess.multiDrawPrimitives >= MAX_MULTIDRAW_PRIMITIVES)
 			{
