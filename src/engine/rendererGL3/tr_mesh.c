@@ -266,7 +266,7 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 	// set up lighting now that we know we aren't culled
 	if(!personalModel || r_shadows->integer > 1)
 	{
-		R_SetupEntityLighting(&tr.refdef, ent);
+		R_SetupEntityLighting(&tr.refdef, ent, NULL);
 	}
 
 	// draw all surfaces

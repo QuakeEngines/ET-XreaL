@@ -9671,6 +9671,8 @@ static void RB_RenderDebugUtils()
 		trRefEntity_t  *ent;
 		int             i;
 		vec4_t          quadVerts[4];
+		vec3_t			mins = {-1,-1,-1};
+		vec3_t			maxs = { 1, 1, 1};
 
 		GL_BindProgram(&tr.genericSingleShader);
 		GL_State(GLS_POLYMODE_LINE | GLS_DEPTHTEST_DISABLE);
@@ -9698,53 +9700,23 @@ static void RB_RenderDebugUtils()
 			if((ent->e.renderfx & RF_THIRD_PERSON) && !backEnd.viewParms.isPortal)
 				continue;
 
+			if(ent->cull == CULL_OUT)
+				continue;
+
 			// set up the transformation matrix
 			R_RotateEntityForViewParms(ent, &backEnd.viewParms, &backEnd.orientation);
 			GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
 			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-			R_DebugAxis(vec3_origin, matrixIdentity);
+			//R_DebugAxis(vec3_origin, matrixIdentity);
 			//R_DebugBoundingBox(vec3_origin, ent->localBounds[0], ent->localBounds[1], colorMagenta);
 			
 			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
-			Vector4Set(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[1], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[3], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			Tess_AddQuadStamp2(quadVerts, colorRed);
-
-			Vector4Set(quadVerts[0], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[2], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			Tess_AddQuadStamp2(quadVerts, colorGreen);
-
-			Vector4Set(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[1], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[2], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			Tess_AddQuadStamp2(quadVerts, colorBlue);
-
-			Vector4Set(quadVerts[0], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[3], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			Tess_AddQuadStamp2(quadVerts, colorYellow);
-
-			Vector4Set(quadVerts[0], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[1], ent->localBounds[0][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[2], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[3], ent->localBounds[1][0], ent->localBounds[0][1], ent->localBounds[0][2], 1);
-			Tess_AddQuadStamp2(quadVerts, colorMagenta);
-
-			Vector4Set(quadVerts[0], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			Vector4Set(quadVerts[1], ent->localBounds[1][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[2], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[1][2], 1);
-			Vector4Set(quadVerts[3], ent->localBounds[0][0], ent->localBounds[1][1], ent->localBounds[0][2], 1);
-			Tess_AddQuadStamp2(quadVerts, colorCyan);
+			Tess_AddCube(vec3_origin, ent->localBounds[0], ent->localBounds[1], colorBlue);
+			Tess_AddCube(vec3_origin, mins, maxs, colorWhite);
 
 			Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
 			Tess_DrawElements();

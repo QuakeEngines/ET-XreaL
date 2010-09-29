@@ -137,10 +137,11 @@ R_CullModel
 */
 static int R_CullModel(trRefEntity_t * ent)
 {
-	vec3_t          bounds[2];
 	mdxHeader_t    *oldFrameHeader, *newFrameHeader;
 	mdxFrame_t     *oldFrame, *newFrame;
 	int             i;
+	vec3_t          v;
+	vec3_t          transformed;
 
 	newFrameHeader = R_GetModelByHandle(ent->e.frameModel)->mdx;
 	oldFrameHeader = R_GetModelByHandle(ent->e.oldframeModel)->mdx;
@@ -157,6 +158,28 @@ static int R_CullModel(trRefEntity_t * ent)
 	oldFrame = (mdxFrame_t *) ((byte *) oldFrameHeader + oldFrameHeader->ofsFrames +
 							   ent->e.oldframe * (int)(sizeof(mdxBoneFrameCompressed_t)) * oldFrameHeader->numBones +
 							   ent->e.oldframe * sizeof(mdxFrame_t));
+
+	// calculate a bounding box in the current coordinate system
+	for(i = 0; i < 3; i++)
+	{
+		ent->localBounds[0][i] = oldFrame->bounds[0][i] < newFrame->bounds[0][i] ? oldFrame->bounds[0][i] : newFrame->bounds[0][i];
+		ent->localBounds[1][i] = oldFrame->bounds[1][i] > newFrame->bounds[1][i] ? oldFrame->bounds[1][i] : newFrame->bounds[1][i];
+	}
+
+	// setup world bounds for intersection tests
+	ClearBounds(ent->worldBounds[0], ent->worldBounds[1]);
+
+	for(i = 0; i < 8; i++)
+	{
+		v[0] = ent->localBounds[i & 1][0];
+		v[1] = ent->localBounds[(i >> 1) & 1][1];
+		v[2] = ent->localBounds[(i >> 2) & 1][2];
+
+		// transform local bounds vertices into world space
+		R_LocalPointToWorld(v, transformed);
+
+		AddPointToBounds(transformed, ent->worldBounds[0], ent->worldBounds[1]);
+	}
 
 	// cull bounding sphere ONLY if this is not an upscaled entity
 	if(!ent->e.nonNormalizedAxes)
@@ -212,21 +235,16 @@ static int R_CullModel(trRefEntity_t * ent)
 		}
 	}
 
-	// calculate a bounding box in the current coordinate system
-	for(i = 0; i < 3; i++)
-	{
-		bounds[0][i] = oldFrame->bounds[0][i] < newFrame->bounds[0][i] ? oldFrame->bounds[0][i] : newFrame->bounds[0][i];
-		bounds[1][i] = oldFrame->bounds[1][i] > newFrame->bounds[1][i] ? oldFrame->bounds[1][i] : newFrame->bounds[1][i];
-	}
-
-	switch (R_CullLocalBox(bounds))
+	switch (R_CullLocalBox(ent->localBounds))
 	{
 		case CULL_IN:
 			tr.pc.c_box_cull_mdx_in++;
 			return CULL_IN;
+
 		case CULL_CLIP:
 			tr.pc.c_box_cull_mdx_clip++;
 			return CULL_CLIP;
+
 		case CULL_OUT:
 		default:
 			tr.pc.c_box_cull_mdx_out++;
@@ -357,7 +375,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 
 	// cull the entire model if merged bounding box of both frames
 	// is outside the view frustum.
-	cull = R_CullModel(ent);
+	ent->cull = R_CullModel(ent);
 	if(cull == CULL_OUT)
 	{
 		return;
@@ -366,7 +384,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 	// set up lighting now that we know we aren't culled
 	if(!personalModel || r_shadows->integer > 1)
 	{
-		R_SetupEntityLighting(&tr.refdef, ent);
+		R_SetupEntityLighting(&tr.refdef, ent, NULL);
 	}
 
 	

@@ -368,6 +368,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 	int             i;
 	vec3_t          v;
 	vec3_t          transformed;
+	vec3_t			boundsCenter;
 
 	pModel = R_GetModelByHandle(ent->e.hModel);
 	bspModel = pModel->bsp;
@@ -377,6 +378,12 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 	{
 		ent->localBounds[0][i] = bspModel->bounds[0][i];
 		ent->localBounds[1][i] = bspModel->bounds[1][i];
+	}
+
+	ent->cull = R_CullLocalBox(bspModel->bounds);
+	if(ent->cull == CULL_OUT)
+	{
+		return;
 	}
 
 	// setup world bounds for intersection tests
@@ -394,14 +401,11 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 		AddPointToBounds(transformed, ent->worldBounds[0], ent->worldBounds[1]);
 	}
 
-	ent->cull = R_CullLocalBox(bspModel->bounds);
-	if(ent->cull == CULL_OUT)
-	{
-		return;
-	}
+	VectorAdd(ent->worldBounds[0], ent->worldBounds[1], boundsCenter);
+	VectorScale(boundsCenter, 0.5f, boundsCenter);
 
 	// Tr3B: BSP inline models should always use vertex lighting
-	R_SetupEntityLighting(&tr.refdef, ent);
+	R_SetupEntityLighting(&tr.refdef, ent, boundsCenter);
 
 	if(r_vboModels->integer && bspModel->numVBOSurfaces)
 	{

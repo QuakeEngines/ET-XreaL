@@ -155,7 +155,7 @@ LIGHT SAMPLING
 R_SetupEntityLightingGrid
 =================
 */
-static void R_SetupEntityLightingGrid(trRefEntity_t * ent)
+static void R_SetupEntityLightingGrid(trRefEntity_t * ent, vec3_t forcedOrigin)
 {
 	vec3_t          lightOrigin;
 	int             pos[3];
@@ -167,16 +167,23 @@ static void R_SetupEntityLightingGrid(trRefEntity_t * ent)
 	vec3_t          direction;
 	float           totalFactor;
 
-	if(ent->e.renderfx & RF_LIGHTING_ORIGIN)
+	if(forcedOrigin)
 	{
-		// seperate lightOrigins are needed so an object that is
-		// sinking into the ground can still be lit, and so
-		// multi-part models can be lit identically
-		VectorCopy(ent->e.lightingOrigin, lightOrigin);
+		VectorCopy(forcedOrigin, lightOrigin);
 	}
 	else
 	{
-		VectorCopy(ent->e.origin, lightOrigin);
+		if(ent->e.renderfx & RF_LIGHTING_ORIGIN)
+		{
+			// seperate lightOrigins are needed so an object that is
+			// sinking into the ground can still be lit, and so
+			// multi-part models can be lit identically
+			VectorCopy(ent->e.lightingOrigin, lightOrigin);
+		}
+		else
+		{
+			VectorCopy(ent->e.origin, lightOrigin);
+		}
 	}
 
 	VectorSubtract(lightOrigin, tr.world->lightGridOrigin, lightOrigin);
@@ -322,10 +329,10 @@ Calculates all the lighting values that will be used
 by the Calc_* functions
 =================
 */
-void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
+void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent, vec3_t forcedOrigin)
 {
 	vec3_t          lightDir;
-	vec3_t          lightOrigin;
+	//vec3_t          lightOrigin;
 	float           d;
 
 	// lighting calculations
@@ -335,23 +342,32 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 	}
 	ent->lightingCalculated = qtrue;
 
-	// trace a sample point down to find ambient light
-	if(ent->e.renderfx & RF_LIGHTING_ORIGIN)
+	/*
+	if(forcedOrigin)
 	{
-		// seperate lightOrigins are needed so an object that is
-		// sinking into the ground can still be lit, and so
-		// multi-part models can be lit identically
-		VectorCopy(ent->e.lightingOrigin, lightOrigin);
+		VectorCopy(forcedOrigin, lightOrigin);
 	}
 	else
 	{
-		VectorCopy(ent->e.origin, lightOrigin);
+		// trace a sample point down to find ambient light
+		if(ent->e.renderfx & RF_LIGHTING_ORIGIN)
+		{
+			// seperate lightOrigins are needed so an object that is
+			// sinking into the ground can still be lit, and so
+			// multi-part models can be lit identically
+			VectorCopy(ent->e.lightingOrigin, lightOrigin);
+		}
+		else
+		{
+			VectorCopy(ent->e.origin, lightOrigin);
+		}
 	}
+	*/
 
 	// if NOWORLDMODEL, only use dynamic lights (menu system, etc)
 	if(!(refdef->rdflags & RDF_NOWORLDMODEL) && tr.world && tr.world->lightGridData)
 	{
-		R_SetupEntityLightingGrid(ent);
+		R_SetupEntityLightingGrid(ent, forcedOrigin);
 	}
 	else
 	{
@@ -432,8 +448,8 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 
 	// transform the direction to local space
 	d = VectorLength(ent->directedLight);
-	VectorScale(ent->lightDir, d, lightDir);
-	VectorNormalize(lightDir);
+	VectorScale(lightDir, d, ent->lightDir);
+	VectorNormalize(ent->lightDir);
 
 	// Tr3B: keep it in world space
 	//% ent->lightDir[0] = DotProduct(lightDir, ent->e.axis[0]);
@@ -456,7 +472,7 @@ int R_LightForPoint(vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec
 
 	Com_Memset(&ent, 0, sizeof(ent));
 	VectorCopy(point, ent.e.origin);
-	R_SetupEntityLightingGrid(&ent);
+	R_SetupEntityLightingGrid(&ent, NULL);
 	VectorCopy(ent.ambientLight, ambientLight);
 	VectorCopy(ent.directedLight, directedLight);
 	VectorCopy(ent.lightDir, lightDir);
