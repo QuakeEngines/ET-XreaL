@@ -349,12 +349,13 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 	}
 
 	// if NOWORLDMODEL, only use dynamic lights (menu system, etc)
-	if(!(refdef->rdflags & RDF_NOWORLDMODEL) && tr.world->lightGridData)
+	if(!(refdef->rdflags & RDF_NOWORLDMODEL) && tr.world && tr.world->lightGridData)
 	{
 		R_SetupEntityLightingGrid(ent);
 	}
 	else
 	{
+#if 0
 		if(!(refdef->rdflags & RDF_NOWORLDMODEL))
 		{
 			ent->ambientLight[0] = tr.worldEntity.ambientLight[0];
@@ -379,6 +380,21 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 		{
 			VectorCopy(tr.sunDirection, ent->lightDir);
 		}
+#else
+		//% ent->ambientLight[0] = ent->ambientLight[1] = ent->ambientLight[2] = tr.identityLight * 150;
+		//% ent->directedLight[0] = ent->directedLight[1] = ent->directedLight[2] = tr.identityLight * 150;
+		//% VectorCopy( tr.sunDirection, ent->lightDir );
+		ent->ambientLight[0] = tr.identityLight * (64.0f / 255.0f);
+		ent->ambientLight[1] = tr.identityLight * (64.0f / 255.0f);
+		ent->ambientLight[2] = tr.identityLight * (96.0f / 255.0f);
+
+		ent->directedLight[0] = tr.identityLight * (255.0f / 255.0f);
+		ent->directedLight[1] = tr.identityLight * (232.0f / 255.0f);
+		ent->directedLight[2] = tr.identityLight * (224.0f / 255.0f);
+
+		VectorSet(ent->lightDir, -1, 1, 1.25);
+		VectorNormalize(ent->lightDir);
+#endif
 	}
 
 #if 1
@@ -389,7 +405,7 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 		ent->ambientLight[1] += tr.identityLight * 128 * ent->e.hilightIntensity;
 		ent->ambientLight[2] += tr.identityLight * 128 * ent->e.hilightIntensity;
 	}
-	else if((ent->e.renderfx & RF_MINLIGHT) && VectorLength(ent->ambientLight) <= 0)
+	else if((ent->e.renderfx & RF_MINLIGHT))// && VectorLength(ent->ambientLight) <= 0)
 	{
 		// give everything a minimum light add
 		ent->ambientLight[0] += tr.identityLight * 0.125f;
@@ -419,10 +435,10 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 	VectorScale(ent->lightDir, d, lightDir);
 	VectorNormalize(lightDir);
 
-	// keep it in world space
-//	ent->lightDir[0] = DotProduct(lightDir, ent->e.axis[0]);
-//	ent->lightDir[1] = DotProduct(lightDir, ent->e.axis[1]);
-//	ent->lightDir[2] = DotProduct(lightDir, ent->e.axis[2]);
+	// Tr3B: keep it in world space
+	//% ent->lightDir[0] = DotProduct(lightDir, ent->e.axis[0]);
+	//% ent->lightDir[1] = DotProduct(lightDir, ent->e.axis[1]);
+	//%	ent->lightDir[2] = DotProduct(lightDir, ent->e.axis[2]);
 }
 
 /*
