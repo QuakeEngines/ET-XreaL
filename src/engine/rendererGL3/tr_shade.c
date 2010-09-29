@@ -2391,7 +2391,9 @@ Tess_DrawElements
 */
 void Tess_DrawElements()
 {
-	if(tess.numIndexes == 0 || tess.numVertexes == 0)
+	int			i;
+
+	if((tess.numIndexes == 0 || tess.numVertexes == 0) && tess.multiDrawPrimitives == 0)
 	{
 		return;
 	}
@@ -2399,21 +2401,38 @@ void Tess_DrawElements()
 	// move tess data through the GPU, finally
 	if(glState.currentVBO && glState.currentIBO)
 	{
-		//glDrawRangeElementsEXT(GL_TRIANGLES, 0, tessmesh->vertexes.size(), mesh->indexes.size(), GL_UNSIGNED_INT, VBO_BUFFER_OFFSET(mesh->vbo_indexes_ofs));
+		if(tess.multiDrawPrimitives)
+		{
+			glMultiDrawElements(GL_TRIANGLES, tess.multiDrawCounts, GL_INDEX_TYPE, (const GLvoid**) tess.multiDrawIndexes, tess.multiDrawPrimitives);
 
-		//glDrawElements(GL_TRIANGLES, tess.numIndexes, GL_INDEX_TYPE, BUFFER_OFFSET(glState.currentIBO->ofsIndexes));
-		glDrawElements(GL_TRIANGLES, tess.numIndexes, GL_INDEX_TYPE, BUFFER_OFFSET(0));
+			backEnd.pc.c_multiDrawElements++;
+			backEnd.pc.c_multiDrawPrimitives += tess.multiDrawPrimitives;
 
-		backEnd.pc.c_vboVertexes += tess.numVertexes;
-		backEnd.pc.c_vboIndexes += tess.numIndexes;
+			for(i = 0; i < tess.multiDrawPrimitives; i++)
+			{
+				//backEnd.pc.c_vboVertexes += tess.numVertexes;
+				backEnd.pc.c_multiVboIndexes += tess.multiDrawCounts[i];
+			}
+		}
+		else
+		{
+			glDrawElements(GL_TRIANGLES, tess.numIndexes, GL_INDEX_TYPE, BUFFER_OFFSET(0));
+
+			backEnd.pc.c_vboVertexes += tess.numVertexes;
+			backEnd.pc.c_vboIndexes += tess.numIndexes;
+
+			backEnd.pc.c_drawElements++;
+		}
 	}
 	else
 	{
 		glDrawElements(GL_TRIANGLES, tess.numIndexes, GL_INDEX_TYPE, tess.indexes);
+
+		backEnd.pc.c_drawElements++;
 	}
 
 	// update performance counters
-	backEnd.pc.c_drawElements++;
+	
 	backEnd.pc.c_indexes += tess.numIndexes;
 	backEnd.pc.c_vertexes += tess.numVertexes;
 }
@@ -2610,6 +2629,8 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
+
+	tess.multiDrawPrimitives = 0;
 	
 	// materials are optional
 	if(surfaceShader != NULL)
@@ -6558,7 +6579,7 @@ Render tesselated data
 */
 void Tess_End()
 {
-	if(tess.numIndexes == 0 || tess.numVertexes == 0)
+	if((tess.numIndexes == 0 || tess.numVertexes == 0) && tess.multiDrawPrimitives == 0)
 	{
 		return;
 	}
@@ -6601,6 +6622,7 @@ void Tess_End()
 	tess.vboVertexSkinning = qfalse;
 
 	// clear shader so we can tell we don't have any unclosed surfaces
+	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 

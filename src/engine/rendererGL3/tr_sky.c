@@ -455,6 +455,7 @@ static void DrawSkyBox(shader_t * shader)
 	Com_Memset(s_skyTexCoords, 0, sizeof(s_skyTexCoords));
 
 	// set up for drawing
+	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 
@@ -621,6 +622,7 @@ static void BuildCloudData()
 	sky_max = 255.0 / 256.0f;
 
 	// set up for drawing
+	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 

@@ -3076,6 +3076,7 @@ typedef struct
 	int            *redundantShadowVerts;
 	int            *redundantShadowAlphaTestVerts;
 	VBO_t          *vbo;
+	IBO_t          *ibo;
 
 	int             numTriangles;
 	srfTriangle_t  *triangles;
@@ -3537,6 +3538,10 @@ typedef struct
 
 	int             c_deferredGBufferTime;
 	int             c_deferredLightingTime;
+
+	int				c_multiDrawElements;
+	int				c_multiDrawPrimitives;
+	int				c_multiVboIndexes;
 
 	int             msec;		// total msec for backend run
 } backEndCounters_t;
@@ -4413,6 +4418,8 @@ typedef struct stageVars
 	matrix_t        texMatrices[MAX_TEXTURE_BUNDLES];
 } stageVars_t;
 
+#define MAX_MULTIDRAW_PRIMITIVES	1000
+
 typedef struct shaderCommands_s
 {
 	vec4_t          xyz[SHADER_MAX_VERTEXES];
@@ -4443,6 +4450,10 @@ typedef struct shaderCommands_s
 
 	uint32_t        numIndexes;
 	uint32_t        numVertexes;
+
+	uint32_t		multiDrawPrimitives;
+	glIndex_t		multiDrawIndexes[MAX_MULTIDRAW_PRIMITIVES];
+	uint32_t		multiDrawCounts[MAX_MULTIDRAW_PRIMITIVES];
 
 	qboolean        vboVertexSkinning;
 	matrix_t        boneMatrices[MAX_BONES];

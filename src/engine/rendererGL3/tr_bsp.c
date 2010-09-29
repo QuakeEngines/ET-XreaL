@@ -4443,6 +4443,8 @@ static void R_CreateWorldVBO()
 								   ATTR_NORMAL | ATTR_COLOR | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION, VBO_USAGE_STATIC);
 #endif
 
+	s_worldData.ibo = R_CreateIBO2(va("staticBspModel0_IBO %i", 0), numTriangles, triangles, VBO_USAGE_STATIC);
+
 	endTime = ri.Milliseconds();
 	ri.Printf(PRINT_ALL, "world VBO calculation time = %5.2f seconds\n", (endTime - startTime) / 1000.0);
 
@@ -4457,7 +4459,8 @@ static void R_CreateWorldVBO()
 			//if(r_vboFaces->integer && srf->numVerts && srf->numTriangles)
 			{
 				srf->vbo = s_worldData.vbo;
-				srf->ibo = R_CreateIBO2(va("staticBspModel0_planarSurface_IBO %i", k), srf->numTriangles, triangles + srf->firstTriangle, VBO_USAGE_STATIC);
+				srf->ibo = s_worldData.ibo;
+				//srf->ibo = R_CreateIBO2(va("staticBspModel0_planarSurface_IBO %i", k), srf->numTriangles, triangles + srf->firstTriangle, VBO_USAGE_STATIC);
 			}
 		}
 		else if(*surface->data == SF_GRID)
@@ -4467,7 +4470,8 @@ static void R_CreateWorldVBO()
 			//if(r_vboCurves->integer && srf->numVerts && srf->numTriangles)
 			{
 				srf->vbo = s_worldData.vbo;
-				srf->ibo = R_CreateIBO2(va("staticBspModel0_curveSurface_IBO %i", k), srf->numTriangles, triangles + srf->firstTriangle, VBO_USAGE_STATIC);
+				srf->ibo = s_worldData.ibo;
+				//srf->ibo = R_CreateIBO2(va("staticBspModel0_curveSurface_IBO %i", k), srf->numTriangles, triangles + srf->firstTriangle, VBO_USAGE_STATIC);
 			}
 		}
 		else if(*surface->data == SF_TRIANGLES)
@@ -4477,7 +4481,8 @@ static void R_CreateWorldVBO()
 			//if(r_vboTriangles->integer && srf->numVerts && srf->numTriangles)
 			{
 				srf->vbo = s_worldData.vbo;
-				srf->ibo = R_CreateIBO2(va("staticBspModel0_triangleSurface_IBO %i", k), srf->numTriangles, triangles + srf->firstTriangle, VBO_USAGE_STATIC);
+				srf->ibo = s_worldData.ibo;
+				//srf->ibo = R_CreateIBO2(va("staticBspModel0_triangleSurface_IBO %i", k), srf->numTriangles, triangles + srf->firstTriangle, VBO_USAGE_STATIC);
 			}
 		}
 	}
@@ -5183,6 +5188,7 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 
 		glGenQueriesARB(MAX_VIEWS, out->occlusionQueryObjects);
 
+		tess.multiDrawPrimitives = 0;
 		tess.numIndexes = 0;
 		tess.numVertexes = 0;
 
@@ -5237,6 +5243,7 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 	ri.Hunk_FreeTempMemory(triangles);
 	ri.Hunk_FreeTempMemory(verts);
 
+	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 #endif

@@ -662,6 +662,7 @@ void DeformText(const char *text)
 	VectorMA(origin, (len - 1), width, origin);
 
 	// clear the shader indexes
+	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 
@@ -731,6 +732,7 @@ static void AutospriteDeform(void)
 	oldVerts = tess.numVertexes;
 	tess.numVertexes = 0;
 	tess.numIndexes = 0;
+	tess.multiDrawPrimitives = 0;
 
 	if(backEnd.currentEntity != &tr.worldEntity)
 	{

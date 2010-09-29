@@ -1328,6 +1328,7 @@ static void DrawNode_r(bspNode_t * node, int planeBits, int decalBits)
 
 			Tess_DrawElements();
 
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 #endif
@@ -1486,6 +1487,7 @@ static void IssueMultiOcclusionQueries(link_t * multiQueue, link_t * individualQ
 
 		GL_VertexAttribsState(ATTR_POSITION);
 
+		tess.multiDrawPrimitives = 0;
 		tess.numVertexes = node->volumeVerts;
 		tess.numIndexes = node->volumeIndexes;
 

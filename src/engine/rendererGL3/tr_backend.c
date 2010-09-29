@@ -3007,6 +3007,7 @@ static void RB_RenderInteractionsShadowMapped()
 
 									GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, light->shadowMatrices[frustumIndex]);
 
+									tess.multiDrawPrimitives = 0;
 									tess.numIndexes = 0;
 									tess.numVertexes = 0;
 
@@ -3790,6 +3791,7 @@ void RB_RenderInteractionsDeferred()
 					GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
 					GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
+					tess.multiDrawPrimitives = 0;
 					tess.numIndexes = 0;
 					tess.numVertexes = 0;
 
@@ -5440,6 +5442,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 					GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
 					GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
+					tess.multiDrawPrimitives = 0;
 					tess.numIndexes = 0;
 					tess.numVertexes = 0;
 
@@ -6174,6 +6177,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 
 							GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, light->shadowMatrices[frustumIndex]);
 
+							tess.multiDrawPrimitives = 0;
 							tess.numIndexes = 0;
 							tess.numVertexes = 0;
 
@@ -6275,6 +6279,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 								Tess_DrawElements();
 							}
 
+							tess.multiDrawPrimitives = 0;
 							tess.numIndexes = 0;
 							tess.numVertexes = 0;
 
@@ -8334,6 +8339,7 @@ static void RenderLightOcclusionVolume( trRefLight_t * light)
 		GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
 		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
+		tess.multiDrawPrimitives = 0;
 		tess.numIndexes = 0;
 		tess.numVertexes = 0;
 
@@ -8358,6 +8364,7 @@ static void RenderLightOcclusionVolume( trRefLight_t * light)
 				PlanesGetIntersectionPoint(frustum[FRUSTUM_RIGHT], frustum[FRUSTUM_BOTTOM], frustum[FRUSTUM_FAR], farCorners[2]);
 				PlanesGetIntersectionPoint(frustum[FRUSTUM_LEFT], frustum[FRUSTUM_BOTTOM], frustum[FRUSTUM_FAR], farCorners[3]);
 
+				tess.multiDrawPrimitives = 0;
 				tess.numVertexes = 0;
 				tess.numIndexes = 0;
 
@@ -8439,6 +8446,7 @@ static void RenderLightOcclusionVolume( trRefLight_t * light)
 		}
 	}
 
+	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
 
@@ -9024,6 +9032,7 @@ void RB_RenderBspOcclusionQueries()
 
 			backEnd.pc.c_occlusionQueries++;
 
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 		}
@@ -9274,6 +9283,7 @@ static void RB_RenderDebugUtils()
 
 					Tess_DrawElements();
 
+					tess.multiDrawPrimitives = 0;
 					tess.numIndexes = 0;
 					tess.numVertexes = 0;
 				}
@@ -9285,6 +9295,7 @@ static void RB_RenderDebugUtils()
 					GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
 					GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
+					tess.multiDrawPrimitives = 0;
 					tess.numIndexes = 0;
 					tess.numVertexes = 0;
 
@@ -9340,7 +9351,7 @@ static void RB_RenderDebugUtils()
 
 							tess.numVertexes = 0;
 							tess.numIndexes = 0;
-
+							tess.multiDrawPrimitives = 0;
 
 							if(!VectorCompare(light->l.projStart, vec3_origin))
 							{
@@ -9439,6 +9450,7 @@ static void RB_RenderDebugUtils()
 							break;
 					}
 
+					tess.multiDrawPrimitives = 0;
 					tess.numIndexes = 0;
 					tess.numVertexes = 0;
 				}
@@ -9581,6 +9593,7 @@ static void RB_RenderDebugUtils()
 
 			tess.numVertexes = 0;
 			tess.numIndexes = 0;
+			tess.multiDrawPrimitives = 0;
 
 			if(*surface == SF_FACE || *surface == SF_GRID || *surface == SF_TRIANGLES)
 			{
@@ -9622,6 +9635,7 @@ static void RB_RenderDebugUtils()
 			Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
 			Tess_DrawElements();
 
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
@@ -9691,6 +9705,8 @@ static void RB_RenderDebugUtils()
 
 			R_DebugAxis(vec3_origin, matrixIdentity);
 			//R_DebugBoundingBox(vec3_origin, ent->localBounds[0], ent->localBounds[1], colorMagenta);
+			
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
@@ -9733,6 +9749,7 @@ static void RB_RenderDebugUtils()
 			Tess_UpdateVBOs(ATTR_POSITION | ATTR_COLOR);
 			Tess_DrawElements();
 
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
@@ -9793,6 +9810,7 @@ static void RB_RenderDebugUtils()
 			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 
+			tess.multiDrawPrimitives = 0;
 			tess.numVertexes = 0;
 			tess.numIndexes = 0;
 
@@ -9891,6 +9909,7 @@ static void RB_RenderDebugUtils()
 
 				Tess_DrawElements();
 
+				tess.multiDrawPrimitives = 0;
 				tess.numVertexes = 0;
 				tess.numIndexes = 0;
 
@@ -9950,6 +9969,7 @@ static void RB_RenderDebugUtils()
 
 						Tess_DrawElements();
 
+						tess.multiDrawPrimitives = 0;
 						tess.numVertexes = 0;
 						tess.numIndexes = 0;
 					}
@@ -9957,6 +9977,7 @@ static void RB_RenderDebugUtils()
 #endif // REFBONE_NAMES
 			}
 
+			tess.multiDrawPrimitives = 0;
 			tess.numVertexes = 0;
 			tess.numIndexes = 0;
 		}
@@ -10116,6 +10137,7 @@ static void RB_RenderDebugUtils()
 			GLSL_SetUniform_ModelMatrix(&tr.reflectionShader_C, backEnd.orientation.transformMatrix);
 			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.reflectionShader_C, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 
@@ -10158,6 +10180,7 @@ static void RB_RenderDebugUtils()
 			Tess_UpdateVBOs(ATTR_POSITION | ATTR_NORMAL);
 			Tess_DrawElements();
 
+			tess.multiDrawPrimitives = 0;
 			tess.numIndexes = 0;
 			tess.numVertexes = 0;
 		}
@@ -10377,6 +10400,7 @@ static void RB_RenderDebugUtils()
 
 			GL_VertexAttribsState(ATTR_POSITION);
 
+			tess.multiDrawPrimitives = 0;
 			tess.numVertexes = node->volumeVerts;
 			tess.numIndexes = node->volumeIndexes;
 
@@ -11466,6 +11490,7 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 	   glEnd();
 	 */
 
+	tess.multiDrawPrimitives = 0;
 	tess.numVertexes = 0;
 	tess.numIndexes = 0;
 
@@ -11520,6 +11545,7 @@ void RE_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte * 
 
 	Tess_DrawElements();
 
+	tess.multiDrawPrimitives = 0;
 	tess.numVertexes = 0;
 	tess.numIndexes = 0;
 

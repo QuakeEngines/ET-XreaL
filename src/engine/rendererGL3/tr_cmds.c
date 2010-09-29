@@ -61,6 +61,11 @@ void R_PerformanceCounters(void)
 				  tr.pc.c_CHCTime,
 				  backEnd.pc.c_vboVertexBuffers, backEnd.pc.c_vboIndexBuffers,
 				  backEnd.pc.c_vboVertexes, backEnd.pc.c_vboIndexes / 3);
+
+		ri.Printf(PRINT_ALL, "%i multidraws %i primitives %i tris\n",
+				  backEnd.pc.c_multiDrawElements,
+				  backEnd.pc.c_multiDrawPrimitives,
+				  backEnd.pc.c_multiVboIndexes / 3);
 	}
 	else if(r_speeds->integer == 2)
 	{
