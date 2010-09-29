@@ -401,9 +401,9 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 	if(ent->e.hilightIntensity)
 	{
 		// level of intensity was set because the item was looked at
-		ent->ambientLight[0] += tr.identityLight * 128 * ent->e.hilightIntensity;
-		ent->ambientLight[1] += tr.identityLight * 128 * ent->e.hilightIntensity;
-		ent->ambientLight[2] += tr.identityLight * 128 * ent->e.hilightIntensity;
+		ent->ambientLight[0] += tr.identityLight * 0.5f * ent->e.hilightIntensity;
+		ent->ambientLight[1] += tr.identityLight * 0.5f * ent->e.hilightIntensity;
+		ent->ambientLight[2] += tr.identityLight * 0.5f * ent->e.hilightIntensity;
 	}
 	else if((ent->e.renderfx & RF_MINLIGHT))// && VectorLength(ent->ambientLight) <= 0)
 	{
@@ -425,9 +425,9 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent)
 	}
 #endif
 
-	if(r_debugLight->integer)
+	if(ent->e.entityNum < MAX_CLIENTS && (refdef->rdflags & RDF_SNOOPERVIEW))
 	{
-		LogLight(ent);
+		VectorSet(ent->ambientLight, 0.96f, 0.96f, 0.96f);	// allow a little room for flicker from directed light
 	}
 
 	// transform the direction to local space
