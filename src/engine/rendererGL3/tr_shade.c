@@ -2412,16 +2412,20 @@ void Tess_DrawElements()
 			{
 				//backEnd.pc.c_vboVertexes += tess.numVertexes;
 				backEnd.pc.c_multiVboIndexes += tess.multiDrawCounts[i];
+				backEnd.pc.c_indexes += tess.multiDrawCounts[i];
 			}
 		}
 		else
 		{
 			glDrawElements(GL_TRIANGLES, tess.numIndexes, GL_INDEX_TYPE, BUFFER_OFFSET(0));
 
+			backEnd.pc.c_drawElements++;
+
 			backEnd.pc.c_vboVertexes += tess.numVertexes;
 			backEnd.pc.c_vboIndexes += tess.numIndexes;
 
-			backEnd.pc.c_drawElements++;
+			backEnd.pc.c_indexes += tess.numIndexes;
+			backEnd.pc.c_vertexes += tess.numVertexes;
 		}
 	}
 	else
@@ -2429,12 +2433,14 @@ void Tess_DrawElements()
 		glDrawElements(GL_TRIANGLES, tess.numIndexes, GL_INDEX_TYPE, tess.indexes);
 
 		backEnd.pc.c_drawElements++;
+
+		backEnd.pc.c_indexes += tess.numIndexes;
+		backEnd.pc.c_vertexes += tess.numVertexes;
 	}
 
 	// update performance counters
 	
-	backEnd.pc.c_indexes += tess.numIndexes;
-	backEnd.pc.c_vertexes += tess.numVertexes;
+	
 }
 
 

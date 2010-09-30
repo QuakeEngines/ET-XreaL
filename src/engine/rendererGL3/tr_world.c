@@ -416,7 +416,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 		{
 			vboSurface = bspModel->vboSurfaces[i];
 
-			R_AddDrawSurf((void *)vboSurface, vboSurface->shader, -1);//vboSurface->lightmapNum);
+			R_AddDrawSurf((void *)vboSurface, vboSurface->shader, vboSurface->lightmapNum);
 		}
 	}
 	else
