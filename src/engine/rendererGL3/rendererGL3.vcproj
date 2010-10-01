@@ -274,7 +274,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tr_model_md5.c"
+				>
+			</File>
+			<File
 				RelativePath=".\tr_model_mdc.c"
+				>
+			</File>
+			<File
+				RelativePath=".\tr_model_psk.c"
+				>
+			</File>
+			<File
+				RelativePath=".\tr_model_skel.c"
 				>
 			</File>
 			<File

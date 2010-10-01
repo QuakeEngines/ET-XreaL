@@ -3344,6 +3344,13 @@ typedef struct
 
 } skelAnimation_t;
 
+typedef struct
+{
+	int             indexes[3];
+	md5Vertex_t    *vertexes[3];
+	qboolean		referenced;
+} skelTriangle_t;
+
 
 //======================================================================
 
