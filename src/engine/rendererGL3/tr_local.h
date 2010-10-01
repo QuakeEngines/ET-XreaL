@@ -2584,19 +2584,13 @@ typedef enum
 
 	SF_MDV,
 	SF_MDM,
-
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	SF_MD5,
-#endif
 
 	SF_FLARE,
 	SF_ENTITY,					// beams, rails, lightning, etc that can be determined by entity
+
 	SF_VBO_MESH,
-
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	SF_VBO_MD5MESH,
-#endif
-
 	SF_VBO_SHADOW_VOLUME,
 
 	SF_NUM_SURFACE_TYPES,

@@ -2351,7 +2351,6 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 	}
 }
 
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 
 /*
 ==============
@@ -2394,6 +2393,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 		{
 			matrix_t        m, m2;
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 			if(backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE)
 			{
 				MatrixSetupScale(m,
@@ -2405,6 +2405,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 				MatrixMultiply(m2, m, boneMatrices[i]);
 			}
 			else
+#endif
 			{
 				MatrixSetupTransformFromQuat(boneMatrices[i], model->bones[i].rotation, model->bones[i].origin);
 			}
@@ -2576,6 +2577,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 			{
 				matrix_t        m, m2;
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 				if(backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE)
 				{
 					MatrixSetupScale(m,
@@ -2587,6 +2589,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 					MatrixMultiply(m2, m, boneMatrices[i]);
 				}
 				else
+#endif
 				{
 					MatrixSetupTransformFromQuat(boneMatrices[i], model->bones[i].rotation, model->bones[i].origin);
 				}
@@ -2631,6 +2634,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 			{
 				matrix_t        m, m2;	//, m3;
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 				if(backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE)
 				{
 					MatrixSetupScale(m,
@@ -2644,6 +2648,7 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 					MatrixMultiply2(boneMatrices[i], model->bones[i].inverseTransform);
 				}
 				else
+#endif
 				{
 					MatrixIdentity(boneMatrices[i]);
 				}
@@ -2714,7 +2719,6 @@ static void Tess_SurfaceMD5(md5Surface_t * srf)
 	}
 }
 
-#endif
 
 /*
 ===========================================================================
@@ -2935,7 +2939,6 @@ static void Tess_SurfaceVBOMesh(srfVBOMesh_t * srf)
 Tess_SurfaceVBOMD5Mesh
 ==============
 */
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 {
 	int             i;
@@ -2957,6 +2960,7 @@ static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 
 	model = srf->md5Model;
 
+#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	if(backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE)
 	{
 		tess.vboVertexSkinning = qtrue;
@@ -2993,13 +2997,13 @@ static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 #endif
 	}
 	else
+#endif
 	{
 		tess.vboVertexSkinning = qfalse;
 	}
 
 	Tess_End();
 }
-#endif
 
 /*
 ==============
@@ -3042,16 +3046,11 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfaceMDX,	// SF_MDX,
 
 		(void (*)(void *))Tess_MDM_SurfaceAnim,	// SF_MDM,
-
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 		(void (*)(void *))Tess_SurfaceMD5,	// SF_MD5,
-#endif
+
 		(void (*)(void *))Tess_SurfaceFlare,	// SF_FLARE,
 		(void (*)(void *))Tess_SurfaceEntity,	// SF_ENTITY
 		(void (*)(void *))Tess_SurfaceVBOMesh,	// SF_VBO_MESH
-
-#if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 		(void (*)(void *))Tess_SurfaceVBOMD5Mesh,	// SF_VBO_MD5MESH
-#endif
 		(void (*)(void *))Tess_SurfaceVBOShadowVolume	// SF_VBO_SHADOW_VOLUME
 };
