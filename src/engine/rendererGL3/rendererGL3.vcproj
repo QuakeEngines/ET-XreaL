@@ -282,6 +282,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tr_model_mdm.c"
+				>
+			</File>
+			<File
 				RelativePath=".\tr_model_psk.c"
 				>
 			</File>
