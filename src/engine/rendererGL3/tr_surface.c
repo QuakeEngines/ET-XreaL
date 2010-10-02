@@ -941,7 +941,7 @@ void Tess_SurfacePolybuffer(srfPolyBuffer_t * surf)
 	xyzw = &surf->pPolyBuffer->xyz[0][0];
 	st = &surf->pPolyBuffer->st[0][0];
 	color = &surf->pPolyBuffer->color[0][0];
-	for(i = 0; i < surf->pPolyBuffer->numVerts; i++, xyzw += 4, st += 2, color += 4)
+	for(i = 0; i < numVertexes; i++, xyzw += 4, st += 2, color += 4)
 	{
 		VectorCopy(xyzw, tess.xyz[tess.numVertexes + i]);
 		tess.xyz[tess.numVertexes + i][3] = 1;

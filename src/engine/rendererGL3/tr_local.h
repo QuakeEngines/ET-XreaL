@@ -3267,6 +3267,73 @@ typedef struct md5Model_s
 } md5Model_t;
 
 
+
+
+
+
+typedef struct
+{
+	char            name[64];	// name of tag
+	vec3_t          axis[3];
+
+	int             boneIndex;
+	vec3_t          offset;
+
+	int             numBoneReferences;
+	int            *boneReferences;
+} mdmTagIntern_t;
+
+typedef struct
+{
+	surfaceType_t   surfaceType;
+
+	char            name[MAX_QPATH];    // polyset name
+	char            shader[MAX_QPATH];
+	int             shaderIndex;	// for in-game use
+
+	int             minLod;
+
+	uint32_t        numVerts;
+	md5Vertex_t    *verts;
+
+	uint32_t        numTriangles;
+	srfTriangle_t  *triangles;
+
+//	uint32_t        numWeights;
+//	md5Weight_t    *weights;
+
+	int             numBoneReferences;
+	int            *boneReferences;
+
+	int            *collapseMap;	// numVerts many
+
+	struct mdmModel_s *model;
+} mdmSurfaceIntern_t;
+
+typedef struct mdmModel_s
+{
+//	uint16_t        numBones;
+//	md5Bone_t      *bones;
+
+	float           lodScale;
+	float           lodBias;
+
+	uint16_t		numTags;
+	mdmTag_t       *tags;
+
+	uint16_t        numSurfaces;
+	mdmSurfaceIntern_t *surfaces;
+
+	uint16_t        numVBOSurfaces;
+	srfVBOMD5Mesh_t **vboSurfaces;
+
+	int				numBoneReferences;
+	int32_t        *boneReferences;
+
+	vec3_t          bounds[2];
+} mdmModel_t;
+
+
 typedef enum
 {
 	AT_BAD,
@@ -3367,7 +3434,7 @@ typedef struct model_s
 	int             dataSize;	// just for listing purposes
 	bspModel_t     *bsp;		// only if type == MOD_BSP
 	mdvModel_t     *mdv[MD3_MAX_LODS];	// only if type == MOD_MESH
-	mdmHeader_t    *mdm;		// only if type == MOD_MDM
+	mdmModel_t     *mdm;		// only if type == MOD_MDM
 	mdxHeader_t    *mdx;		// only if type == MOD_MDX
 	md5Model_t     *md5;		// only if type == MOD_MD5
 
@@ -4802,7 +4869,7 @@ ANIMATED MODELS WOLF:ET  MDM/MDX
 
 void            R_MDM_AddAnimSurfaces(trRefEntity_t * ent);
 void            Tess_MDM_SurfaceAnim(mdmSurface_t * surfType);
-int             R_MDM_GetBoneTag(orientation_t * outTag, mdmHeader_t * mdm, int startTagIndex, const refEntity_t * refent,
+int             R_MDM_GetBoneTag(orientation_t * outTag, mdmModel_t * mdm, int startTagIndex, const refEntity_t * refent,
 								 const char *tagName);
 
 /*
