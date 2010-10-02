@@ -1,0 +1,35 @@
+# -*- mode: python -*-
+# Enemy Territory build script
+# TTimo <ttimo@idsoftware.com>
+# http://scons.sourceforge.net
+
+import sys, os
+import scons_utils
+
+Import( 'GLOBALS' )
+Import( GLOBALS )
+
+ui_list = [
+'etmain/src/ui/ui_atoms.c',
+'etmain/src/ui/ui_gameinfo.c',
+'etmain/src/ui/ui_loadpanel.c',
+'etmain/src/ui/ui_main.c',
+'etmain/src/ui/ui_players.c',
+'etmain/src/ui/ui_shared.c',
+'etmain/src/ui/ui_syscalls.c',
+'etmain/src/ui/ui_util.c',
+'etmain/src/game/bg_campaign.c',
+'etmain/src/game/bg_classes.c',
+'etmain/src/game/bg_misc.c',
+'src/shared/q_math.c',
+'src/shared/q_shared.c',
+]
+
+local_env = env.Clone()
+local_env.Append(CPPDEFINES = ['UIDLL'])
+#local_env['LINK'] = local_env['CC']
+
+source_list = ui_list
+
+local_env.SharedLibrary( target = 'ui', source = source_list )
+local_env.InstallAs('#etmain/ui.mp.%s.so' % dll_cpu, 'libui.so')

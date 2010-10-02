@@ -1,0 +1,90 @@
+# -*- mode: python -*-
+# Enemy Territory build script
+# TTimo <ttimo@idsoftware.com>
+# http://scons.sourceforge.net
+
+import sys, os
+import scons_utils
+
+Import( 'GLOBALS' )
+Import( GLOBALS )
+
+botai_list = [
+'etmain/src/botai/ai_cmd.c',
+'etmain/src/botai/ai_dmgoal_mp.c',
+'etmain/src/botai/ai_dmnet_mp.c',
+'etmain/src/botai/ai_dmq3.c',
+'etmain/src/botai/ai_main.c',
+'etmain/src/botai/ai_script.c',
+'etmain/src/botai/ai_script_actions.c',
+'etmain/src/botai/ai_team.c',
+]
+
+qagame_list = [
+'etmain/src/game/bg_animation.c',
+'etmain/src/game/bg_animgroup.c',
+'etmain/src/game/bg_campaign.c',
+'etmain/src/game/bg_character.c',
+'etmain/src/game/bg_classes.c',
+'etmain/src/game/bg_misc.c',
+'etmain/src/game/bg_pmove.c',
+'etmain/src/game/bg_slidemove.c',
+'etmain/src/game/bg_sscript.c',
+'etmain/src/game/bg_stats.c',
+'etmain/src/game/bg_tracemap.c',
+'etmain/src/game/g_active.c',
+'etmain/src/game/g_alarm.c',
+'etmain/src/game/g_antilag.c',
+'etmain/src/game/g_bot.c',
+'etmain/src/game/g_buddy_list.c',
+'etmain/src/game/g_character.c',
+'etmain/src/game/g_client.c',
+'etmain/src/game/g_cmds.c',
+'etmain/src/game/g_cmds_ext.c',
+'etmain/src/game/g_combat.c',
+'etmain/src/game/g_config.c',
+'etmain/src/game/g_fireteams.c',
+'etmain/src/game/g_items.c',
+'etmain/src/game/g_main.c',
+'etmain/src/game/g_match.c',
+'etmain/src/game/g_mem.c',
+'etmain/src/game/g_misc.c',
+'etmain/src/game/g_missile.c',
+'etmain/src/game/g_mover.c',
+'etmain/src/game/g_multiview.c',
+'etmain/src/game/g_props.c',
+'etmain/src/game/g_referee.c',
+'etmain/src/game/g_save.c',
+'etmain/src/game/g_script.c',
+'etmain/src/game/g_script_actions.c',
+'etmain/src/game/g_session.c',
+'etmain/src/game/g_spawn.c',
+'etmain/src/game/g_stats.c',
+'etmain/src/game/g_sv_entities.c',
+'etmain/src/game/g_svcmds.c',
+'etmain/src/game/g_syscalls.c',
+'etmain/src/game/g_systemmsg.c',
+'etmain/src/game/g_target.c',
+'etmain/src/game/g_team.c',
+'etmain/src/game/g_teammapdata.c',
+'etmain/src/game/g_trigger.c',
+'etmain/src/game/g_utils.c',
+'etmain/src/game/g_vote.c',
+'etmain/src/game/g_weapon.c',
+'src/shared/q_math.c',
+'src/shared/q_shared.c',
+]
+
+#botai_objs = []
+#for i in botai_list:
+#	botlib_ai.append( botai_env.StaticObject( os.path.join( 'botlib', i ) ) )
+
+local_env = env.Clone()
+local_env.Append(CPPDEFINES = ['GAMEDLL'])
+#local_env['LINK'] = local_env['CC']
+
+source_list = botai_list
+source_list += qagame_list
+
+local_env.SharedLibrary( target = 'qagame', source = source_list)
+local_env.InstallAs('#etmain/qagame.mp.%s.so' % dll_cpu, 'libqagame.so')
