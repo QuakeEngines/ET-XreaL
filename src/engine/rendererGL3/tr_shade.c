@@ -2381,8 +2381,18 @@ void GLSL_ShutdownGPUShaders(void)
 	glUseProgramObjectARB(0);
 }
 
+/*
+static void MyMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void* *indices, GLsizei primcount)
+{
+	int			i;
 
-
+	for (i = 0; i < primcount; i++)
+	{
+		if (count[i] > 0)
+			glDrawElements(mode, count[i], type, indices[i]);
+	}
+}
+*/
 
 /*
 ==================
@@ -2647,6 +2657,10 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 		tess.surfaceStages = state->stages;
 		tess.numSurfaceStages = state->numStages;
 	}
+	else
+	{
+		state = NULL;
+	}
 
 	tess.lightShader = lightShader;
 
@@ -2669,7 +2683,7 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 
 	if(tess.stageIteratorFunc == Tess_StageIteratorGBuffer)
 	{
-		if(state->isSky)
+		if(state && state->isSky)
 		{
 			tess.stageIteratorFunc = Tess_StageIteratorSky;
 			tess.stageIteratorFunc2 = Tess_StageIteratorGBuffer;

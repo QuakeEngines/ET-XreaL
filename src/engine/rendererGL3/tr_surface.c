@@ -938,9 +938,9 @@ void Tess_SurfacePolybuffer(srfPolyBuffer_t * surf)
 
 	
 	numVertexes = Q_min(surf->pPolyBuffer->numVerts, MAX_PB_VERTS);
-	xyzw = surf->pPolyBuffer->xyz;
-	st = surf->pPolyBuffer->st;
-	color = surf->pPolyBuffer->color;
+	xyzw = &surf->pPolyBuffer->xyz[0][0];
+	st = &surf->pPolyBuffer->st[0][0];
+	color = &surf->pPolyBuffer->color[0][0];
 	for(i = 0; i < surf->pPolyBuffer->numVerts; i++, xyzw += 4, st += 2, color += 4)
 	{
 		VectorCopy(xyzw, tess.xyz[tess.numVertexes + i]);
@@ -1159,7 +1159,7 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 			R_BindVBO(srf->vbo);
 			R_BindIBO(srf->ibo);
 
-			tess.multiDrawIndexes[tess.multiDrawPrimitives] = BUFFER_OFFSET(srf->firstTriangle * 3 * sizeof(glIndex_t));
+			tess.multiDrawIndexes[tess.multiDrawPrimitives] = (glIndex_t*) BUFFER_OFFSET(srf->firstTriangle * 3 * sizeof(glIndex_t));
 			tess.multiDrawCounts[tess.multiDrawPrimitives] = srf->numTriangles * 3;
 
 			tess.multiDrawPrimitives++;
@@ -1396,7 +1396,7 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 			R_BindVBO(srf->vbo);
 			R_BindIBO(srf->ibo);
 
-			tess.multiDrawIndexes[tess.multiDrawPrimitives] = BUFFER_OFFSET(srf->firstTriangle * 3 * sizeof(glIndex_t));
+			tess.multiDrawIndexes[tess.multiDrawPrimitives] = (glIndex_t*) BUFFER_OFFSET(srf->firstTriangle * 3 * sizeof(glIndex_t));
 			tess.multiDrawCounts[tess.multiDrawPrimitives] = srf->numTriangles * 3;
 
 			tess.multiDrawPrimitives++;
@@ -1634,7 +1634,7 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 			R_BindVBO(srf->vbo);
 			R_BindIBO(srf->ibo);
 
-			tess.multiDrawIndexes[tess.multiDrawPrimitives] = BUFFER_OFFSET(srf->firstTriangle * 3 * sizeof(glIndex_t));
+			tess.multiDrawIndexes[tess.multiDrawPrimitives] = (glIndex_t*) BUFFER_OFFSET(srf->firstTriangle * 3 * sizeof(glIndex_t));
 			tess.multiDrawCounts[tess.multiDrawPrimitives] = srf->numTriangles * 3;
 
 			tess.multiDrawPrimitives++;

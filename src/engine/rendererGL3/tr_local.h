@@ -4452,9 +4452,9 @@ typedef struct shaderCommands_s
 	uint32_t        numIndexes;
 	uint32_t        numVertexes;
 
-	uint32_t		multiDrawPrimitives;
-	glIndex_t		multiDrawIndexes[MAX_MULTIDRAW_PRIMITIVES];
-	uint32_t		multiDrawCounts[MAX_MULTIDRAW_PRIMITIVES];
+	GLsizei			multiDrawPrimitives;
+	glIndex_t*		multiDrawIndexes[MAX_MULTIDRAW_PRIMITIVES];
+	GLsizei			multiDrawCounts[MAX_MULTIDRAW_PRIMITIVES];
 
 	qboolean        vboVertexSkinning;
 	matrix_t        boneMatrices[MAX_BONES];

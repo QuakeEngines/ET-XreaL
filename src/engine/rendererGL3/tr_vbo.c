@@ -436,9 +436,11 @@ IBO_t          *R_CreateIBO2(const char *name, int numTriangles, srfTriangle_t *
 
 	Q_strncpyz(ibo->name, name, sizeof(ibo->name));
 
-	indexesSize = numTriangles * 3 * sizeof(int);
+	indexesSize = numTriangles * 3 * sizeof(glIndex_t);
 	indexes = ri.Hunk_AllocateTempMemory(indexesSize);
 	indexesOfs = 0;
+
+	ri.Printf(PRINT_ALL, "sizeof(glIndex_t) = %i\n", sizeof(glIndex_t));
 
 	for(i = 0, tri = triangles; i < numTriangles; i++, tri++)
 	{
