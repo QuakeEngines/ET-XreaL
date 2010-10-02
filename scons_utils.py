@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-import sys, os, string, time, commands, re, pickle, StringIO, popen2, commands, pdb, zipfile
+import sys, os, string, time, commands, re, pickle, StringIO, subprocess, commands, pdb, zipfile
 import SCons
 
 # need an Environment and a matching buffered_spawn API .. encapsulate
