@@ -4897,7 +4897,7 @@ int             R_MDM_GetBoneTag(orientation_t * outTag, mdmModel_t * mdm, int s
 								 const char *tagName);
 
 
-void            Tess_MDM_SurfaceAnim(mdmSurface_t * surfType);
+void            Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surfType);
 void            Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surfType);
 
 /*
