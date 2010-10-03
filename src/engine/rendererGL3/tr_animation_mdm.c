@@ -391,17 +391,66 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 
 
 	// draw all surfaces
-#if 0
-	if(r_vboModels->integer && model->numVBOSurfaces)
+	if(r_vboModels->integer && mdm->numVBOSurfaces && glConfig2.vboVertexSkinningAvailable)// && ent->e.skeleton.type == SK_ABSOLUTE))
 	{
-		int             i;
-		srfVBOMesh_t   *vboSurface;
+		int             i, j;
+		srfVBOMDMMesh_t *vboSurface;
 		shader_t       *shader;
 
-		for(i = 0; i < model->numVBOSurfaces; i++)
+		for(i = 0; i < mdm->numVBOSurfaces; i++)
 		{
-			vboSurface = model->vboSurfaces[i];
-			shader = vboSurface->shader;
+			vboSurface = mdm->vboSurfaces[i];
+
+			if(ent->e.customShader)
+			{
+				shader = R_GetShaderByHandle(ent->e.customShader);
+			}
+			else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+			{
+				skin_t         *skin;
+
+				skin = R_GetSkinByHandle(ent->e.customSkin);
+
+				// match the surface name to something in the skin file
+				shader = tr.defaultShader;
+
+				#if 1
+				// Q3A way
+				
+				// match the surface name to something in the skin file
+				shader = tr.defaultShader;
+				for(j = 0; j < skin->numSurfaces; j++)
+				{
+					// the names have both been lowercased
+					if(!strcmp(skin->surfaces[j]->name, vboSurface->originalSurfaceName))
+					{
+						shader = skin->surfaces[j]->shader;
+						break;
+					}
+				}
+				#else
+
+				// FIXME: replace MD3_MAX_SURFACES for skin_t::surfaces
+				//if(i >= 0 && i < skin->numSurfaces && skin->surfaces[i])
+				if(vboSurface->skinIndex >= 0 && vboSurface->skinIndex < skin->numSurfaces && skin->surfaces[vboSurface->skinIndex])
+				{
+					shader = skin->surfaces[vboSurface->skinIndex]->shader;
+				}
+				#endif
+
+				if(shader == tr.defaultShader)
+				{
+					ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %i in skin %s\n", i, skin->name);
+				}
+				else if(shader->defaultShader)
+				{
+					ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
+				}
+			}
+			else
+			{
+				shader = vboSurface->shader;
+			}
 
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
@@ -411,7 +460,6 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 		}
 	}
 	else
-#endif
 	{
 		for(i = 0, surface = mdm->surfaces; i < mdm->numSurfaces; i++, surface++)
 		{
@@ -1832,9 +1880,9 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 
 		for(i = 0; i < render_count; i++)
 		{
-			VectorClear(tess.tangents[tess.numVertexes + i]);
-			VectorClear(tess.binormals[tess.numVertexes + i]);
-			VectorClear(tess.normals[tess.numVertexes + i]);
+			VectorClear(tess.tangents[baseVertex + i]);
+			VectorClear(tess.binormals[baseVertex + i]);
+			VectorClear(tess.normals[baseVertex + i]);
 		}
 
 		numIndexes = tess.numIndexes - oldIndexes;
@@ -2174,6 +2222,58 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 
 #endif // entire function block
 }
+
+
+
+/*
+==============
+Tess_SurfaceVBOMDMMesh
+==============
+*/
+void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
+{
+	int             i;
+	mdmModel_t     *mdmModel;
+	matrix_t        m, m2;	//, m3
+	refEntity_t    *refent;
+
+	GLimp_LogComment("--- Tess_SurfaceVBOMDMMesh ---\n");
+
+	if(!surface->vbo || !surface->ibo)
+		return;
+
+	Tess_EndBegin();
+
+	R_BindVBO(surface->vbo);
+	R_BindIBO(surface->ibo);
+
+	tess.numIndexes += surface->numIndexes;
+	tess.numVertexes += surface->numVerts;
+
+	mdmModel = surface->mdmModel;
+
+	refent = &backEnd.currentEntity->e;
+//	boneList = surface->boneReferences;
+	mdmModel = surface->mdmModel;
+
+	R_CalcBones((const refEntity_t *)refent, surface->boneRemapInverse, surface->numBoneRemap);
+
+	tess.vboVertexSkinning = qtrue;
+
+	for(i = 0; i < surface->numBoneRemap; i++)
+	{
+		MatrixFromVectorsFLU(m, bones[surface->boneRemapInverse[i]].matrix[0],
+								bones[surface->boneRemapInverse[i]].matrix[1],
+								bones[surface->boneRemapInverse[i]].matrix[2]);
+
+		MatrixTranspose(m, m2);
+
+		MatrixSetupTransformFromRotation(tess.boneMatrices[i], m2, bones[surface->boneRemapInverse[i]].translation);
+	}
+
+	Tess_End();
+}
+
 
 /*
 ===============

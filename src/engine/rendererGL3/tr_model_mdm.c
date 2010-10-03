@@ -28,6 +28,229 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	LF(x) x=LittleFloat(x)
 
 
+
+static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t * vboTriangles, mdmModel_t * mdm, mdmSurfaceIntern_t * surf, int skinIndex, int numBoneReferences, int boneReferences[MAX_BONES])
+{
+	int				j, k;
+
+	int             vertexesNum;
+	byte           *data;
+	int             dataSize;
+	int             dataOfs;
+
+	GLuint          ofsTexCoords;
+	GLuint          ofsTangents;
+	GLuint          ofsBinormals;
+	GLuint          ofsNormals;
+	GLuint          ofsColors;
+	GLuint          ofsBoneIndexes;
+	GLuint          ofsBoneWeights;
+
+	int             indexesNum;
+	byte           *indexes;
+	int             indexesSize;
+	int             indexesOfs;
+
+	skelTriangle_t  *tri;
+
+	vec4_t          tmp;
+	int             index;
+
+	srfVBOMDMMesh_t *vboSurf;
+	md5Vertex_t     *v;
+
+	vec4_t          tmpColor = { 1, 1, 1, 1 };
+
+	vertexesNum = surf->numVerts;
+	indexesNum = vboTriangles->currentElements * 3;
+
+	// create surface
+	vboSurf = ri.Hunk_Alloc(sizeof(*vboSurf), h_low);
+	Com_AddToGrowList(vboSurfaces, vboSurf);
+
+	vboSurf->surfaceType = SF_VBO_MDMMESH;
+	vboSurf->mdmModel = mdm;
+	vboSurf->shader = R_GetShaderByHandle(surf->shaderIndex);
+	Q_strncpyz(vboSurf->originalSurfaceName, surf->name, sizeof(vboSurf->originalSurfaceName));
+	vboSurf->skinIndex = skinIndex;
+	vboSurf->numIndexes = indexesNum;
+	vboSurf->numVerts = vertexesNum;
+
+	dataSize = vertexesNum * (sizeof(vec4_t) * 8);
+	data = ri.Hunk_AllocateTempMemory(dataSize);
+	dataOfs = 0;
+
+	indexesSize = indexesNum * sizeof(int);
+	indexes = ri.Hunk_AllocateTempMemory(indexesSize);
+	indexesOfs = 0;
+
+	ri.Printf(PRINT_ALL, "AddSurfaceToVBOSurfacesList( %i verts, %i tris )\n", surf->numVerts, vboTriangles->currentElements);
+
+	vboSurf->numBoneRemap = 0;
+	Com_Memset(vboSurf->boneRemap, 0, sizeof(vboSurf->boneRemap));
+	Com_Memset(vboSurf->boneRemapInverse, 0, sizeof(vboSurf->boneRemapInverse));
+
+	ri.Printf(PRINT_ALL, "referenced bones: ");
+	for(j = 0; j < MAX_BONES; j++)
+	{
+		if(boneReferences[j] > 0)
+		{
+			vboSurf->boneRemap[j] = vboSurf->numBoneRemap;
+			vboSurf->boneRemapInverse[vboSurf->numBoneRemap] = j;
+
+			vboSurf->numBoneRemap++;
+
+			ri.Printf(PRINT_ALL, "(%i -> %i) ", j, vboSurf->boneRemap[j]);
+		}
+	}
+	ri.Printf(PRINT_ALL, "\n");
+
+	//for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
+	for(j = 0; j < vboTriangles->currentElements; j++)
+	{
+		tri = Com_GrowListElement(vboTriangles, j);
+
+		for(k = 0; k < 3; k++)
+		{
+			index = tri->indexes[k];
+
+			Com_Memcpy(indexes + indexesOfs, &index, sizeof(int));
+			indexesOfs += sizeof(int);
+		}
+	}
+
+	// feed vertex XYZ
+	for(j = 0; j < vertexesNum; j++)
+	{
+		for(k = 0; k < 3; k++)
+		{
+			tmp[k] = surf->verts[j].position[k];
+		}
+		tmp[3] = 1;
+		Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	// feed vertex texcoords
+	ofsTexCoords = dataOfs;
+	for(j = 0; j < vertexesNum; j++)
+	{
+		for(k = 0; k < 2; k++)
+		{
+			tmp[k] = surf->verts[j].texCoords[k];
+		}
+		tmp[2] = 0;
+		tmp[3] = 1;
+		Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	// feed vertex tangents
+	ofsTangents = dataOfs;
+	for(j = 0; j < vertexesNum; j++)
+	{
+		for(k = 0; k < 3; k++)
+		{
+			tmp[k] = surf->verts[j].tangent[k];
+		}
+		tmp[3] = 1;
+		Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	// feed vertex binormals
+	ofsBinormals = dataOfs;
+	for(j = 0; j < vertexesNum; j++)
+	{
+		for(k = 0; k < 3; k++)
+		{
+			tmp[k] = surf->verts[j].binormal[k];
+		}
+		tmp[3] = 1;
+		Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	// feed vertex normals
+	ofsNormals = dataOfs;
+	for(j = 0; j < vertexesNum; j++)
+	{
+		for(k = 0; k < 3; k++)
+		{
+			tmp[k] = surf->verts[j].normal[k];
+		}
+		tmp[3] = 1;
+		Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	// feed vertex colors
+	ofsColors = dataOfs;
+	for(j = 0; j < vertexesNum; j++)
+	{
+		Com_Memcpy(data + dataOfs, tmpColor, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	// feed bone indices
+	ofsBoneIndexes = dataOfs;
+	for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+	{
+		for(k = 0; k < MAX_WEIGHTS; k++)
+		{
+			if(k < v->numWeights)
+				index = vboSurf->boneRemap[v->weights[k]->boneIndex];
+			else
+				index = 0;
+
+			Com_Memcpy(data + dataOfs, &index, sizeof(int));
+			dataOfs += sizeof(int);
+		}
+	}
+
+	// feed bone weights
+	ofsBoneWeights = dataOfs;
+	for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+	{
+		for(k = 0; k < MAX_WEIGHTS; k++)
+		{
+			if(k < v->numWeights)
+				tmp[k] = v->weights[k]->boneWeight;
+			else
+				tmp[k] = 0;
+		}
+		Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+		dataOfs += sizeof(vec4_t);
+	}
+
+	vboSurf->vbo = R_CreateVBO(va("staticMDMMesh_VBO %i", vboSurfaces->currentElements), data, dataSize, VBO_USAGE_STATIC);
+	vboSurf->vbo->ofsXYZ = 0;
+	vboSurf->vbo->ofsTexCoords = ofsTexCoords;
+	vboSurf->vbo->ofsLightCoords = ofsTexCoords;
+	vboSurf->vbo->ofsTangents = ofsTangents;
+	vboSurf->vbo->ofsBinormals = ofsBinormals;
+	vboSurf->vbo->ofsNormals = ofsNormals;
+	vboSurf->vbo->ofsColors = ofsColors;
+	vboSurf->vbo->ofsLightCoords = ofsColors;		// not required anyway
+	vboSurf->vbo->ofsLightDirections = ofsColors;	// not required anyway
+	vboSurf->vbo->ofsBoneIndexes = ofsBoneIndexes;
+	vboSurf->vbo->ofsBoneWeights = ofsBoneWeights;
+
+	vboSurf->ibo = R_CreateIBO(va("staticMDMMesh_IBO %i", vboSurfaces->currentElements), indexes, indexesSize, VBO_USAGE_STATIC);
+
+	ri.Hunk_FreeTempMemory(indexes);
+	ri.Hunk_FreeTempMemory(data);
+
+	// megs
+	/*
+	   ri.Printf(PRINT_ALL, "md5 mesh data VBO size: %d.%02d MB\n", dataSize / (1024 * 1024),
+	   (dataSize % (1024 * 1024)) * 100 / (1024 * 1024));
+	   ri.Printf(PRINT_ALL, "md5 mesh tris VBO size: %d.%02d MB\n", indexesSize / (1024 * 1024),
+	   (indexesSize % (1024 * 1024)) * 100 / (1024 * 1024));
+	 */
+}
+
+
 /*
 =================
 R_LoadMDM
@@ -292,6 +515,306 @@ qboolean R_LoadMDM(model_t * mod, void *buffer, const char *modName)
 
 		// find the next surface
 		mdmSurf = (mdmSurface_t *) ((byte *) mdmSurf + mdmSurf->ofsEnd);
+	}
+
+	// loading is done now calculate the bounding box and tangent spaces
+	ClearBounds(mdmModel->bounds[0], mdmModel->bounds[1]);
+
+	for(i = 0, surf = mdmModel->surfaces; i < mdmModel->numSurfaces; i++, surf++)
+	{
+		for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+		{
+			vec3_t          tmpVert;
+			md5Weight_t    *w;
+
+			VectorClear(tmpVert);
+
+			for(k = 0, w = v->weights[0]; k < v->numWeights; k++, w++)
+			{
+				//vec3_t          offsetVec;
+
+				//VectorClear(offsetVec);
+
+				//bone = &md5->bones[w->boneIndex];
+
+				//QuatTransformVector(bone->rotation, w->offset, offsetVec);
+				//VectorAdd(bone->origin, offsetVec, offsetVec);
+
+				VectorMA(tmpVert, w->boneWeight, w->offset, tmpVert);
+			}
+
+			VectorCopy(tmpVert, v->position);
+			AddPointToBounds(tmpVert, mdmModel->bounds[0], mdmModel->bounds[1]);
+		}
+
+		// calc tangent spaces
+#if 0
+		{
+			const float    *v0, *v1, *v2;
+			const float    *t0, *t1, *t2;
+			vec3_t          tangent;
+			vec3_t          binormal;
+			vec3_t          normal;
+
+			for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+			{
+				VectorClear(v->tangent);
+				VectorClear(v->binormal);
+				VectorClear(v->normal);
+			}
+
+			for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
+			{
+				v0 = surf->verts[tri->indexes[0]].position;
+				v1 = surf->verts[tri->indexes[1]].position;
+				v2 = surf->verts[tri->indexes[2]].position;
+
+				t0 = surf->verts[tri->indexes[0]].texCoords;
+				t1 = surf->verts[tri->indexes[1]].texCoords;
+				t2 = surf->verts[tri->indexes[2]].texCoords;
+
+#if 1
+				R_CalcTangentSpace(tangent, binormal, normal, v0, v1, v2, t0, t1, t2);
+#else
+				R_CalcNormalForTriangle(normal, v0, v1, v2);
+				R_CalcTangentsForTriangle(tangent, binormal, v0, v1, v2, t0, t1, t2);
+#endif
+
+				for(k = 0; k < 3; k++)
+				{
+					float          *v;
+
+					v = surf->verts[tri->indexes[k]].tangent;
+					VectorAdd(v, tangent, v);
+
+					v = surf->verts[tri->indexes[k]].binormal;
+					VectorAdd(v, binormal, v);
+
+					v = surf->verts[tri->indexes[k]].normal;
+					VectorAdd(v, normal, v);
+				}
+			}
+
+			for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+			{
+				VectorNormalize(v->tangent);
+				VectorNormalize(v->binormal);
+				VectorNormalize(v->normal);
+			}
+		}
+#else
+		{
+			int             k;
+			float           bb, s, t;
+			vec3_t          bary;
+			vec3_t			faceNormal;
+			md5Vertex_t    *dv[3];
+
+			for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
+			{
+				dv[0] = &surf->verts[tri->indexes[0]];
+				dv[1] = &surf->verts[tri->indexes[1]];
+				dv[2] = &surf->verts[tri->indexes[2]];
+
+				R_CalcNormalForTriangle(faceNormal, dv[0]->position, dv[1]->position, dv[2]->position);
+
+				// calculate barycentric basis for the triangle
+				bb = (dv[1]->texCoords[0] - dv[0]->texCoords[0]) * (dv[2]->texCoords[1] - dv[0]->texCoords[1]) - (dv[2]->texCoords[0] - dv[0]->texCoords[0]) * (dv[1]->texCoords[1] -
+																													  dv[0]->texCoords[1]);
+				if(fabs(bb) < 0.00000001f)
+					continue;
+
+				// do each vertex
+				for(k = 0; k < 3; k++)
+				{
+					// calculate s tangent vector
+					s = dv[k]->texCoords[0] + 10.0f;
+					t = dv[k]->texCoords[1];
+					bary[0] = ((dv[1]->texCoords[0] - s) * (dv[2]->texCoords[1] - t) - (dv[2]->texCoords[0] - s) * (dv[1]->texCoords[1] - t)) / bb;
+					bary[1] = ((dv[2]->texCoords[0] - s) * (dv[0]->texCoords[1] - t) - (dv[0]->texCoords[0] - s) * (dv[2]->texCoords[1] - t)) / bb;
+					bary[2] = ((dv[0]->texCoords[0] - s) * (dv[1]->texCoords[1] - t) - (dv[1]->texCoords[0] - s) * (dv[0]->texCoords[1] - t)) / bb;
+
+					dv[k]->tangent[0] = bary[0] * dv[0]->position[0] + bary[1] * dv[1]->position[0] + bary[2] * dv[2]->position[0];
+					dv[k]->tangent[1] = bary[0] * dv[0]->position[1] + bary[1] * dv[1]->position[1] + bary[2] * dv[2]->position[1];
+					dv[k]->tangent[2] = bary[0] * dv[0]->position[2] + bary[1] * dv[1]->position[2] + bary[2] * dv[2]->position[2];
+
+					VectorSubtract(dv[k]->tangent, dv[k]->position, dv[k]->tangent);
+					VectorNormalize(dv[k]->tangent);
+
+					// calculate t tangent vector (binormal)
+					s = dv[k]->texCoords[0];
+					t = dv[k]->texCoords[1] + 10.0f;
+					bary[0] = ((dv[1]->texCoords[0] - s) * (dv[2]->texCoords[1] - t) - (dv[2]->texCoords[0] - s) * (dv[1]->texCoords[1] - t)) / bb;
+					bary[1] = ((dv[2]->texCoords[0] - s) * (dv[0]->texCoords[1] - t) - (dv[0]->texCoords[0] - s) * (dv[2]->texCoords[1] - t)) / bb;
+					bary[2] = ((dv[0]->texCoords[0] - s) * (dv[1]->texCoords[1] - t) - (dv[1]->texCoords[0] - s) * (dv[0]->texCoords[1] - t)) / bb;
+
+					dv[k]->binormal[0] = bary[0] * dv[0]->position[0] + bary[1] * dv[1]->position[0] + bary[2] * dv[2]->position[0];
+					dv[k]->binormal[1] = bary[0] * dv[0]->position[1] + bary[1] * dv[1]->position[1] + bary[2] * dv[2]->position[1];
+					dv[k]->binormal[2] = bary[0] * dv[0]->position[2] + bary[1] * dv[1]->position[2] + bary[2] * dv[2]->position[2];
+
+					VectorSubtract(dv[k]->binormal, dv[k]->position, dv[k]->binormal);
+					VectorNormalize(dv[k]->binormal);
+
+					// calculate the normal as cross product N=TxB
+#if 0
+					CrossProduct(dv[k]->tangent, dv[k]->binormal, dv[k]->normal);
+					VectorNormalize(dv[k]->normal);
+
+					// Gram-Schmidt orthogonalization process for B
+					// compute the cross product B=NxT to obtain
+					// an orthogonal basis
+					CrossProduct(dv[k]->normal, dv[k]->tangent, dv[k]->binormal);
+
+					if(DotProduct(dv[k]->normal, faceNormal) < 0)
+					{
+						VectorInverse(dv[k]->normal);
+						//VectorInverse(dv[k]->tangent);
+						//VectorInverse(dv[k]->binormal);
+					}
+#else
+					//VectorAdd(dv[k]->normal, faceNormal, dv[k]->normal);
+#endif
+				}
+			}
+
+#if 1
+			for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+			{
+				//VectorNormalize(v->tangent);
+				//VectorNormalize(v->binormal);
+				//VectorNormalize(v->normal);
+			}
+#endif
+		}
+#endif
+
+#if 0
+		// do another extra smoothing for normals to avoid flat shading
+		for(j = 0; j < surf->numVerts; j++)
+		{
+			for(k = 0; k < surf->numVerts; k++)
+			{
+				if(j == k)
+					continue;
+
+				if(VectorCompare(surf->verts[j].position, surf->verts[k].position))
+				{
+					VectorAdd(surf->verts[j].normal, surf->verts[k].normal, surf->verts[j].normal);
+				}
+			}
+
+			VectorNormalize(surf->verts[j].normal);
+		}
+#endif
+	}
+
+	// split the surfaces into VBO surfaces by the maximum number of GPU vertex skinning bones
+	{
+		int				numRemaining;
+		growList_t		sortedTriangles;
+		growList_t      vboTriangles;
+		growList_t      vboSurfaces;
+
+		int				numBoneReferences;
+		int				boneReferences[MAX_BONES];
+
+		Com_InitGrowList(&vboSurfaces, 10);
+
+		for(i = 0, surf = mdmModel->surfaces; i < mdmModel->numSurfaces; i++, surf++)
+		{
+			// sort triangles
+			Com_InitGrowList(&sortedTriangles, 1000);
+
+			for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
+			{
+				skelTriangle_t *sortTri = Com_Allocate(sizeof(*sortTri));
+
+				for(k = 0; k < 3; k++)
+				{
+					sortTri->indexes[k] = tri->indexes[k];
+					sortTri->vertexes[k] = &surf->verts[tri->indexes[k]];
+				}
+				sortTri->referenced = qfalse;
+
+				Com_AddToGrowList(&sortedTriangles, sortTri);
+			}
+
+			//qsort(sortedTriangles.elements, sortedTriangles.currentElements, sizeof(void *), CompareTrianglesByBoneReferences);
+
+	#if 0
+			for(j = 0; j < sortedTriangles.currentElements; j++)
+			{
+				int		b[MAX_WEIGHTS * 3];
+
+				skelTriangle_t *sortTri = Com_GrowListElement(&sortedTriangles, j);
+
+				for(k = 0; k < 3; k++)
+				{
+					v = sortTri->vertexes[k];
+
+					for(l = 0; l < MAX_WEIGHTS; l++)
+					{
+						b[k * 3 + l] = (l < v->numWeights) ? v->weights[l]->boneIndex : 9999;
+					}
+
+					qsort(b, MAX_WEIGHTS * 3, sizeof(int), CompareBoneIndices);
+					//ri.Printf(PRINT_ALL, "bone indices: %i %i %i %i\n", b[k * 3 + 0], b[k * 3 + 1], b[k * 3 + 2], b[k * 3 + 3]);
+				}
+			}
+	#endif
+
+			numRemaining = sortedTriangles.currentElements;
+			while(numRemaining)
+			{
+				numBoneReferences = 0;
+				Com_Memset(boneReferences, 0, sizeof(boneReferences));
+
+				Com_InitGrowList(&vboTriangles, 1000);
+
+				for(j = 0; j < sortedTriangles.currentElements; j++)
+				{
+					skelTriangle_t *sortTri = Com_GrowListElement(&sortedTriangles, j);
+
+					if(sortTri->referenced)
+						continue;
+
+					if(AddTriangleToVBOTriangleList(&vboTriangles, sortTri, &numBoneReferences, boneReferences))
+					{
+						sortTri->referenced = qtrue;
+					}
+				}
+
+				if(!vboTriangles.currentElements)
+				{
+					ri.Printf(PRINT_WARNING, "R_LoadMDM: could not add triangles to a remaining VBO surfaces for model '%s'\n", modName);
+					break;
+				}
+
+				AddSurfaceToVBOSurfacesListMDM(&vboSurfaces, &vboTriangles, mdm, surf, i, numBoneReferences, boneReferences);
+				numRemaining -= vboTriangles.currentElements;
+
+				Com_DestroyGrowList(&vboTriangles);
+			}
+
+			for(j = 0; j < sortedTriangles.currentElements; j++)
+			{
+				skelTriangle_t *sortTri = Com_GrowListElement(&sortedTriangles, j);
+
+				Com_Dealloc(sortTri);
+			}
+			Com_DestroyGrowList(&sortedTriangles);
+		}
+
+		// move VBO surfaces list to hunk
+		mdmModel->numVBOSurfaces = vboSurfaces.currentElements;
+		mdmModel->vboSurfaces = ri.Hunk_Alloc(mdmModel->numVBOSurfaces * sizeof(*mdmModel->vboSurfaces), h_low);
+
+		for(i = 0; i < mdmModel->numVBOSurfaces; i++)
+		{
+			mdmModel->vboSurfaces[i] = (srfVBOMDMMesh_t *) Com_GrowListElement(&vboSurfaces, i);
+		}
+
+		Com_DestroyGrowList(&vboSurfaces);
 	}
 
 	return qtrue;

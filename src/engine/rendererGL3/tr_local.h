@@ -2591,6 +2591,7 @@ typedef enum
 
 	SF_VBO_MESH,
 	SF_VBO_MD5MESH,
+	SF_VBO_MDMMESH,
 	SF_VBO_SHADOW_VOLUME,
 
 	SF_NUM_SURFACE_TYPES,
@@ -2903,6 +2904,29 @@ typedef struct srfVBOMD5Mesh_s
 	VBO_t          *vbo;
 	IBO_t          *ibo;
 } srfVBOMD5Mesh_t;
+
+typedef struct srfVBOMDMMesh_s
+{
+	surfaceType_t   surfaceType;
+
+	struct mdmModel_s *mdmModel;
+	struct shader_s *shader;	// FIXME move this to somewhere else
+
+	char			originalSurfaceName[MAX_QPATH];
+	int				skinIndex;
+
+	int				numBoneRemap;
+	int				boneRemap[MAX_BONES];
+	int				boneRemapInverse[MAX_BONES];
+
+	// backEnd stats
+	int             numIndexes;
+	int             numVerts;
+
+	// static render data
+	VBO_t          *vbo;
+	IBO_t          *ibo;
+} srfVBOMDMMesh_t;
 
 typedef struct srfVBOShadowVolume_s
 {
@@ -3319,13 +3343,13 @@ typedef struct mdmModel_s
 	float           lodBias;
 
 	uint16_t		numTags;
-	mdmTag_t       *tags;
+	mdmTagIntern_t *tags;
 
 	uint16_t        numSurfaces;
 	mdmSurfaceIntern_t *surfaces;
 
 	uint16_t        numVBOSurfaces;
-	srfVBOMD5Mesh_t **vboSurfaces;
+	srfVBOMDMMesh_t **vboSurfaces;
 
 	int				numBoneReferences;
 	int32_t        *boneReferences;
@@ -4549,6 +4573,7 @@ void            Tess_Begin(	void (*stageIteratorFunc)(),
 							int lightmapNum);
 // *INDENT-ON*
 void            Tess_End(void);
+void			Tess_EndBegin();
 void            Tess_DrawElements();
 void            Tess_CheckOverflow(int verts, int indexes);
 
@@ -4868,9 +4893,12 @@ ANIMATED MODELS WOLF:ET  MDM/MDX
 */
 
 void            R_MDM_AddAnimSurfaces(trRefEntity_t * ent);
-void            Tess_MDM_SurfaceAnim(mdmSurface_t * surfType);
 int             R_MDM_GetBoneTag(orientation_t * outTag, mdmModel_t * mdm, int startTagIndex, const refEntity_t * refent,
 								 const char *tagName);
+
+
+void            Tess_MDM_SurfaceAnim(mdmSurface_t * surfType);
+void            Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surfType);
 
 /*
 =============================================================

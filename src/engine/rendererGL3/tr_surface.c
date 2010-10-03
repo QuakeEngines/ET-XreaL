@@ -3052,5 +3052,6 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfaceEntity,	// SF_ENTITY
 		(void (*)(void *))Tess_SurfaceVBOMesh,	// SF_VBO_MESH
 		(void (*)(void *))Tess_SurfaceVBOMD5Mesh,	// SF_VBO_MD5MESH
+		(void (*)(void *))Tess_SurfaceVBOMDMMesh,	// SF_VBO_MD5MESH
 		(void (*)(void *))Tess_SurfaceVBOShadowVolume	// SF_VBO_SHADOW_VOLUME
 };
