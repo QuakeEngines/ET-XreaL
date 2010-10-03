@@ -70,8 +70,8 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 
 	vboSurf->surfaceType = SF_VBO_MDMMESH;
 	vboSurf->mdmModel = mdm;
+	vboSurf->mdmSurface = surf;
 	vboSurf->shader = R_GetShaderByHandle(surf->shaderIndex);
-	Q_strncpyz(vboSurf->originalSurfaceName, surf->name, sizeof(vboSurf->originalSurfaceName));
 	vboSurf->skinIndex = skinIndex;
 	vboSurf->numIndexes = indexesNum;
 	vboSurf->numVerts = vertexesNum;
@@ -84,13 +84,20 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 	indexes = ri.Hunk_AllocateTempMemory(indexesSize);
 	indexesOfs = 0;
 
-	ri.Printf(PRINT_ALL, "AddSurfaceToVBOSurfacesList( %i verts, %i tris )\n", surf->numVerts, vboTriangles->currentElements);
+	//ri.Printf(PRINT_ALL, "AddSurfaceToVBOSurfacesList( %i verts, %i tris )\n", surf->numVerts, vboTriangles->currentElements);
 
 	vboSurf->numBoneRemap = 0;
 	Com_Memset(vboSurf->boneRemap, 0, sizeof(vboSurf->boneRemap));
 	Com_Memset(vboSurf->boneRemapInverse, 0, sizeof(vboSurf->boneRemapInverse));
 
-	ri.Printf(PRINT_ALL, "referenced bones: ");
+	//ri.Printf(PRINT_ALL, "original referenced bones: [ ");
+	//for(j = 0; j < surf->numBoneReferences; j++)
+	//{
+	//	ri.Printf(PRINT_ALL, "%i, ", surf->boneReferences[j]);
+	//}
+	//ri.Printf(PRINT_ALL, "]\n");
+
+	//ri.Printf(PRINT_ALL, "new referenced bones: ");
 	for(j = 0; j < MAX_BONES; j++)
 	{
 		if(boneReferences[j] > 0)
@@ -100,10 +107,10 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 
 			vboSurf->numBoneRemap++;
 
-			ri.Printf(PRINT_ALL, "(%i -> %i) ", j, vboSurf->boneRemap[j]);
+			//ri.Printf(PRINT_ALL, "(%i -> %i) ", j, vboSurf->boneRemap[j]);
 		}
 	}
-	ri.Printf(PRINT_ALL, "\n");
+	//ri.Printf(PRINT_ALL, "\n");
 
 	//for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
 	for(j = 0; j < vboTriangles->currentElements; j++)

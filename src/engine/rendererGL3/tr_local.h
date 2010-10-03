@@ -2910,9 +2910,9 @@ typedef struct srfVBOMDMMesh_s
 	surfaceType_t   surfaceType;
 
 	struct mdmModel_s *mdmModel;
+	struct mdmSurfaceIntern_s *mdmSurface;
 	struct shader_s *shader;	// FIXME move this to somewhere else
 
-	char			originalSurfaceName[MAX_QPATH];
 	int				skinIndex;
 
 	int				numBoneRemap;
@@ -3307,7 +3307,7 @@ typedef struct
 	int            *boneReferences;
 } mdmTagIntern_t;
 
-typedef struct
+typedef struct mdmSurfaceIntern_s
 {
 	surfaceType_t   surfaceType;
 

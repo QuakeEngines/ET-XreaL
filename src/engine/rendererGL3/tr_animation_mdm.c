@@ -422,7 +422,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 				for(j = 0; j < skin->numSurfaces; j++)
 				{
 					// the names have both been lowercased
-					if(!strcmp(skin->surfaces[j]->name, vboSurface->originalSurfaceName))
+					if(!Q_stricmp(skin->surfaces[j]->name, vboSurface->mdmSurface->name))
 					{
 						shader = skin->surfaces[j]->shader;
 						break;
@@ -1392,6 +1392,7 @@ R_BonesStillValid
 */
 static qboolean R_BonesStillValid(const refEntity_t * refent)
 {
+#if 1
 	if(lastBoneEntity.hModel != refent->hModel)
 	{
 		return qfalse;
@@ -1448,6 +1449,9 @@ static qboolean R_BonesStillValid(const refEntity_t * refent)
 	}
 
 	return qtrue;
+#else
+	return qfalse;
+#endif
 }
 
 
@@ -2234,6 +2238,7 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 {
 	int             i;
 	mdmModel_t     *mdmModel;
+	mdmSurfaceIntern_t *mdmSurface;
 	matrix_t        m, m2;	//, m3
 	refEntity_t    *refent;
 
@@ -2251,12 +2256,13 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 	tess.numVertexes += surface->numVerts;
 
 	mdmModel = surface->mdmModel;
+	mdmSurface = surface->mdmSurface;
 
-	refent = &backEnd.currentEntity->e;
-//	boneList = surface->boneReferences;
-	mdmModel = surface->mdmModel;
+	refent = &backEnd.currentEntity->e;	
 
-	R_CalcBones((const refEntity_t *)refent, surface->boneRemapInverse, surface->numBoneRemap);
+	// RB: R_CalcBones requires the bone references from the original mdmSurface_t because
+	// the GPU vertex skinning only requires a subset which does not reference the parent bones of the vertex weights.
+	R_CalcBones((const refEntity_t *)refent, mdmSurface->boneReferences, mdmSurface->numBoneReferences);
 
 	tess.vboVertexSkinning = qtrue;
 
