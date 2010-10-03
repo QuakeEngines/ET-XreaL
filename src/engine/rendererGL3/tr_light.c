@@ -446,12 +446,14 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent, vec3_
 		VectorSet(ent->ambientLight, 0.96f, 0.96f, 0.96f);	// allow a little room for flicker from directed light
 	}
 
-	// transform the direction to local space
-	d = VectorLength(ent->directedLight);
-	VectorScale(lightDir, d, ent->lightDir);
-	VectorNormalize(ent->lightDir);
 
 	// Tr3B: keep it in world space
+
+	// transform the direction to local space
+	//% d = VectorLength(ent->directedLight);
+	//% VectorScale(ent->lightDir, d, lightDir);
+	//% VectorNormalize(lightDir);
+
 	//% ent->lightDir[0] = DotProduct(lightDir, ent->e.axis[0]);
 	//% ent->lightDir[1] = DotProduct(lightDir, ent->e.axis[1]);
 	//%	ent->lightDir[2] = DotProduct(lightDir, ent->e.axis[2]);
