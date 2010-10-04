@@ -257,9 +257,9 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GLHW_NV_DX10\n#define GLHW_NV_DX10 1\n#endif\n");
 		}
 
-		if(r_shadows->integer >= 4 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
+		if(r_shadows->integer >= SHADOWING_VSM16 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
 		{
-			if(r_shadows->integer == 6)
+			if(r_shadows->integer == SHADOWING_ESM)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef ESM\n#define ESM 1\n#endif\n");
 
@@ -299,7 +299,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 					Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_CLAMP\n#define VSM_CLAMP 1\n#endif\n");
 				}
 
-				if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == 5)
+				if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
 				{
 					Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_EPSILON\n#define VSM_EPSILON 0.000001\n#endif\n");
 				}
@@ -1269,7 +1269,7 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.forwardLightingShader_DBS_omni.program, "u_AttenuationMapXY");
 	tr.forwardLightingShader_DBS_omni.u_AttenuationMapZ =
 		glGetUniformLocationARB(tr.forwardLightingShader_DBS_omni.program, "u_AttenuationMapZ");
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		tr.forwardLightingShader_DBS_omni.u_ShadowMap =
 			glGetUniformLocationARB(tr.forwardLightingShader_DBS_omni.program, "u_ShadowMap");
@@ -1334,7 +1334,7 @@ void GLSL_InitGPUShaders(void)
 	glUniform1iARB(tr.forwardLightingShader_DBS_omni.u_SpecularMap, 2);
 	glUniform1iARB(tr.forwardLightingShader_DBS_omni.u_AttenuationMapXY, 3);
 	glUniform1iARB(tr.forwardLightingShader_DBS_omni.u_AttenuationMapZ, 4);
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		glUniform1iARB(tr.forwardLightingShader_DBS_omni.u_ShadowMap, 5);
 	}
@@ -1358,7 +1358,7 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.forwardLightingShader_DBS_proj.program, "u_AttenuationMapXY");
 	tr.forwardLightingShader_DBS_proj.u_AttenuationMapZ =
 		glGetUniformLocationARB(tr.forwardLightingShader_DBS_proj.program, "u_AttenuationMapZ");
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		tr.forwardLightingShader_DBS_proj.u_ShadowMap =
 			glGetUniformLocationARB(tr.forwardLightingShader_DBS_proj.program, "u_ShadowMap");
@@ -1425,7 +1425,7 @@ void GLSL_InitGPUShaders(void)
 	glUniform1iARB(tr.forwardLightingShader_DBS_proj.u_SpecularMap, 2);
 	glUniform1iARB(tr.forwardLightingShader_DBS_proj.u_AttenuationMapXY, 3);
 	glUniform1iARB(tr.forwardLightingShader_DBS_proj.u_AttenuationMapZ, 4);
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		glUniform1iARB(tr.forwardLightingShader_DBS_proj.u_ShadowMap, 5);
 	}
@@ -1451,7 +1451,7 @@ void GLSL_InitGPUShaders(void)
 		glGetUniformLocationARB(tr.forwardLightingShader_DBS_directional.program, "u_AttenuationMapXY");
 	tr.forwardLightingShader_DBS_directional.u_AttenuationMapZ =
 		glGetUniformLocationARB(tr.forwardLightingShader_DBS_directional.program, "u_AttenuationMapZ");
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		tr.forwardLightingShader_DBS_directional.u_ShadowMap0 =
 			glGetUniformLocationARB(tr.forwardLightingShader_DBS_directional.program, "u_ShadowMap0");
@@ -1530,7 +1530,7 @@ void GLSL_InitGPUShaders(void)
 	glUniform1iARB(tr.forwardLightingShader_DBS_directional.u_SpecularMap, 2);
 	glUniform1iARB(tr.forwardLightingShader_DBS_directional.u_AttenuationMapXY, 3);
 	glUniform1iARB(tr.forwardLightingShader_DBS_directional.u_AttenuationMapZ, 4);
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		glUniform1iARB(tr.forwardLightingShader_DBS_directional.u_ShadowMap0, 5);
 		glUniform1iARB(tr.forwardLightingShader_DBS_directional.u_ShadowMap1, 6);
@@ -3969,7 +3969,7 @@ static void Render_forwardLighting_DBS_omni(shaderStage_t * diffuseStage,
 	VectorCopy(light->origin, lightOrigin);
 	VectorCopy(tess.svars.color, lightColor);
 
-	shadowCompare = r_shadows->integer >= 4 && !light->l.noShadows && light->shadowLOD >= 0;
+	shadowCompare = r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0;
 
 	if(shadowCompare)
 		shadowTexelSize = 1.0f / shadowMapResolutions[light->shadowLOD];
@@ -4138,7 +4138,7 @@ static void Render_forwardLighting_DBS_proj(shaderStage_t * diffuseStage,
 	VectorCopy(light->origin, lightOrigin);
 	VectorCopy(tess.svars.color, lightColor);
 
-	shadowCompare = r_shadows->integer >= 4 && !light->l.noShadows && light->shadowLOD >= 0;
+	shadowCompare = r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0;
 
 	if(shadowCompare)
 		shadowTexelSize = 1.0f / shadowMapResolutions[light->shadowLOD];
@@ -4313,7 +4313,7 @@ static void Render_forwardLighting_DBS_directional(shaderStage_t * diffuseStage,
 	VectorCopy(light->direction, lightDirection);
 #endif
 
-	shadowCompare = r_shadows->integer >= 4 && !light->l.noShadows && light->shadowLOD >= 0;
+	shadowCompare = r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0;
 
 	if(shadowCompare)
 		shadowTexelSize = 1.0f / shadowMapResolutions[light->shadowLOD];

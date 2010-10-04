@@ -1466,7 +1466,7 @@ static void R_SetupProjection(qboolean infiniteFarClip)
 		zFar = tr.viewParms.zFar = r_zfar->value;
 	}
 
-//	if(r_shadows->integer == 3)
+//	if(r_shadows->integer == SHADOWING_STENCIL)
 //		zFar = 0;
 
 	yMax = zNear * tan(tr.refdef.fov_y * M_PI / 360.0f);
@@ -2426,7 +2426,7 @@ void R_AddEntitySurfaces(void)
 #if 0
 		if(ent->e.renderfx & RF_THIRD_PERSON)
 		{
-			if(r_shadows->integer == 3 && tr.viewParms.isPortal)
+			if(r_shadows->integer == SHADOWING_STENCIL && tr.viewParms.isPortal)
 			{
 				ent->needZFail = qtrue;
 			}
@@ -2845,7 +2845,7 @@ void R_AddLightInteractions()
 		light->numLightOnlyInteractions = 0;
 		light->noSort = qfalse;
 
-		if(r_deferredShading->integer && r_shadows->integer <= 3)
+		if(r_deferredShading->integer && r_shadows->integer <= SHADOWING_STENCIL)
 		{
 			// add one fake interaction for this light
 			// because the renderer backend only loops through interactions

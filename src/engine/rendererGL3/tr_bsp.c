@@ -6602,7 +6602,7 @@ static void R_KillRedundantInteractions(trRefLight_t * light)
 	bspSurface_t   *surface;
 	vec3_t          localBounds[2];
 
-	if(r_shadows->integer <= 2)
+	if(r_shadows->integer <= SHADOWING_PLANAR)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -6628,7 +6628,7 @@ static void R_KillRedundantInteractions(trRefLight_t * light)
 			continue;
 
 		// HACK: allow fancy alphatest shadows with shadow mapping
-		if(r_shadows->integer >= 4 && surface->shader->alphaTest)
+		if(r_shadows->integer >= SHADOWING_VSM16 && surface->shader->alphaTest)
 			continue;
 
 		for(iaCache2 = light->firstInteractionCache; iaCache2; iaCache2 = iaCache2->next)
@@ -6861,7 +6861,7 @@ static void R_CreateVBOLightMeshes(trRefLight_t * light)
 	if(!r_vboLighting->integer)
 		return;
 
-	if(r_deferredShading->integer && r_shadows->integer <= 3)
+	if(r_deferredShading->integer && r_shadows->integer <= SHADOWING_STENCIL)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -7160,7 +7160,7 @@ static void R_CreateVBOShadowMeshes(trRefLight_t * light)
 	if(!r_vboShadows->integer)
 		return;
 
-	if(r_shadows->integer < 4)
+	if(r_shadows->integer < SHADOWING_VSM16)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -7522,7 +7522,7 @@ static void R_CreateVBOShadowCubeMeshes(trRefLight_t * light)
 	if(!r_vboShadows->integer)
 		return;
 
-	if(r_shadows->integer < 4)
+	if(r_shadows->integer < SHADOWING_VSM16)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -7843,6 +7843,7 @@ static void R_CreateVBOShadowCubeMeshes(trRefLight_t * light)
 /*
 ===============
 R_CreateVBOShadowVolume
+
 Go through all static interactions of this light and create a new VBO shadow volume surface,
 so we can render all static shadows of this light using a single glDrawElements call
 without any renderer backend batching
@@ -7880,7 +7881,7 @@ static void R_CreateVBOShadowVolume(trRefLight_t * light)
 
 	srfVBOShadowVolume_t *shadowSurf;
 
-	if(r_shadows->integer != 3)
+	if(r_shadows->integer != SHADOWING_STENCIL)
 		return;
 
 	if(!r_vboShadows->integer)
@@ -8229,7 +8230,7 @@ static void R_CalcInteractionCubeSideBits(trRefLight_t * light)
 	bspSurface_t   *surface;
 	vec3_t          localBounds[2];
 
-	if(r_shadows->integer <= 2)
+	if(r_shadows->integer <= SHADOWING_PLANAR)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -8422,7 +8423,7 @@ void R_PrecacheInteractions()
 	ri.Printf(PRINT_ALL, "%i interactions precached\n", s_worldData.numInteractions);
 	ri.Printf(PRINT_ALL, "%i interactions were hidden in shadows\n", c_redundantInteractions);
 
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		// only interesting for omni-directional shadow mapping
 		ri.Printf(PRINT_ALL, "%i omni pyramid tests\n", tr.pc.c_pyramidTests);

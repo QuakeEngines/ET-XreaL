@@ -233,7 +233,7 @@ static void R_AddInteractionSurface(bspSurface_t * surf, trRefLight_t * light)
 	// into this view
 	if(surf->viewCount != tr.viewCountNoReset)
 	{
-		if(r_shadows->integer <= 2 || light->l.noShadows)
+		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
 			return;
 		else
 			iaType = IA_SHADOWONLY;
@@ -595,7 +595,7 @@ static void R_RecursiveInteractionNode(bspNode_t * node, trRefLight_t * light, i
 
 	// Tr3B - even surfaces that belong to nodes that are outside of the view frustum
 	// can cast shadows into the view frustum
-	if(!r_nocull->integer && r_shadows->integer <= 2)
+	if(!r_nocull->integer && r_shadows->integer <= SHADOWING_PLANAR)
 	{
 		for(i = 0; i < FRUSTUM_PLANES; i++)
 		{
@@ -2534,7 +2534,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 		shader_t       *shader;
 		bspSurface_t   *surface;
 
-		if(r_shadows->integer == 3)
+		if(r_shadows->integer == SHADOWING_STENCIL)
 		{
 			for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
 			{
@@ -2612,7 +2612,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 			// into this view
 			if(surface->viewCount != tr.viewCountNoReset)
 			{
-				if(r_shadows->integer <= 3 || light->l.noShadows)
+				if(r_shadows->integer <= SHADOWING_STENCIL || light->l.noShadows)
 					continue;
 				else
 					iaType = IA_SHADOWONLY;
@@ -2641,7 +2641,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 			// into this view
 			if(surface->viewCount != tr.viewCountNoReset)
 			{
-				if(r_shadows->integer <= 3 || light->l.noShadows)
+				if(r_shadows->integer <= SHADOWING_STENCIL || light->l.noShadows)
 					continue;
 				else
 					iaType = IA_SHADOWONLY;

@@ -4815,7 +4815,7 @@ static shader_t *FinishShader(void)
 
 
 	// HACK: allow alpha tested surfaces to create shadowmaps
-	if(r_shadows->integer >= 4)
+	if(r_shadows->integer >= SHADOWING_VSM16)
 	{
 		if(shader.noShadows && shader.alphaTest)
 		{

@@ -1359,7 +1359,7 @@ static void Render_lightVolume(interaction_t * ia)
 			VectorCopy(light->origin, lightOrigin);
 			VectorCopy(tess.svars.color, lightColor);
 
-			shadowCompare = r_shadows->integer >= 4 && !light->l.noShadows && light->shadowLOD >= 0;
+			shadowCompare = r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0;
 
 			GLSL_SetUniform_ViewOrigin(&tr.lightVolumeShader_omni, viewOrigin);
 			GLSL_SetUniform_LightOrigin(&tr.lightVolumeShader_omni, lightOrigin);
@@ -9532,7 +9532,7 @@ static void RB_RenderDebugUtils()
 			GL_LoadModelViewMatrix(backEnd.orientation.modelViewMatrix);
 			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-			if(r_shadows->integer >= 4 && light->l.rlType == RL_OMNI)
+			if(r_shadows->integer >= SHADOWING_VSM16 && light->l.rlType == RL_OMNI)
 			{
 #if 0
 				Vector4Copy(colorMdGrey, lightColor);
@@ -10013,7 +10013,7 @@ static void RB_RenderDebugUtils()
 				Vector4Set(quadVerts[3], ia->scissorX, ia->scissorY + ia->scissorHeight - 1, 0, 1);
 				Tess_InstantQuad(quadVerts);
 			}
-			else if(r_shadows->integer == 3 && glDepthBoundsEXT)
+			else if(r_shadows->integer == SHADOWING_STENCIL && glDepthBoundsEXT)
 			{
 				if(ia->noDepthBoundsTest)
 				{
@@ -10604,7 +10604,7 @@ static void RB_RenderView(void)
 #endif
 		RB_RenderLightOcclusionQueries();
 
-		if(r_shadows->integer >= 4)
+		if(r_shadows->integer >= SHADOWING_VSM16)
 		{
 			// render dynamic shadowing and lighting using shadow mapping
 			RB_RenderInteractionsDeferredShadowMapped();
@@ -10869,7 +10869,7 @@ static void RB_RenderView(void)
 		clearBits = GL_DEPTH_BUFFER_BIT;
 
 		/*
-		   if(r_measureOverdraw->integer || r_shadows->integer == 3)
+		   if(r_measureOverdraw->integer || r_shadows->integer == SHADOWING_STENCIL)
 		   {
 		   clearBits |= GL_STENCIL_BUFFER_BIT;
 		   }
@@ -10939,7 +10939,7 @@ static void RB_RenderView(void)
 
 		if(!r_showDeferredRender->integer)
 		{
-			if(r_shadows->integer >= 4)
+			if(r_shadows->integer >= SHADOWING_VSM16)
 			{
 				// render dynamic shadowing and lighting using shadow mapping
 				RB_RenderInteractionsDeferredShadowMapped();
@@ -11085,7 +11085,7 @@ static void RB_RenderView(void)
 		// clear relevant buffers
 		clearBits = GL_DEPTH_BUFFER_BIT;
 
-		if(r_measureOverdraw->integer || r_shadows->integer == 3)
+		if(r_measureOverdraw->integer || r_shadows->integer == SHADOWING_STENCIL)
 		{
 			clearBits |= GL_STENCIL_BUFFER_BIT;
 		}
@@ -11155,7 +11155,7 @@ static void RB_RenderView(void)
 		// try to cull lights using hardware occlusion queries
 		RB_RenderLightOcclusionQueries();
 
-		if(r_shadows->integer >= 4)
+		if(r_shadows->integer >= SHADOWING_VSM16)
 		{
 			// render dynamic shadowing and lighting using shadow mapping
 			RB_RenderInteractionsShadowMapped();
@@ -11163,7 +11163,7 @@ static void RB_RenderView(void)
 			// render player shadows if any
 			//RB_RenderInteractionsDeferredInverseShadows();
 		}
-		else if(r_shadows->integer == 3)
+		else if(r_shadows->integer == SHADOWING_STENCIL)
 		{
 			// render dynamic shadowing and lighting using stencil shadow volumes
 			RB_RenderInteractionsStencilShadowed();

@@ -380,7 +380,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 	}
 
 	// set up lighting now that we know we aren't culled
-	if(!personalModel || r_shadows->integer > 1)
+	if(!personalModel || r_shadows->integer > SHADOWING_BLOB)
 	{
 		R_SetupEntityLighting(&tr.refdef, ent, NULL);
 	}

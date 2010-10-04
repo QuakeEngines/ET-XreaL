@@ -43,7 +43,7 @@ void R_AddBrushModelInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	// and we don't care about proper shadowing
 	if(ent->cull == CULL_OUT)
 	{
-		if(r_shadows->integer <= 2 || light->l.noShadows)
+		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
 			return;
 		else
 			iaType = IA_SHADOWONLY;
@@ -1180,7 +1180,7 @@ qboolean R_AddLightInteraction(trRefLight_t * light, surfaceType_t * surface, sh
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(r_shadows->integer == 3 && glDepthBoundsEXT)
+	if(r_shadows->integer == SHADOWING_STENCIL && glDepthBoundsEXT)
 	{
 		ia->depthNear = light->depthNear;
 		ia->depthFar = light->depthFar;
@@ -1422,7 +1422,7 @@ void R_SetupLightScissor(trRefLight_t * light)
 	}
 
 #if 0
-	if(r_shadows->integer != 3)
+	if(r_shadows->integer != SHADOWING_STENCIL)
 	{
 		// we don't need it for any other mode ...
 		return;
@@ -1574,7 +1574,7 @@ void R_SetupLightDepthBounds(trRefLight_t * light)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(r_shadows->integer == 3 && glDepthBoundsEXT)
+	if(r_shadows->integer == SHADOWING_STENCIL && glDepthBoundsEXT)
 	{
 		tr.pc.c_depthBoundsTestsRejected++;
 
@@ -1672,7 +1672,7 @@ byte R_CalcLightCubeSideBits(trRefLight_t * light, vec3_t worldBounds[2])
 	return cubeSideBits;
 #endif
 
-	if(light->l.rlType != RL_OMNI || r_shadows->integer < 4 || r_noShadowPyramids->integer)
+	if(light->l.rlType != RL_OMNI || r_shadows->integer < SHADOWING_VSM16 || r_noShadowPyramids->integer)
 		return CUBESIDE_CLIPALL;
 
 	cubeSideBits = 0;

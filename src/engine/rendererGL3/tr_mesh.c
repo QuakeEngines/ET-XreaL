@@ -264,7 +264,7 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 	}
 
 	// set up lighting now that we know we aren't culled
-	if(!personalModel || r_shadows->integer > 1)
+	if(!personalModel || r_shadows->integer > SHADOWING_BLOB)
 	{
 		R_SetupEntityLighting(&tr.refdef, ent, NULL);
 	}
@@ -377,7 +377,7 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	// is outside the view frustum and we don't care about proper shadowing
 	if(ent->cull == CULL_OUT)
 	{
-		if(r_shadows->integer <= 2 || light->l.noShadows)
+		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
 			return;
 		else
 			iaType = IA_SHADOWONLY;
@@ -432,7 +432,7 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 		srfVBOMesh_t   *vboSurface;
 		shader_t       *shader;
 
-		if(r_shadows->integer == 3)
+		if(r_shadows->integer == SHADOWING_STENCIL)
 		{
 			// add shadow interactions because we cannot use shadow volumes with static VBOs ..
 			for(i = 0, surface = model->surfaces; i < model->numSurfaces; i++, surface++)
