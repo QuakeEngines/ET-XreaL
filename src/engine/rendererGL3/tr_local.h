@@ -2592,6 +2592,7 @@ typedef enum
 	SF_VBO_MESH,
 	SF_VBO_MD5MESH,
 	SF_VBO_MDMMESH,
+	SF_VBO_MDVMESH,
 	SF_VBO_SHADOW_VOLUME,
 
 	SF_NUM_SURFACE_TYPES,
@@ -2928,6 +2929,22 @@ typedef struct srfVBOMDMMesh_s
 	IBO_t          *ibo;
 } srfVBOMDMMesh_t;
 
+typedef struct srfVBOMDVMesh_s
+{
+	surfaceType_t   surfaceType;
+
+	struct mdvModel_s *mdvModel;
+	struct mdvSurface_s *mdvSurface;
+
+	// backEnd stats
+	int             numIndexes;
+	int             numVerts;
+
+	// static render data
+	VBO_t          *vbo;
+	IBO_t          *ibo;
+} srfVBOMDVMesh_t;
+
 typedef struct srfVBOShadowVolume_s
 {
 	surfaceType_t   surfaceType;
@@ -3166,7 +3183,10 @@ typedef struct
 
 typedef struct
 {
-	float           xyz[3];
+	vec3_t          xyz;
+	vec3_t          normal;
+	vec3_t          tangent;
+	vec3_t          binormal;
 } mdvVertex_t;
 
 typedef struct
@@ -3174,7 +3194,7 @@ typedef struct
 	float           st[2];
 } mdvSt_t;
 
-typedef struct
+typedef struct mdvSurface_s
 {
 	surfaceType_t   surfaceType;
 
@@ -3205,7 +3225,7 @@ typedef struct mdvModel_s
 	mdvSurface_t   *surfaces;
 
 	int             numVBOSurfaces;
-	srfVBOMesh_t  **vboSurfaces;
+	srfVBOMDVMesh_t  **vboSurfaces;
 
 	int             numSkins;
 } mdvModel_t;

@@ -207,6 +207,50 @@ int R_ComputeLOD(trRefEntity_t * ent)
 	return lod;
 }
 
+
+static shader_t *GetMDVSurfaceShader(const trRefEntity_t * ent, mdvSurface_t * mdvSurface)
+{
+	shader_t       *shader = 0;
+
+	if(ent->e.customShader)
+	{
+		shader = R_GetShaderByHandle(ent->e.customShader);
+	}
+	else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+	{
+		skin_t         *skin;
+		int             j;
+
+		skin = R_GetSkinByHandle(ent->e.customSkin);
+
+		// match the surface name to something in the skin file
+		shader = tr.defaultShader;
+		for(j = 0; j < skin->numSurfaces; j++)
+		{
+			// the names have both been lowercased
+			if(!strcmp(skin->surfaces[j]->name, mdvSurface->name))
+			{
+				shader = skin->surfaces[j]->shader;
+				break;
+			}
+		}
+		if(shader == tr.defaultShader)
+		{
+			ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", mdvSurface->name, skin->name);
+		}
+		else if(shader->defaultShader)
+		{
+			ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
+		}
+	}
+	else
+	{
+		shader = mdvSurface->shader;
+	}
+
+	return shader;
+}
+
 /*
 =================
 R_AddMDVSurfaces
@@ -216,7 +260,7 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 {
 	int             i;
 	mdvModel_t     *model = 0;
-	mdvSurface_t   *surface = 0;
+	mdvSurface_t   *mdvSurface = 0;
 	shader_t       *shader = 0;
 	int             lod;
 	qboolean        personalModel;
@@ -273,13 +317,15 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 	if(r_vboModels->integer && model->numVBOSurfaces)
 	{
 		int             i;
-		srfVBOMesh_t   *vboSurface;
+		srfVBOMDVMesh_t   *vboSurface;
 		shader_t       *shader;
 
 		for(i = 0; i < model->numVBOSurfaces; i++)
 		{
 			vboSurface = model->vboSurfaces[i];
-			shader = vboSurface->shader;
+			mdvSurface = vboSurface->mdvSurface;
+			
+			shader = GetMDVSurfaceShader(ent, mdvSurface);
 
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
@@ -290,68 +336,22 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 	}
 	else
 	{
-		for(i = 0, surface = model->surfaces; i < model->numSurfaces; i++, surface++)
+		for(i = 0, mdvSurface = model->surfaces; i < model->numSurfaces; i++, mdvSurface++)
 		{
-			if(ent->e.customShader)
-			{
-				shader = R_GetShaderByHandle(ent->e.customShader);
-			}
-			else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
-			{
-				skin_t         *skin;
-				int             j;
-
-				skin = R_GetSkinByHandle(ent->e.customSkin);
-
-				// match the surface name to something in the skin file
-				shader = tr.defaultShader;
-				for(j = 0; j < skin->numSurfaces; j++)
-				{
-					// the names have both been lowercased
-					if(!strcmp(skin->surfaces[j]->name, surface->name))
-					{
-						shader = skin->surfaces[j]->shader;
-						break;
-					}
-				}
-				if(shader == tr.defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface->name, skin->name);
-				}
-				else if(shader->defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
-				}
-			}
-			else
-			{
-				shader = surface->shader;
-			}
-			/*
-			   else if(surface->numShaders <= 0)
-			   {
-			   shader = tr.defaultShader;
-			   }
-			   else
-			   {
-			   mdxShader = surface->shaders;
-			   mdxShader += ent->e.skinNum % surface->numShaders;
-			   shader = tr.shaders[mdxShader->shaderIndex];
-			   }
-			 */
+			shader = GetMDVSurfaceShader(ent, mdvSurface);
 
 			// we will add shadows even if the main object isn't visible in the view
 
 			// projection shadows work fine with personal models
 			if(r_shadows->integer == SHADOWING_PLANAR && (ent->e.renderfx & RF_SHADOW_PLANE) && shader->sort == SS_OPAQUE)
 			{
-				R_AddDrawSurf((void *)surface, tr.projectionShadowShader, -1);
+				R_AddDrawSurf((void *)mdvSurface, tr.projectionShadowShader, -1);
 			}
 
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddDrawSurf((void *)surface, shader, -1);
+				R_AddDrawSurf((void *)mdvSurface, shader, -1);
 			}
 		}
 	}
@@ -366,7 +366,7 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 {
 	int             i;
 	mdvModel_t     *model = 0;
-	mdvSurface_t   *surface = 0;
+	mdvSurface_t   *mdvSurface = 0;
 	shader_t       *shader = 0;
 	int             lod;
 	qboolean        personalModel;
@@ -429,49 +429,15 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	{
 		// new brute force method: just render everthing with static VBOs
 		int             i;
-		srfVBOMesh_t   *vboSurface;
+		srfVBOMDVMesh_t *vboSurface;
 		shader_t       *shader;
 
 		if(r_shadows->integer == SHADOWING_STENCIL)
 		{
 			// add shadow interactions because we cannot use shadow volumes with static VBOs ..
-			for(i = 0, surface = model->surfaces; i < model->numSurfaces; i++, surface++)
+			for(i = 0, mdvSurface = model->surfaces; i < model->numSurfaces; i++, mdvSurface++)
 			{
-				if(ent->e.customShader)
-				{
-					shader = R_GetShaderByHandle(ent->e.customShader);
-				}
-				else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
-				{
-					skin_t         *skin;
-					int             j;
-
-					skin = R_GetSkinByHandle(ent->e.customSkin);
-
-					// match the surface name to something in the skin file
-					shader = tr.defaultShader;
-					for(j = 0; j < skin->numSurfaces; j++)
-					{
-						// the names have both been lowercased
-						if(!strcmp(skin->surfaces[j]->name, surface->name))
-						{
-							shader = skin->surfaces[j]->shader;
-							break;
-						}
-					}
-					if(shader == tr.defaultShader)
-					{
-						ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface->name, skin->name);
-					}
-					else if(shader->defaultShader)
-					{
-						ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
-					}
-				}
-				else
-				{
-					shader = surface->shader;
-				}
+				shader = GetMDVSurfaceShader(ent, mdvSurface);
 
 				// skip all surfaces that don't matter for lighting only pass
 				if(shader->isSky || !shader->interactLight || shader->noShadows)
@@ -482,7 +448,7 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 				// don't add third_person objects if not viewing through a portal
 				if(!personalModel)
 				{
-					R_AddLightInteraction(light, (void *)surface, shader, cubeSideBits, IA_SHADOWONLY);
+					R_AddLightInteraction(light, (void *)mdvSurface, shader, cubeSideBits, IA_SHADOWONLY);
 					tr.pc.c_dlightSurfaces++;
 				}
 			}
@@ -491,7 +457,9 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 			for(i = 0; i < model->numVBOSurfaces; i++)
 			{
 				vboSurface = model->vboSurfaces[i];
-				shader = vboSurface->shader;
+				mdvSurface = vboSurface->mdvSurface;
+
+				shader = GetMDVSurfaceShader(ent, mdvSurface);
 
 				// skip all surfaces that don't matter for lighting only pass
 				if(shader->isSky || (!shader->interactLight && shader->noShadows))
@@ -511,7 +479,9 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 			for(i = 0; i < model->numVBOSurfaces; i++)
 			{
 				vboSurface = model->vboSurfaces[i];
-				shader = vboSurface->shader;
+				mdvSurface = vboSurface->mdvSurface;
+				
+				shader = GetMDVSurfaceShader(ent, mdvSurface);
 
 				// skip all surfaces that don't matter for lighting only pass
 				if(shader->isSky || (!shader->interactLight && shader->noShadows))
@@ -530,55 +500,9 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	}
 	else
 	{
-		for(i = 0, surface = model->surfaces; i < model->numSurfaces; i++, surface++)
+		for(i = 0, mdvSurface = model->surfaces; i < model->numSurfaces; i++, mdvSurface++)
 		{
-			if(ent->e.customShader)
-			{
-				shader = R_GetShaderByHandle(ent->e.customShader);
-			}
-			else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
-			{
-				skin_t         *skin;
-				int             j;
-
-				skin = R_GetSkinByHandle(ent->e.customSkin);
-
-				// match the surface name to something in the skin file
-				shader = tr.defaultShader;
-				for(j = 0; j < skin->numSurfaces; j++)
-				{
-					// the names have both been lowercased
-					if(!strcmp(skin->surfaces[j]->name, surface->name))
-					{
-						shader = skin->surfaces[j]->shader;
-						break;
-					}
-				}
-				if(shader == tr.defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface->name, skin->name);
-				}
-				else if(shader->defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
-				}
-			}
-			else
-			{
-				shader = surface->shader;
-			}
-			/*
-			   else if(surface->numShaders <= 0)
-			   {
-			   shader = tr.defaultShader;
-			   }
-			   else
-			   {
-			   mdxShader = surface->shaders;
-			   mdxShader += ent->e.skinNum % surface->numShaders;
-			   shader = tr.shaders[mdxShader->shaderIndex];
-			   }
-			 */
+			shader = GetMDVSurfaceShader(ent, mdvSurface);
 
 			// skip all surfaces that don't matter for lighting only pass
 			if(shader->isSky || (!shader->interactLight && shader->noShadows))
@@ -589,7 +513,7 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddLightInteraction(light, (void *)surface, shader, cubeSideBits, iaType);
+				R_AddLightInteraction(light, (void *)mdvSurface, shader, cubeSideBits, iaType);
 				tr.pc.c_dlightSurfaces++;
 			}
 		}

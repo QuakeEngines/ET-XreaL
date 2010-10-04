@@ -1,26 +1,33 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
 
-This file is part of XreaL source code.
+Wolfenstein: Enemy Territory GPL Source Code
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 2010 Robert Beckebans <trebor_7@users.sourceforge.net>
 
-XreaL source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+This file is part of the Wolfenstein: Enemy Territory GPL Source Code ("Wolf ET Source Code").
 
-XreaL source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+Wolf ET Source Code is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Wolf ET Source Code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with XreaL source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with Wolf ET Source Code.  If not, see <http://www.gnu.org/licenses/>.
+
+In addition, the Wolf: ET Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU General Public License which accompanied the Wolf ET Source Code.  If not, please request a copy in writing from id Software at the address below.
+
+If you have questions concerning this license or the applicable additional terms, you may contact in writing id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
+
 ===========================================================================
 */
-// tr_models.c -- model loading and caching
+// tr_model_mdc.c -- Enemy Territory .mdc model loading and caching
+
 #include "tr_local.h"
 
 #define	LL(x) x=LittleLong(x)
@@ -620,6 +627,201 @@ qboolean R_LoadMDC(model_t * mod, int lod, void *buffer, int bufferSize, const c
 		mdcSurf = (mdcSurface_t *) ((byte *) mdcSurf + mdcSurf->ofsEnd);
 		surf++;
 	}
+
+#if 1
+	// create VBO surfaces from md3 surfaces
+	{
+		growList_t      vboSurfaces;
+		srfVBOMDVMesh_t *vboSurf;
+
+		byte           *data;
+		int             dataSize;
+		int             dataOfs;
+
+		vec4_t          tmp;
+
+		GLuint          ofsTexCoords;
+		GLuint          ofsTangents;
+		GLuint          ofsBinormals;
+		GLuint          ofsNormals;
+
+		int				vertexesNum;
+
+		Com_InitGrowList(&vboSurfaces, 10);
+
+		for(i = 0, surf = mdvModel->surfaces; i < mdvModel->numSurfaces; i++, surf++)
+		{
+			// calc tangent spaces
+			{
+				const float    *v0, *v1, *v2;
+				const float    *t0, *t1, *t2;
+				vec3_t          tangent;
+				vec3_t          binormal;
+				vec3_t          normal;
+
+				for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+				{
+					VectorClear(v->tangent);
+					VectorClear(v->binormal);
+					VectorClear(v->normal);
+				}
+
+				for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
+				{
+					v0 = surf->verts[tri->indexes[0]].xyz;
+					v1 = surf->verts[tri->indexes[1]].xyz;
+					v2 = surf->verts[tri->indexes[2]].xyz;
+
+					t0 = surf->st[tri->indexes[0]].st;
+					t1 = surf->st[tri->indexes[1]].st;
+					t2 = surf->st[tri->indexes[2]].st;
+
+	#if 1
+					R_CalcTangentSpace(tangent, binormal, normal, v0, v1, v2, t0, t1, t2);
+	#else
+					R_CalcNormalForTriangle(normal, v0, v1, v2);
+					R_CalcTangentsForTriangle(tangent, binormal, v0, v1, v2, t0, t1, t2);
+	#endif
+
+					for(k = 0; k < 3; k++)
+					{
+						float          *v;
+
+						v = surf->verts[tri->indexes[k]].tangent;
+						VectorAdd(v, tangent, v);
+
+						v = surf->verts[tri->indexes[k]].binormal;
+						VectorAdd(v, binormal, v);
+
+						v = surf->verts[tri->indexes[k]].normal;
+						VectorAdd(v, normal, v);
+					}
+				}
+
+				for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+				{
+					VectorNormalize(v->tangent);
+					VectorNormalize(v->binormal);
+					VectorNormalize(v->normal);
+				}
+			}
+
+			ri.Printf(PRINT_ALL, "...calculating MD3 mesh VBOs ( '%s', %i verts %i tris )\n", surf->name, surf->numVerts, surf->numTriangles);
+
+			// create surface
+			vboSurf = ri.Hunk_Alloc(sizeof(*vboSurf), h_low);
+			Com_AddToGrowList(&vboSurfaces, vboSurf);
+
+			vboSurf->surfaceType = SF_VBO_MDVMESH;
+			vboSurf->mdvModel = mdvModel;
+			vboSurf->mdvSurface = surf;
+			vboSurf->numIndexes = surf->numTriangles * 3;
+			vboSurf->numVerts = surf->numVerts;
+
+			/*
+			vboSurf->vbo = R_CreateVBO2(va("staticWorldMesh_vertices %i", vboSurfaces.currentElements), numVerts, optimizedVerts,
+									   ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL
+									   | ATTR_COLOR);
+									   */
+
+			vboSurf->ibo = R_CreateIBO2(va("staticMDCMesh_IBO %s", surf->name), surf->numTriangles, surf->triangles, VBO_USAGE_STATIC);
+
+
+			// create VBO
+			vertexesNum = surf->numVerts;
+
+			dataSize = surf->numVerts * (sizeof(vec4_t) * 8);
+			data = ri.Hunk_AllocateTempMemory(dataSize);
+			dataOfs = 0;
+
+			// feed vertex XYZ
+			for(j = 0; j < vertexesNum; j++)
+			{
+				for(k = 0; k < 3; k++)
+				{
+					tmp[k] = surf->verts[j].xyz[k];
+				}
+				tmp[3] = 1;
+				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+				dataOfs += sizeof(vec4_t);
+			}
+
+			// feed vertex texcoords
+			ofsTexCoords = dataOfs;
+			for(j = 0; j < vertexesNum; j++)
+			{
+				for(k = 0; k < 2; k++)
+				{
+					tmp[k] = surf->st[j].st[k];
+				}
+				tmp[2] = 0;
+				tmp[3] = 1;
+				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+				dataOfs += sizeof(vec4_t);
+			}
+
+			// feed vertex tangents
+			ofsTangents = dataOfs;
+			for(j = 0; j < vertexesNum; j++)
+			{
+				for(k = 0; k < 3; k++)
+				{
+					tmp[k] = surf->verts[j].tangent[k];
+				}
+				tmp[3] = 1;
+				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+				dataOfs += sizeof(vec4_t);
+			}
+
+			// feed vertex binormals
+			ofsBinormals = dataOfs;
+			for(j = 0; j < vertexesNum; j++)
+			{
+				for(k = 0; k < 3; k++)
+				{
+					tmp[k] = surf->verts[j].binormal[k];
+				}
+				tmp[3] = 1;
+				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+				dataOfs += sizeof(vec4_t);
+			}
+
+			// feed vertex normals
+			ofsNormals = dataOfs;
+			for(j = 0; j < vertexesNum; j++)
+			{
+				for(k = 0; k < 3; k++)
+				{
+					tmp[k] = surf->verts[j].normal[k];
+				}
+				tmp[3] = 1;
+				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+				dataOfs += sizeof(vec4_t);
+			}
+
+			vboSurf->vbo = R_CreateVBO(va("staticMDCMesh_VBO '%s'", surf->name), data, dataSize, VBO_USAGE_STATIC);
+			vboSurf->vbo->ofsXYZ = 0;
+			vboSurf->vbo->ofsTexCoords = ofsTexCoords;
+			vboSurf->vbo->ofsLightCoords = ofsTexCoords;
+			vboSurf->vbo->ofsTangents = ofsTangents;
+			vboSurf->vbo->ofsBinormals = ofsBinormals;
+			vboSurf->vbo->ofsNormals = ofsNormals;
+
+			ri.Hunk_FreeTempMemory(data);
+		}
+
+		// move VBO surfaces list to hunk
+		mdvModel->numVBOSurfaces = vboSurfaces.currentElements;
+		mdvModel->vboSurfaces = ri.Hunk_Alloc(mdvModel->numVBOSurfaces * sizeof(*mdvModel->vboSurfaces), h_low);
+
+		for(i = 0; i < mdvModel->numVBOSurfaces; i++)
+		{
+			mdvModel->vboSurfaces[i] = (srfVBOMesh_t *) Com_GrowListElement(&vboSurfaces, i);
+		}
+
+		Com_DestroyGrowList(&vboSurfaces);
+	}
+#endif
 
 	return qtrue;
 }

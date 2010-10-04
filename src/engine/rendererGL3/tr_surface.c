@@ -2936,6 +2936,44 @@ static void Tess_SurfaceVBOMesh(srfVBOMesh_t * srf)
 
 /*
 ==============
+Tess_SurfaceVBOMDVMesh
+==============
+*/
+void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
+{
+	int             i;
+	mdvModel_t     *mdvModel;
+	mdvSurface_t   *mdvSurface;
+	matrix_t        m, m2;	//, m3
+	refEntity_t    *refent;
+
+	GLimp_LogComment("--- Tess_SurfaceVBOMDVMesh ---\n");
+
+	if(!surface->vbo || !surface->ibo)
+		return;
+
+	Tess_EndBegin();
+
+	R_BindVBO(surface->vbo);
+	R_BindIBO(surface->ibo);
+
+	tess.numIndexes += surface->numIndexes;
+	tess.numVertexes += surface->numVerts;
+
+	mdvModel = surface->mdvModel;
+	mdvSurface = surface->mdvSurface;
+
+	refent = &backEnd.currentEntity->e;	
+
+	tess.vboVertexSkinning = qfalse;
+
+	
+
+	Tess_End();
+}
+
+/*
+==============
 Tess_SurfaceVBOMD5Mesh
 ==============
 */
@@ -3053,5 +3091,6 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfaceVBOMesh,	// SF_VBO_MESH
 		(void (*)(void *))Tess_SurfaceVBOMD5Mesh,	// SF_VBO_MD5MESH
 		(void (*)(void *))Tess_SurfaceVBOMDMMesh,	// SF_VBO_MD5MESH
+		(void (*)(void *))Tess_SurfaceVBOMDVMesh,	// SF_VBO_MDVMESH
 		(void (*)(void *))Tess_SurfaceVBOShadowVolume	// SF_VBO_SHADOW_VOLUME
 };

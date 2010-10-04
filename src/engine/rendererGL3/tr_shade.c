@@ -2660,6 +2660,10 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 	else
 	{
 		state = NULL;
+
+		tess.numSurfaceStages = 0;
+		tess.surfaceShader = NULL;
+		tess.surfaceStages = NULL;
 	}
 
 	tess.lightShader = lightShader;

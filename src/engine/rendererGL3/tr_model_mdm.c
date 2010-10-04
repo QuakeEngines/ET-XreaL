@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-// tr_models_mdm.c -- Enemy Territory .mdm model loading and caching
+// tr_model_mdm.c -- Enemy Territory .mdm model loading and caching
 
 #include "tr_local.h"
 #include "tr_model_skel.h"
@@ -49,7 +49,6 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 	GLuint          ofsTangents;
 	GLuint          ofsBinormals;
 	GLuint          ofsNormals;
-	GLuint          ofsColors;
 	GLuint          ofsBoneIndexes;
 	GLuint          ofsBoneWeights;
 
@@ -83,7 +82,7 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 	vboSurf->numIndexes = indexesNum;
 	vboSurf->numVerts = vertexesNum;
 
-	dataSize = vertexesNum * (sizeof(vec4_t) * 8);
+	dataSize = vertexesNum * (sizeof(vec4_t) * 7);
 	data = ri.Hunk_AllocateTempMemory(dataSize);
 	dataOfs = 0;
 
@@ -198,14 +197,6 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 		dataOfs += sizeof(vec4_t);
 	}
 
-	// feed vertex colors
-	ofsColors = dataOfs;
-	for(j = 0; j < vertexesNum; j++)
-	{
-		Com_Memcpy(data + dataOfs, tmpColor, sizeof(vec4_t));
-		dataOfs += sizeof(vec4_t);
-	}
-
 	// feed bone indices
 	ofsBoneIndexes = dataOfs;
 	for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
@@ -244,9 +235,9 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 	vboSurf->vbo->ofsTangents = ofsTangents;
 	vboSurf->vbo->ofsBinormals = ofsBinormals;
 	vboSurf->vbo->ofsNormals = ofsNormals;
-	vboSurf->vbo->ofsColors = ofsColors;
-	vboSurf->vbo->ofsLightCoords = ofsColors;		// not required anyway
-	vboSurf->vbo->ofsLightDirections = ofsColors;	// not required anyway
+	vboSurf->vbo->ofsColors = ofsNormals;
+	vboSurf->vbo->ofsLightCoords = 0;		// not required anyway
+	vboSurf->vbo->ofsLightDirections = 0;	// not required anyway
 	vboSurf->vbo->ofsBoneIndexes = ofsBoneIndexes;
 	vboSurf->vbo->ofsBoneWeights = ofsBoneWeights;
 
@@ -804,7 +795,7 @@ qboolean R_LoadMDM(model_t * mod, void *buffer, const char *modName)
 					break;
 				}
 
-				AddSurfaceToVBOSurfacesListMDM(&vboSurfaces, &vboTriangles, mdm, surf, i, numBoneReferences, boneReferences);
+				AddSurfaceToVBOSurfacesListMDM(&vboSurfaces, &vboTriangles, mdmModel, surf, i, numBoneReferences, boneReferences);
 				numRemaining -= vboTriangles.currentElements;
 
 				Com_DestroyGrowList(&vboTriangles);
