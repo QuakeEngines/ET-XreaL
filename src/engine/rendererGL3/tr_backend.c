@@ -933,7 +933,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_POSITION )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_POSITION, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ));
+		glVertexAttribPointerARB(ATTR_INDEX_POSITION, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ + (glState.vertexAttribsFrame * glState.currentVBO->sizeXYZ)));
 		glState.vertexAttribPointersSet |= ATTR_POSITION;
 	}
 
@@ -966,7 +966,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_TANGENT )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_TANGENT, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents));
+		glVertexAttribPointerARB(ATTR_INDEX_TANGENT, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents + (glState.vertexAttribsFrame * glState.currentVBO->sizeTangents)));
 		glState.vertexAttribPointersSet |= ATTR_TANGENT;
 	}
 
@@ -977,7 +977,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_BINORMAL )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_BINORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals));
+		glVertexAttribPointerARB(ATTR_INDEX_BINORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals + (glState.vertexAttribsFrame * glState.currentVBO->sizeBinormals)));
 		glState.vertexAttribPointersSet |= ATTR_BINORMAL;
 	}
 
@@ -988,7 +988,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_NORMAL )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_NORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals));
+		glVertexAttribPointerARB(ATTR_INDEX_NORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals + (glState.vertexAttribsFrame * glState.currentVBO->sizeNormals)));
 		glState.vertexAttribPointersSet |= ATTR_NORMAL;
 	}
 

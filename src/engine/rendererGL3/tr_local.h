@@ -561,6 +561,11 @@ typedef struct VBO_s
 	uint32_t        ofsBoneIndexes;
 	uint32_t        ofsBoneWeights;
 
+	uint32_t		sizeXYZ;
+	uint32_t		sizeTangents;
+	uint32_t		sizeBinormals;
+	uint32_t		sizeNormals;
+
 	int             attribs;
 } VBO_t;
 
@@ -3608,6 +3613,7 @@ typedef struct
 	uint32_t        glStateBits;
 	uint32_t		vertexAttribsState;
 	uint32_t		vertexAttribPointersSet;
+	uint32_t		vertexAttribsFrame;		// offset for VBO vertex animations
 	shaderProgram_t *currentProgram;
 	FBO_t          *currentFBO;
 	VBO_t          *currentVBO;

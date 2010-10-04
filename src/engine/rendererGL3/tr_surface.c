@@ -2945,7 +2945,9 @@ void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
 	mdvModel_t     *mdvModel;
 	mdvSurface_t   *mdvSurface;
 	matrix_t        m, m2;	//, m3
-	refEntity_t    *refent;
+	refEntity_t    *refEnt;
+	int				curFrame;
+	int				oldFrame;
 
 	GLimp_LogComment("--- Tess_SurfaceVBOMDVMesh ---\n");
 
@@ -2963,9 +2965,11 @@ void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
 	mdvModel = surface->mdvModel;
 	mdvSurface = surface->mdvSurface;
 
-	refent = &backEnd.currentEntity->e;	
+	refEnt = &backEnd.currentEntity->e;
 
-	tess.vboVertexSkinning = qfalse;
+	curFrame = refEnt->frame;
+
+	glState.vertexAttribsFrame = curFrame;
 
 	
 

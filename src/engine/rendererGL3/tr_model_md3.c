@@ -287,7 +287,13 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 		GLuint          ofsBinormals;
 		GLuint          ofsNormals;
 
+		GLuint			sizeXYZ;
+		GLuint			sizeTangents;
+		GLuint			sizeBinormals;
+		GLuint			sizeNormals;
+
 		int				vertexesNum;
+		int				f;
 
 		Com_InitGrowList(&vboSurfaces, 10);
 
@@ -301,46 +307,49 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 				vec3_t          binormal;
 				vec3_t          normal;
 
-				for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+				for(j = 0, v = surf->verts; j < (surf->numVerts * mdvModel->numFrames); j++, v++)
 				{
 					VectorClear(v->tangent);
 					VectorClear(v->binormal);
 					VectorClear(v->normal);
 				}
 
-				for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
+				for(f = 0; f < mdvModel->numFrames; f++)
 				{
-					v0 = surf->verts[tri->indexes[0]].xyz;
-					v1 = surf->verts[tri->indexes[1]].xyz;
-					v2 = surf->verts[tri->indexes[2]].xyz;
-
-					t0 = surf->st[tri->indexes[0]].st;
-					t1 = surf->st[tri->indexes[1]].st;
-					t2 = surf->st[tri->indexes[2]].st;
-
-	#if 1
-					R_CalcTangentSpace(tangent, binormal, normal, v0, v1, v2, t0, t1, t2);
-	#else
-					R_CalcNormalForTriangle(normal, v0, v1, v2);
-					R_CalcTangentsForTriangle(tangent, binormal, v0, v1, v2, t0, t1, t2);
-	#endif
-
-					for(k = 0; k < 3; k++)
+					for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
 					{
-						float          *v;
+						v0 = surf->verts[surf->numVerts * f + tri->indexes[0]].xyz;
+						v1 = surf->verts[surf->numVerts * f + tri->indexes[1]].xyz;
+						v2 = surf->verts[surf->numVerts * f + tri->indexes[2]].xyz;
 
-						v = surf->verts[tri->indexes[k]].tangent;
-						VectorAdd(v, tangent, v);
+						t0 = surf->st[tri->indexes[0]].st;
+						t1 = surf->st[tri->indexes[1]].st;
+						t2 = surf->st[tri->indexes[2]].st;
 
-						v = surf->verts[tri->indexes[k]].binormal;
-						VectorAdd(v, binormal, v);
+						#if 1
+						R_CalcTangentSpace(tangent, binormal, normal, v0, v1, v2, t0, t1, t2);
+						#else
+						R_CalcNormalForTriangle(normal, v0, v1, v2);
+						R_CalcTangentsForTriangle(tangent, binormal, v0, v1, v2, t0, t1, t2);
+						#endif
 
-						v = surf->verts[tri->indexes[k]].normal;
-						VectorAdd(v, normal, v);
+						for(k = 0; k < 3; k++)
+						{
+							float          *v;
+
+							v = surf->verts[surf->numVerts * f + tri->indexes[k]].tangent;
+							VectorAdd(v, tangent, v);
+
+							v = surf->verts[surf->numVerts * f + tri->indexes[k]].binormal;
+							VectorAdd(v, binormal, v);
+
+							v = surf->verts[surf->numVerts * f + tri->indexes[k]].normal;
+							VectorAdd(v, normal, v);
+						}
 					}
 				}
 
-				for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++)
+				for(j = 0, v = surf->verts; j < (surf->numVerts * mdvModel->numFrames); j++, v++)
 				{
 					VectorNormalize(v->tangent);
 					VectorNormalize(v->binormal);
@@ -372,20 +381,29 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 			// create VBO
 			vertexesNum = surf->numVerts;
 
-			dataSize = surf->numVerts * (sizeof(vec4_t) * 8);
+			dataSize =	(surf->numVerts * mdvModel->numFrames * sizeof(vec4_t) * 4) + // xyz, tangent, binormal, normal
+						(surf->numVerts * sizeof(vec4_t)); // texcoords
 			data = ri.Hunk_AllocateTempMemory(dataSize);
 			dataOfs = 0;
 
 			// feed vertex XYZ
-			for(j = 0; j < vertexesNum; j++)
+			for(f = 0; f < mdvModel->numFrames; f++)
 			{
-				for(k = 0; k < 3; k++)
+				for(j = 0; j < vertexesNum; j++)
 				{
-					tmp[k] = surf->verts[j].xyz[k];
+					for(k = 0; k < 3; k++)
+					{
+						tmp[k] = surf->verts[f * vertexesNum + j].xyz[k];
+					}
+					tmp[3] = 1;
+					Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+					dataOfs += sizeof(vec4_t);
 				}
-				tmp[3] = 1;
-				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
-				dataOfs += sizeof(vec4_t);
+
+				if(f == 0)
+				{
+					sizeXYZ = dataOfs;
+				}
 			}
 
 			// feed vertex texcoords
@@ -404,41 +422,65 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 
 			// feed vertex tangents
 			ofsTangents = dataOfs;
-			for(j = 0; j < vertexesNum; j++)
+			for(f = 0; f < mdvModel->numFrames; f++)
 			{
-				for(k = 0; k < 3; k++)
+				for(j = 0; j < vertexesNum; j++)
 				{
-					tmp[k] = surf->verts[j].tangent[k];
+					for(k = 0; k < 3; k++)
+					{
+						tmp[k] = surf->verts[f * vertexesNum + j].tangent[k];
+					}
+					tmp[3] = 1;
+					Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+					dataOfs += sizeof(vec4_t);
 				}
-				tmp[3] = 1;
-				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
-				dataOfs += sizeof(vec4_t);
+
+				if(f == 0)
+				{
+					sizeTangents = dataOfs - ofsTangents;
+				}
 			}
 
 			// feed vertex binormals
 			ofsBinormals = dataOfs;
-			for(j = 0; j < vertexesNum; j++)
+			for(f = 0; f < mdvModel->numFrames; f++)
 			{
-				for(k = 0; k < 3; k++)
+				for(j = 0; j < vertexesNum; j++)
 				{
-					tmp[k] = surf->verts[j].binormal[k];
+					for(k = 0; k < 3; k++)
+					{
+						tmp[k] = surf->verts[f * vertexesNum + j].binormal[k];
+					}
+					tmp[3] = 1;
+					Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+					dataOfs += sizeof(vec4_t);
 				}
-				tmp[3] = 1;
-				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
-				dataOfs += sizeof(vec4_t);
+
+				if(f == 0)
+				{
+					sizeBinormals = dataOfs - ofsBinormals;
+				}
 			}
 
 			// feed vertex normals
 			ofsNormals = dataOfs;
-			for(j = 0; j < vertexesNum; j++)
+			for(f = 0; f < mdvModel->numFrames; f++)
 			{
-				for(k = 0; k < 3; k++)
+				for(j = 0; j < vertexesNum; j++)
 				{
-					tmp[k] = surf->verts[j].normal[k];
+					for(k = 0; k < 3; k++)
+					{
+						tmp[k] = surf->verts[f * vertexesNum + j].normal[k];
+					}
+					tmp[3] = 1;
+					Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
+					dataOfs += sizeof(vec4_t);
 				}
-				tmp[3] = 1;
-				Com_Memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
-				dataOfs += sizeof(vec4_t);
+
+				if(f == 0)
+				{
+					sizeNormals = dataOfs - ofsNormals;
+				}
 			}
 
 			vboSurf->vbo = R_CreateVBO(va("staticMD3Mesh_VBO '%s'", surf->name), data, dataSize, VBO_USAGE_STATIC);
@@ -449,6 +491,11 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 			vboSurf->vbo->ofsBinormals = ofsBinormals;
 			vboSurf->vbo->ofsNormals = ofsNormals;
 
+			vboSurf->vbo->sizeXYZ = sizeXYZ;
+			vboSurf->vbo->sizeTangents = sizeTangents;
+			vboSurf->vbo->sizeBinormals = sizeBinormals;
+			vboSurf->vbo->sizeNormals = sizeNormals;
+
 			ri.Hunk_FreeTempMemory(data);
 		}
 
@@ -458,7 +505,7 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 
 		for(i = 0; i < mdvModel->numVBOSurfaces; i++)
 		{
-			mdvModel->vboSurfaces[i] = (srfVBOMesh_t *) Com_GrowListElement(&vboSurfaces, i);
+			mdvModel->vboSurfaces[i] = (srfVBOMDVMesh_t *) Com_GrowListElement(&vboSurfaces, i);
 		}
 
 		Com_DestroyGrowList(&vboSurfaces);
