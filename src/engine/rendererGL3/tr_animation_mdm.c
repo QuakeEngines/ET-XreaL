@@ -353,6 +353,96 @@ static int R_ComputeFogNum(trRefEntity_t * ent)
 }
 */
 
+static shader_t *GetMDMSurfaceShader(const trRefEntity_t * ent, mdmSurfaceIntern_t * mdmSurface)
+{
+	shader_t       *shader = NULL;
+
+	if(ent->e.customShader)
+	{
+		shader = R_GetShaderByHandle(ent->e.customShader);
+	}
+	else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+	{
+		skin_t         *skin;
+		int             hash;
+		int             j;
+
+		skin = R_GetSkinByHandle(ent->e.customSkin);
+
+		// match the surface name to something in the skin file
+		shader = tr.defaultShader;
+
+#if 1
+		// Q3A way
+		
+		// match the surface name to something in the skin file
+		shader = tr.defaultShader;
+		for(j = 0; j < skin->numSurfaces; j++)
+		{
+			// the names have both been lowercased
+			if(!strcmp(skin->surfaces[j]->name, mdmSurface->name))
+			{
+				shader = skin->surfaces[j]->shader;
+				break;
+			}
+		}
+#else
+		if(ent->e.renderfx & RF_BLINK)
+		{
+			char           *s = va("%s_b", surface->name);	// append '_b' for 'blink'
+
+			hash = Com_HashKey(s, strlen(s));
+			for(j = 0; j < skin->numSurfaces; j++)
+			{
+				if(hash != skin->surfaces[j]->hash)
+				{
+					continue;
+				}
+				if(!strcmp(skin->surfaces[j]->name, s))
+				{
+					shader = skin->surfaces[j]->shader;
+					break;
+				}
+			}
+		}
+
+		if(shader == tr.defaultShader)
+		{
+			// blink reference in skin was not found
+			hash = Com_HashKey(surface->name, sizeof(surface->name));
+			for(j = 0; j < skin->numSurfaces; j++)
+			{
+				// the names have both been lowercased
+				if(hash != skin->surfaces[j]->hash)
+				{
+					continue;
+				}
+				if(!strcmp(skin->surfaces[j]->name, surface->name))
+				{
+					shader = skin->surfaces[j]->shader;
+					break;
+				}
+			}
+		}
+#endif
+
+		if(shader == tr.defaultShader)
+		{
+			ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", mdmSurface->name, skin->name);
+		}
+		else if(shader->defaultShader)
+		{
+			ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
+		}
+	}
+	else
+	{
+		shader = R_GetShaderByHandle(mdmSurface->shaderIndex);
+	}
+
+	return shader;
+}
+
 /*
 ==============
 R_MDM_AddAnimSurfaces
@@ -361,7 +451,7 @@ R_MDM_AddAnimSurfaces
 void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 {
 	mdmModel_t     *mdm;
-	mdmSurfaceIntern_t   *surface;
+	mdmSurfaceIntern_t   *mdmSurface;
 	shader_t       *shader = 0;
 	int             i /*fogNum*/;
 	qboolean        personalModel;
@@ -400,57 +490,9 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 		for(i = 0; i < mdm->numVBOSurfaces; i++)
 		{
 			vboSurface = mdm->vboSurfaces[i];
+			mdmSurface = vboSurface->mdmSurface;
 
-			if(ent->e.customShader)
-			{
-				shader = R_GetShaderByHandle(ent->e.customShader);
-			}
-			else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
-			{
-				skin_t         *skin;
-
-				skin = R_GetSkinByHandle(ent->e.customSkin);
-
-				// match the surface name to something in the skin file
-				shader = tr.defaultShader;
-
-				#if 1
-				// Q3A way
-				
-				// match the surface name to something in the skin file
-				shader = tr.defaultShader;
-				for(j = 0; j < skin->numSurfaces; j++)
-				{
-					// the names have both been lowercased
-					if(!Q_stricmp(skin->surfaces[j]->name, vboSurface->mdmSurface->name))
-					{
-						shader = skin->surfaces[j]->shader;
-						break;
-					}
-				}
-				#else
-
-				// FIXME: replace MD3_MAX_SURFACES for skin_t::surfaces
-				//if(i >= 0 && i < skin->numSurfaces && skin->surfaces[i])
-				if(vboSurface->skinIndex >= 0 && vboSurface->skinIndex < skin->numSurfaces && skin->surfaces[vboSurface->skinIndex])
-				{
-					shader = skin->surfaces[vboSurface->skinIndex]->shader;
-				}
-				#endif
-
-				if(shader == tr.defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %i in skin %s\n", i, skin->name);
-				}
-				else if(shader->defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
-				}
-			}
-			else
-			{
-				shader = vboSurface->shader;
-			}
+			shader = GetMDMSurfaceShader(ent, mdmSurface);
 
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
@@ -461,100 +503,179 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 	}
 	else
 	{
-		for(i = 0, surface = mdm->surfaces; i < mdm->numSurfaces; i++, surface++)
+		for(i = 0, mdmSurface = mdm->surfaces; i < mdm->numSurfaces; i++, mdmSurface++)
 		{
-			if(ent->e.customShader)
-			{
-				shader = R_GetShaderByHandle(ent->e.customShader);
-			}
-			else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
-			{
-				skin_t         *skin;
-				int             hash;
-				int             j;
-
-				skin = R_GetSkinByHandle(ent->e.customSkin);
-
-				// match the surface name to something in the skin file
-				shader = tr.defaultShader;
-
-
-#if 1
-				// Q3A way
-				
-				// match the surface name to something in the skin file
-				shader = tr.defaultShader;
-				for(j = 0; j < skin->numSurfaces; j++)
-				{
-					// the names have both been lowercased
-					if(!strcmp(skin->surfaces[j]->name, surface->name))
-					{
-						shader = skin->surfaces[j]->shader;
-						break;
-					}
-				}
-#else
-				if(ent->e.renderfx & RF_BLINK)
-				{
-					char           *s = va("%s_b", surface->name);	// append '_b' for 'blink'
-
-					hash = Com_HashKey(s, strlen(s));
-					for(j = 0; j < skin->numSurfaces; j++)
-					{
-						if(hash != skin->surfaces[j]->hash)
-						{
-							continue;
-						}
-						if(!strcmp(skin->surfaces[j]->name, s))
-						{
-							shader = skin->surfaces[j]->shader;
-							break;
-						}
-					}
-				}
-
-				if(shader == tr.defaultShader)
-				{
-					// blink reference in skin was not found
-					hash = Com_HashKey(surface->name, sizeof(surface->name));
-					for(j = 0; j < skin->numSurfaces; j++)
-					{
-						// the names have both been lowercased
-						if(hash != skin->surfaces[j]->hash)
-						{
-							continue;
-						}
-						if(!strcmp(skin->surfaces[j]->name, surface->name))
-						{
-							shader = skin->surfaces[j]->shader;
-							break;
-						}
-					}
-				}
-#endif
-
-				if(shader == tr.defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface->name, skin->name);
-				}
-				else if(shader->defaultShader)
-				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
-				}
-			}
-			else
-			{
-				shader = R_GetShaderByHandle(surface->shaderIndex);
-			}
+			shader = GetMDMSurfaceShader(ent, mdmSurface);
 
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddDrawSurf((void *)surface, shader, -1);
+				R_AddDrawSurf((void *)mdmSurface, shader, -1);
 			}
 		}
 	}
 }
+
+
+/*
+=================
+R_AddMDMInteractions
+=================
+*/
+void R_AddMDMInteractions(trRefEntity_t * ent, trRefLight_t * light)
+{
+	int             i;
+	mdmModel_t     *model = 0;
+	mdmSurfaceIntern_t *mdmSurface = 0;
+	shader_t       *shader = 0;
+	int             lod;
+	qboolean        personalModel;
+	byte            cubeSideBits;
+	interactionType_t iaType = IA_DEFAULT;
+
+	// cull the entire model if merged bounding box of both frames
+	// is outside the view frustum and we don't care about proper shadowing
+	if(ent->cull == CULL_OUT)
+	{
+		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
+			return;
+		else
+			iaType = IA_SHADOWONLY;
+	}
+
+	// avoid drawing of certain objects
+#if defined(USE_REFENTITY_NOSHADOWID)
+	if(light->l.inverseShadows)
+	{
+		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID != ent->e.noShadowID)))
+			return;
+	}
+	else
+	{
+		if(iaType != IA_LIGHTONLY && (light->l.noShadowID && (light->l.noShadowID == ent->e.noShadowID)))
+			return;
+	}
+#endif
+
+	// don't add third_person objects if not in a portal
+	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal;
+
+	model = tr.currentModel->mdm;
+
+	// do a quick AABB cull
+	if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], ent->worldBounds[0], ent->worldBounds[1]))
+	{
+		tr.pc.c_dlightSurfacesCulled += model->numSurfaces;
+		return;
+	}
+
+	// do a more expensive and precise light frustum cull
+	if(!r_noLightFrustums->integer)
+	{
+		if(R_CullLightWorldBounds(light, ent->worldBounds) == CULL_OUT)
+		{
+			tr.pc.c_dlightSurfacesCulled += model->numSurfaces;
+			return;
+		}
+	}
+
+	cubeSideBits = R_CalcLightCubeSideBits(light, ent->worldBounds);
+
+	// generate interactions with all surfaces
+	if(r_vboModels->integer && model->numVBOSurfaces && glConfig2.vboVertexSkinningAvailable)
+	{
+		int             i;
+		srfVBOMDMMesh_t *vboSurface;
+		shader_t       *shader;
+
+		if(r_shadows->integer == SHADOWING_STENCIL)
+		{
+			// add shadow interactions because we cannot use shadow volumes with static VBOs ..
+			for(i = 0, mdmSurface = model->surfaces; i < model->numSurfaces; i++, mdmSurface++)
+			{
+				shader = GetMDMSurfaceShader(ent, mdmSurface);
+
+				// skip all surfaces that don't matter for lighting only pass
+				if(shader->isSky || !shader->interactLight || shader->noShadows)
+					continue;
+
+				// we will add shadows even if the main object isn't visible in the view
+
+				// don't add third_person objects if not viewing through a portal
+				if(!personalModel)
+				{
+					R_AddLightInteraction(light, (void *)mdmSurface, shader, cubeSideBits, IA_SHADOWONLY);
+					tr.pc.c_dlightSurfaces++;
+				}
+			}
+
+			// use static VBOs for lighting only
+			for(i = 0; i < model->numVBOSurfaces; i++)
+			{
+				vboSurface = model->vboSurfaces[i];
+				mdmSurface = vboSurface->mdmSurface;
+
+				shader = GetMDMSurfaceShader(ent, mdmSurface);
+
+				// skip all surfaces that don't matter for lighting only pass
+				if(shader->isSky || (!shader->interactLight && shader->noShadows))
+					continue;
+
+				// don't add third_person objects if not viewing through a portal
+				if(!personalModel)
+				{
+					R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, IA_LIGHTONLY);
+					tr.pc.c_dlightSurfaces++;
+				}
+			}
+		}
+		else
+		{
+			// static VBOs are fine for lighting and shadow mapping
+			for(i = 0; i < model->numVBOSurfaces; i++)
+			{
+				vboSurface = model->vboSurfaces[i];
+				mdmSurface = vboSurface->mdmSurface;
+				
+				shader = GetMDMSurfaceShader(ent, mdmSurface);
+
+				// skip all surfaces that don't matter for lighting only pass
+				if(shader->isSky || (!shader->interactLight && shader->noShadows))
+					continue;
+
+				// we will add shadows even if the main object isn't visible in the view
+
+				// don't add third_person objects if not viewing through a portal
+				if(!personalModel)
+				{
+					R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, iaType);
+					tr.pc.c_dlightSurfaces++;
+				}
+			}
+		}
+	}
+	else
+	{
+		for(i = 0, mdmSurface = model->surfaces; i < model->numSurfaces; i++, mdmSurface++)
+		{
+			shader = GetMDMSurfaceShader(ent, mdmSurface);
+
+			// skip all surfaces that don't matter for lighting only pass
+			if(shader->isSky || (!shader->interactLight && shader->noShadows))
+				continue;
+
+			// we will add shadows even if the main object isn't visible in the view
+
+			// don't add third_person objects if not viewing through a portal
+			if(!personalModel)
+			{
+				R_AddLightInteraction(light, (void *)mdmSurface, shader, cubeSideBits, iaType);
+				tr.pc.c_dlightSurfaces++;
+			}
+		}
+	}
+}
+
 
 __inline void LocalMatrixTransformVector(vec3_t in, vec3_t mat[3], vec3_t out)
 {
@@ -1778,8 +1899,6 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	triangles = surface->triangles;
 	indexes = surface->numTriangles * 3;
 	oldIndexes = baseIndex;
-
-	
 
 	pIndexes = &tess.indexes[baseIndex];
 

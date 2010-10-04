@@ -2578,7 +2578,7 @@ void R_AddEntityInteractions(trRefLight_t * light)
 							break;
 
 						case MOD_MDM:
-							// TODO:
+							R_AddMDMInteractions(ent, light);
 							break;
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)

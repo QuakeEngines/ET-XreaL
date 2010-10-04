@@ -4913,6 +4913,8 @@ ANIMATED MODELS WOLF:ET  MDM/MDX
 */
 
 void            R_MDM_AddAnimSurfaces(trRefEntity_t * ent);
+void            R_AddMDMInteractions(trRefEntity_t * e, trRefLight_t * light);
+
 int             R_MDM_GetBoneTag(orientation_t * outTag, mdmModel_t * mdm, int startTagIndex, const refEntity_t * refent,
 								 const char *tagName);
 
