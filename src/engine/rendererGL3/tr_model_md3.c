@@ -357,7 +357,7 @@ qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const c
 				}
 			}
 
-			ri.Printf(PRINT_ALL, "...calculating MD3 mesh VBOs ( '%s', %i verts %i tris )\n", surf->name, surf->numVerts, surf->numTriangles);
+			//ri.Printf(PRINT_ALL, "...calculating MD3 mesh VBOs ( '%s', %i verts %i tris )\n", surf->name, surf->numVerts, surf->numTriangles);
 
 			// create surface
 			vboSurf = ri.Hunk_Alloc(sizeof(*vboSurf), h_low);

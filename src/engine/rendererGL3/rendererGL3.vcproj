@@ -302,7 +302,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tr_shade.c"
+				RelativePath=".\tr_shade.cpp"
 				>
 			</File>
 			<File
