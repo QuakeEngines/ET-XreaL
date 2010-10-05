@@ -181,7 +181,7 @@ rendererGL3_list = [
 'src/engine/rendererGL3/tr_model_skel.c',
 'src/engine/rendererGL3/tr_noise.c',
 'src/engine/rendererGL3/tr_scene.c',
-'src/engine/rendererGL3/tr_shade.c',
+'src/engine/rendererGL3/tr_shade.cpp',
 'src/engine/rendererGL3/tr_shade_calc.c',
 'src/engine/rendererGL3/tr_shader.c',
 'src/engine/rendererGL3/tr_shadows.c',
