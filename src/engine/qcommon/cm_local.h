@@ -224,3 +224,8 @@ struct patchCollide_s *CM_GeneratePatchCollide(int width, int height, vec3_t * p
 void            CM_TraceThroughPatchCollide(traceWork_t * tw, const struct patchCollide_s *pc);
 qboolean        CM_PositionTestInPatchCollide(traceWork_t * tw, const struct patchCollide_s *pc);
 void            CM_ClearLevelPatches(void);
+
+// XreaL BEGIN
+qboolean        CM_BoundsIntersect(const vec3_t mins, const vec3_t maxs, const vec3_t mins2, const vec3_t maxs2);
+qboolean        CM_BoundsIntersectPoint(const vec3_t mins, const vec3_t maxs, const vec3_t point);
+// XreaL END
