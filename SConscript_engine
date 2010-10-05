@@ -140,7 +140,7 @@ renderer_list = [
 'src/engine/renderer/tr_model.c',
 'src/engine/renderer/tr_noise.c',
 'src/engine/renderer/tr_scene.c',
-'src/engine/renderer/tr_shade.c',
+'src/engine/renderer/tr_shade.cpp',
 'src/engine/renderer/tr_shade_calc.c',
 'src/engine/renderer/tr_shader.c',
 'src/engine/renderer/tr_shadows.c',
