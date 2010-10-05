@@ -118,79 +118,103 @@ added to the sorting list.
 This will also allow mirrors on both sides of a model without recursion.
 ================
 */
-static qboolean R_CullSurface(surfaceType_t * surface, shader_t * shader)
+static qboolean R_CullSurface(surfaceType_t * surface, shader_t * shader, int *frontFace)
 {
-#if 1
-	srfSurfaceFace_t *sface;
+	srfGeneric_t   *gen;
+	int             cull;
 	float           d;
 
+
+	// force to non-front facing
+	*frontFace = 0;
+
+	// allow culling to be disabled
 	if(r_nocull->integer)
 	{
 		return qfalse;
 	}
 
-	if(*surface == SF_GRID)
+	// ydnar: made surface culling generic, inline with q3map2 surface classification
+	switch (*surface)
 	{
-		return R_CullGrid((srfGridMesh_t *) surface);
+		case SF_FACE:
+		case SF_TRIANGLES:
+			break;
+		case SF_GRID:
+			if(r_nocurves->integer)
+			{
+				return qtrue;
+			}
+			break;
+			/*
+		case SF_FOLIAGE:
+			if(!r_drawfoliage->value)
+			{
+				return qtrue;
+			}
+			break;
+			*/
+
+		default:
+			return qtrue;
 	}
 
-	if(*surface == SF_TRIANGLES)
-	{
-		return R_CullTriSurf((srfTriangles_t *) surface);
-	}
+	// get generic surface
+	gen = (srfGeneric_t *) surface;
 
-	if(*surface != SF_FACE)
+	// plane cull
+	if(gen->plane.type != PLANE_NON_PLANAR && r_facePlaneCull->integer)
 	{
-		return qfalse;
-	}
-
-	// now it must be a SF_FACE
-	sface = (srfSurfaceFace_t *) surface;
-
-	if(shader->isPortal)
-	{
-		if(R_CullLocalBox(sface->bounds) == CULL_OUT)
+		d = DotProduct(tr.orientation.viewOrigin, gen->plane.normal) - gen->plane.dist;
+		if(d > 0.0f)
 		{
+			*frontFace = 1;
+		}
+
+		// don't cull exactly on the plane, because there are levels of rounding
+		// through the BSP, ICD, and hardware that may cause pixel gaps if an
+		// epsilon isn't allowed here
+		if(shader->cullType == CT_FRONT_SIDED)
+		{
+			if(d < -8.0f)
+			{
+				tr.pc.c_plane_cull_out++;
+				return qtrue;
+			}
+		}
+		else if(shader->cullType == CT_BACK_SIDED)
+		{
+			if(d > 8.0f)
+			{
+				tr.pc.c_plane_cull_out++;
+				return qtrue;
+			}
+		}
+
+		tr.pc.c_plane_cull_in++;
+	}
+
+	{
+		// try sphere cull
+		if(tr.currentEntity != &tr.worldEntity)
+		{
+			cull = R_CullLocalPointAndRadius(gen->origin, gen->radius);
+		}
+		else
+		{
+			cull = R_CullPointAndRadius(gen->origin, gen->radius);
+		}
+		if(cull == CULL_OUT)
+		{
+			tr.pc.c_sphere_cull_out++;
 			return qtrue;
 		}
+
+		tr.pc.c_sphere_cull_in++;
 	}
 
-	if(shader->cullType == CT_TWO_SIDED)
-	{
-		return qfalse;
-	}
-
-	// face culling
-	if(!r_facePlaneCull->integer)
-	{
-		return qfalse;
-	}
-
-
-	d = DotProduct(tr.orientation.viewOrigin, sface->plane.normal);
-
-	// don't cull exactly on the plane, because there are levels of rounding
-	// through the BSP, ICD, and hardware that may cause pixel gaps if an
-	// epsilon isn't allowed here
-	if(shader->cullType == CT_FRONT_SIDED)
-	{
-		if(d < sface->plane.dist - 8)
-		{
-			return qtrue;
-		}
-	}
-	else
-	{
-		if(d > sface->plane.dist + 8)
-		{
-			return qtrue;
-		}
-	}
-
+	// must be visible
 	return qfalse;
-#else
-	return qfalse;
-#endif
 }
 
 static qboolean R_LightSurfaceGeneric(srfGeneric_t * face, trRefLight_t  * light, byte * cubeSideBits)
@@ -287,7 +311,7 @@ R_AddWorldSurface
 */
 static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 {
-	int				i;
+	int				i, frontFace;
 	shader_t       *shader;
 
 	if(surf->viewCount == tr.viewCountNoReset)
@@ -318,7 +342,7 @@ static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 		return;
 
 	// try to cull before lighting or adding
-	if(R_CullSurface(surf->data, surf->shader))
+	if(R_CullSurface(surf->data, surf->shader, &frontFace))
 	{
 		return;
 	}
@@ -341,6 +365,8 @@ R_AddBrushModelSurface
 */
 static void R_AddBrushModelSurface(bspSurface_t * surf)
 {
+	int			frontFace;
+
 	if(surf->viewCount == tr.viewCountNoReset)
 	{
 		return;					// already in this view
@@ -348,12 +374,12 @@ static void R_AddBrushModelSurface(bspSurface_t * surf)
 	surf->viewCount = tr.viewCountNoReset;
 
 	// try to cull before lighting or adding
-	if(R_CullSurface(surf->data, surf->shader))
+	if(R_CullSurface(surf->data, surf->shader, &frontFace))
 	{
 		return;
 	}
 
-	R_AddDrawSurf(surf->data, surf->shader, -1);//surf->lightmapNum);
+	R_AddDrawSurf(surf->data, surf->shader, surf->lightmapNum);
 }
 
 /*

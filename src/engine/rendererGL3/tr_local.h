@@ -3524,6 +3524,9 @@ extern int      gl_filter_min, gl_filter_max;
 */
 typedef struct
 {
+	int             c_sphere_cull_in, c_sphere_cull_out;
+	int             c_plane_cull_in, c_plane_cull_out;
+
 	int             c_sphere_cull_patch_in, c_sphere_cull_patch_clip, c_sphere_cull_patch_out;
 	int             c_box_cull_patch_in, c_box_cull_patch_clip, c_box_cull_patch_out;
 	int             c_sphere_cull_mdx_in, c_sphere_cull_mdx_clip, c_sphere_cull_mdx_out;
