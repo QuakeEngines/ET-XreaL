@@ -1651,7 +1651,10 @@ static void GLW_InitOpenGL3xContext()
 			}
 			else
 			{
-				ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
+				ri.Error(ERR_VID_FATAL, "Could not initialize OpenGL %i.%i context\n"
+										"Make sure your graphics card supports OpenGL %i.%i or newer",
+										r_glMinMajorVersion->integer, r_glMinMinorVersion->integer,
+										r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
 			}
 		}
 		/*
@@ -1678,7 +1681,10 @@ static void GLW_InitOpenGL3xContext()
 	}
 	else
 	{
-		ri.Error(ERR_VID_FATAL, "GLW_StartOpenGL() - could not initialize OpenGL %i.%i context: no WGL_ARB_create_context", r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
+		ri.Error(ERR_VID_FATAL, "Could not initialize OpenGL %i.%i context: no WGL_ARB_create_context\n"
+								"Make sure your graphics card supports OpenGL %i.%i or newer",
+								r_glMinMajorVersion->integer, r_glMinMinorVersion->integer,
+								r_glMinMajorVersion->integer, r_glMinMinorVersion->integer);
 	}
 }
 

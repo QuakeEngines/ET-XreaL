@@ -49,7 +49,7 @@ Minimum system requirements:
 
 	CPU: 2 GHz Intel compatible
 	System Memory: 512MB
-	Graphics card: GeForce 6600 GT or any other Shader Model 3.0 compatible GFX card 
+	Graphics card: Any graphics card that supports Direct3D 10 and OpenGL >= 3.2
 
 Recommended system requirements:
 
@@ -86,10 +86,6 @@ http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
 Install the latest version of the game for your platform to get the game data.
 
 
-For Techies Only: 
-If you want to test the engine with an OpenGL >= 3.2 core profile enabled then start it with: 
-	
-	> +set r_glCoreProfile 1
 
 ____________________________________________
 
