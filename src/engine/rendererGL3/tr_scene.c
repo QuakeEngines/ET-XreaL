@@ -573,10 +573,17 @@ void RE_RenderScene(const refdef_t * fd)
 	tr.refdef.time = fd->time;
 	tr.refdef.rdflags = fd->rdflags;
 
+	/*
+	if(fd->rdflags & RDF_SKYBOXPORTAL)
+	{
+		ri.Printf(PRINT_ALL, "skyboxportal = 1\n");
+	}
+	*/
+
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved
 	tr.refdef.areamaskModified = qfalse;
-	if(!(tr.refdef.rdflags & RDF_NOWORLDMODEL))
+	if(!(tr.refdef.rdflags & RDF_NOWORLDMODEL) && !((tr.refdef.rdflags & RDF_SKYBOXPORTAL) && tr.world->numSkyNodes > 0))
 	{
 		int             areaDiff;
 		int             i;

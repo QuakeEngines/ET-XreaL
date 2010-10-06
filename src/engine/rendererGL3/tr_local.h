@@ -3089,6 +3089,9 @@ typedef struct
 	vec3_t			direction;
 } bspGridPoint_t;
 
+// ydnar: optimization
+#define WORLD_MAX_SKY_NODES 32
+
 typedef struct
 {
 	char            name[MAX_QPATH];	// ie: maps/tim_dm2.bsp
@@ -3108,6 +3111,9 @@ typedef struct
 	int             numnodes;	// includes leafs
 	int             numDecisionNodes;
 	bspNode_t      *nodes;
+
+	int             numSkyNodes;
+	bspNode_t     **skyNodes;	// ydnar: don't walk the entire bsp when rendering sky
 
 	int             numVerts;
 	srfVert_t      *verts;

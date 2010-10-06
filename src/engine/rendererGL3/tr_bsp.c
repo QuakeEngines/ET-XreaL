@@ -5115,6 +5115,10 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 	s_worldData.numnodes = numNodes + numLeafs;
 	s_worldData.numDecisionNodes = numNodes;
 
+	// ydnar: skybox optimization
+	s_worldData.numSkyNodes = 0;
+	s_worldData.skyNodes = ri.Hunk_Alloc(WORLD_MAX_SKY_NODES * sizeof(*s_worldData.skyNodes), h_low);
+
 	// load nodes
 	for(i = 0; i < numNodes; i++, in++, out++)
 	{
@@ -5168,10 +5172,10 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 		out->numMarkSurfaces = LittleLong(inLeaf->numLeafSurfaces);
 	}
 
+	// chain decendants and compute surface bounds
+	R_SetParent(s_worldData.nodes, NULL);
+
 	// calculate occlusion query volumes
-#if defined(USE_D3D10)
-	// TODO
-#else
 	for(j = 0, out = &s_worldData.nodes[0]; j < s_worldData.numnodes; j++, out++)
 	{
 		//if(out->contents != -1 && !out->numMarkSurfaces)
@@ -5192,8 +5196,18 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 		tess.numIndexes = 0;
 		tess.numVertexes = 0;
 
-		VectorCopy(out->mins, mins);
-		VectorCopy(out->maxs, maxs);
+#if 0
+		if(out->contents != CONTENTS_NODE)
+		{
+			VectorCopy(out->surfMins, mins);
+			VectorCopy(out->surfMaxs, maxs);
+		}
+		else
+#endif
+		{
+			VectorCopy(out->mins, mins);
+			VectorCopy(out->maxs, maxs);
+		}
 
 		for(i = 0; i < 3; i++)
 		{
@@ -5246,10 +5260,6 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 	tess.multiDrawPrimitives = 0;
 	tess.numIndexes = 0;
 	tess.numVertexes = 0;
-#endif
-
-	// chain decendants
-	R_SetParent(s_worldData.nodes, NULL);
 }
 
 //=============================================================================

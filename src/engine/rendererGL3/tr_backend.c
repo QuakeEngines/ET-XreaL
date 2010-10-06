@@ -9168,6 +9168,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -9507,6 +9508,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -9670,7 +9672,6 @@ static void RB_RenderDebugUtils()
 	{
 		trRefEntity_t  *ent;
 		int             i;
-		vec4_t          quadVerts[4];
 		vec3_t			mins = {-1,-1,-1};
 		vec3_t			maxs = { 1, 1, 1};
 
@@ -9688,6 +9689,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -9764,6 +9766,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -9977,6 +9980,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -10191,6 +10195,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// set up the transformation matrix
 		backEnd.orientation = backEnd.viewParms.world;
@@ -10272,6 +10277,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// set up the transformation matrix
 		backEnd.orientation = backEnd.viewParms.world;
@@ -10419,6 +10425,7 @@ static void RB_RenderDebugUtils()
 		}
 		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
 		GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+		GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, qfalse);
 
 		// set up the transformation matrix
 		backEnd.orientation = backEnd.viewParms.world;
