@@ -1241,7 +1241,7 @@ static void R_MarkLeaves(void)
 			{
 				tr.world->skyNodes[tr.world->numSkyNodes++] = leaf;
 			}
-			R_AddLeafSurfaces(leaf, 0, 0);
+			R_AddLeafSurfaces(leaf, 0);
 			continue;
 		}
 
