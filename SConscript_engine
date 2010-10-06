@@ -261,22 +261,22 @@ client_list = [
 
 
 linux_sources = [
-        'src/engine/unix/linux_signals.c',
-        'src/engine/unix/unix_main.c',
-        'src/engine/unix/unix_net.c',
-        'src/engine/unix/unix_shared.c',
-        'src/shared/q_shared.c',
-        'src/shared/q_math.c',
+'src/engine/unix/linux_signals.c',
+'src/engine/unix/unix_main.c',
+'src/engine/unix/unix_net.c',
+'src/engine/unix/unix_shared.c',
+'src/shared/q_shared.c',
+'src/shared/q_math.c',
 #        'unix/matha.S'
 ]
 
 linux_full_sources = [
-	'src/libs/glew/src/glew.c',
-        'src/engine/unix/linux_gl3imp.c',
-        #'src/engine/unix/linux_qgl.c',
-        'src/engine/unix/linux_snd.c',
-        'src/engine/unix/linux_joystick.c',
-#        'unix/snd_mixa.S'
+'src/libs/glew/src/glew.c',
+'src/engine/unix/linux_gl3imp.c',
+#'src/engine/unix/linux_qgl.c',
+'src/engine/unix/sdl_snd.c',
+'src/engine/unix/linux_joystick.c',
+#'unix/snd_mixa.S'
 ]
 
 mac_sources = [
@@ -400,6 +400,7 @@ if g_os == 'Linux':
 		local_env.ParseConfig('pkg-config --cflags --libs xext')
 		local_env.ParseConfig('pkg-config --cflags --libs xxf86dga')
 		local_env.ParseConfig('pkg-config --cflags --libs xxf86vm')
+		local_env.ParseConfig('pkg-config --cflags --libs sdl')
 		
 		if env['curl'] == 'system':
 			local_env.ParseConfig('pkg-config --cflags --libs libcurl')

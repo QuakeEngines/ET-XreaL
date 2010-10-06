@@ -128,11 +128,11 @@ You need the following dependencies in order to compile XreaL with all features:
  
 On Debian or Ubuntu:
 
-	> apt-get install libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
+	> apt-get install libsdl1.2-dev libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
 	
 On Fedora
 
-	> yum install libXxf86dga-devel libXxf86vm-devel mesa-libGLU-devel
+	> yum install SDL-devel libXxf86dga-devel libXxf86vm-devel mesa-libGLU-devel
 
 Compile XreaL:
 	
