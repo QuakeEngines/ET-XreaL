@@ -506,7 +506,10 @@ void R_BindVBO(VBO_t * vbo)
 	{
 		glState.currentVBO = vbo;
 		glState.vertexAttribPointersSet = 0;
-		glState.vertexAttribsFrame = 0;
+
+		glState.vertexAttribsInterpolation = 0;
+		glState.vertexAttribsOldFrame = 0;
+		glState.vertexAttribsNewFrame = 0;
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
 

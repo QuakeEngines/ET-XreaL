@@ -2946,8 +2946,6 @@ void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
 	mdvSurface_t   *mdvSurface;
 	matrix_t        m, m2;	//, m3
 	refEntity_t    *refEnt;
-	int				curFrame;
-	int				oldFrame;
 
 	GLimp_LogComment("--- Tess_SurfaceVBOMDVMesh ---\n");
 
@@ -2967,11 +2965,17 @@ void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
 
 	refEnt = &backEnd.currentEntity->e;
 
-	curFrame = refEnt->frame;
+	if(refEnt->oldframe == refEnt->frame)
+	{
+		glState.vertexAttribsInterpolation = 0;
+	}
+	else
+	{
+		glState.vertexAttribsInterpolation = (1.0 - refEnt->backlerp);
+	}
 
-	glState.vertexAttribsFrame = curFrame;
-
-	
+	glState.vertexAttribsOldFrame = refEnt->oldframe;
+	glState.vertexAttribsNewFrame = refEnt->frame;
 
 	Tess_End();
 }

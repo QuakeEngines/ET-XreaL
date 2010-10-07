@@ -906,6 +906,86 @@ void GL_VertexAttribsState(uint32_t stateBits)
 		}
 	}
 
+	if(diff & ATTR_POSITION2)
+	{
+		if(stateBits & ATTR_POSITION2)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_POSITION2 )\n");
+			}
+			glEnableVertexAttribArrayARB(ATTR_INDEX_POSITION2);
+		}
+		else
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_POSITION2 )\n");
+			}
+			glDisableVertexAttribArrayARB(ATTR_INDEX_POSITION2);
+		}
+	}
+
+	if(diff & ATTR_TANGENT2)
+	{
+		if(stateBits & ATTR_TANGENT2)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_TANGENT2 )\n");
+			}
+			glEnableVertexAttribArrayARB(ATTR_INDEX_TANGENT2);
+		}
+		else
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_TANGENT2 )\n");
+			}
+			glDisableVertexAttribArrayARB(ATTR_INDEX_TANGENT2);
+		}
+	}
+
+	if(diff & ATTR_BINORMAL2)
+	{
+		if(stateBits & ATTR_BINORMAL2)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_BINORMAL2 )\n");
+			}
+			glEnableVertexAttribArrayARB(ATTR_INDEX_BINORMAL2);
+		}
+		else
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_BINORMAL2 )\n");
+			}
+			glDisableVertexAttribArrayARB(ATTR_INDEX_BINORMAL2);
+		}
+	}
+
+	if(diff & ATTR_NORMAL2)
+	{
+		if(stateBits & ATTR_NORMAL2)
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glEnableVertexAttribArrayARB( ATTR_INDEX_NORMAL2 )\n");
+			}
+			glEnableVertexAttribArrayARB(ATTR_INDEX_NORMAL2);
+		}
+		else
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glDisableVertexAttribArrayARB( ATTR_INDEX_NORMAL2 )\n");
+			}
+			glDisableVertexAttribArrayARB(ATTR_INDEX_NORMAL2);
+		}
+	}
+
 	glState.vertexAttribsState = stateBits;
 }
 
@@ -933,7 +1013,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_POSITION )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_POSITION, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ + (glState.vertexAttribsFrame * glState.currentVBO->sizeXYZ)));
+		glVertexAttribPointerARB(ATTR_INDEX_POSITION, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ + (glState.vertexAttribsOldFrame * glState.currentVBO->sizeXYZ)));
 		glState.vertexAttribPointersSet |= ATTR_POSITION;
 	}
 
@@ -966,7 +1046,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_TANGENT )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_TANGENT, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents + (glState.vertexAttribsFrame * glState.currentVBO->sizeTangents)));
+		glVertexAttribPointerARB(ATTR_INDEX_TANGENT, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents + (glState.vertexAttribsOldFrame * glState.currentVBO->sizeTangents)));
 		glState.vertexAttribPointersSet |= ATTR_TANGENT;
 	}
 
@@ -977,7 +1057,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_BINORMAL )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_BINORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals + (glState.vertexAttribsFrame * glState.currentVBO->sizeBinormals)));
+		glVertexAttribPointerARB(ATTR_INDEX_BINORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals + (glState.vertexAttribsOldFrame * glState.currentVBO->sizeBinormals)));
 		glState.vertexAttribPointersSet |= ATTR_BINORMAL;
 	}
 
@@ -988,7 +1068,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 			GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_NORMAL )\n");
 		}
 
-		glVertexAttribPointerARB(ATTR_INDEX_NORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals + (glState.vertexAttribsFrame * glState.currentVBO->sizeNormals)));
+		glVertexAttribPointerARB(ATTR_INDEX_NORMAL, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals + (glState.vertexAttribsOldFrame * glState.currentVBO->sizeNormals)));
 		glState.vertexAttribPointersSet |= ATTR_NORMAL;
 	}
 
@@ -1045,6 +1125,53 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 
 		glVertexAttribPointerARB(ATTR_INDEX_BONE_WEIGHTS, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsBoneWeights));
 		glState.vertexAttribPointersSet |= ATTR_BONE_WEIGHTS;
+	}
+
+	//if(glState.vertexAttribsInterpolation > 0)
+	{
+		if((attribBits & ATTR_POSITION2) && !(glState.vertexAttribPointersSet & ATTR_POSITION2))
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_POSITION2 )\n");
+			}
+
+			glVertexAttribPointerARB(ATTR_INDEX_POSITION2, 4, GL_FLOAT, 0, 0, BUFFER_OFFSET(glState.currentVBO->ofsXYZ + (glState.vertexAttribsNewFrame * glState.currentVBO->sizeXYZ)));
+			glState.vertexAttribPointersSet |= ATTR_POSITION2;
+		}
+
+		if((attribBits & ATTR_TANGENT2) && !(glState.vertexAttribPointersSet & ATTR_TANGENT2))
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_TANGENT2 )\n");
+			}
+
+			glVertexAttribPointerARB(ATTR_INDEX_TANGENT2, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsTangents + (glState.vertexAttribsNewFrame * glState.currentVBO->sizeTangents)));
+			glState.vertexAttribPointersSet |= ATTR_TANGENT2;
+		}
+
+		if((attribBits & ATTR_BINORMAL2) && !(glState.vertexAttribPointersSet & ATTR_BINORMAL2))
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_BINORMAL2 )\n");
+			}
+
+			glVertexAttribPointerARB(ATTR_INDEX_BINORMAL2, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsBinormals + (glState.vertexAttribsNewFrame * glState.currentVBO->sizeBinormals)));
+			glState.vertexAttribPointersSet |= ATTR_BINORMAL2;
+		}
+
+		if((attribBits & ATTR_NORMAL2) && !(glState.vertexAttribPointersSet & ATTR_NORMAL2))
+		{
+			if(r_logFile->integer)
+			{
+				GLimp_LogComment("glVertexAttribPointerARB( ATTR_INDEX_NORMAL2 )\n");
+			}
+
+			glVertexAttribPointerARB(ATTR_INDEX_NORMAL2, 3, GL_FLOAT, 0, 16, BUFFER_OFFSET(glState.currentVBO->ofsNormals + (glState.vertexAttribsNewFrame * glState.currentVBO->sizeNormals)));
+			glState.vertexAttribPointersSet |= ATTR_NORMAL2;
+		}
 	}
 }
 

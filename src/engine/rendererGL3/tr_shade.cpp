@@ -723,6 +723,18 @@ static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int 
 		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
 	}
 
+	if(attribs & ATTR_POSITION2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION2, "attr_Position2");
+
+	if(attribs & ATTR_TANGENT2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT2, "attr_Tangent2");
+
+	if(attribs & ATTR_BINORMAL2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL2, "attr_Binormal2");
+
+	if(attribs & ATTR_NORMAL2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL2, "attr_Normal2");
+
 	GLSL_LinkProgram(program->program);
 }
 
@@ -791,7 +803,8 @@ void GLSL_InitGPUShaders(void)
 	// simple vertex color shading for entities
 	GLSL_InitGPUShader(&tr.vertexLightingShader_DBS_entity,
 					   "vertexLighting_DBS_entity",
-					   ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL, qtrue, qtrue);
+					   ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
+					   ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2, qtrue, qtrue);
 
 	tr.vertexLightingShader_DBS_entity.u_DiffuseMap =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DiffuseMap");
@@ -844,6 +857,8 @@ void GLSL_InitGPUShaders(void)
 		tr.vertexLightingShader_DBS_entity.u_BoneMatrix =
 			glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_BoneMatrix");
 	}
+	tr.vertexLightingShader_DBS_entity.u_VertexInterpolation =
+		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_VertexInterpolation");
 
 	glUseProgramObjectARB(tr.vertexLightingShader_DBS_entity.program);
 	glUniform1iARB(tr.vertexLightingShader_DBS_entity.u_DiffuseMap, 0);
@@ -2968,6 +2983,21 @@ static void Render_vertexLighting_DBS_entity(int stage)
 			attribBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 		}
 	}
+
+	GL_CheckErrors();
+
+	GLSL_SetUniform_VertexInterpolation(&tr.vertexLightingShader_DBS_entity, glState.vertexAttribsInterpolation);
+	if(glState.vertexAttribsInterpolation > 0)
+	{
+		attribBits |= (ATTR_POSITION2 | ATTR_NORMAL2);
+
+		if(r_normalMapping->integer)
+		{
+			attribBits |=  (ATTR_TANGENT2 | ATTR_BINORMAL2);
+		}
+	}
+
+	GL_CheckErrors();
 
 	// u_DeformGen
 	if(tess.surfaceShader->numDeforms)

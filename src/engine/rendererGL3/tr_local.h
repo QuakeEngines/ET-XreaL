@@ -1155,17 +1155,25 @@ enum
 #else
 enum
 {
-	ATTR_INDEX_POSITION = 0,
-	ATTR_INDEX_TEXCOORD0 = 1,
-	ATTR_INDEX_TEXCOORD1 = 2,
-	ATTR_INDEX_TANGENT = 3,
-	ATTR_INDEX_BINORMAL = 4,
-	ATTR_INDEX_NORMAL = 5,
-	ATTR_INDEX_COLOR = 6,
-	ATTR_INDEX_PAINTCOLOR = 7,
-	ATTR_INDEX_LIGHTDIRECTION = 8,
-	ATTR_INDEX_BONE_INDEXES = 9,
-	ATTR_INDEX_BONE_WEIGHTS = 10,
+	ATTR_INDEX_POSITION,
+	ATTR_INDEX_TEXCOORD0,
+	ATTR_INDEX_TEXCOORD1,
+	ATTR_INDEX_TANGENT,
+	ATTR_INDEX_BINORMAL,
+	ATTR_INDEX_NORMAL,
+	ATTR_INDEX_COLOR,
+	ATTR_INDEX_PAINTCOLOR,
+	ATTR_INDEX_LIGHTDIRECTION,
+
+	// GPU vertex skinning
+	ATTR_INDEX_BONE_INDEXES,
+	ATTR_INDEX_BONE_WEIGHTS,
+
+	// GPU vertex animations
+	ATTR_INDEX_POSITION2,
+	ATTR_INDEX_TANGENT2,
+	ATTR_INDEX_BINORMAL2,
+	ATTR_INDEX_NORMAL2,
 };
 #endif
 
@@ -1259,11 +1267,18 @@ enum
 	ATTR_COLOR = BIT(6),
 	ATTR_PAINTCOLOR = BIT(7),
 	ATTR_LIGHTDIRECTION = BIT(8),
+	
 	ATTR_BONE_INDEXES = BIT(9),
 	ATTR_BONE_WEIGHTS = BIT(10),
 
+	// for .md3 interpolation
+	ATTR_POSITION2 = BIT(11),
+	ATTR_TANGENT2 = BIT(12),
+	ATTR_BINORMAL2 = BIT(13),
+	ATTR_NORMAL2 = BIT(14),
+
 	// FIXME XBSP format with ATTR_LIGHTDIRECTION and ATTR_PAINTCOLOR
-	ATTR_DEFAULT = ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_COLOR,
+	//ATTR_DEFAULT = ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_COLOR,
 
 	ATTR_BITS =	ATTR_POSITION |
 				ATTR_TEXCOORD |
@@ -1469,6 +1484,9 @@ typedef struct shaderProgram_s
 
 	GLint           u_VertexSkinning;
 	qboolean		t_VertexSkinning;
+
+	GLint			u_VertexInterpolation;
+	float			t_VertexInterpolation;
 
 	GLint           u_BoneMatrix;
 
@@ -2377,6 +2395,25 @@ static ID_INLINE void GLSL_SetUniform_VertexSkinning(shaderProgram_t * program, 
 #endif
 
 	glUniform1iARB(program->u_VertexSkinning, value);
+}
+
+static ID_INLINE void GLSL_SetUniform_VertexInterpolation(shaderProgram_t * program, float value)
+{
+#if defined(USE_UNIFORM_FIREWALL)
+	if(program->t_VertexInterpolation == value)
+		return;
+
+	program->t_VertexInterpolation = value;
+#endif
+
+#if defined(LOG_GLSL_UNIFORMS)
+	if(r_logFile->integer)
+	{
+		GLimp_LogComment(va("--- GLSL_SetUniform_VertexInterpolation( program = %s, value = %f ) ---\n", program->name, value));
+	}
+#endif
+
+	glUniform1fARB(program->u_VertexInterpolation, value);
 }
 
 static ID_INLINE void GLSL_SetUniform_Time(shaderProgram_t * program, float value)
@@ -3622,7 +3659,9 @@ typedef struct
 	uint32_t        glStateBits;
 	uint32_t		vertexAttribsState;
 	uint32_t		vertexAttribPointersSet;
-	uint32_t		vertexAttribsFrame;		// offset for VBO vertex animations
+	float			vertexAttribsInterpolation;	// 0 = no interpolation, 1 = final position
+	uint32_t		vertexAttribsNewFrame;		// offset for VBO vertex animations
+	uint32_t		vertexAttribsOldFrame;		// offset for VBO vertex animations
 	shaderProgram_t *currentProgram;
 	FBO_t          *currentFBO;
 	VBO_t          *currentVBO;
