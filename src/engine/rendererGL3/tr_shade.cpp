@@ -603,13 +603,13 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 
 	// attach shader to program
 	glAttachObjectARB(program, shader);
+	GL_CheckErrors();
 
 	// delete shader, no longer needed
 	glDeleteObjectARB(shader);
+	GL_CheckErrors();
 
 	ri.FS_FreeFile(buffer);
-
-	GL_CheckErrors();
 }
 
 static void GLSL_LinkProgram(GLhandleARB program)
@@ -739,6 +739,115 @@ static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int 
 }
 
 
+static void GLSL_InitGPUShader2(shaderProgram_t * program,
+								const char *vertexMainShader,
+								const char *fragmentMainShader,
+								const char *vertexLibShaders,
+								const char *fragmentLibShaders,
+								int attribs,
+								qboolean optimize)
+{
+	char          **libs;
+	char           *token;
+
+	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
+
+	if(strlen(vertexMainShader) >= MAX_QPATH)
+	{
+		ri.Error(ERR_DROP, "GLSL_InitGPUShader2: \"%s\" is too long\n", vertexMainShader);
+	}
+
+	if(strlen(fragmentMainShader) >= MAX_QPATH)
+	{
+		ri.Error(ERR_DROP, "GLSL_InitGPUShader2: \"%s\" is too long\n", fragmentMainShader);
+	}
+
+	Q_strncpyz(program->name, fragmentMainShader, sizeof(program->name));
+
+	program->program = glCreateProgramObjectARB();
+	program->attribs = attribs;
+
+	GLSL_LoadGPUShader(program->program, vertexMainShader, GL_VERTEX_SHADER_ARB, optimize);
+	libs = (char**) &vertexLibShaders;
+	while(1)
+	{
+		token = COM_ParseExt2(libs, qfalse);
+		if(!token[0])
+		{
+			break;
+		}
+
+		GLSL_LoadGPUShader(program->program, token, GL_VERTEX_SHADER_ARB, optimize);
+	}
+
+	GLSL_LoadGPUShader(program->program, fragmentMainShader, GL_FRAGMENT_SHADER_ARB, optimize);
+	libs = (char**) &fragmentLibShaders;
+	while(1)
+	{
+		token = COM_ParseExt2(libs, qfalse);
+		if(!token[0])
+		{
+			break;
+		}
+		
+		GLSL_LoadGPUShader(program->program, token, GL_FRAGMENT_SHADER_ARB, optimize);
+	}
+
+	if(attribs & ATTR_POSITION)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION, "attr_Position");
+
+	if(attribs & ATTR_TEXCOORD)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD0, "attr_TexCoord0");
+
+	if(attribs & ATTR_LIGHTCOORD)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD1, "attr_TexCoord1");
+
+//  if(attribs & ATTR_TEXCOORD2)
+//      glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD2, "attr_TexCoord2");
+
+//  if(attribs & ATTR_TEXCOORD3)
+//      glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD3, "attr_TexCoord3");
+
+	if(attribs & ATTR_TANGENT)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT, "attr_Tangent");
+
+	if(attribs & ATTR_BINORMAL)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL, "attr_Binormal");
+
+	if(attribs & ATTR_NORMAL)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL, "attr_Normal");
+
+	if(attribs & ATTR_COLOR)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_COLOR, "attr_Color");
+
+	if(attribs & ATTR_PAINTCOLOR)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_PAINTCOLOR, "attr_PaintColor");
+
+	if(attribs & ATTR_LIGHTDIRECTION)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_LIGHTDIRECTION, "attr_LightDirection");
+
+	if(glConfig2.vboVertexSkinningAvailable)
+	{
+		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_INDEXES, "attr_BoneIndexes");
+		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
+	}
+
+	if(attribs & ATTR_POSITION2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION2, "attr_Position2");
+
+	if(attribs & ATTR_TANGENT2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT2, "attr_Tangent2");
+
+	if(attribs & ATTR_BINORMAL2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL2, "attr_Binormal2");
+
+	if(attribs & ATTR_NORMAL2)
+		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL2, "attr_Normal2");
+
+	GLSL_LinkProgram(program->program);
+}
+
+
 void GLSL_InitGPUShaders(void)
 {
 	int             startTime, endTime;
@@ -801,10 +910,21 @@ void GLSL_InitGPUShaders(void)
 	GL_CheckErrors();
 
 	// simple vertex color shading for entities
+	/*
 	GLSL_InitGPUShader(&tr.vertexLightingShader_DBS_entity,
 					   "vertexLighting_DBS_entity",
 					   ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
 					   ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2, qtrue, qtrue);
+	*/
+
+	GLSL_InitGPUShader2(&tr.vertexLightingShader_DBS_entity,
+						"vertexLighting_DBS_entity",
+						"vertexLighting_DBS_entity",
+						"vertexSkinning vertexAnimation deformVertexes",
+						"",
+						ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
+						ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
+						qtrue);
 
 	tr.vertexLightingShader_DBS_entity.u_DiffuseMap =
 		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DiffuseMap");
