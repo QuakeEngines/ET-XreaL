@@ -725,17 +725,17 @@ void RB_DrawSun(void)
 
 	GL_PushMatrix();
 
-	GL_BindProgram(&tr.genericSingleShader);
+	GL_BindProgram(&tr.genericShader);
 
 	// set uniforms
-	GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
-	GLSL_SetUniform_InverseVertexColor(&tr.genericSingleShader,  qfalse);
+	GLSL_SetUniform_TCGen_Environment(&tr.genericShader,  qfalse);
+	GLSL_SetUniform_InverseVertexColor(&tr.genericShader,  qfalse);
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
-		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
+		GLSL_SetUniform_VertexSkinning(&tr.genericShader, qfalse);
 	}
-	GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
-	GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, -1.0);
+	GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
+	GLSL_SetUniform_AlphaTest(&tr.genericShader, -1.0);
 
 	MatrixSetupTranslation(transformMatrix, backEnd.viewParms.orientation.origin[0], backEnd.viewParms.orientation.origin[1],
 						   backEnd.viewParms.orientation.origin[2]);
@@ -744,10 +744,10 @@ void RB_DrawSun(void)
 	GL_LoadProjectionMatrix(backEnd.viewParms.projectionMatrix);
 	GL_LoadModelViewMatrix(modelViewMatrix);
 
-	GLSL_SetUniform_ModelMatrix(&tr.genericSingleShader, backEnd.orientation.transformMatrix);
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+	GLSL_SetUniform_ModelMatrix(&tr.genericShader, backEnd.orientation.transformMatrix);
+	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-	GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, backEnd.viewParms.isPortal);
+	GLSL_SetUniform_PortalClipping(&tr.genericShader, backEnd.viewParms.isPortal);
 	if(backEnd.viewParms.isPortal)
 	{
 		float           plane[4];
@@ -758,7 +758,7 @@ void RB_DrawSun(void)
 		plane[2] = backEnd.viewParms.portalPlane.normal[2];
 		plane[3] = backEnd.viewParms.portalPlane.dist;
 
-		GLSL_SetUniform_PortalPlane(&tr.genericSingleShader, plane);
+		GLSL_SetUniform_PortalPlane(&tr.genericShader, plane);
 	}
 
 

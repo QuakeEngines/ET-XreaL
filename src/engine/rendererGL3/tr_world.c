@@ -395,6 +395,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 	vec3_t          v;
 	vec3_t          transformed;
 	vec3_t			boundsCenter;
+	float			boundsRadius;
 
 	pModel = R_GetModelByHandle(ent->e.hModel);
 	bspModel = pModel->bsp;
@@ -406,11 +407,16 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 		ent->localBounds[1][i] = bspModel->bounds[1][i];
 	}
 
+#if 0
+	boundsRadius = RadiusFromBounds(bspModel->bounds[0], bspModel->bounds[1]);
+	ent->cull = R_CullPointAndRadius(ent->e.origin, boundsRadius);
+#else
 	ent->cull = R_CullLocalBox(bspModel->bounds);
 	if(ent->cull == CULL_OUT)
 	{
 		return;
 	}
+#endif
 
 	// setup world bounds for intersection tests
 	ClearBounds(ent->worldBounds[0], ent->worldBounds[1]);
@@ -1788,7 +1794,7 @@ static void R_CoherentHierachicalCulling()
 		R_BindNullFBO();
 	}
 
-	GL_BindProgram(&tr.genericSingleShader);
+	GL_BindProgram(&tr.genericShader);
 	GL_Cull(CT_TWO_SIDED);
 
 	GL_LoadProjectionMatrix(tr.viewParms.projectionMatrix);
@@ -1800,24 +1806,24 @@ static void R_CoherentHierachicalCulling()
 			   tr.viewParms.viewportWidth, tr.viewParms.viewportHeight);
 
 	// set uniforms
-	GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
-	GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_VERTEX);
-	GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_VERTEX);
+	GLSL_SetUniform_TCGen_Environment(&tr.genericShader,  qfalse);
+	GLSL_SetUniform_ColorGen(&tr.genericShader, CGEN_VERTEX);
+	GLSL_SetUniform_AlphaGen(&tr.genericShader, AGEN_VERTEX);
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
-		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, qfalse);
+		GLSL_SetUniform_VertexSkinning(&tr.genericShader, qfalse);
 	}
-	GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
-	GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+	GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
+	GLSL_SetUniform_AlphaTest(&tr.genericShader, 0);
 
 	// set up the transformation matrix
 	GL_LoadModelViewMatrix(tr.orientation.modelViewMatrix);
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 	// bind u_ColorMap
 	GL_SelectTexture(0);
 	GL_Bind(tr.whiteImage);
-	GLSL_SetUniform_ColorTextureMatrix(&tr.genericSingleShader, matrixIdentity);
+	GLSL_SetUniform_ColorTextureMatrix(&tr.genericShader, matrixIdentity);
 
 #if 0
 	GL_ClearColor(0.0f, 0.0f, 0.0f, 0.0f);

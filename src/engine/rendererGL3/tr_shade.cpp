@@ -757,47 +757,47 @@ void GLSL_InitGPUShaders(void)
 	startTime = ri.Milliseconds();
 
 	// single texture rendering
-	GLSL_InitGPUShader(&tr.genericSingleShader, "genericSingle", ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR, qtrue, qtrue);
+	GLSL_InitGPUShader(&tr.genericShader, "generic", ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR, qtrue, qtrue);
 
 	GL_CheckErrors();
 
-	tr.genericSingleShader.u_ColorMap = glGetUniformLocationARB(tr.genericSingleShader.program, "u_ColorMap");
-	tr.genericSingleShader.u_ColorTextureMatrix =
-		glGetUniformLocationARB(tr.genericSingleShader.program, "u_ColorTextureMatrix");
-	tr.genericSingleShader.u_ColorGen = glGetUniformLocationARB(tr.genericSingleShader.program, "u_ColorGen");
-	tr.genericSingleShader.u_AlphaGen = glGetUniformLocationARB(tr.genericSingleShader.program, "u_AlphaGen");
-	tr.genericSingleShader.u_Color = glGetUniformLocationARB(tr.genericSingleShader.program, "u_Color");
-	tr.genericSingleShader.u_AlphaTest = glGetUniformLocationARB(tr.genericSingleShader.program, "u_AlphaTest");
-	tr.genericSingleShader.u_ViewOrigin = glGetUniformLocationARB(tr.genericSingleShader.program, "u_ViewOrigin");
-	tr.genericSingleShader.u_TCGen_Environment = glGetUniformLocationARB(tr.genericSingleShader.program, "u_TCGen_Environment");
-	tr.genericSingleShader.u_DeformGen = glGetUniformLocationARB(tr.genericSingleShader.program, "u_DeformGen");
-	tr.genericSingleShader.u_DeformWave = glGetUniformLocationARB(tr.genericSingleShader.program, "u_DeformWave");
-	tr.genericSingleShader.u_DeformBulge = glGetUniformLocationARB(tr.genericSingleShader.program, "u_DeformBulge");
-	tr.genericSingleShader.u_DeformSpread = glGetUniformLocationARB(tr.genericSingleShader.program, "u_DeformSpread");
-	tr.genericSingleShader.u_Time = glGetUniformLocationARB(tr.genericSingleShader.program, "u_Time");
-	tr.genericSingleShader.u_PortalClipping = glGetUniformLocationARB(tr.genericSingleShader.program, "u_PortalClipping");
-	tr.genericSingleShader.u_PortalPlane = glGetUniformLocationARB(tr.genericSingleShader.program, "u_PortalPlane");
-	tr.genericSingleShader.u_ModelMatrix = glGetUniformLocationARB(tr.genericSingleShader.program, "u_ModelMatrix");
+	tr.genericShader.u_ColorMap = glGetUniformLocationARB(tr.genericShader.program, "u_ColorMap");
+	tr.genericShader.u_ColorTextureMatrix =
+		glGetUniformLocationARB(tr.genericShader.program, "u_ColorTextureMatrix");
+	tr.genericShader.u_ColorGen = glGetUniformLocationARB(tr.genericShader.program, "u_ColorGen");
+	tr.genericShader.u_AlphaGen = glGetUniformLocationARB(tr.genericShader.program, "u_AlphaGen");
+	tr.genericShader.u_Color = glGetUniformLocationARB(tr.genericShader.program, "u_Color");
+	tr.genericShader.u_AlphaTest = glGetUniformLocationARB(tr.genericShader.program, "u_AlphaTest");
+	tr.genericShader.u_ViewOrigin = glGetUniformLocationARB(tr.genericShader.program, "u_ViewOrigin");
+	tr.genericShader.u_TCGen_Environment = glGetUniformLocationARB(tr.genericShader.program, "u_TCGen_Environment");
+	tr.genericShader.u_DeformGen = glGetUniformLocationARB(tr.genericShader.program, "u_DeformGen");
+	tr.genericShader.u_DeformWave = glGetUniformLocationARB(tr.genericShader.program, "u_DeformWave");
+	tr.genericShader.u_DeformBulge = glGetUniformLocationARB(tr.genericShader.program, "u_DeformBulge");
+	tr.genericShader.u_DeformSpread = glGetUniformLocationARB(tr.genericShader.program, "u_DeformSpread");
+	tr.genericShader.u_Time = glGetUniformLocationARB(tr.genericShader.program, "u_Time");
+	tr.genericShader.u_PortalClipping = glGetUniformLocationARB(tr.genericShader.program, "u_PortalClipping");
+	tr.genericShader.u_PortalPlane = glGetUniformLocationARB(tr.genericShader.program, "u_PortalPlane");
+	tr.genericShader.u_ModelMatrix = glGetUniformLocationARB(tr.genericShader.program, "u_ModelMatrix");
 	/*
-	   tr.genericSingleShader.u_ModelViewMatrix =
-	   glGetUniformLocationARB(tr.genericSingleShader.program, "u_ModelViewMatrix");
-	   tr.genericSingleShader.u_ProjectionMatrix =
-	   glGetUniformLocationARB(tr.genericSingleShader.program, "u_ProjectionMatrix");
+	   tr.genericShader.u_ModelViewMatrix =
+	   glGetUniformLocationARB(tr.genericShader.program, "u_ModelViewMatrix");
+	   tr.genericShader.u_ProjectionMatrix =
+	   glGetUniformLocationARB(tr.genericShader.program, "u_ProjectionMatrix");
 	 */
-	tr.genericSingleShader.u_ModelViewProjectionMatrix =
-		glGetUniformLocationARB(tr.genericSingleShader.program, "u_ModelViewProjectionMatrix");
+	tr.genericShader.u_ModelViewProjectionMatrix =
+		glGetUniformLocationARB(tr.genericShader.program, "u_ModelViewProjectionMatrix");
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
-		tr.genericSingleShader.u_VertexSkinning = glGetUniformLocationARB(tr.genericSingleShader.program, "u_VertexSkinning");
-		tr.genericSingleShader.u_BoneMatrix = glGetUniformLocationARB(tr.genericSingleShader.program, "u_BoneMatrix");
+		tr.genericShader.u_VertexSkinning = glGetUniformLocationARB(tr.genericShader.program, "u_VertexSkinning");
+		tr.genericShader.u_BoneMatrix = glGetUniformLocationARB(tr.genericShader.program, "u_BoneMatrix");
 	}
 
-	glUseProgramObjectARB(tr.genericSingleShader.program);
-	glUniform1iARB(tr.genericSingleShader.u_ColorMap, 0);
+	glUseProgramObjectARB(tr.genericShader.program);
+	glUniform1iARB(tr.genericShader.u_ColorMap, 0);
 	glUseProgramObjectARB(0);
 
-	GLSL_ValidateProgram(tr.genericSingleShader.program);
-	GLSL_ShowProgramUniforms(tr.genericSingleShader.program);
+	GLSL_ValidateProgram(tr.genericShader.program);
+	GLSL_ShowProgramUniforms(tr.genericShader.program);
 	GL_CheckErrors();
 
 	// simple vertex color shading for entities
@@ -2221,10 +2221,10 @@ void GLSL_ShutdownGPUShaders(void)
 {
 	ri.Printf(PRINT_ALL, "------- GLSL_ShutdownGPUShaders -------\n");
 
-	if(tr.genericSingleShader.program)
+	if(tr.genericShader.program)
 	{
-		glDeleteObjectARB(tr.genericSingleShader.program);
-		Com_Memset(&tr.genericSingleShader, 0, sizeof(shaderProgram_t));
+		glDeleteObjectARB(tr.genericShader.program);
+		Com_Memset(&tr.genericShader, 0, sizeof(shaderProgram_t));
 	}
 
 	if(tr.vertexLightingShader_DBS_entity.program)
@@ -2631,40 +2631,40 @@ static void DrawTris()
 {
 	GLimp_LogComment("--- DrawTris ---\n");
 
-	GL_BindProgram(&tr.genericSingleShader);
+	GL_BindProgram(&tr.genericShader);
 	GL_State(GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE);
-	GL_VertexAttribsState(tr.genericSingleShader.attribs);
+	GL_VertexAttribsState(tr.genericShader.attribs);
 
 	if(r_showBatches->integer || r_showLightBatches->integer)
 	{
-		GLSL_SetUniform_Color(&tr.genericSingleShader, g_color_table[backEnd.pc.c_batches % 8]);
+		GLSL_SetUniform_Color(&tr.genericShader, g_color_table[backEnd.pc.c_batches % 8]);
 	}
 	else if(glState.currentVBO == tess.vbo)
 	{
-		GLSL_SetUniform_Color(&tr.genericSingleShader, colorRed);
+		GLSL_SetUniform_Color(&tr.genericShader, colorRed);
 	}
 	else if(glState.currentVBO)
 	{
-		GLSL_SetUniform_Color(&tr.genericSingleShader, colorBlue);
+		GLSL_SetUniform_Color(&tr.genericShader, colorBlue);
 	}
 	else
 	{
-		GLSL_SetUniform_Color(&tr.genericSingleShader, colorWhite);
+		GLSL_SetUniform_Color(&tr.genericShader, colorWhite);
 	}
 
-	GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader,  qfalse);
-	GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_CONST);
-	GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_CONST);
+	GLSL_SetUniform_TCGen_Environment(&tr.genericShader,  qfalse);
+	GLSL_SetUniform_ColorGen(&tr.genericShader, CGEN_CONST);
+	GLSL_SetUniform_AlphaGen(&tr.genericShader, AGEN_CONST);
 
-	GLSL_SetUniform_ModelMatrix(&tr.genericSingleShader, backEnd.orientation.transformMatrix);
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+	GLSL_SetUniform_ModelMatrix(&tr.genericShader, backEnd.orientation.transformMatrix);
+	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
-		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, tess.vboVertexSkinning);
+		GLSL_SetUniform_VertexSkinning(&tr.genericShader, tess.vboVertexSkinning);
 
 		if(tess.vboVertexSkinning)
-			glUniformMatrix4fvARB(tr.genericSingleShader.u_BoneMatrix, MAX_BONES, GL_FALSE, &tess.boneMatrices[0][0]);
+			glUniformMatrix4fvARB(tr.genericShader.u_BoneMatrix, MAX_BONES, GL_FALSE, &tess.boneMatrices[0][0]);
 	}
 
 	// u_DeformGen
@@ -2678,34 +2678,34 @@ static void DrawTris()
 		switch (ds->deformation)
 		{
 			case DEFORM_WAVE:
-				GLSL_SetUniform_DeformGen(&tr.genericSingleShader, (deformGen_t) ds->deformationWave.func);
-				GLSL_SetUniform_DeformWave(&tr.genericSingleShader, &ds->deformationWave);
-				GLSL_SetUniform_DeformSpread(&tr.genericSingleShader, ds->deformationSpread);
-				GLSL_SetUniform_Time(&tr.genericSingleShader, backEnd.refdef.floatTime);
+				GLSL_SetUniform_DeformGen(&tr.genericShader, (deformGen_t) ds->deformationWave.func);
+				GLSL_SetUniform_DeformWave(&tr.genericShader, &ds->deformationWave);
+				GLSL_SetUniform_DeformSpread(&tr.genericShader, ds->deformationSpread);
+				GLSL_SetUniform_Time(&tr.genericShader, backEnd.refdef.floatTime);
 				break;
 
 			case DEFORM_BULGE:
-				GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_BULGE);
-				GLSL_SetUniform_DeformBulge(&tr.genericSingleShader, ds);
-				GLSL_SetUniform_Time(&tr.genericSingleShader, backEnd.refdef.floatTime);
+				GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_BULGE);
+				GLSL_SetUniform_DeformBulge(&tr.genericShader, ds);
+				GLSL_SetUniform_Time(&tr.genericShader, backEnd.refdef.floatTime);
 				break;
 
 			default:
-				GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
+				GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
 				break;
 		}
 	}
 	else
 	{
-		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
+		GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
 	}
 
-	GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, 0);
+	GLSL_SetUniform_AlphaTest(&tr.genericShader, 0);
 
 	// bind u_ColorMap
 	GL_SelectTexture(0);
 	GL_Bind(tr.whiteImage);
-	GLSL_SetUniform_ColorTextureMatrix(&tr.genericSingleShader, tess.svars.texMatrices[TB_COLORMAP]);
+	GLSL_SetUniform_ColorTextureMatrix(&tr.genericShader, tess.svars.texMatrices[TB_COLORMAP]);
 
 	glDepthRange(0, 0);
 
@@ -2811,14 +2811,14 @@ static void Render_genericSingle(int stage)
 	pStage = tess.surfaceStages[stage];
 
 	GL_State(pStage->stateBits);
-	GL_BindProgram(&tr.genericSingleShader);
+	GL_BindProgram(&tr.genericShader);
 
 	// set uniforms
-	GLSL_SetUniform_TCGen_Environment(&tr.genericSingleShader, pStage->tcGen_Environment);
+	GLSL_SetUniform_TCGen_Environment(&tr.genericShader, pStage->tcGen_Environment);
 	if(pStage->tcGen_Environment)
 	{
 		// calculate the environment texcoords in object space
-		GLSL_SetUniform_ViewOrigin(&tr.genericSingleShader, backEnd.orientation.viewOrigin);
+		GLSL_SetUniform_ViewOrigin(&tr.genericShader, backEnd.orientation.viewOrigin);
 
 		attribBits |= ATTR_NORMAL;
 	}
@@ -2828,12 +2828,12 @@ static void Render_genericSingle(int stage)
 	{
 		case CGEN_VERTEX:
 		case CGEN_ONE_MINUS_VERTEX:
-			GLSL_SetUniform_ColorGen(&tr.genericSingleShader, pStage->rgbGen);
+			GLSL_SetUniform_ColorGen(&tr.genericShader, pStage->rgbGen);
 			attribBits |= ATTR_COLOR;
 			break;
 
 		default:
-			GLSL_SetUniform_ColorGen(&tr.genericSingleShader, CGEN_CONST);
+			GLSL_SetUniform_ColorGen(&tr.genericShader, CGEN_CONST);
 			break;
 	}
 
@@ -2842,27 +2842,27 @@ static void Render_genericSingle(int stage)
 	{
 		case AGEN_VERTEX:
 		case AGEN_ONE_MINUS_VERTEX:
-			GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, pStage->alphaGen);
+			GLSL_SetUniform_AlphaGen(&tr.genericShader, pStage->alphaGen);
 			attribBits |= ATTR_COLOR;
 			break;
 
 		default:
-			GLSL_SetUniform_AlphaGen(&tr.genericSingleShader, AGEN_CONST);
+			GLSL_SetUniform_AlphaGen(&tr.genericShader, AGEN_CONST);
 			break;
 	}
 
 	// u_Color
-	GLSL_SetUniform_Color(&tr.genericSingleShader, tess.svars.color);
+	GLSL_SetUniform_Color(&tr.genericShader, tess.svars.color);
 
-	GLSL_SetUniform_ModelMatrix(&tr.genericSingleShader, backEnd.orientation.transformMatrix);
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericSingleShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+	GLSL_SetUniform_ModelMatrix(&tr.genericShader, backEnd.orientation.transformMatrix);
+	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
-		GLSL_SetUniform_VertexSkinning(&tr.genericSingleShader, tess.vboVertexSkinning);
+		GLSL_SetUniform_VertexSkinning(&tr.genericShader, tess.vboVertexSkinning);
 
 		if(tess.vboVertexSkinning)
-			glUniformMatrix4fvARB(tr.genericSingleShader.u_BoneMatrix, MAX_BONES, GL_FALSE, &tess.boneMatrices[0][0]);
+			glUniformMatrix4fvARB(tr.genericShader.u_BoneMatrix, MAX_BONES, GL_FALSE, &tess.boneMatrices[0][0]);
 	}
 
 	// u_DeformGen
@@ -2876,33 +2876,33 @@ static void Render_genericSingle(int stage)
 		switch (ds->deformation)
 		{
 			case DEFORM_WAVE:
-				GLSL_SetUniform_DeformGen(&tr.genericSingleShader, (deformGen_t) ds->deformationWave.func);
-				GLSL_SetUniform_DeformWave(&tr.genericSingleShader, &ds->deformationWave);
-				GLSL_SetUniform_DeformSpread(&tr.genericSingleShader, ds->deformationSpread);
-				GLSL_SetUniform_Time(&tr.genericSingleShader, backEnd.refdef.floatTime);
+				GLSL_SetUniform_DeformGen(&tr.genericShader, (deformGen_t) ds->deformationWave.func);
+				GLSL_SetUniform_DeformWave(&tr.genericShader, &ds->deformationWave);
+				GLSL_SetUniform_DeformSpread(&tr.genericShader, ds->deformationSpread);
+				GLSL_SetUniform_Time(&tr.genericShader, backEnd.refdef.floatTime);
 				attribBits |= ATTR_NORMAL;
 				break;
 
 			case DEFORM_BULGE:
-				GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_BULGE);
-				GLSL_SetUniform_DeformBulge(&tr.genericSingleShader, ds);
-				GLSL_SetUniform_Time(&tr.genericSingleShader, backEnd.refdef.floatTime);
+				GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_BULGE);
+				GLSL_SetUniform_DeformBulge(&tr.genericShader, ds);
+				GLSL_SetUniform_Time(&tr.genericShader, backEnd.refdef.floatTime);
 				attribBits |= ATTR_NORMAL;
 				break;
 
 			default:
-				GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
+				GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
 				break;
 		}
 	}
 	else
 	{
-		GLSL_SetUniform_DeformGen(&tr.genericSingleShader, DGEN_NONE);
+		GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
 	}
 
-	GLSL_SetUniform_AlphaTest(&tr.genericSingleShader, pStage->stateBits);
+	GLSL_SetUniform_AlphaTest(&tr.genericShader, pStage->stateBits);
 
-	GLSL_SetUniform_PortalClipping(&tr.genericSingleShader, backEnd.viewParms.isPortal);
+	GLSL_SetUniform_PortalClipping(&tr.genericShader, backEnd.viewParms.isPortal);
 	if(backEnd.viewParms.isPortal)
 	{
 		float           plane[4];
@@ -2913,13 +2913,13 @@ static void Render_genericSingle(int stage)
 		plane[2] = backEnd.viewParms.portalPlane.normal[2];
 		plane[3] = backEnd.viewParms.portalPlane.dist;
 
-		GLSL_SetUniform_PortalPlane(&tr.genericSingleShader, plane);
+		GLSL_SetUniform_PortalPlane(&tr.genericShader, plane);
 	}
 
 	// bind u_ColorMap
 	GL_SelectTexture(0);
 	BindAnimatedImage(&pStage->bundle[TB_COLORMAP]);
-	GLSL_SetUniform_ColorTextureMatrix(&tr.genericSingleShader, tess.svars.texMatrices[TB_COLORMAP]);
+	GLSL_SetUniform_ColorTextureMatrix(&tr.genericShader, tess.svars.texMatrices[TB_COLORMAP]);
 
 	GL_VertexAttribsState(attribBits);
 
@@ -2984,8 +2984,7 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		}
 	}
 
-	GL_CheckErrors();
-
+	// u_VertexInterpolation
 	GLSL_SetUniform_VertexInterpolation(&tr.vertexLightingShader_DBS_entity, glState.vertexAttribsInterpolation);
 	if(glState.vertexAttribsInterpolation > 0)
 	{
@@ -2996,8 +2995,6 @@ static void Render_vertexLighting_DBS_entity(int stage)
 			attribBits |=  (ATTR_TANGENT2 | ATTR_BINORMAL2);
 		}
 	}
-
-	GL_CheckErrors();
 
 	// u_DeformGen
 	if(tess.surfaceShader->numDeforms)
