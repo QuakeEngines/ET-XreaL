@@ -164,10 +164,25 @@ typedef unsigned __int8 uint8_t;
 
 
 // use MSVC inline asm version of C functions
-#if defined _M_IX86
-#define id386   1
+#if (defined(_M_IX86) || defined(__i386__)) && !defined(C_ONLY)
+#define id386 1
+#if defined SIMD_3DNOW
+#define id386_3dnow  1
 #else
-#define id386   0
+#define id386_3dnow  0
+#endif
+#if 0 //defined(_M_IX86_FP) || defined(__SSE__)//defined(_MSC_VER)
+//#error SIMD_SSE
+#define id386_sse  1
+#include <xmmintrin.h>
+//#define SSEVEC3_T
+#else
+#define id386_sse  0
+#endif
+#else
+#define id386	0
+#define id386_3dnow  0
+#define id386_sse    0
 #endif
 
 // for windows fastcall option
