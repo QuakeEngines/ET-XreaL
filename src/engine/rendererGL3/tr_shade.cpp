@@ -96,29 +96,78 @@ static void GLSL_PrintShaderSource(GLhandleARB object)
 	Com_Dealloc(msg);
 }
 
-static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum shaderType, qboolean optimize)
+static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, char **libs, GLenum shaderType, qboolean optimize)
 {
-
 	char            filename[MAX_QPATH];
-	GLcharARB      *buffer = NULL;
-	int             size;
+	GLcharARB      *mainBuffer = NULL;
+	int             mainSize;
 	GLint           compiled;
 	GLhandleARB     shader;
+	char           *token;
+
+	int				libsSize;
+	char           *libsBuffer;		// all libs concatenated
 
 	GL_CheckErrors();
 
+	// load libs
+	libsSize = 0;
+	libsBuffer = NULL;
+	while(1)
+	{
+		int				libSize;
+		char           *libBuffer;		// single extra lib file
+
+		token = COM_ParseExt2(libs, qfalse);
+		if(!token[0])
+		{
+			break;
+		}
+
+		if(shaderType == GL_VERTEX_SHADER_ARB)
+		{
+			Com_sprintf(filename, sizeof(filename), "glsl/%s_vp.glsl", token);
+			ri.Printf(PRINT_ALL, "...loading vertex shader '%s'\n", filename);
+		}
+		else
+		{
+			Com_sprintf(filename, sizeof(filename), "glsl/%s_fp.glsl", token);
+		}
+	
+		libSize = ri.FS_ReadFile(filename, (void **)&libBuffer);
+		if(!libBuffer)
+		{
+			ri.Error(ERR_DROP, "Couldn't load %s", filename);
+		}
+
+		// append it to the libsBuffer
+		libsBuffer = (char* ) realloc(libsBuffer, libsSize + libSize);
+		
+		memset(libsBuffer + libsSize, 0, libSize);
+		libsSize += libSize;
+
+		Q_strcat(libsBuffer, libsSize, libBuffer);
+		//Q_strncpyz(libsBuffer + libsSize, libBuffer, libSize -1);
+
+		
+
+		ri.FS_FreeFile(libBuffer);
+	}
+
+	// load main() program
 	if(shaderType == GL_VERTEX_SHADER_ARB)
 	{
 		Com_sprintf(filename, sizeof(filename), "glsl/%s_vp.glsl", name);
+		ri.Printf(PRINT_ALL, "...loading vertex main() shader '%s'\n", filename);
 	}
 	else
 	{
 		Com_sprintf(filename, sizeof(filename), "glsl/%s_fp.glsl", name);
+		ri.Printf(PRINT_ALL, "...loading fragment main() shader '%s'\n", filename);
 	}
 
-	ri.Printf(PRINT_ALL, "...loading '%s'\n", filename);
-	size = ri.FS_ReadFile(filename, (void **)&buffer);
-	if(!buffer)
+	mainSize = ri.FS_ReadFile(filename, (void **)&mainBuffer);
+	if(!mainBuffer)
 	{
 		ri.Error(ERR_DROP, "Couldn't load %s", filename);
 	}
@@ -506,14 +555,38 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 		Q_strcat(bufferExtra, sizeof(bufferExtra), "#line 0\n");
 
 		sizeExtra = strlen(bufferExtra);
-		sizeFinal = sizeExtra + size;
+		sizeFinal = sizeExtra + mainSize + libsSize;
 
 		//ri.Printf(PRINT_ALL, "GLSL extra: %s\n", bufferExtra);
 
-		bufferFinal = (char *) ri.Hunk_AllocateTempMemory(size + sizeExtra);
+		bufferFinal = (char *) ri.Hunk_AllocateTempMemory(sizeFinal);
 
 		strcpy(bufferFinal, bufferExtra);
-		Q_strcat(bufferFinal, sizeFinal, buffer);
+
+		if(libsSize > 0)
+		{
+			Q_strcat(bufferFinal, sizeFinal, libsBuffer);
+		}
+
+		Q_strcat(bufferFinal, sizeFinal, mainBuffer);
+
+#if 0
+		{
+			static char     msgPart[1024];
+			int             i;
+			ri.Printf(PRINT_WARNING, "----------------------------------------------------------\n", filename);
+			ri.Printf(PRINT_WARNING, "CONCATENATED shader '%s' ----------\n", filename);
+			ri.Printf(PRINT_WARNING, " BEGIN ---------------------------------------------------\n", filename);
+
+			for(i = 0; i < sizeFinal; i += 1024)
+			{
+				Q_strncpyz(msgPart, bufferFinal + i, sizeof(msgPart));
+				ri.Printf(PRINT_ALL, "%s", msgPart);
+			}
+
+			ri.Printf(PRINT_WARNING, " END-- ---------------------------------------------------\n", filename);
+		}
+#endif
 
 #if defined(USE_GLSL_OPTIMIZER)
 		if(glConfig.driverType != GLDRV_OPENGL3 && optimize)
@@ -594,7 +667,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 		GLSL_PrintShaderSource(shader);
 		GLSL_PrintInfoLog(shader, qfalse);
 		ri.Error(ERR_DROP, "Couldn't compile %s", filename);
-		ri.FS_FreeFile(buffer);
+		ri.FS_FreeFile(mainBuffer);
+		free(libsBuffer);
 		return;
 	}
 
@@ -609,7 +683,8 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, GLenum sha
 	glDeleteObjectARB(shader);
 	GL_CheckErrors();
 
-	ri.FS_FreeFile(buffer);
+	ri.FS_FreeFile(mainBuffer);
+	free(libsBuffer);
 }
 
 static void GLSL_LinkProgram(GLhandleARB program)
@@ -667,6 +742,8 @@ static void GLSL_ShowProgramUniforms(GLhandleARB program)
 
 static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int attribs, qboolean fragmentShader, qboolean optimize)
 {
+	static char *empty = "";
+
 	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
 
 	if(strlen(name) >= MAX_QPATH)
@@ -679,10 +756,10 @@ static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int 
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, name, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, name, &empty, GL_VERTEX_SHADER_ARB, optimize);
 
 	if(fragmentShader)
-		GLSL_LoadGPUShader(program->program, name, GL_FRAGMENT_SHADER_ARB, optimize);
+		GLSL_LoadGPUShader(program->program, name, &empty, GL_FRAGMENT_SHADER_ARB, optimize);
 
 	if(attribs & ATTR_POSITION)
 		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION, "attr_Position");
@@ -747,8 +824,8 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 								int attribs,
 								qboolean optimize)
 {
-	char          **libs;
-	char           *token;
+	//char          **libs;
+	//char           *token;
 
 	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
 
@@ -767,7 +844,8 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, vertexMainShader, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, vertexMainShader, (char **) &vertexLibShaders, GL_VERTEX_SHADER_ARB, optimize);
+	/*
 	libs = (char**) &vertexLibShaders;
 	while(1)
 	{
@@ -779,8 +857,10 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 
 		GLSL_LoadGPUShader(program->program, token, GL_VERTEX_SHADER_ARB, optimize);
 	}
+	*/
 
-	GLSL_LoadGPUShader(program->program, fragmentMainShader, GL_FRAGMENT_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, fragmentMainShader, (char **) &fragmentLibShaders, GL_FRAGMENT_SHADER_ARB, optimize);
+	/*
 	libs = (char**) &fragmentLibShaders;
 	while(1)
 	{
@@ -792,6 +872,7 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 		
 		GLSL_LoadGPUShader(program->program, token, GL_FRAGMENT_SHADER_ARB, optimize);
 	}
+	*/
 
 	if(attribs & ATTR_POSITION)
 		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION, "attr_Position");
