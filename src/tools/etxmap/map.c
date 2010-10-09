@@ -1744,6 +1744,14 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 
 	if(convertType == CONVERT_QUAKE3)
 	{
+		// Tr3B: rename misc_model to func_static
+#if 0
+		if(!Q_stricmp("misc_model", classname) && model[0] != '\0')
+		{
+			SetKeyValue(mapEnt, "classname", "func_static");
+		}
+#endif
+
 		/* Tr3B: rename targetname to name if necessary */
 		targetname = ValueForKey(mapEnt, "targetname");
 		if(targetname[0])

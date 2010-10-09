@@ -1745,6 +1745,10 @@ void SetupGrid(void)
 	}
 
 	/* print it */
+	Sys_Printf("BSP bounds = { %1.0f, %1.0f, %1.0f }\n",	(bspModels[0].mins[0] + bspModels[0].maxs[0]),
+															(bspModels[0].mins[1] + bspModels[0].maxs[1]), 
+															(bspModels[0].mins[2] + bspModels[0].maxs[2]));
+
 	Sys_Printf("Grid size = { %1.0f, %1.0f, %1.0f }\n", gridSize[0], gridSize[1], gridSize[2]);
 	Sys_Printf("Grid bounds = { %d, %d, %d }\n", gridBounds[0], gridBounds[1], gridBounds[2]);
 

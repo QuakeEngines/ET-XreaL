@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\common;..\..\libs\picomodel;..\..\libs\glib\include\glib-2.0;..\..\libs\glib\lib\glib-2.0\include;..\..\libs\png;..\..\libs\zlib"
+				AdditionalIncludeDirectories="..\common;..\..\libs\picomodel;&quot;..\..\libs\glib\include\glib-2.0&quot;;&quot;..\..\libs\glib\lib\glib-2.0\include&quot;;..\..\libs\png;..\..\libs\zlib;..\..\libs\sdl\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE,XMAP"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
@@ -74,11 +74,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="glib-2.0.lib wsock32.lib"
+				AdditionalDependencies="glib-2.0.lib wsock32.lib SDL.lib SDLmain.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)/ETXMap.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\libs\glib\lib"
+				AdditionalLibraryDirectories="..\..\libs\glib\lib;..\..\libs\sdl\lib"
 				IgnoreDefaultLibraryNames="libcd"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ETXMap.pdb"
@@ -144,7 +144,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\common;..\..\libs\picomodel;..\..\libs\glib\include\glib-2.0;..\..\libs\glib\lib\glib-2.0\include;..\..\libs\png;..\..\libs\zlib"
+				AdditionalIncludeDirectories="..\common;..\..\libs\picomodel;&quot;..\..\libs\glib\include\glib-2.0&quot;;&quot;..\..\libs\glib\lib\glib-2.0\include&quot;;..\..\libs\png;..\..\libs\zlib;..\..\libs\sdl\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE,XMAP"
 				StringPooling="true"
 				ExceptionHandling="0"
@@ -176,11 +176,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="glib-2.0.lib  wsock32.lib"
+				AdditionalDependencies="glib-2.0.lib  wsock32.lib SDL.lib SDLmain.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)/ETXMap.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\libs\glib\lib"
+				AdditionalLibraryDirectories="..\..\libs\glib\lib;..\..\libs\sdl\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/ETXMap.pdb"
 				GenerateMapFile="true"
@@ -388,6 +388,10 @@
 				</File>
 				<File
 					RelativePath=".\fog.c"
+					>
+				</File>
+				<File
+					RelativePath=".\gldraw.c"
 					>
 				</File>
 				<File

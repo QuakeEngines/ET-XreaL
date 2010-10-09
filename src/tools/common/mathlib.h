@@ -95,6 +95,7 @@ void            VectorInverse(vec3_t v);
 
 void            ClearBounds(vec3_t mins, vec3_t maxs);
 void            AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
+void            BoundsAdd(vec3_t mins, vec3_t maxs, const vec3_t mins2, const vec3_t maxs2);
 
 qboolean        PlaneFromPoints(vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c, qboolean cw);
 
@@ -136,6 +137,6 @@ void            MatrixTransformNormal(const matrix_t m, const vec3_t in, vec3_t 
 void            MatrixTransformNormal2(const matrix_t m, vec3_t inout);
 void            MatrixTransformPoint(const matrix_t m, const vec3_t in, vec3_t out);
 void            MatrixTransformPoint2(const matrix_t m, vec3_t inout);
-void			MatrixTranformVec4(const matrix_t matrix, vec4_t vector);
+void			MatrixTransformVec4(const matrix_t matrix, vec4_t vector);
 
 #endif

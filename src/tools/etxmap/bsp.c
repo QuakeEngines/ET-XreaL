@@ -275,6 +275,113 @@ static void FixBrushSides(entity_t * e)
 
 
 
+int PortalVisibleSides(portal_t * p)
+{
+	int             fcon, bcon;
+
+	if(!p->onnode)
+		return 0;				// outside
+
+	fcon = p->nodes[0]->opaque;
+	bcon = p->nodes[1]->opaque;
+
+	// same contents never create a face
+	if(fcon == bcon)
+		return 0;
+
+	if(!fcon)
+		return 1;
+	if(!bcon)
+		return 2;
+	return 0;
+}
+
+static void DrawPortal(portal_t * p, qboolean areaportal)
+{
+	winding_t      *w;
+	int             sides;
+
+	sides = PortalVisibleSides(p);
+	if(!sides)
+		return;
+
+	w = p->winding;
+
+	if(sides == 2)				// back side
+		w = ReverseWinding(w);
+
+	if(areaportal)
+	{
+		Draw_AuxWinding(w);
+	}
+	else
+	{
+		Draw_Winding(w);
+	}
+
+	if(sides == 2)
+		FreeWinding(w);
+}
+
+static void DrawTreePortals_r(node_t * node)
+{
+	int             s;
+	portal_t       *p, *nextp;
+	winding_t      *w;
+
+	if(node->planenum != PLANENUM_LEAF)
+	{
+		DrawTreePortals_r(node->children[0]);
+		DrawTreePortals_r(node->children[1]);
+		return;
+	}
+
+	// draw all the portals
+	for(p = node->portals; p; p = p->next[s])
+	{
+		w = p->winding;
+		s = (p->nodes[1] == node);
+
+		if(w)					// && p->nodes[0] == node)
+		{
+			if(PortalPassable(p))
+				continue;
+
+			DrawPortal(p, node->areaportal);
+		}
+	}
+}
+
+static tree_t  *drawTree = NULL;
+static void DrawTreePortals(void)
+{
+	DrawTreePortals_r(drawTree->headnode);
+}
+
+
+static void DrawTreeNodes_r(node_t * node)
+{
+	int             s;
+	portal_t       *p, *nextp;
+	winding_t      *w;
+	vec4_t			leafColor = {0, 0, 1, 0.3};
+
+	if(node->planenum != PLANENUM_LEAF)
+	{
+		DrawTreeNodes_r(node->children[0]);
+		DrawTreeNodes_r(node->children[1]);
+		return;
+	}
+
+	Draw_AABB(vec3_origin, node->mins, node->maxs, leafColor);
+}
+static void DrawNodes(void)
+{
+	DrawTreeNodes_r(drawTree->headnode);
+}
+
+
+
 /*
 ProcessWorldModel()
 creates a full bsp + surfaces for the worldspawn entity
@@ -339,6 +446,15 @@ void ProcessWorldModel(void)
 	MakeTreePortals(tree);
 	FilterStructuralBrushesIntoTree(e, tree);
 
+#if 0
+	if(drawBSP)
+	{
+		// draw unoptimized portals in new window
+		drawTree = tree;
+		Draw_Scene(DrawTreePortals);
+	}
+#endif
+
 	/* see if the bsp is completely enclosed */
 	if(FloodEntities(tree) || ignoreLeaks)
 	{
@@ -387,6 +503,15 @@ void ProcessWorldModel(void)
 		/* chop the sides to the convex hull of their visible fragments, giving us the smallest polygons */
 		ClipSidesIntoTree(e, tree);
 	}
+
+#if 0
+	if(drawBSP)
+	{
+		// draw unoptimized portals in new window
+		drawTree = tree;
+		Draw_Scene(DrawTree);
+	}
+#endif
 
 	/* save out information for visibility processing */
 	NumberClusters(tree);
@@ -501,6 +626,16 @@ void ProcessWorldModel(void)
 
 	/* finish */
 	EndModel(e, tree->headnode);
+
+#if 1
+	if(drawBSP)
+	{
+		// draw unoptimized portals in new window
+		drawTree = tree;
+		Draw_Scene(DrawNodes);
+	}
+#endif
+
 	FreeTree(tree);
 }
 
@@ -931,7 +1066,14 @@ int BSPMain(int argc, char **argv)
 			deepBSP = qtrue;
 		}
 		else if(!strcmp(argv[i], "-bsp"))
+		{
 			Sys_Printf("-bsp argument unnecessary\n");
+		}
+		else if(!strcmp(argv[i], "-draw"))
+		{
+			Sys_Printf("SDL BSP tree viewer enabled\n");
+			drawBSP = qtrue;
+		}
 		else
 		{
 			Sys_Printf("WARNING: Unknown option \"%s\"\n", argv[i]);

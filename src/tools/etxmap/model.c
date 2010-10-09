@@ -546,8 +546,12 @@ void InsertModel(char *name, int frame, matrix_t transform, matrix_t nTransform,
 					buildBrush->contentShader = si;
 					buildBrush->compileFlags = si->compileFlags;
 					buildBrush->contentFlags = si->contentFlags;
+
+					buildBrush->generatedClipBrush = qtrue;
+
 					normalEpsilon_save = normalEpsilon;
 					distanceEpsilon_save = distanceEpsilon;
+
 					if(si->compileFlags & C_STRUCTURAL)	// allow forced structural brushes here
 					{
 						buildBrush->detail = qfalse;

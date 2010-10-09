@@ -914,7 +914,11 @@ typedef struct brush_s
 	vec3_t          mins, maxs;
 	int             numsides;
 
+	qboolean		generatedClipBrush;	// Tr3B: created by a custom model and clipModel 1
+
 	side_t          sides[6];	/* variably sized */
+
+	// Tr3B: don't add anything below sides
 }
 brush_t;
 
@@ -1927,6 +1931,13 @@ void            WriteXBSPFile(const char *filename);
 
 
 
+/* gldraw.c */
+void            Draw_Winding(winding_t * w);
+void            Draw_AuxWinding(winding_t * w);
+void            Draw_Scene(void (*drawFunc) (void));
+void            Draw_AuxWinding(winding_t * w);
+void			Draw_AABB(const vec3_t origin, const vec3_t mins, const vec3_t maxs, vec4_t color);
+
 /* -------------------------------------------------------------------------------
 
 bsp/general global variables
@@ -2003,8 +2014,9 @@ Q_EXTERN qboolean			noHint Q_ASSIGN( qfalse );				/* ydnar */
 Q_EXTERN qboolean			renameModelShaders Q_ASSIGN( qfalse );	/* ydnar */
 Q_EXTERN qboolean			skyFixHack Q_ASSIGN( qfalse );			/* ydnar */
 Q_EXTERN qboolean			bspAlternateSplitWeights Q_ASSIGN( qfalse );			/* 27 */
-Q_EXTERN qboolean			deepBSP Q_ASSIGN( qfalse );			/* div0 */
-Q_EXTERN qboolean			inlineEntityModels Q_ASSIGN( qfalse );			/* Tr3B */
+Q_EXTERN qboolean			deepBSP Q_ASSIGN( qfalse );				/* div0 */
+Q_EXTERN qboolean			inlineEntityModels Q_ASSIGN( qfalse );	/* Tr3B */
+Q_EXTERN qboolean			drawBSP Q_ASSIGN( qfalse );				/* Tr3B */
 
 Q_EXTERN int				patchSubdivisions Q_ASSIGN( 8 );		/* ydnar: -patchmeta subdivisions */
 
