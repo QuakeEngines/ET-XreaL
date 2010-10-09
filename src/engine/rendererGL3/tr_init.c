@@ -1063,19 +1063,30 @@ void GL_SetDefaultState(void)
 
 	// initialize downstream texture units if we're running
 	// in a multitexture environment
-	if(GLEW_ARB_multitexture)
+	if(glConfig.driverType == GLDRV_OPENGL3)
 	{
-		for(i = glConfig.maxActiveTextures - 1; i >= 0; i--)
+		for(i = 31; i >= 0; i--)
 		{
 			GL_SelectTexture(i);
 			GL_TextureMode(r_textureMode->string);
+		}
+	}
+	else
+	{
+		if(GLEW_ARB_multitexture)
+		{
+			for(i = glConfig.maxActiveTextures - 1; i >= 0; i--)
+			{
+				GL_SelectTexture(i);
+				GL_TextureMode(r_textureMode->string);
 
-			/*
-			if(i != 0)
-				glDisable(GL_TEXTURE_2D);
-			else
-				glEnable(GL_TEXTURE_2D);
-			*/
+				/*
+				if(i != 0)
+					glDisable(GL_TEXTURE_2D);
+				else
+					glEnable(GL_TEXTURE_2D);
+				*/
+			}
 		}
 	}
 
@@ -1171,7 +1182,11 @@ void GfxInfo_f(void)
 	ri.Printf(PRINT_ALL, "GL_VERSION: %s\n", glConfig.version_string);
 	ri.Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", glConfig.extensions_string);
 	ri.Printf(PRINT_ALL, "GL_MAX_TEXTURE_SIZE: %d\n", glConfig.maxTextureSize);
-	ri.Printf(PRINT_ALL, "GL_MAX_TEXTURE_UNITS_ARB: %d\n", glConfig.maxActiveTextures);
+
+	if(glConfig.driverType != GLDRV_OPENGL3)
+	{
+		ri.Printf(PRINT_ALL, "GL_MAX_TEXTURE_UNITS_ARB: %d\n", glConfig.maxActiveTextures);
+	}
 
 	/*
 	   if(glConfig.fragmentProgramAvailable)
@@ -1316,7 +1331,7 @@ R_Register
 */
 void R_Register(void)
 {
-	r_glCoreProfile = ri.Cvar_Get("r_glCoreProfile", "1", CVAR_INIT);
+	r_glCoreProfile = ri.Cvar_Get("r_glCoreProfile", "0", CVAR_INIT);
 	r_glMinMajorVersion = ri.Cvar_Get("r_glMinMajorVersion", "3", CVAR_LATCH);
 	r_glMinMinorVersion = ri.Cvar_Get("r_glMinMinorVersion", "2", CVAR_LATCH);
 
