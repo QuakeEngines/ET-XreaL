@@ -1541,24 +1541,27 @@ static void GLW_InitExtensions(void)
 	ri.Printf(PRINT_ALL, "Initializing OpenGL extensions\n");
 
 	// GL_ARB_multitexture
-	if(GLEW_ARB_multitexture)
+	if(glConfig.driverType != GLDRV_OPENGL3)
 	{
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &glConfig.maxActiveTextures);
-
-		if(glConfig.maxActiveTextures > 1)
+		if(GLEW_ARB_multitexture)
 		{
-			ri.Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &glConfig.maxActiveTextures);
+
+			if(glConfig.maxActiveTextures > 1)
+			{
+				ri.Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
+			}
+			else
+			{
+				ri.Error(ERR_VID_FATAL, "...not using GL_ARB_multitexture, < 2 texture units\n");
+			}
 		}
 		else
 		{
-			ri.Error(ERR_VID_FATAL, "...not using GL_ARB_multitexture, < 2 texture units\n");
+			ri.Error(ERR_VID_FATAL, "...GL_ARB_multitexture not found\n");
 		}
 	}
-	else
-	{
-		ri.Error(ERR_VID_FATAL, "...GL_ARB_multitexture not found\n");
-	}
-
+		
 	// GL_ARB_depth_texture
 	if(GLEW_ARB_depth_texture)
 	{
