@@ -1608,6 +1608,10 @@ static void GLW_InitOpenGL3xContext()
 	{
 		//if(!g_wvPtr->openGL3ContextCreated)
 		{
+			int				attribs[256];	// should be really enough
+			int				numAttribs;
+
+			/*
 			int             attribs[] =
 			{
 				WGL_CONTEXT_MAJOR_VERSION_ARB, r_glMinMajorVersion->integer,
@@ -1617,6 +1621,36 @@ static void GLW_InitOpenGL3xContext()
 				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 				0
 			};
+			*/
+
+			memset(attribs, 0, sizeof(attribs));
+			numAttribs = 0;
+
+			attribs[numAttribs++] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+			attribs[numAttribs++] = r_glMinMajorVersion->integer;
+
+			attribs[numAttribs++] = WGL_CONTEXT_MINOR_VERSION_ARB;
+			attribs[numAttribs++] = r_glMinMinorVersion->integer;
+
+
+			if(WGLEW_ARB_create_context_profile)
+			{
+				attribs[numAttribs++] = WGL_CONTEXT_FLAGS_ARB;
+
+#if 0
+				if(GLXEW_ARB_debug_output)
+				{
+					attribs[numAttribs++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |  WGL_CONTEXT_DEBUG_BIT_ARB;
+				}
+				else
+#endif
+				{
+					attribs[numAttribs++] = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+				}
+
+				attribs[numAttribs++] = WGL_CONTEXT_PROFILE_MASK_ARB;
+				attribs[numAttribs++] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+			}
 
 			// set current context to NULL
 			retVal = wglMakeCurrent(glw_state.hDC, NULL) != 0;
