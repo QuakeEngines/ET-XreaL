@@ -122,6 +122,13 @@ void S_TransferStereo16(unsigned long *pbuf, int endtime)
 
 		snd_p += snd_linear_count;
 		ls_paintedtime += (snd_linear_count >> 1);
+
+		// XreaL BEGIN
+		if(CL_VideoRecording())
+		{
+			CL_WriteAVIAudioFrame((byte *) snd_out, snd_linear_count << 1);
+		}
+		// XreaL END
 	}
 }
 

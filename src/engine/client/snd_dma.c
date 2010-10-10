@@ -2009,6 +2009,14 @@ void S_GetSoundtime(void)
 
 	fullsamples = dma.samples / dma.channels;
 
+// XreaL BEGIN
+	if(CL_VideoRecording())
+	{
+		s_soundtime += (int)ceil(dma.speed / cl_avidemo->value);
+		return;
+	}
+// XreaL END
+
 	// it is possible to miscount buffers if it has wrapped twice between
 	// calls to S_Update.  Oh well.
 	samplepos = SNDDMA_GetDMAPos();

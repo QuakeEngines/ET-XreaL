@@ -826,6 +826,10 @@ qboolean        FS_IsPure(void);
 
 unsigned int    FS_ChecksumOSPath(char *OSPath);
 
+// XreaL BEGIN
+void			FS_HomeRemove(const char *homePath);
+// XreaL END
+
 /*
 ==============================================================
 

@@ -242,6 +242,7 @@ splines_list = [
 ]
 
 client_list = [
+'src/engine/client/cl_avi.c',
 'src/engine/client/cl_cgame.c',
 'src/engine/client/cl_cin.c',
 'src/engine/client/cl_console.c',

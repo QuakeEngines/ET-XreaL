@@ -992,41 +992,40 @@ RB_TakeVideoFrameCmd
 const void     *RB_TakeVideoFrameCmd(const void *data)
 {
 	const videoFrameCommand_t *cmd;
-//	int             frameSize;
-//	int             i;
+	int             frameSize;
+	int             i;
 
 	cmd = (const videoFrameCommand_t *)data;
-	/*
 
-#if defined(USE_D3D10)
-	// TODO
-#else
-	glReadPixels(0, 0, cmd->width, cmd->height, GL_RGBA, GL_UNSIGNED_BYTE, cmd->captureBuffer);
-#endif
-
-	// gamma correct
-	if((tr.overbrightBits > 0) && glConfig.deviceSupportsGamma)
-		R_GammaCorrect(cmd->captureBuffer, cmd->width * cmd->height * 4);
-
-	if(cmd->motionJpeg)
+	// RB: it is possible to we still have a videoFrameCommand_t but we already stopped
+	// video recording
+	if(ri.CL_VideoRecording())
 	{
-		frameSize = SaveJPGToBuffer(cmd->encodeBuffer, 90, cmd->width, cmd->height, cmd->captureBuffer);
-		ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, frameSize);
-	}
-	else
-	{
-		frameSize = cmd->width * cmd->height;
+		glReadPixels(0, 0, cmd->width, cmd->height, GL_RGBA, GL_UNSIGNED_BYTE, cmd->captureBuffer);
 
-		for(i = 0; i < frameSize; i++)	// Pack to 24bpp and swap R and B
+		// gamma correct
+		if((tr.overbrightBits > 0) && glConfig.deviceSupportsGamma)
+			R_GammaCorrect(cmd->captureBuffer, cmd->width * cmd->height * 4);
+
+		if(cmd->motionJpeg)
 		{
-			cmd->encodeBuffer[i * 3] = cmd->captureBuffer[i * 4 + 2];
-			cmd->encodeBuffer[i * 3 + 1] = cmd->captureBuffer[i * 4 + 1];
-			cmd->encodeBuffer[i * 3 + 2] = cmd->captureBuffer[i * 4];
+			frameSize = SaveJPGToBuffer(cmd->encodeBuffer, 90, cmd->width, cmd->height, cmd->captureBuffer);
+			ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, frameSize);
 		}
+		else
+		{
+			frameSize = cmd->width * cmd->height;
 
-		ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, frameSize * 3);
+			for(i = 0; i < frameSize; i++)	// Pack to 24bpp and swap R and B
+			{
+				cmd->encodeBuffer[i * 3] = cmd->captureBuffer[i * 4 + 2];
+				cmd->encodeBuffer[i * 3 + 1] = cmd->captureBuffer[i * 4 + 1];
+				cmd->encodeBuffer[i * 3 + 2] = cmd->captureBuffer[i * 4];
+			}
+
+			ri.CL_WriteAVIVideoFrame(cmd->encodeBuffer, frameSize * 3);
+		}
 	}
-	*/
 
 	return (const void *)(cmd + 1);
 }
@@ -2253,16 +2252,11 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	// ET END
 
 	// XreaL BEGIN
+	re.TakeVideoFrame = RE_TakeVideoFrame;
 
 #if defined(USE_REFLIGHT)
 //	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
 #endif
-
-	/*
-	RB: TODO
-	
-	re.TakeVideoFrame = RE_TakeVideoFrame;
-	*/
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 	re.RegisterAnimation = RE_RegisterAnimation;

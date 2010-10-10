@@ -148,6 +148,8 @@ typedef struct
 
 	
 	// XreaL BEGIN
+	void            (*TakeVideoFrame) (int h, int w, byte * captureBuffer, byte * encodeBuffer, qboolean motionJpeg);
+
 #if defined(USE_REFLIGHT)
 	void            (*AddRefLightToScene) (const refLight_t * light);
 #endif
@@ -235,7 +237,12 @@ typedef struct
 	int             (*CIN_PlayCinematic) (const char *arg0, int xpos, int ypos, int width, int height, int bits);
 	                e_status(*CIN_RunCinematic) (int handle);
 
+	// XreaL BEGIN
 	void           *(*Sys_GetSystemHandles) (void);
+	
+	qboolean        (*CL_VideoRecording) (void);
+	void            (*CL_WriteAVIVideoFrame) (const byte * buffer, int size);
+	// XreaL END
 
 } refimport_t;
 

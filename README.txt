@@ -85,7 +85,8 @@ covered by the original EULA and must be obeyed as usual.
 Wolfenstein: Enemy Territory is a free release, and can be downloaded from
 http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
 
-Install the latest version of the game for your platform to get the game data.
+Install the latest version of the game for your platform to get the game data and copy it to ET-XreaL/etmain or
+patch your Wolfenstein: Enemy Territory by extracting ET-XreaL over it.
 
 
 
@@ -147,6 +148,9 @@ __________________________________________
 	* ported XreaL renderer to src/engine/rendererGL3/
 	* rewrote .mdm/.mdx code to be GPU accelerated
 	* rewrote .md3/.mdc code to be GPU accelerated
+	* added support for Linux 64-bit
+	* replaced Linux sound backend with SDL
+	* added .avi recorder from ioquake3 including sound support
 	* added new ETXMap bsp compiler based on NetRadiant's q3map2
 	* added new ETXRadiant level editor based on DarkRadiant
 

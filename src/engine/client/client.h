@@ -452,6 +452,11 @@ extern cvar_t  *cl_language;
 extern cvar_t  *cl_profile;
 extern cvar_t  *cl_defaultProfile;
 
+// XreaL BEGIN
+extern cvar_t  *cl_avidemo;
+extern cvar_t  *cl_aviMotionJpeg;
+// XreaL END
+
 //bani
 extern qboolean sv_cheats;
 
@@ -719,3 +724,18 @@ void            LAN_SaveServersToCache();
 void            CL_Netchan_Transmit(netchan_t * chan, msg_t * msg);	//int length, const byte *data );
 void            CL_Netchan_TransmitNextFragment(netchan_t * chan);
 qboolean        CL_Netchan_Process(netchan_t * chan, msg_t * msg);
+
+
+// XreaL BEGIN
+
+//
+// cl_avi.c
+//
+qboolean        CL_OpenAVIForWriting(const char *filename);
+void            CL_TakeVideoFrame(void);
+void            CL_WriteAVIVideoFrame(const byte * imageBuffer, int size);
+void            CL_WriteAVIAudioFrame(const byte * pcmBuffer, int size);
+qboolean        CL_CloseAVI(void);
+qboolean        CL_VideoRecording(void);
+
+// XreaL END

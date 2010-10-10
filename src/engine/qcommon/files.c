@@ -623,6 +623,20 @@ static void FS_Remove(const char *osPath)
 	remove(osPath);
 }
 
+// XreaL BEGIN
+
+/*
+===========
+FS_HomeRemove
+===========
+*/
+void FS_HomeRemove(const char *homePath)
+{
+	remove(FS_BuildOSPath(fs_homepath->string, fs_gamedir, homePath));
+}
+// XreaL END
+
+
 /*
 ================
 FS_FileExists
