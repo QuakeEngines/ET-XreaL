@@ -35,6 +35,8 @@ This file contains the following sections:
 	5) COMPILING ON WIN32 WITH VISUAL C++ 2008 EXPRESS EDITION
 
 	6) COMPILING ON GNU/LINUX
+	
+	7) CHANGES
 
 
 
@@ -137,6 +139,15 @@ Compile XreaL:
 Type scons -h for more compile options.
 
 
+___________________________________________________
 
+7) Changes made since the Wolfenstein: Enemy Territory GPL release
+__________________________________________
+
+	* ported XreaL renderer to src/engine/rendererGL3/
+	* rewrote .mdm/.mdx code to be GPU accelerated
+	* rewrote .md3/.mdc code to be GPU accelerated
+	* added new ETXMap bsp compiler based on NetRadiant's q3map2
+	* added new ETXRadiant level editor based on DarkRadiant
 
 
