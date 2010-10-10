@@ -93,7 +93,7 @@ typedef struct
 	byte            file[65536];
 	short           sqrTable[256];
 
-	unsigned int    mcomp[256];
+	int             mcomp[256];
 	byte           *qStatus[2][32768];
 
 	long            oldXOff, oldYOff, oldysize, oldxsize;
@@ -365,59 +365,14 @@ long RllDecodeStereoToMono(unsigned char *from, short *to, unsigned int size, ch
 
 static void move8_32(byte * src, byte * dst, int spl)
 {
-	double         *dsrc, *ddst;
-	int             dspl;
+	int             i;
 
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl >> 3;
-
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
+	for(i = 0; i < 8; ++i)
+	{
+		memcpy(dst, src, 32);
+		src += spl;
+		dst += spl;
+	}
 }
 
 /******************************************************************************
@@ -430,27 +385,14 @@ static void move8_32(byte * src, byte * dst, int spl)
 
 static void move4_32(byte * src, byte * dst, int spl)
 {
-	double         *dsrc, *ddst;
-	int             dspl;
+	int             i;
 
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl >> 3;
-
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	dsrc += dspl;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
+	for(i = 0; i < 4; ++i)
+	{
+		memcpy(dst, src, 16);
+		src += spl;
+		dst += spl;
+	}
 }
 
 /******************************************************************************
@@ -463,59 +405,14 @@ static void move4_32(byte * src, byte * dst, int spl)
 
 static void blit8_32(byte * src, byte * dst, int spl)
 {
-	double         *dsrc, *ddst;
-	int             dspl;
+	int             i;
 
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl >> 3;
-
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
-	dsrc += 4;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	ddst[2] = dsrc[2];
-	ddst[3] = dsrc[3];
+	for(i = 0; i < 8; ++i)
+	{
+		memcpy(dst, src, 32);
+		src += 32;
+		dst += spl;
+	}
 }
 
 /******************************************************************************
@@ -525,30 +422,16 @@ static void blit8_32(byte * src, byte * dst, int spl)
 * Description:
 *
 ******************************************************************************/
-#define movs double
 static void blit4_32(byte * src, byte * dst, int spl)
 {
-	movs           *dsrc, *ddst;
-	int             dspl;
+	int             i;
 
-	dsrc = (movs *) src;
-	ddst = (movs *) dst;
-	dspl = spl >> 3;
-
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	dsrc += 2;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	dsrc += 2;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
-	dsrc += 2;
-	ddst += dspl;
-	ddst[0] = dsrc[0];
-	ddst[1] = dsrc[1];
+	for(i = 0; i < 4; ++i)
+	{
+		memmove(dst, src, 16);
+		src += 16;
+		dst += spl;
+	}
 }
 
 /******************************************************************************
@@ -561,15 +444,8 @@ static void blit4_32(byte * src, byte * dst, int spl)
 
 static void blit2_32(byte * src, byte * dst, int spl)
 {
-	double         *dsrc, *ddst;
-	int             dspl;
-
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl >> 3;
-
-	ddst[0] = dsrc[0];
-	ddst[dspl] = dsrc[1];
+	memcpy(dst, src, 8);
+	memcpy(dst + spl, src + 8, 8);
 }
 
 /******************************************************************************
@@ -698,41 +574,41 @@ static void ROQ_GenYUVTables(void)
 	}
 }
 
-#define VQ2TO4( a,b,c,d ) {	\
-		*c++ = a[0];	\
-		*d++ = a[0];	\
-		*d++ = a[0];	\
-		*c++ = a[1];	\
-		*d++ = a[1];	\
-		*d++ = a[1];	\
-		*c++ = b[0];	\
-		*d++ = b[0];	\
-		*d++ = b[0];	\
-		*c++ = b[1];	\
-		*d++ = b[1];	\
-		*d++ = b[1];	\
-		*d++ = a[0];	\
-		*d++ = a[0];	\
-		*d++ = a[1];	\
-		*d++ = a[1];	\
-		*d++ = b[0];	\
-		*d++ = b[0];	\
-		*d++ = b[1];	\
-		*d++ = b[1];	\
-		a += 2; b += 2; }
+#define VQ2TO4(a,b,c,d) { \
+    	*c++ = a[0];	\
+	*d++ = a[0];	\
+	*d++ = a[0];	\
+	*c++ = a[1];	\
+	*d++ = a[1];	\
+	*d++ = a[1];	\
+	*c++ = b[0];	\
+	*d++ = b[0];	\
+	*d++ = b[0];	\
+	*c++ = b[1];	\
+	*d++ = b[1];	\
+	*d++ = b[1];	\
+	*d++ = a[0];	\
+	*d++ = a[0];	\
+	*d++ = a[1];	\
+	*d++ = a[1];	\
+	*d++ = b[0];	\
+	*d++ = b[0];	\
+	*d++ = b[1];	\
+	*d++ = b[1];	\
+	a += 2; b += 2; }
 
-#define VQ2TO2( a,b,c,d ) {	\
-		*c++ = *a;	\
-		*d++ = *a;	\
-		*d++ = *a;	\
-		*c++ = *b;	\
-		*d++ = *b;	\
-		*d++ = *b;	\
-		*d++ = *a;	\
-		*d++ = *a;	\
-		*d++ = *b;	\
-		*d++ = *b;	\
-		a++; b++; }
+#define VQ2TO2(a,b,c,d) { \
+	*c++ = *a;	\
+	*d++ = *a;	\
+	*d++ = *a;	\
+	*c++ = *b;	\
+	*d++ = *b;	\
+	*d++ = *b;	\
+	*d++ = *a;	\
+	*d++ = *a;	\
+	*d++ = *b;	\
+	*d++ = *b;	\
+	a++; b++; }
 
 /******************************************************************************
 *
@@ -778,6 +654,52 @@ static unsigned short yuv_to_rgb(long y, long u, long v)
 	return (unsigned short)((r << 11) + (g << 5) + (b));
 }
 
+/*
+Frame_yuv_to_rgb24
+is used by the Theora(ogm) code
+
+  moved the convertion into one function, to reduce the number of function-calls
+*/
+void Frame_yuv_to_rgb24(const unsigned char *y, const unsigned char *u, const unsigned char *v,
+						int width, int height, int y_stride, int uv_stride,
+						int yWShift, int uvWShift, int yHShift, int uvHShift, unsigned int *output)
+{
+	int             i, j, uvI;
+	long            r, g, b, YY;
+
+	for(j = 0; j < height; ++j)
+	{
+		for(i = 0; i < width; ++i)
+		{
+
+			YY = (long)(ROQ_YY_tab[(y[(i >> yWShift) + (j >> yHShift) * y_stride])]);
+			uvI = (i >> uvWShift) + (j >> uvHShift) * uv_stride;
+
+			r = (YY + ROQ_VR_tab[v[uvI]]) >> 6;
+			g = (YY + ROQ_UG_tab[u[uvI]] + ROQ_VG_tab[v[uvI]]) >> 6;
+			b = (YY + ROQ_UB_tab[u[uvI]]) >> 6;
+
+			if(r < 0)
+				r = 0;
+			if(g < 0)
+				g = 0;
+			if(b < 0)
+				b = 0;
+			if(r > 255)
+				r = 255;
+			if(g > 255)
+				g = 255;
+			if(b > 255)
+				b = 255;
+
+			*output = LittleLong((r) | (g << 8) | (b << 16) | (255 << 24));
+			++output;
+		}
+	}
+
+}
+
+
 /******************************************************************************
 *
 * Function:
@@ -785,47 +707,6 @@ static unsigned short yuv_to_rgb(long y, long u, long v)
 * Description:
 *
 ******************************************************************************/
-#if defined( MACOS_X )
-
-static inline unsigned int yuv_to_rgb24(long y, long u, long v)
-{
-	long            r, g, b, YY;
-
-	YY = (long)(ROQ_YY_tab[(y)]);
-
-	r = (YY + ROQ_VR_tab[v]) >> 6;
-	g = (YY + ROQ_UG_tab[u] + ROQ_VG_tab[v]) >> 6;
-	b = (YY + ROQ_UB_tab[u]) >> 6;
-
-	if(r < 0)
-	{
-		r = 0;
-	}
-	if(g < 0)
-	{
-		g = 0;
-	}
-	if(b < 0)
-	{
-		b = 0;
-	}
-	if(r > 255)
-	{
-		r = 255;
-	}
-	if(g > 255)
-	{
-		g = 255;
-	}
-	if(b > 255)
-	{
-		b = 255;
-	}
-
-	return ((r << 24) | (g << 16) | (b << 8)) | (255);	//+(255<<24));
-}
-
-#else
 static unsigned int yuv_to_rgb24(long y, long u, long v)
 {
 	long            r, g, b, YY = (long)(ROQ_YY_tab[(y)]);
@@ -861,7 +742,6 @@ static unsigned int yuv_to_rgb24(long y, long u, long v)
 
 	return LittleLong((r) | (g << 8) | (b << 16) | (255 << 24));
 }
-#endif
 
 /******************************************************************************
 *
@@ -877,7 +757,11 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 	unsigned short *aptr, *bptr, *cptr, *dptr;
 	long            y0, y1, y2, y3, cr, cb;
 	byte           *bbptr, *baptr, *bcptr, *bdptr;
-	unsigned int   *iaptr, *ibptr, *icptr, *idptr;
+	union
+	{
+		unsigned int   *i;
+		unsigned short *s;
+	} iaptr        , ibptr, icptr, idptr;
 
 	if(!roq_flags)
 	{
@@ -933,7 +817,7 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 			}
 			else if(cinTable[currentHandle].samplesPerPixel == 4)
 			{
-				ibptr = (unsigned int *)bptr;
+				ibptr.s = bptr;
 				for(i = 0; i < two; i++)
 				{
 					y0 = (long)*input++;
@@ -942,21 +826,23 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 					y3 = (long)*input++;
 					cr = (long)*input++;
 					cb = (long)*input++;
-					*ibptr++ = yuv_to_rgb24(y0, cr, cb);
-					*ibptr++ = yuv_to_rgb24(y1, cr, cb);
-					*ibptr++ = yuv_to_rgb24(y2, cr, cb);
-					*ibptr++ = yuv_to_rgb24(y3, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y0, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y1, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y2, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y3, cr, cb);
 				}
 
-				icptr = (unsigned int *)vq4;
-				idptr = (unsigned int *)vq8;
+				icptr.s = vq4;
+				idptr.s = vq8;
 
 				for(i = 0; i < four; i++)
 				{
-					iaptr = (unsigned int *)vq2 + (*input++) * 4;
-					ibptr = (unsigned int *)vq2 + (*input++) * 4;
+					iaptr.s = vq2;
+					iaptr.i += (*input++) * 4;
+					ibptr.s = vq2;
+					ibptr.i += (*input++) * 4;
 					for(j = 0; j < 2; j++)
-						VQ2TO4(iaptr, ibptr, icptr, idptr);
+						VQ2TO4(iaptr.i, ibptr.i, icptr.i, idptr.i);
 				}
 			}
 			else if(cinTable[currentHandle].samplesPerPixel == 1)
@@ -1024,7 +910,7 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 			}
 			else if(cinTable[currentHandle].samplesPerPixel == 4)
 			{
-				ibptr = (unsigned int *)bptr;
+				ibptr.s = bptr;
 				for(i = 0; i < two; i++)
 				{
 					y0 = (long)*input++;
@@ -1033,27 +919,29 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 					y3 = (long)*input++;
 					cr = (long)*input++;
 					cb = (long)*input++;
-					*ibptr++ = yuv_to_rgb24(y0, cr, cb);
-					*ibptr++ = yuv_to_rgb24(y1, cr, cb);
-					*ibptr++ = yuv_to_rgb24(((y0 * 3) + y2) / 4, cr, cb);
-					*ibptr++ = yuv_to_rgb24(((y1 * 3) + y3) / 4, cr, cb);
-					*ibptr++ = yuv_to_rgb24((y0 + (y2 * 3)) / 4, cr, cb);
-					*ibptr++ = yuv_to_rgb24((y1 + (y3 * 3)) / 4, cr, cb);
-					*ibptr++ = yuv_to_rgb24(y2, cr, cb);
-					*ibptr++ = yuv_to_rgb24(y3, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y0, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y1, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(((y0 * 3) + y2) / 4, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(((y1 * 3) + y3) / 4, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24((y0 + (y2 * 3)) / 4, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24((y1 + (y3 * 3)) / 4, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y2, cr, cb);
+					*ibptr.i++ = yuv_to_rgb24(y3, cr, cb);
 				}
 
-				icptr = (unsigned int *)vq4;
-				idptr = (unsigned int *)vq8;
+				icptr.s = vq4;
+				idptr.s = vq8;
 
 				for(i = 0; i < four; i++)
 				{
-					iaptr = (unsigned int *)vq2 + (*input++) * 8;
-					ibptr = (unsigned int *)vq2 + (*input++) * 8;
+					iaptr.s = vq2;
+					iaptr.i += (*input++) * 8;
+					ibptr.s = vq2;
+					ibptr.i += (*input++) * 8;
 					for(j = 0; j < 2; j++)
 					{
-						VQ2TO4(iaptr, ibptr, icptr, idptr);
-						VQ2TO4(iaptr, ibptr, icptr, idptr);
+						VQ2TO4(iaptr.i, ibptr.i, icptr.i, idptr.i);
+						VQ2TO4(iaptr.i, ibptr.i, icptr.i, idptr.i);
 					}
 				}
 			}
@@ -1152,7 +1040,7 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 		}
 		else if(cinTable[currentHandle].samplesPerPixel == 4)
 		{
-			ibptr = (unsigned int *)bptr;
+			ibptr.s = bptr;
 			for(i = 0; i < two; i++)
 			{
 				y0 = (long)*input;
@@ -1161,20 +1049,22 @@ static void decodeCodeBook(byte * input, unsigned short roq_flags)
 				input += 2;
 				cr = (long)*input++;
 				cb = (long)*input++;
-				*ibptr++ = yuv_to_rgb24(y0, cr, cb);
-				*ibptr++ = yuv_to_rgb24(y2, cr, cb);
+				*ibptr.i++ = yuv_to_rgb24(y0, cr, cb);
+				*ibptr.i++ = yuv_to_rgb24(y2, cr, cb);
 			}
 
-			icptr = (unsigned int *)vq4;
-			idptr = (unsigned int *)vq8;
+			icptr.s = vq4;
+			idptr.s = vq8;
 
 			for(i = 0; i < four; i++)
 			{
-				iaptr = (unsigned int *)vq2 + (*input++) * 2;
-				ibptr = (unsigned int *)vq2 + (*input++) * 2;
+				iaptr.s = vq2;
+				iaptr.i += (*input++) * 2;
+				ibptr.s = vq2 + (*input++) * 2;
+				ibptr.i += (*input++) * 2;
 				for(j = 0; j < 2; j++)
 				{
-					VQ2TO2(iaptr, ibptr, icptr, idptr);
+					VQ2TO2(iaptr.i, ibptr.i, icptr.i, idptr.i);
 				}
 			}
 		}
@@ -1313,38 +1203,12 @@ static void readQuadInfo(byte * qData)
 	cinTable[currentHandle].VQ0 = cinTable[currentHandle].VQNormal;
 	cinTable[currentHandle].VQ1 = cinTable[currentHandle].VQBuffer;
 
-	cinTable[currentHandle].t[0] =
-		(0 - (unsigned int)cin.linbuf) + (unsigned int)cin.linbuf + cinTable[currentHandle].screenDelta;
-	cinTable[currentHandle].t[1] =
-		(0 - ((unsigned int)cin.linbuf + cinTable[currentHandle].screenDelta)) + (unsigned int)cin.linbuf;
+	cinTable[currentHandle].t[0] = cinTable[currentHandle].screenDelta;
+	cinTable[currentHandle].t[1] = -cinTable[currentHandle].screenDelta;
 
 	cinTable[currentHandle].drawX = cinTable[currentHandle].CIN_WIDTH;
 	cinTable[currentHandle].drawY = cinTable[currentHandle].CIN_HEIGHT;
 
-	// rage pro is very slow at 512 wide textures, voodoo can't do it at all
-	/*
-	RB: we don't need this in 2010
-
-	if(glConfig.hardwareType == GLHW_RAGEPRO || glConfig.maxTextureSize <= 256)
-	{
-		if(cinTable[currentHandle].drawX > 256)
-		{
-			cinTable[currentHandle].drawX = 256;
-		}
-		if(cinTable[currentHandle].drawY > 256)
-		{
-			cinTable[currentHandle].drawY = 256;
-		}
-		if(cinTable[currentHandle].CIN_WIDTH != 256 || cinTable[currentHandle].CIN_HEIGHT != 256)
-		{
-			Com_Printf("HACK: approxmimating cinematic for Rage Pro or Voodoo\n");
-		}
-	}
-	*/
-//#ifdef __MACOS__
-//  cinTable[currentHandle].drawX = 256;
-//  cinTable[currentHandle].drawX = 256;
-//#endif
 }
 
 /******************************************************************************
@@ -1596,8 +1460,8 @@ static void RoQInterrupt(void)
 	cinTable[currentHandle].roq_id = framedata[0] + framedata[1] * 256;
 	cinTable[currentHandle].RoQFrameSize = framedata[2] + framedata[3] * 256 + framedata[4] * 65536;
 	cinTable[currentHandle].roq_flags = framedata[6] + framedata[7] * 256;
-	cinTable[currentHandle].roqF0 = (char)framedata[7];
-	cinTable[currentHandle].roqF1 = (char)framedata[6];
+	cinTable[currentHandle].roqF0 = (signed char)framedata[7];
+	cinTable[currentHandle].roqF1 = (signed char)framedata[6];
 
 	if(cinTable[currentHandle].RoQFrameSize > 65536 || cinTable[currentHandle].roq_id == 0x1084)
 	{
@@ -1673,6 +1537,7 @@ static void RoQShutdown(void)
 
 	if(!cinTable[currentHandle].buf)
 	{
+		//FIXME: there could be something that should be "shutdowned" even if we don't have a output frame (at least in the ogm code)
 		return;
 	}
 
@@ -1716,7 +1581,7 @@ static void RoQShutdown(void)
 
 /*
 ==================
-SCR_StopCinematic
+CIN_StopCinematic
 ==================
 */
 e_status CIN_StopCinematic(int handle)
@@ -1750,16 +1615,13 @@ e_status CIN_StopCinematic(int handle)
 
 /*
 ==================
-SCR_RunCinematic
+CIN_RunCinematic
 
 Fetch and decompress the pending frame
 ==================
 */
-
-
 e_status CIN_RunCinematic(int handle)
 {
-	// bk001204 - init
 	int             start = 0;
 	int             thisTime = 0;
 
@@ -1877,6 +1739,8 @@ int CIN_PlayCinematic(const char *arg, int x, int y, int w, int h, int systemBit
 
 	Com_Memset(&cin, 0, sizeof(cinematics_t));
 	currentHandle = CIN_HandleForVideo();
+
+	Com_Memset(&cinTable[currentHandle], 0, sizeof(cin_cache));
 
 	cin.currentHandle = currentHandle;
 
@@ -2170,7 +2034,10 @@ void CIN_UploadCinematic(int handle)
 				}
 			}
 		}
-		re.UploadCinematic(256, 256, 256, 256, cinTable[handle].buf, handle, cinTable[handle].dirty);
+
+		re.UploadCinematic(cinTable[handle].width, cinTable[handle].height, cinTable[handle].drawX, cinTable[handle].drawY,
+						   cinTable[handle].buf, handle, cinTable[handle].dirty);
+
 		if(cl_inGameVideo->integer == 0 && cinTable[handle].playonwalls == 1)
 		{
 			cinTable[handle].playonwalls--;
