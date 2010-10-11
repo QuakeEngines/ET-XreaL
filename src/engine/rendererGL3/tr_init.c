@@ -1005,7 +1005,9 @@ const void     *RB_TakeVideoFrameCmd(const void *data)
 
 		// gamma correct
 		if((tr.overbrightBits > 0) && glConfig.deviceSupportsGamma)
+		{
 			R_GammaCorrect(cmd->captureBuffer, cmd->width * cmd->height * 4);
+		}
 
 		if(cmd->motionJpeg)
 		{

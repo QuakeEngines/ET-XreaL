@@ -3,8 +3,9 @@
 
 Wolfenstein: Enemy Territory GPL Source Code
 Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 2010 Robert Beckebans <trebor_7@users.sourceforge.net>
 
-This file is part of the Wolfenstein: Enemy Territory GPL Source Code (Wolf ET Source Code).  
+This file is part of the Wolfenstein: Enemy Territory GPL Source Code ("Wolf ET Source Code").  
 
 Wolf ET Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -64,9 +65,7 @@ void WG_CheckHardwareGamma(void)
 
 		if(glConfig.deviceSupportsGamma)
 		{
-			//
 			// do a sanity check on the gamma values
-			//
 			if((HIBYTE(s_oldHardwareGamma[0][255]) <= HIBYTE(s_oldHardwareGamma[0][0])) ||
 			   (HIBYTE(s_oldHardwareGamma[1][255]) <= HIBYTE(s_oldHardwareGamma[1][0])) ||
 			   (HIBYTE(s_oldHardwareGamma[2][255]) <= HIBYTE(s_oldHardwareGamma[2][0])))
@@ -75,10 +74,8 @@ void WG_CheckHardwareGamma(void)
 				ri.Printf(PRINT_WARNING, "WARNING: device has broken gamma support, generated gamma.dat\n");
 			}
 
-			//
 			// make sure that we didn't have a prior crash in the game, and if so we need to
 			// restore the gamma values to at least a linear value
-			//
 			if((HIBYTE(s_oldHardwareGamma[0][181]) == 255))
 			{
 				int             g;
@@ -140,7 +137,10 @@ void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned c
 		return;
 	}
 
-//mapGammaMax();
+	//mapGammaMax();
+
+	if (!g_wv.activeApp)
+		return;
 
 	for(i = 0; i < 256; i++)
 	{
@@ -149,12 +149,12 @@ void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned c
 		table[2][i] = (((unsigned short)blue[i]) << 8) | blue[i];
 	}
 
-	// Win2K puts this odd restriction on gamma ramps...
+	// Win2K and newer put this odd restriction on gamma ramps...
 	vinfo.dwOSVersionInfoSize = sizeof(vinfo);
 	GetVersionEx(&vinfo);
-	if(vinfo.dwMajorVersion == 5 && vinfo.dwPlatformId == VER_PLATFORM_WIN32_NT)
+	if(vinfo.dwMajorVersion >= 5 && vinfo.dwPlatformId == VER_PLATFORM_WIN32_NT)
 	{
-		Com_DPrintf("performing W2K gamma clamp.\n");
+		Com_DPrintf("performing gamma clamp.\n");
 		for(j = 0; j < 3; j++)
 		{
 			for(i = 0; i < 128; i++)
@@ -187,14 +187,12 @@ void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned c
 		}
 	}
 
-
 	// RB: removed 3DFX code
+
+	ret = SetDeviceGammaRamp(glw_state.hDC, table);
+	if(!ret)
 	{
-		ret = SetDeviceGammaRamp(glw_state.hDC, table);
-		if(!ret)
-		{
-			Com_Printf("SetDeviceGammaRamp failed.\n");
-		}
+		Com_Printf("SetDeviceGammaRamp failed.\n");
 	}
 }
 
@@ -205,13 +203,10 @@ void WG_RestoreGamma(void)
 {
 	if(glConfig.deviceSupportsGamma)
 	{
-		// RB: removed 3DFX code
-		{
-			HDC             hDC;
+		HDC             hDC;
 
-			hDC = GetDC(GetDesktopWindow());
-			SetDeviceGammaRamp(hDC, s_oldHardwareGamma);
-			ReleaseDC(GetDesktopWindow(), hDC);
-		}
+		hDC = GetDC(GetDesktopWindow());
+		SetDeviceGammaRamp(hDC, s_oldHardwareGamma);
+		ReleaseDC(GetDesktopWindow(), hDC);
 	}
 }

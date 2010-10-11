@@ -1950,7 +1950,8 @@ void GLimp_Init(void)
 
 	ri.Cvar_Set("r_lastValidRenderer", glConfig.renderer_string);
 
-	GL_CheckErrors();
+	GLW_InitExtensions();
+	WG_CheckHardwareGamma();
 
 	GLW_InitExtensions();
 }
