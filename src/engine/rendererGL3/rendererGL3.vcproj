@@ -170,6 +170,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 			>
 			<File
+				RelativePath=".\gl_shader.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\shared\q_math.c"
 				>
 			</File>
@@ -351,11 +355,19 @@
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
 			<File
+				RelativePath=".\gl_shader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\shared\q_shared.h"
 				>
 			</File>
 			<File
 				RelativePath=".\tr_local.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tr_model_skel.h"
 				>
 			</File>
 			<File

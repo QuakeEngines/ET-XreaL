@@ -151,6 +151,7 @@ renderer_list = [
 ]
 
 rendererGL3_list = [
+'src/engine/rendererGL3/gl_shader.cpp',
 'src/engine/rendererGL3/tr_animation_mdm.c',
 'src/engine/rendererGL3/tr_animation.c',
 'src/engine/rendererGL3/tr_backend.c',
