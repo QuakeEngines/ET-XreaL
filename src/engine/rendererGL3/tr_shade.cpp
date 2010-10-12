@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2010 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -22,6 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_shade.c
 #include "tr_local.h"
+
+
+
+
 
 //#define USE_GLSL_OPTIMIZER 1
 
@@ -96,7 +100,7 @@ static void GLSL_PrintShaderSource(GLhandleARB object)
 	Com_Dealloc(msg);
 }
 
-static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, char **libs, GLenum shaderType, qboolean optimize)
+static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, char **libs, char **compileMacros, GLenum shaderType, qboolean optimize)
 {
 	char            filename[MAX_QPATH];
 	GLcharARB      *mainBuffer = NULL;
@@ -211,6 +215,18 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, char **lib
 		else
 		{
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#version 120\n");
+		}
+
+
+		while(1)
+		{
+			token = COM_ParseExt2(compileMacros, qfalse);
+			if(!token[0])
+			{
+				break;
+			}
+
+			Q_strcat(bufferExtra, sizeof(bufferExtra), va("#ifndef %s\n#define %s 1\n#endif\n", token, token));
 		}
 
 #if defined(COMPAT_ET) || defined(COMPAT_ET)
@@ -740,6 +756,60 @@ static void GLSL_ShowProgramUniforms(GLhandleARB program)
 	glUseProgramObjectARB(0);
 }
 
+static void GLSL_BindAttribLocations(GLhandleARB program, int attribs)
+{
+	if(attribs & ATTR_POSITION)
+		glBindAttribLocationARB(program, ATTR_INDEX_POSITION, "attr_Position");
+
+	if(attribs & ATTR_TEXCOORD)
+		glBindAttribLocationARB(program, ATTR_INDEX_TEXCOORD0, "attr_TexCoord0");
+
+	if(attribs & ATTR_LIGHTCOORD)
+		glBindAttribLocationARB(program, ATTR_INDEX_TEXCOORD1, "attr_TexCoord1");
+
+//  if(attribs & ATTR_TEXCOORD2)
+//      glBindAttribLocationARB(program, ATTR_INDEX_TEXCOORD2, "attr_TexCoord2");
+
+//  if(attribs & ATTR_TEXCOORD3)
+//      glBindAttribLocationARB(program, ATTR_INDEX_TEXCOORD3, "attr_TexCoord3");
+
+	if(attribs & ATTR_TANGENT)
+		glBindAttribLocationARB(program, ATTR_INDEX_TANGENT, "attr_Tangent");
+
+	if(attribs & ATTR_BINORMAL)
+		glBindAttribLocationARB(program, ATTR_INDEX_BINORMAL, "attr_Binormal");
+
+	if(attribs & ATTR_NORMAL)
+		glBindAttribLocationARB(program, ATTR_INDEX_NORMAL, "attr_Normal");
+
+	if(attribs & ATTR_COLOR)
+		glBindAttribLocationARB(program, ATTR_INDEX_COLOR, "attr_Color");
+
+	if(attribs & ATTR_PAINTCOLOR)
+		glBindAttribLocationARB(program, ATTR_INDEX_PAINTCOLOR, "attr_PaintColor");
+
+	if(attribs & ATTR_LIGHTDIRECTION)
+		glBindAttribLocationARB(program, ATTR_INDEX_LIGHTDIRECTION, "attr_LightDirection");
+
+	if(glConfig2.vboVertexSkinningAvailable)
+	{
+		glBindAttribLocationARB(program, ATTR_INDEX_BONE_INDEXES, "attr_BoneIndexes");
+		glBindAttribLocationARB(program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
+	}
+
+	if(attribs & ATTR_POSITION2)
+		glBindAttribLocationARB(program, ATTR_INDEX_POSITION2, "attr_Position2");
+
+	if(attribs & ATTR_TANGENT2)
+		glBindAttribLocationARB(program, ATTR_INDEX_TANGENT2, "attr_Tangent2");
+
+	if(attribs & ATTR_BINORMAL2)
+		glBindAttribLocationARB(program, ATTR_INDEX_BINORMAL2, "attr_Binormal2");
+
+	if(attribs & ATTR_NORMAL2)
+		glBindAttribLocationARB(program, ATTR_INDEX_NORMAL2, "attr_Normal2");
+}
+
 static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int attribs, qboolean fragmentShader, qboolean optimize)
 {
 	static char *empty = "";
@@ -756,62 +826,10 @@ static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int 
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, name, &empty, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, name, &empty, &empty, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, name, &empty, &empty, GL_FRAGMENT_SHADER_ARB, optimize);
 
-	if(fragmentShader)
-		GLSL_LoadGPUShader(program->program, name, &empty, GL_FRAGMENT_SHADER_ARB, optimize);
-
-	if(attribs & ATTR_POSITION)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION, "attr_Position");
-
-	if(attribs & ATTR_TEXCOORD)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD0, "attr_TexCoord0");
-
-	if(attribs & ATTR_LIGHTCOORD)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD1, "attr_TexCoord1");
-
-//  if(attribs & ATTR_TEXCOORD2)
-//      glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD2, "attr_TexCoord2");
-
-//  if(attribs & ATTR_TEXCOORD3)
-//      glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD3, "attr_TexCoord3");
-
-	if(attribs & ATTR_TANGENT)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT, "attr_Tangent");
-
-	if(attribs & ATTR_BINORMAL)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL, "attr_Binormal");
-
-	if(attribs & ATTR_NORMAL)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL, "attr_Normal");
-
-	if(attribs & ATTR_COLOR)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_COLOR, "attr_Color");
-
-	if(attribs & ATTR_PAINTCOLOR)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_PAINTCOLOR, "attr_PaintColor");
-
-	if(attribs & ATTR_LIGHTDIRECTION)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_LIGHTDIRECTION, "attr_LightDirection");
-
-	if(glConfig2.vboVertexSkinningAvailable)
-	{
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_INDEXES, "attr_BoneIndexes");
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
-	}
-
-	if(attribs & ATTR_POSITION2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION2, "attr_Position2");
-
-	if(attribs & ATTR_TANGENT2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT2, "attr_Tangent2");
-
-	if(attribs & ATTR_BINORMAL2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL2, "attr_Binormal2");
-
-	if(attribs & ATTR_NORMAL2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL2, "attr_Normal2");
-
+	GLSL_BindAttribLocations(program->program, attribs);
 	GLSL_LinkProgram(program->program);
 }
 
@@ -824,8 +842,7 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 								int attribs,
 								qboolean optimize)
 {
-	//char          **libs;
-	//char           *token;
+	static char *empty = "";
 
 	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
 
@@ -844,94 +861,391 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, vertexMainShader, (char **) &vertexLibShaders, GL_VERTEX_SHADER_ARB, optimize);
-	/*
-	libs = (char**) &vertexLibShaders;
-	while(1)
+	GLSL_LoadGPUShader(program->program, vertexMainShader, (char **) &vertexLibShaders, &empty, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, fragmentMainShader, (char **) &fragmentLibShaders, &empty, GL_FRAGMENT_SHADER_ARB, optimize);
+	
+	GLSL_BindAttribLocations(program->program, attribs);
+	GLSL_LinkProgram(program->program);
+}
+
+static void GLSL_InitGPUShader3(shaderProgram_t * program,
+								const char *vertexMainShader,
+								const char *fragmentMainShader,
+								const char *vertexLibShaders,
+								const char *fragmentLibShaders,
+								const char *compileMacros,
+								int attribs,
+								qboolean optimize)
+{
+	int			len;
+
+	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
+
+	if(strlen(vertexMainShader) >= MAX_QPATH)
 	{
-		token = COM_ParseExt2(libs, qfalse);
-		if(!token[0])
-		{
-			break;
-		}
-
-		GLSL_LoadGPUShader(program->program, token, GL_VERTEX_SHADER_ARB, optimize);
-	}
-	*/
-
-	GLSL_LoadGPUShader(program->program, fragmentMainShader, (char **) &fragmentLibShaders, GL_FRAGMENT_SHADER_ARB, optimize);
-	/*
-	libs = (char**) &fragmentLibShaders;
-	while(1)
-	{
-		token = COM_ParseExt2(libs, qfalse);
-		if(!token[0])
-		{
-			break;
-		}
-		
-		GLSL_LoadGPUShader(program->program, token, GL_FRAGMENT_SHADER_ARB, optimize);
-	}
-	*/
-
-	if(attribs & ATTR_POSITION)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION, "attr_Position");
-
-	if(attribs & ATTR_TEXCOORD)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD0, "attr_TexCoord0");
-
-	if(attribs & ATTR_LIGHTCOORD)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD1, "attr_TexCoord1");
-
-//  if(attribs & ATTR_TEXCOORD2)
-//      glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD2, "attr_TexCoord2");
-
-//  if(attribs & ATTR_TEXCOORD3)
-//      glBindAttribLocationARB(program->program, ATTR_INDEX_TEXCOORD3, "attr_TexCoord3");
-
-	if(attribs & ATTR_TANGENT)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT, "attr_Tangent");
-
-	if(attribs & ATTR_BINORMAL)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL, "attr_Binormal");
-
-	if(attribs & ATTR_NORMAL)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL, "attr_Normal");
-
-	if(attribs & ATTR_COLOR)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_COLOR, "attr_Color");
-
-	if(attribs & ATTR_PAINTCOLOR)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_PAINTCOLOR, "attr_PaintColor");
-
-	if(attribs & ATTR_LIGHTDIRECTION)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_LIGHTDIRECTION, "attr_LightDirection");
-
-	if(glConfig2.vboVertexSkinningAvailable)
-	{
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_INDEXES, "attr_BoneIndexes");
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
+		ri.Error(ERR_DROP, "GLSL_InitGPUShader3: \"%s\" is too long\n", vertexMainShader);
 	}
 
-	if(attribs & ATTR_POSITION2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_POSITION2, "attr_Position2");
+	if(strlen(fragmentMainShader) >= MAX_QPATH)
+	{
+		ri.Error(ERR_DROP, "GLSL_InitGPUShader3: \"%s\" is too long\n", fragmentMainShader);
+	}
 
-	if(attribs & ATTR_TANGENT2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_TANGENT2, "attr_Tangent2");
+	Q_strncpyz(program->name, fragmentMainShader, sizeof(program->name));
 
-	if(attribs & ATTR_BINORMAL2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_BINORMAL2, "attr_Binormal2");
+	len = strlen(compileMacros) + 1;
+	program->compileMacros = (char *) ri.Hunk_Alloc(sizeof(char) * len, h_low);
+	Q_strncpyz(program->compileMacros, compileMacros, len);
 
-	if(attribs & ATTR_NORMAL2)
-		glBindAttribLocationARB(program->program, ATTR_INDEX_NORMAL2, "attr_Normal2");
+	program->program = glCreateProgramObjectARB();
+	program->attribs = attribs;
 
+	GLSL_LoadGPUShader(program->program, vertexMainShader, (char **) &vertexLibShaders, (char **) &compileMacros, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, fragmentMainShader, (char **) &fragmentLibShaders, (char **) &compileMacros, GL_FRAGMENT_SHADER_ARB, optimize);
+
+	GLSL_BindAttribLocations(program->program, attribs);
 	GLSL_LinkProgram(program->program);
 }
 
 
+
+
+// ================================================================================================
+
+// *INDENT-OFF*
+class GLShader
+{
+protected:
+	int						_activeMacros;
+	shaderProgram_t*		_currentProgram;
+
+public:
+
+	GLShader()
+	{
+		_activeMacros = 0;
+		_currentProgram = NULL;
+	}
+
+	shaderProgram_t*		GetProgram() const			{ return _currentProgram; }
+};
+
+
+class u_AmbientColor
+{
+private:
+	GLShader*				_parent;
+
+public:
+	u_AmbientColor(GLShader* parent):
+	  _parent(parent)
+	{
+	}
+
+	void SetUniform_AmbientColor(const vec3_t v)
+	{
+		GLSL_SetUniform_AmbientColor(_parent->GetProgram(), v);
+	}
+};
+
+
+class u_ViewOrigin
+{
+private:
+	GLShader*				_parent;
+
+public:
+	u_ViewOrigin(GLShader* parent):
+	  _parent(parent)
+	{
+	}
+
+	void SetUniform_ViewOrigin(const vec3_t v)
+	{
+		GLSL_SetUniform_ViewOrigin(_parent->GetProgram(), v);
+	}
+};
+
+
+class u_LightDir
+{
+private:
+	GLShader*				_parent;
+
+public:
+	u_LightDir(GLShader* parent):
+	  _parent(parent)
+	{
+	}
+
+	void SetUniform_LightDir(const vec3_t v)
+	{
+		GLSL_SetUniform_LightDir(_parent->GetProgram(), v);
+	}
+};
+
+class u_LightColor
+{
+private:
+	GLShader*				_parent;
+
+public:
+	u_LightColor(GLShader* parent):
+	  _parent(parent)
+	{
+	}
+
+	void SetUniform_LightColor(const vec3_t v)
+	{
+		GLSL_SetUniform_LightColor(_parent->GetProgram(), v);
+	}
+};
+
+class u_ModelMatrix
+{
+private:
+	GLShader*				_parent;
+
+public:
+	u_ModelMatrix(GLShader* parent):
+	  _parent(parent)
+	{
+	}
+
+	void SetUniform_ModelMatrix(const matrix_t m)
+	{
+		GLSL_SetUniform_ModelMatrix(_parent->GetProgram(), m);
+	}
+};
+
+class u_ModelViewProjectionMatrix
+{
+private:
+	GLShader*				_parent;
+
+public:
+	u_ModelViewProjectionMatrix(GLShader* parent):
+	  _parent(parent)
+	{
+	}
+
+	void SetUniform_ModelViewProjectionMatrix(const matrix_t m)
+	{
+		GLSL_SetUniform_ModelViewProjectionMatrix(_parent->GetProgram(), m);
+	}
+};
+
+
+
+
+
+
+
+
+
+
+class GLShader_vertexLighting_DBS_entity:
+public GLShader,
+public u_AmbientColor,
+public u_ViewOrigin,
+public u_LightDir,
+public u_LightColor,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix
+{
+private:
+	
+	enum
+	{
+		USE_PORTAL_CLIPPING = BIT(0),
+		USE_ALPHA_TESTING = BIT(1),
+		USE_VERTEX_SKINNING = BIT(2),
+		USE_VERTEX_ANIMATION = BIT(3),
+
+		ALL_COMPILE_FLAGS = USE_PORTAL_CLIPPING |
+							USE_ALPHA_TESTING |
+							USE_VERTEX_SKINNING |
+							USE_VERTEX_ANIMATION,
+
+		MAX_PERMUTATIONS = BIT(4)
+	};
+
+	shaderProgram_t _shaderPrograms[MAX_PERMUTATIONS];
+
+public:
+	GLShader_vertexLighting_DBS_entity():
+		GLShader(),
+		u_AmbientColor(this),
+		u_ViewOrigin(this),
+		u_LightDir(this),
+		u_LightColor(this),
+		u_ModelMatrix(this),
+		u_ModelViewProjectionMatrix(this)
+	{
+		char compileMacros[4096];
+
+		Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
+
+		for(int i = 0; i < MAX_PERMUTATIONS; i++)
+		{
+			Com_Memset(compileMacros, 0, sizeof(compileMacros));
+
+			if(i & USE_PORTAL_CLIPPING)
+			{
+				Q_strcat(compileMacros, sizeof(compileMacros), "USE_PORTAL_CLIPPING ");
+			}
+
+			if(i & USE_ALPHA_TESTING)
+			{
+				Q_strcat(compileMacros, sizeof(compileMacros), "USE_ALPHA_TESTING ");
+			}
+
+			if(i & USE_VERTEX_SKINNING)
+			{
+				Q_strcat(compileMacros, sizeof(compileMacros), "USE_VERTEX_SKINNING ");
+			}
+
+			if(i & USE_VERTEX_ANIMATION)
+			{
+				Q_strcat(compileMacros, sizeof(compileMacros), "USE_VERTEX_ANIMATION ");
+			}
+
+			ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
+
+			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
+
+			GLSL_InitGPUShader3(shaderProgram,
+							"vertexLighting_DBS_entity",
+							"vertexLighting_DBS_entity",
+							"vertexSkinning vertexAnimation deformVertexes",
+							"",
+							compileMacros,
+							ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
+							ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
+							qtrue);
+
+			shaderProgram->u_DiffuseMap = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+			shaderProgram->u_NormalMap =
+				glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
+			shaderProgram->u_SpecularMap =
+				glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+			shaderProgram->u_DiffuseTextureMatrix =
+				glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
+			shaderProgram->u_NormalTextureMatrix =
+				glGetUniformLocationARB(shaderProgram->program, "u_NormalTextureMatrix");
+			shaderProgram->u_SpecularTextureMatrix =
+				glGetUniformLocationARB(shaderProgram->program, "u_SpecularTextureMatrix");
+			shaderProgram->u_AlphaTest =
+				glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
+			shaderProgram->u_DeformGen =
+				glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
+			shaderProgram->u_DeformWave =
+				glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
+			shaderProgram->u_DeformBulge =
+				glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
+			shaderProgram->u_DeformSpread =
+				glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
+			shaderProgram->u_ViewOrigin =
+				glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");
+			shaderProgram->u_AmbientColor =
+				glGetUniformLocationARB(shaderProgram->program, "u_AmbientColor");
+			shaderProgram->u_LightDir =
+				glGetUniformLocationARB(shaderProgram->program, "u_LightDir");
+			shaderProgram->u_LightColor =
+				glGetUniformLocationARB(shaderProgram->program, "u_LightColor");
+			shaderProgram->u_ParallaxMapping =
+				glGetUniformLocationARB(shaderProgram->program, "u_ParallaxMapping");
+			shaderProgram->u_DepthScale =
+				glGetUniformLocationARB(shaderProgram->program, "u_DepthScale");
+			shaderProgram->u_PortalClipping =
+				glGetUniformLocationARB(shaderProgram->program, "u_PortalClipping");
+			shaderProgram->u_PortalPlane =
+				glGetUniformLocationARB(shaderProgram->program, "u_PortalPlane");
+			shaderProgram->u_ModelMatrix =
+				glGetUniformLocationARB(shaderProgram->program, "u_ModelMatrix");
+			shaderProgram->u_ModelViewProjectionMatrix =
+				glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
+			shaderProgram->u_Time =
+				glGetUniformLocationARB(shaderProgram->program, "u_Time");
+			if(glConfig2.vboVertexSkinningAvailable)
+			{
+				shaderProgram->u_VertexSkinning =
+					glGetUniformLocationARB(shaderProgram->program, "u_VertexSkinning");
+				shaderProgram->u_BoneMatrix =
+					glGetUniformLocationARB(shaderProgram->program, "u_BoneMatrix");
+			}
+			shaderProgram->u_VertexInterpolation =
+				glGetUniformLocationARB(shaderProgram->program, "u_VertexInterpolation");
+
+			glUseProgramObjectARB(shaderProgram->program);
+			glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
+			glUniform1iARB(shaderProgram->u_NormalMap, 1);
+			glUniform1iARB(shaderProgram->u_SpecularMap, 2);
+			glUseProgramObjectARB(0);
+
+			GLSL_ValidateProgram(shaderProgram->program);
+			GLSL_ShowProgramUniforms(shaderProgram->program);
+			GL_CheckErrors();
+		}
+	}
+
+private:
+	inline void SelectProgram()
+	{
+		int index = 0;
+
+		if(_activeMacros & USE_PORTAL_CLIPPING)
+			index += USE_PORTAL_CLIPPING;
+
+		if(_activeMacros & USE_ALPHA_TESTING)
+			index += USE_ALPHA_TESTING;
+
+		if(_activeMacros & USE_VERTEX_SKINNING)
+			index += USE_VERTEX_SKINNING;
+
+		if(_activeMacros & USE_VERTEX_ANIMATION)
+			index += USE_VERTEX_ANIMATION;
+
+		_currentProgram = &_shaderPrograms[index];
+	}
+
+		/*
+		USE_PORTAL_CLIPPING = BIT(0),
+		USE_ALPHA_TESTING = BIT(1),
+		USE_VERTEX_SKINNING = BIT(2),
+		USE_VERTEX_ANIMATION = BIT(3),
+	*/
+public:
+
+	void EnablePortalClipping()					{	_activeMacros |= USE_PORTAL_CLIPPING; SelectProgram(); }
+	void EnableAlphaTesting()					{	_activeMacros |= USE_ALPHA_TESTING; SelectProgram(); }
+	void EnableVertexSkinning()					{	_activeMacros |= USE_VERTEX_SKINNING; SelectProgram(); }
+	void EnableVertexAnimation()				{	_activeMacros |= USE_VERTEX_ANIMATION; SelectProgram(); }
+
+	void DisablePortalClipping()				{	_activeMacros &= ~USE_PORTAL_CLIPPING; SelectProgram(); }
+	void DisableAlphaTesting()					{	_activeMacros &= ~USE_ALPHA_TESTING; SelectProgram(); }
+	void DisableVertexSkinning()				{	_activeMacros &= ~USE_VERTEX_SKINNING; SelectProgram(); }
+	void DisableVertexAnimation()				{	_activeMacros &= ~USE_VERTEX_ANIMATION; SelectProgram(); }
+
+		
+};
+static GLShader_vertexLighting_DBS_entity* s_vertexLightingShader_DBS_entity = NULL;
+
+
+
+// *INDENT-ON*
+
+
+// ================================================================================================
+
+
+
 void GLSL_InitGPUShaders(void)
 {
+//	int				i;
 	int             startTime, endTime;
+	static char     compileMacros[32000];
+//	shaderProgram_t *shaderProgram;
 
 	ri.Printf(PRINT_ALL, "------- GLSL_InitGPUShaders -------\n");
 
@@ -991,14 +1305,17 @@ void GLSL_InitGPUShaders(void)
 	GL_CheckErrors();
 
 	// simple vertex color shading for entities
+	s_vertexLightingShader_DBS_entity = new GLShader_vertexLighting_DBS_entity();
+
 	/*
-	GLSL_InitGPUShader(&tr.vertexLightingShader_DBS_entity,
+	GLSL_InitGPUShader(&s_vertexLightingShader_DBS_entity,
 					   "vertexLighting_DBS_entity",
 					   ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
 					   ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2, qtrue, qtrue);
 	*/
 
-	GLSL_InitGPUShader2(&tr.vertexLightingShader_DBS_entity,
+	/*
+	GLSL_InitGPUShader2(&s_vertexLightingShader_DBS_entity,
 						"vertexLighting_DBS_entity",
 						"vertexLighting_DBS_entity",
 						"vertexSkinning vertexAnimation deformVertexes",
@@ -1007,69 +1324,156 @@ void GLSL_InitGPUShaders(void)
 						ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
 						qtrue);
 
-	tr.vertexLightingShader_DBS_entity.u_DiffuseMap =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DiffuseMap");
-	tr.vertexLightingShader_DBS_entity.u_NormalMap =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_NormalMap");
-	tr.vertexLightingShader_DBS_entity.u_SpecularMap =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_SpecularMap");
-	tr.vertexLightingShader_DBS_entity.u_DiffuseTextureMatrix =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DiffuseTextureMatrix");
-	tr.vertexLightingShader_DBS_entity.u_NormalTextureMatrix =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_NormalTextureMatrix");
-	tr.vertexLightingShader_DBS_entity.u_SpecularTextureMatrix =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_SpecularTextureMatrix");
-	tr.vertexLightingShader_DBS_entity.u_AlphaTest =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_AlphaTest");
-	tr.vertexLightingShader_DBS_entity.u_DeformGen =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformGen");
-	tr.vertexLightingShader_DBS_entity.u_DeformWave =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformWave");
-	tr.vertexLightingShader_DBS_entity.u_DeformBulge =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformBulge");
-	tr.vertexLightingShader_DBS_entity.u_DeformSpread =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DeformSpread");
-	tr.vertexLightingShader_DBS_entity.u_ViewOrigin =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ViewOrigin");
-	tr.vertexLightingShader_DBS_entity.u_AmbientColor =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_AmbientColor");
-	tr.vertexLightingShader_DBS_entity.u_LightDir =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_LightDir");
-	tr.vertexLightingShader_DBS_entity.u_LightColor =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_LightColor");
-	tr.vertexLightingShader_DBS_entity.u_ParallaxMapping =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ParallaxMapping");
-	tr.vertexLightingShader_DBS_entity.u_DepthScale =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_DepthScale");
-	tr.vertexLightingShader_DBS_entity.u_PortalClipping =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_PortalClipping");
-	tr.vertexLightingShader_DBS_entity.u_PortalPlane =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_PortalPlane");
-	tr.vertexLightingShader_DBS_entity.u_ModelMatrix =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ModelMatrix");
-	tr.vertexLightingShader_DBS_entity.u_ModelViewProjectionMatrix =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_ModelViewProjectionMatrix");
-	tr.vertexLightingShader_DBS_entity.u_Time =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_Time");
+	s_vertexLightingShader_DBS_entity.u_DiffuseMap =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DiffuseMap");
+	s_vertexLightingShader_DBS_entity.u_NormalMap =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_NormalMap");
+	s_vertexLightingShader_DBS_entity.u_SpecularMap =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_SpecularMap");
+	s_vertexLightingShader_DBS_entity.u_DiffuseTextureMatrix =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DiffuseTextureMatrix");
+	s_vertexLightingShader_DBS_entity.u_NormalTextureMatrix =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_NormalTextureMatrix");
+	s_vertexLightingShader_DBS_entity.u_SpecularTextureMatrix =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_SpecularTextureMatrix");
+	s_vertexLightingShader_DBS_entity.u_AlphaTest =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_AlphaTest");
+	s_vertexLightingShader_DBS_entity.u_DeformGen =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DeformGen");
+	s_vertexLightingShader_DBS_entity.u_DeformWave =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DeformWave");
+	s_vertexLightingShader_DBS_entity.u_DeformBulge =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DeformBulge");
+	s_vertexLightingShader_DBS_entity.u_DeformSpread =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DeformSpread");
+	s_vertexLightingShader_DBS_entity.u_ViewOrigin =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_ViewOrigin");
+	s_vertexLightingShader_DBS_entity.u_AmbientColor =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_AmbientColor");
+	s_vertexLightingShader_DBS_entity.u_LightDir =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_LightDir");
+	s_vertexLightingShader_DBS_entity.u_LightColor =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_LightColor");
+	s_vertexLightingShader_DBS_entity.u_ParallaxMapping =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_ParallaxMapping");
+	s_vertexLightingShader_DBS_entity.u_DepthScale =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_DepthScale");
+	s_vertexLightingShader_DBS_entity.u_PortalClipping =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_PortalClipping");
+	s_vertexLightingShader_DBS_entity.u_PortalPlane =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_PortalPlane");
+	s_vertexLightingShader_DBS_entity.u_ModelMatrix =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_ModelMatrix");
+	s_vertexLightingShader_DBS_entity.u_ModelViewProjectionMatrix =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_ModelViewProjectionMatrix");
+	s_vertexLightingShader_DBS_entity.u_Time =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_Time");
 	if(glConfig2.vboVertexSkinningAvailable)
 	{
-		tr.vertexLightingShader_DBS_entity.u_VertexSkinning =
-			glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_VertexSkinning");
-		tr.vertexLightingShader_DBS_entity.u_BoneMatrix =
-			glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_BoneMatrix");
+		s_vertexLightingShader_DBS_entity.u_VertexSkinning =
+			glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_VertexSkinning");
+		s_vertexLightingShader_DBS_entity.u_BoneMatrix =
+			glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_BoneMatrix");
 	}
-	tr.vertexLightingShader_DBS_entity.u_VertexInterpolation =
-		glGetUniformLocationARB(tr.vertexLightingShader_DBS_entity.program, "u_VertexInterpolation");
+	s_vertexLightingShader_DBS_entity.u_VertexInterpolation =
+		glGetUniformLocationARB(s_vertexLightingShader_DBS_entity.program, "u_VertexInterpolation");
 
-	glUseProgramObjectARB(tr.vertexLightingShader_DBS_entity.program);
-	glUniform1iARB(tr.vertexLightingShader_DBS_entity.u_DiffuseMap, 0);
-	glUniform1iARB(tr.vertexLightingShader_DBS_entity.u_NormalMap, 1);
-	glUniform1iARB(tr.vertexLightingShader_DBS_entity.u_SpecularMap, 2);
+	glUseProgramObjectARB(s_vertexLightingShader_DBS_entity.program);
+	glUniform1iARB(s_vertexLightingShader_DBS_entity.u_DiffuseMap, 0);
+	glUniform1iARB(s_vertexLightingShader_DBS_entity.u_NormalMap, 1);
+	glUniform1iARB(s_vertexLightingShader_DBS_entity.u_SpecularMap, 2);
 	glUseProgramObjectARB(0);
 
-	GLSL_ValidateProgram(tr.vertexLightingShader_DBS_entity.program);
-	GLSL_ShowProgramUniforms(tr.vertexLightingShader_DBS_entity.program);
+	GLSL_ValidateProgram(s_vertexLightingShader_DBS_entity.program);
+	GLSL_ShowProgramUniforms(s_vertexLightingShader_DBS_entity.program);
 	GL_CheckErrors();
+	*/
+
+	/*
+	Com_Memset(compileMacros, 0, sizeof(compileMacros));
+
+	for(i = 0; i < GLSLMACRO_vertexLighting_DBS_entity_MAX_PERMUTATIONS; i++)
+	{
+		if(i & GLSLMACRO_vertexLighting_DBS_entity_USE_PORTAL_CLIPPING)
+		{
+			Q_strcat(compileMacros, sizeof(compileMacros), "USE_PORTAL_CLIPPING ");
+		}
+
+		shaderProgram = &s_vertexLightingShader_DBS_entity[i];
+
+		GLSL_InitGPUShader2(shaderProgram,
+						"vertexLighting_DBS_entity",
+						"vertexLighting_DBS_entity",
+						"vertexSkinning vertexAnimation deformVertexes",
+						"",
+						ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
+						ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
+						qtrue);
+
+		shaderProgram->u_DiffuseMap = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+		shaderProgram->u_NormalMap =
+			glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
+		shaderProgram->u_SpecularMap =
+			glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+		shaderProgram->u_DiffuseTextureMatrix =
+			glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
+		shaderProgram->u_NormalTextureMatrix =
+			glGetUniformLocationARB(shaderProgram->program, "u_NormalTextureMatrix");
+		shaderProgram->u_SpecularTextureMatrix =
+			glGetUniformLocationARB(shaderProgram->program, "u_SpecularTextureMatrix");
+		shaderProgram->u_AlphaTest =
+			glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
+		shaderProgram->u_DeformGen =
+			glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
+		shaderProgram->u_DeformWave =
+			glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
+		shaderProgram->u_DeformBulge =
+			glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
+		shaderProgram->u_DeformSpread =
+			glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
+		shaderProgram->u_ViewOrigin =
+			glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");
+		shaderProgram->u_AmbientColor =
+			glGetUniformLocationARB(shaderProgram->program, "u_AmbientColor");
+		shaderProgram->u_LightDir =
+			glGetUniformLocationARB(shaderProgram->program, "u_LightDir");
+		shaderProgram->u_LightColor =
+			glGetUniformLocationARB(shaderProgram->program, "u_LightColor");
+		shaderProgram->u_ParallaxMapping =
+			glGetUniformLocationARB(shaderProgram->program, "u_ParallaxMapping");
+		shaderProgram->u_DepthScale =
+			glGetUniformLocationARB(shaderProgram->program, "u_DepthScale");
+		shaderProgram->u_PortalClipping =
+			glGetUniformLocationARB(shaderProgram->program, "u_PortalClipping");
+		shaderProgram->u_PortalPlane =
+			glGetUniformLocationARB(shaderProgram->program, "u_PortalPlane");
+		shaderProgram->u_ModelMatrix =
+			glGetUniformLocationARB(shaderProgram->program, "u_ModelMatrix");
+		shaderProgram->u_ModelViewProjectionMatrix =
+			glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
+		shaderProgram->u_Time =
+			glGetUniformLocationARB(shaderProgram->program, "u_Time");
+		if(glConfig2.vboVertexSkinningAvailable)
+		{
+			shaderProgram->u_VertexSkinning =
+				glGetUniformLocationARB(shaderProgram->program, "u_VertexSkinning");
+			shaderProgram->u_BoneMatrix =
+				glGetUniformLocationARB(shaderProgram->program, "u_BoneMatrix");
+		}
+		shaderProgram->u_VertexInterpolation =
+			glGetUniformLocationARB(shaderProgram->program, "u_VertexInterpolation");
+
+		glUseProgramObjectARB(shaderProgram->program);
+		glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
+		glUniform1iARB(shaderProgram->u_NormalMap, 1);
+		glUniform1iARB(shaderProgram->u_SpecularMap, 2);
+		glUseProgramObjectARB(0);
+
+		GLSL_ValidateProgram(shaderProgram->program);
+		GLSL_ShowProgramUniforms(shaderProgram->program);
+		GL_CheckErrors();
+	}
+	*/
 
 	// simple vertex color shading for the world
 	GLSL_InitGPUShader(&tr.vertexLightingShader_DBS_world,
@@ -2420,6 +2824,8 @@ void GLSL_InitGPUShaders(void)
 
 void GLSL_ShutdownGPUShaders(void)
 {
+//	int				i;
+
 	ri.Printf(PRINT_ALL, "------- GLSL_ShutdownGPUShaders -------\n");
 
 	if(tr.genericShader.program)
@@ -2428,10 +2834,21 @@ void GLSL_ShutdownGPUShaders(void)
 		Com_Memset(&tr.genericShader, 0, sizeof(shaderProgram_t));
 	}
 
-	if(tr.vertexLightingShader_DBS_entity.program)
+	/*
+	for(i = 0; i < GLSLMACRO_vertexLighting_DBS_entity_MAX_PERMUTATIONS; i++)
 	{
-		glDeleteObjectARB(tr.vertexLightingShader_DBS_entity.program);
-		Com_Memset(&tr.vertexLightingShader_DBS_entity, 0, sizeof(shaderProgram_t));
+		if(s_vertexLightingShader_DBS_entity[i].program)
+		{
+			glDeleteObjectARB(s_vertexLightingShader_DBS_entity[i].program);
+		}
+	}
+	Com_Memset(&s_vertexLightingShader_DBS_entity, 0, sizeof(s_vertexLightingShader_DBS_entity));
+	*/
+
+	if(s_vertexLightingShader_DBS_entity)
+	{
+		delete s_vertexLightingShader_DBS_entity;
+		s_vertexLightingShader_DBS_entity = NULL;
 	}
 
 	if(tr.vertexLightingShader_DBS_world.program)
@@ -3151,8 +3568,56 @@ static void Render_vertexLighting_DBS_entity(int stage)
 
 	GL_State(stateBits);
 
-	// enable shader, set arrays
-	GL_BindProgram(&tr.vertexLightingShader_DBS_entity);
+	// choose right shader program ----------------------------------
+	if(backEnd.viewParms.isPortal)
+	{
+		s_vertexLightingShader_DBS_entity->EnablePortalClipping();
+	}
+	else
+	{
+		s_vertexLightingShader_DBS_entity->DisablePortalClipping();
+	}
+
+	if(pStage->stateBits & GLS_ATEST_BITS)
+	{
+		s_vertexLightingShader_DBS_entity->EnableAlphaTesting();
+	}
+	else
+	{
+		s_vertexLightingShader_DBS_entity->DisableAlphaTesting();
+	}
+
+	if(glConfig2.vboVertexSkinningAvailable && tess.vboVertexSkinning)
+	{
+		s_vertexLightingShader_DBS_entity->EnableVertexSkinning();
+	}
+	else
+	{
+		s_vertexLightingShader_DBS_entity->DisableVertexSkinning();
+	}
+
+	if(glState.vertexAttribsInterpolation > 0)
+	{
+		s_vertexLightingShader_DBS_entity->EnableVertexAnimation();
+	}
+	else
+	{
+		s_vertexLightingShader_DBS_entity->DisableVertexAnimation();
+	}
+
+	GL_BindProgram(s_vertexLightingShader_DBS_entity->GetProgram());
+	
+	// end choose right shader program ------------------------------
+
+	// now we are ready to set the shader program uniforms
+
+
+	if(glConfig2.vboVertexSkinningAvailable && tess.vboVertexSkinning)
+	{
+		glUniformMatrix4fvARB(s_vertexLightingShader_DBS_entity->GetProgram()->u_BoneMatrix, MAX_BONES, GL_FALSE, &tess.boneMatrices[0][0]);
+
+		attribBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
+	}
 
 	// set uniforms
 	VectorCopy(backEnd.viewParms.orientation.origin, viewOrigin);	// in world space
@@ -3164,29 +3629,19 @@ static void Render_vertexLighting_DBS_entity(int stage)
 	// lightDir = L vector which means surface to light
 	VectorCopy(backEnd.currentEntity->lightDir, lightDir);
 
-	GLSL_SetUniform_AmbientColor(&tr.vertexLightingShader_DBS_entity, ambientColor);
-	GLSL_SetUniform_ViewOrigin(&tr.vertexLightingShader_DBS_entity, viewOrigin);
-	GLSL_SetUniform_LightDir(&tr.vertexLightingShader_DBS_entity, lightDir);
-	GLSL_SetUniform_LightColor(&tr.vertexLightingShader_DBS_entity, lightColor);
 
-	GLSL_SetUniform_ModelMatrix(&tr.vertexLightingShader_DBS_entity, backEnd.orientation.transformMatrix);
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.vertexLightingShader_DBS_entity, glState.modelViewProjectionMatrix[glState.stackIndex]);
+	s_vertexLightingShader_DBS_entity->SetUniform_AmbientColor(ambientColor);
+	s_vertexLightingShader_DBS_entity->SetUniform_ViewOrigin(viewOrigin);
+	s_vertexLightingShader_DBS_entity->SetUniform_LightDir(lightDir);
+	s_vertexLightingShader_DBS_entity->SetUniform_LightColor(lightColor);
 
-	if(glConfig2.vboVertexSkinningAvailable)
-	{
-		GLSL_SetUniform_VertexSkinning(&tr.vertexLightingShader_DBS_entity, tess.vboVertexSkinning);
+	s_vertexLightingShader_DBS_entity->SetUniform_ModelMatrix(backEnd.orientation.transformMatrix);
+	s_vertexLightingShader_DBS_entity->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-		if(tess.vboVertexSkinning)
-		{
-			glUniformMatrix4fvARB(tr.vertexLightingShader_DBS_entity.u_BoneMatrix, MAX_BONES, GL_FALSE,
-								   &tess.boneMatrices[0][0]);
-
-			attribBits |= (ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
-		}
-	}
+	
 
 	// u_VertexInterpolation
-	GLSL_SetUniform_VertexInterpolation(&tr.vertexLightingShader_DBS_entity, glState.vertexAttribsInterpolation);
+	//GLSL_SetUniform_VertexInterpolation(program, glState.vertexAttribsInterpolation);
 	if(glState.vertexAttribsInterpolation > 0)
 	{
 		attribBits |= (ATTR_POSITION2 | ATTR_NORMAL2);
@@ -3198,6 +3653,7 @@ static void Render_vertexLighting_DBS_entity(int stage)
 	}
 
 	// u_DeformGen
+	/*
 	if(tess.surfaceShader->numDeforms)
 	{
 		deformStage_t  *ds;
@@ -3208,41 +3664,43 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		switch (ds->deformation)
 		{
 			case DEFORM_WAVE:
-				GLSL_SetUniform_DeformGen(&tr.vertexLightingShader_DBS_entity, (deformGen_t) ds->deformationWave.func);
-				GLSL_SetUniform_DeformWave(&tr.vertexLightingShader_DBS_entity, &ds->deformationWave);
-				GLSL_SetUniform_DeformSpread(&tr.vertexLightingShader_DBS_entity, ds->deformationSpread);
-				GLSL_SetUniform_Time(&tr.vertexLightingShader_DBS_entity, backEnd.refdef.floatTime);
+				GLSL_SetUniform_DeformGen(&s_vertexLightingShader_DBS_entity, (deformGen_t) ds->deformationWave.func);
+				GLSL_SetUniform_DeformWave(&s_vertexLightingShader_DBS_entity, &ds->deformationWave);
+				GLSL_SetUniform_DeformSpread(&s_vertexLightingShader_DBS_entity, ds->deformationSpread);
+				GLSL_SetUniform_Time(&s_vertexLightingShader_DBS_entity, backEnd.refdef.floatTime);
 				break;
 
 			case DEFORM_BULGE:
-				GLSL_SetUniform_DeformGen(&tr.vertexLightingShader_DBS_entity, DGEN_BULGE);
-				GLSL_SetUniform_DeformBulge(&tr.vertexLightingShader_DBS_entity, ds);
-				GLSL_SetUniform_Time(&tr.vertexLightingShader_DBS_entity, backEnd.refdef.floatTime);
+				GLSL_SetUniform_DeformGen(&s_vertexLightingShader_DBS_entity, DGEN_BULGE);
+				GLSL_SetUniform_DeformBulge(&s_vertexLightingShader_DBS_entity, ds);
+				GLSL_SetUniform_Time(&s_vertexLightingShader_DBS_entity, backEnd.refdef.floatTime);
 				break;
 
 			default:
-				GLSL_SetUniform_DeformGen(&tr.vertexLightingShader_DBS_entity, DGEN_NONE);
+				GLSL_SetUniform_DeformGen(&s_vertexLightingShader_DBS_entity, DGEN_NONE);
 				break;
 		}
 	}
 	else
 	{
-		GLSL_SetUniform_DeformGen(&tr.vertexLightingShader_DBS_entity, DGEN_NONE);
+		GLSL_SetUniform_DeformGen(&s_vertexLightingShader_DBS_entity, DGEN_NONE);
 	}
+	*/
 
-	GLSL_SetUniform_AlphaTest(&tr.vertexLightingShader_DBS_entity, pStage->stateBits);
+	//GLSL_SetUniform_AlphaTest(&s_vertexLightingShader_DBS_entity, pStage->stateBits);
 
+	/*
 	if(r_parallaxMapping->integer)
 	{
 		float           depthScale;
 
-		GLSL_SetUniform_ParallaxMapping(&tr.vertexLightingShader_DBS_entity, tess.surfaceShader->parallax);
+		GLSL_SetUniform_ParallaxMapping(&s_vertexLightingShader_DBS_entity, tess.surfaceShader->parallax);
 
 		depthScale = RB_EvalExpression(&pStage->depthScaleExp, r_parallaxDepthScale->value);
-		GLSL_SetUniform_DepthScale(&tr.vertexLightingShader_DBS_entity, depthScale);
+		GLSL_SetUniform_DepthScale(&s_vertexLightingShader_DBS_entity, depthScale);
 	}
+	*/
 
-	GLSL_SetUniform_PortalClipping(&tr.vertexLightingShader_DBS_entity, backEnd.viewParms.isPortal);
 	if(backEnd.viewParms.isPortal)
 	{
 		float           plane[4];
@@ -3253,13 +3711,13 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		plane[2] = backEnd.viewParms.portalPlane.normal[2];
 		plane[3] = backEnd.viewParms.portalPlane.dist;
 
-		GLSL_SetUniform_PortalPlane(&tr.vertexLightingShader_DBS_entity, plane);
+		//GLSL_SetUniform_PortalPlane(&s_vertexLightingShader_DBS_entity, plane);
 	}
 
 	// bind u_DiffuseMap
 	GL_SelectTexture(0);
 	GL_Bind(pStage->bundle[TB_DIFFUSEMAP].image[0]);
-	GLSL_SetUniform_DiffuseTextureMatrix(&tr.vertexLightingShader_DBS_entity, tess.svars.texMatrices[TB_DIFFUSEMAP]);
+	GLSL_SetUniform_DiffuseTextureMatrix(s_vertexLightingShader_DBS_entity->GetProgram(), tess.svars.texMatrices[TB_DIFFUSEMAP]);
 
 	if(r_normalMapping->integer)
 	{
@@ -3275,7 +3733,7 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		{
 			GL_Bind(tr.flatImage);
 		}
-		GLSL_SetUniform_NormalTextureMatrix(&tr.vertexLightingShader_DBS_entity, tess.svars.texMatrices[TB_NORMALMAP]);
+		GLSL_SetUniform_NormalTextureMatrix(s_vertexLightingShader_DBS_entity->GetProgram(), tess.svars.texMatrices[TB_NORMALMAP]);
 
 		// bind u_SpecularMap
 		GL_SelectTexture(2);
@@ -3287,7 +3745,7 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		{
 			GL_Bind(tr.blackImage);
 		}
-		GLSL_SetUniform_SpecularTextureMatrix(&tr.vertexLightingShader_DBS_entity, tess.svars.texMatrices[TB_SPECULARMAP]);
+		GLSL_SetUniform_SpecularTextureMatrix(s_vertexLightingShader_DBS_entity->GetProgram(), tess.svars.texMatrices[TB_SPECULARMAP]);
 	}
 
 	GL_VertexAttribsState(attribBits);
