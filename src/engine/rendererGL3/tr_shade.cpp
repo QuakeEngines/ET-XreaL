@@ -1210,6 +1210,8 @@ void GLSL_InitGPUShaders(void)
 	GL_CheckErrors();
 
 	// standard light mapping
+	gl_lightMappingShader = new GLShader_lightMapping();
+	/*
 	GLSL_InitGPUShader(&tr.lightMappingShader,
 					   "lightMapping", ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_NORMAL, qtrue, qtrue);
 
@@ -1235,6 +1237,7 @@ void GLSL_InitGPUShaders(void)
 	GLSL_ValidateProgram(tr.lightMappingShader.program);
 	GLSL_ShowProgramUniforms(tr.lightMappingShader.program);
 	GL_CheckErrors();
+	*/
 
 	// directional light mapping aka deluxe mapping
 	if(r_normalMapping->integer)
@@ -2520,10 +2523,10 @@ void GLSL_ShutdownGPUShaders(void)
 		Com_Memset(&tr.vertexLightingShader_DBS_world, 0, sizeof(shaderProgram_t));
 	}
 
-	if(tr.lightMappingShader.program)
+	if(gl_lightMappingShader)
 	{
-		glDeleteObjectARB(tr.lightMappingShader.program);
-		Com_Memset(&tr.lightMappingShader, 0, sizeof(shaderProgram_t));
+		delete gl_lightMappingShader;
+		gl_lightMappingShader = NULL;
 	}
 
 	if(tr.deluxeMappingShader.program)
@@ -3277,6 +3280,15 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		gl_vertexLightingShader_DBS_entity->DisableDeformVertexes();
 	}
 
+	if(r_parallaxMapping->integer && tess.surfaceShader->parallax)
+	{
+		gl_vertexLightingShader_DBS_entity->EnableParallaxMapping();
+	}
+	else
+	{
+		gl_vertexLightingShader_DBS_entity->DisableParallaxMapping();
+	}
+
 	gl_vertexLightingShader_DBS_entity->BindProgram();
 	
 	// end choose right shader program ------------------------------
@@ -3336,17 +3348,13 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		gl_vertexLightingShader_DBS_entity->SetDeformStageUniforms(ds);
 	}
 
-	/*
-	if(r_parallaxMapping->integer)
+	if(r_parallaxMapping->integer && tess.surfaceShader->parallax)
 	{
 		float           depthScale;
 
-		GLSL_SetUniform_ParallaxMapping(&gl_vertexLightingShader_DBS_entity, tess.surfaceShader->parallax);
-
 		depthScale = RB_EvalExpression(&pStage->depthScaleExp, r_parallaxDepthScale->value);
-		GLSL_SetUniform_DepthScale(&gl_vertexLightingShader_DBS_entity, depthScale);
+		gl_vertexLightingShader_DBS_entity->SetUniform_DepthScale(depthScale);
 	}
-	*/
 
 	if(backEnd.viewParms.isPortal)
 	{
@@ -3630,9 +3638,42 @@ static void Render_lightMapping(int stage, qboolean asColorMap)
 
 	GL_State(stateBits);
 
-	// enable shader, set arrays
-	GL_BindProgram(&tr.lightMappingShader);
-	GL_VertexAttribsState(tr.lightMappingShader.attribs);
+	
+	// choose right shader program ----------------------------------
+	//if(backEnd.viewParms.isPortal)
+	//{
+	//	gl_lightMappingShader->EnablePortalClipping();
+	//}
+	//else
+	//{
+		gl_lightMappingShader->DisablePortalClipping();
+	//}
+
+	if(pStage->stateBits & GLS_ATEST_BITS)
+	{
+		gl_lightMappingShader->EnableAlphaTesting();
+	}
+	else
+	{
+		gl_lightMappingShader->DisableAlphaTesting();
+	}
+
+	if(tess.surfaceShader->numDeforms)
+	{
+		gl_lightMappingShader->EnableDeformVertexes();
+	}
+	else
+	{
+		gl_lightMappingShader->DisableDeformVertexes();
+	}
+
+	gl_lightMappingShader->BindProgram();
+	
+	// end choose right shader program ------------------------------
+
+	// now we are ready to set the shader program uniforms
+
+	GL_VertexAttribsState(gl_lightMappingShader->GetProgram()->attribs);
 
 	// u_DeformGen
 	if(tess.surfaceShader->numDeforms)
@@ -3642,34 +3683,11 @@ static void Render_lightMapping(int stage, qboolean asColorMap)
 		// only support the first one
 		ds = &tess.surfaceShader->deforms[0];
 
-		switch (ds->deformation)
-		{
-			case DEFORM_WAVE:
-				GLSL_SetUniform_DeformGen(&tr.lightMappingShader, (deformGen_t) ds->deformationWave.func);
-				GLSL_SetUniform_DeformWave(&tr.lightMappingShader, &ds->deformationWave);
-				GLSL_SetUniform_DeformSpread(&tr.lightMappingShader, ds->deformationSpread);
-				GLSL_SetUniform_Time(&tr.lightMappingShader, backEnd.refdef.floatTime);
-				break;
-
-			case DEFORM_BULGE:
-				GLSL_SetUniform_DeformGen(&tr.lightMappingShader, DGEN_BULGE);
-				GLSL_SetUniform_DeformBulge(&tr.lightMappingShader, ds);
-				GLSL_SetUniform_Time(&tr.lightMappingShader, backEnd.refdef.floatTime);
-				break;
-
-			default:
-				GLSL_SetUniform_DeformGen(&tr.lightMappingShader, DGEN_NONE);
-				break;
-		}
-	}
-	else
-	{
-		GLSL_SetUniform_DeformGen(&tr.lightMappingShader, DGEN_NONE);
+		gl_lightMappingShader->SetDeformStageUniforms(ds);
 	}
 
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.lightMappingShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
-
-	GLSL_SetUniform_AlphaTest(&tr.lightMappingShader, pStage->stateBits);
+	gl_lightMappingShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
+	gl_lightMappingShader->SetUniform_AlphaTest(pStage->stateBits);
 
 	// bind u_DiffuseMap
 	GL_SelectTexture(0);
@@ -3680,8 +3698,8 @@ static void Render_lightMapping(int stage, qboolean asColorMap)
 	else
 	{
 		GL_Bind(pStage->bundle[TB_DIFFUSEMAP].image[0]);
+		gl_lightMappingShader->SetUniform_DiffuseTextureMatrix(tess.svars.texMatrices[TB_DIFFUSEMAP]);
 	}
-	GLSL_SetUniform_DiffuseTextureMatrix(&tr.lightMappingShader, tess.svars.texMatrices[TB_DIFFUSEMAP]);
 
 	// bind u_LightMap
 	GL_SelectTexture(1);

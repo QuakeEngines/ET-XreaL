@@ -38,7 +38,84 @@ void		GLSL_ValidateProgram(GLhandleARB program);
 void		GLSL_ShowProgramUniforms(GLhandleARB program);
 
 
+
+GLShader_lightMapping* gl_lightMappingShader = NULL;
 GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity = NULL;
+
+
+
+
+
+
+
+GLShader_lightMapping::GLShader_lightMapping():
+		GLShader(MAX_PERMUTATIONS),
+		u_DiffuseTextureMatrix(this),
+		u_AlphaTest(this),
+		u_ModelViewProjectionMatrix(this),
+		u_PortalPlane(this),
+		GLDeformStage(this)
+{
+	char compileMacros[4096];
+
+	
+	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
+
+	for(int i = 0; i < MAX_PERMUTATIONS; i++)
+	{
+		Com_Memset(compileMacros, 0, sizeof(compileMacros));
+
+		if(i & USE_PORTAL_CLIPPING)
+		{
+			Q_strcat(compileMacros, sizeof(compileMacros), "USE_PORTAL_CLIPPING ");
+		}
+
+		if(i & USE_ALPHA_TESTING)
+		{
+			Q_strcat(compileMacros, sizeof(compileMacros), "USE_ALPHA_TESTING ");
+		}
+
+		if(i & USE_DEFORM_VERTEXES)
+		{
+			Q_strcat(compileMacros, sizeof(compileMacros), "USE_DEFORM_VERTEXES ");
+		}
+
+		ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
+
+		shaderProgram_t *shaderProgram = &_shaderPrograms[i];
+
+		GLSL_InitGPUShader3(shaderProgram,
+						"lightMapping",
+						"lightMapping",
+						"deformVertexes",
+						"",
+						compileMacros,
+						ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_NORMAL,
+						qtrue);
+
+		shaderProgram->u_ModelViewProjectionMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
+
+		shaderProgram->u_DiffuseMap = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+		shaderProgram->u_LightMap = glGetUniformLocationARB(shaderProgram->program, "u_LightMap");
+
+		shaderProgram->u_DiffuseTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
+		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
+		shaderProgram->u_DeformGen = glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
+		shaderProgram->u_DeformWave = glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
+		shaderProgram->u_DeformBulge = glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
+		shaderProgram->u_DeformSpread = glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
+		shaderProgram->u_Time = glGetUniformLocationARB(shaderProgram->program, "u_Time");
+
+		glUseProgramObjectARB(shaderProgram->program);
+		glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
+		glUniform1iARB(shaderProgram->u_LightMap, 1);
+		glUseProgramObjectARB(0);
+
+		GLSL_ValidateProgram(shaderProgram->program);
+		GLSL_ShowProgramUniforms(shaderProgram->program);
+		GL_CheckErrors();
+	}
+}
 
 
 
@@ -54,6 +131,7 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 		u_BoneMatrix(this),
 		u_VertexInterpolation(this),
 		u_PortalPlane(this),
+		u_DepthScale(this),
 		GLDeformStage(this)
 {
 	char compileMacros[4096];
@@ -90,6 +168,11 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 			Q_strcat(compileMacros, sizeof(compileMacros), "USE_DEFORM_VERTEXES ");
 		}
 
+		if(i & USE_PARALLAX_MAPPING)
+		{
+			Q_strcat(compileMacros, sizeof(compileMacros), "USE_PARALLAX_MAPPING ");
+		}
+
 		ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
 
 		shaderProgram_t *shaderProgram = &_shaderPrograms[i];
@@ -104,58 +187,34 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 						ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
 						qtrue);
 
-		shaderProgram->u_DiffuseMap = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
-		shaderProgram->u_NormalMap =
-			glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
-		shaderProgram->u_SpecularMap =
-			glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
-		shaderProgram->u_DiffuseTextureMatrix =
-			glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
-		shaderProgram->u_NormalTextureMatrix =
-			glGetUniformLocationARB(shaderProgram->program, "u_NormalTextureMatrix");
-		shaderProgram->u_SpecularTextureMatrix =
-			glGetUniformLocationARB(shaderProgram->program, "u_SpecularTextureMatrix");
-		shaderProgram->u_AlphaTest =
-			glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
-		shaderProgram->u_DeformGen =
-			glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
-		shaderProgram->u_DeformWave =
-			glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
-		shaderProgram->u_DeformBulge =
-			glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
-		shaderProgram->u_DeformSpread =
-			glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
-		shaderProgram->u_ViewOrigin =
-			glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");
-		shaderProgram->u_AmbientColor =
-			glGetUniformLocationARB(shaderProgram->program, "u_AmbientColor");
-		shaderProgram->u_LightDir =
-			glGetUniformLocationARB(shaderProgram->program, "u_LightDir");
-		shaderProgram->u_LightColor =
-			glGetUniformLocationARB(shaderProgram->program, "u_LightColor");
-		shaderProgram->u_ParallaxMapping =
-			glGetUniformLocationARB(shaderProgram->program, "u_ParallaxMapping");
-		shaderProgram->u_DepthScale =
-			glGetUniformLocationARB(shaderProgram->program, "u_DepthScale");
-		shaderProgram->u_PortalClipping =
-			glGetUniformLocationARB(shaderProgram->program, "u_PortalClipping");
-		shaderProgram->u_PortalPlane =
-			glGetUniformLocationARB(shaderProgram->program, "u_PortalPlane");
-		shaderProgram->u_ModelMatrix =
-			glGetUniformLocationARB(shaderProgram->program, "u_ModelMatrix");
-		shaderProgram->u_ModelViewProjectionMatrix =
-			glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
-		shaderProgram->u_Time =
-			glGetUniformLocationARB(shaderProgram->program, "u_Time");
+		shaderProgram->u_DiffuseMap	= glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+		shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
+		shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+		shaderProgram->u_DiffuseTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
+		shaderProgram->u_NormalTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_NormalTextureMatrix");
+		shaderProgram->u_SpecularTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_SpecularTextureMatrix");
+		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
+		shaderProgram->u_DeformGen = glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
+		shaderProgram->u_DeformWave = glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
+		shaderProgram->u_DeformBulge = glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
+		shaderProgram->u_DeformSpread = glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
+		shaderProgram->u_ViewOrigin = glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");
+		shaderProgram->u_AmbientColor = glGetUniformLocationARB(shaderProgram->program, "u_AmbientColor");
+		shaderProgram->u_LightDir = glGetUniformLocationARB(shaderProgram->program, "u_LightDir");
+		shaderProgram->u_LightColor = glGetUniformLocationARB(shaderProgram->program, "u_LightColor");
+		shaderProgram->u_ParallaxMapping = glGetUniformLocationARB(shaderProgram->program, "u_ParallaxMapping");
+		shaderProgram->u_DepthScale = glGetUniformLocationARB(shaderProgram->program, "u_DepthScale");
+		shaderProgram->u_PortalClipping = glGetUniformLocationARB(shaderProgram->program, "u_PortalClipping");
+		shaderProgram->u_PortalPlane = glGetUniformLocationARB(shaderProgram->program, "u_PortalPlane");
+		shaderProgram->u_ModelMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelMatrix");
+		shaderProgram->u_ModelViewProjectionMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
+		shaderProgram->u_Time = glGetUniformLocationARB(shaderProgram->program, "u_Time");
 		if(glConfig2.vboVertexSkinningAvailable)
 		{
-			shaderProgram->u_VertexSkinning =
-				glGetUniformLocationARB(shaderProgram->program, "u_VertexSkinning");
-			shaderProgram->u_BoneMatrix =
-				glGetUniformLocationARB(shaderProgram->program, "u_BoneMatrix");
+			shaderProgram->u_VertexSkinning = glGetUniformLocationARB(shaderProgram->program, "u_VertexSkinning");
+			shaderProgram->u_BoneMatrix = glGetUniformLocationARB(shaderProgram->program, "u_BoneMatrix");
 		}
-		shaderProgram->u_VertexInterpolation =
-			glGetUniformLocationARB(shaderProgram->program, "u_VertexInterpolation");
+		shaderProgram->u_VertexInterpolation = glGetUniformLocationARB(shaderProgram->program, "u_VertexInterpolation");
 
 		glUseProgramObjectARB(shaderProgram->program);
 		glUniform1iARB(shaderProgram->u_DiffuseMap, 0);

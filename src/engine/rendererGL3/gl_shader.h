@@ -93,6 +93,77 @@ protected:
 
 
 
+
+
+class u_ColorTextureMatrix:
+GLUniform
+{
+public:
+	u_ColorTextureMatrix(GLShader* parent):
+	  GLUniform(parent)
+	{
+	}
+
+	const char* GetName() const { return "u_ColorTextureMatrix"; }
+
+	void SetUniform_ColorTextureMatrix(const matrix_t m)
+	{
+		GLSL_SetUniform_ColorTextureMatrix(_parent->GetProgram(), m);
+	}
+};
+
+class u_DiffuseTextureMatrix:
+GLUniform
+{
+public:
+	u_DiffuseTextureMatrix(GLShader* parent):
+	  GLUniform(parent)
+	{
+	}
+
+	const char* GetName() const { return "u_DiffuseTextureMatrix"; }
+
+	void SetUniform_DiffuseTextureMatrix(const matrix_t m)
+	{
+		GLSL_SetUniform_DiffuseTextureMatrix(_parent->GetProgram(), m);
+	}
+};
+
+class u_NormalTextureMatrix:
+GLUniform
+{
+public:
+	u_NormalTextureMatrix(GLShader* parent):
+	  GLUniform(parent)
+	{
+	}
+
+	const char* GetName() const { return "u_NormalTextureMatrix"; }
+
+	void SetUniform_NormalTextureMatrix(const matrix_t m)
+	{
+		GLSL_SetUniform_NormalTextureMatrix(_parent->GetProgram(), m);
+	}
+};
+
+class u_SpecularTextureMatrix:
+GLUniform
+{
+public:
+	u_SpecularTextureMatrix(GLShader* parent):
+	  GLUniform(parent)
+	{
+	}
+
+	const char* GetName() const { return "u_SpecularTextureMatrix"; }
+
+	void SetUniform_SpecularTextureMatrix(const matrix_t m)
+	{
+		GLSL_SetUniform_SpecularTextureMatrix(_parent->GetProgram(), m);
+	}
+};
+
+
 class u_AlphaTest:
 GLUniform
 {
@@ -272,6 +343,24 @@ public:
 	}
 };
 
+class u_DepthScale:
+GLUniform
+{
+public:
+	u_DepthScale(GLShader* parent):
+	  GLUniform(parent)
+	{
+	}
+
+	const char* GetName() const { return "u_DepthScale"; }
+
+	void SetUniform_DepthScale(float value)
+	{
+		GLSL_SetUniform_DepthScale(_parent->GetProgram(), value);
+	}
+};
+
+
 
 class u_DeformGen:
 GLUniform
@@ -409,6 +498,53 @@ public:
 
 
 
+
+
+
+
+class GLShader_lightMapping:
+public GLShader,
+public u_DiffuseTextureMatrix,
+public u_AlphaTest,
+public u_ModelViewProjectionMatrix,
+public u_PortalPlane,
+public GLDeformStage
+{
+private:
+	
+	enum
+	{
+		USE_PORTAL_CLIPPING = BIT(0),
+		USE_ALPHA_TESTING = BIT(1),
+		USE_DEFORM_VERTEXES = BIT(2),
+
+		ALL_COMPILE_FLAGS = USE_PORTAL_CLIPPING |
+							USE_ALPHA_TESTING |
+							USE_DEFORM_VERTEXES,
+
+		NUM_MACROS = 3,
+		MAX_PERMUTATIONS = (1 << NUM_MACROS)	// same as 2^NUM_MACROS
+	};
+
+
+public:
+	GLShader_lightMapping();
+	
+public:
+
+	void EnablePortalClipping()					{	_activeMacros |= USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
+	void EnableAlphaTesting()					{	_activeMacros |= USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
+	void EnableDeformVertexes()					{	_activeMacros |= USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
+
+	void DisablePortalClipping()				{	_activeMacros &= ~USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
+	void DisableAlphaTesting()					{	_activeMacros &= ~USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
+	void DisableDeformVertexes()				{	_activeMacros &= ~USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
+
+		
+};
+
+
+
 class GLShader_vertexLighting_DBS_entity:
 public GLShader,
 public u_AlphaTest,
@@ -421,6 +557,7 @@ public u_ModelViewProjectionMatrix,
 public u_BoneMatrix,
 public u_VertexInterpolation,
 public u_PortalPlane,
+public u_DepthScale,
 public GLDeformStage
 {
 private:
@@ -432,14 +569,16 @@ private:
 		USE_VERTEX_SKINNING = BIT(2),
 		USE_VERTEX_ANIMATION = BIT(3),
 		USE_DEFORM_VERTEXES = BIT(4),
+		USE_PARALLAX_MAPPING = BIT(5),
 
 		ALL_COMPILE_FLAGS = USE_PORTAL_CLIPPING |
 							USE_ALPHA_TESTING |
 							USE_VERTEX_SKINNING |
 							USE_VERTEX_ANIMATION |
-							USE_DEFORM_VERTEXES,
+							USE_DEFORM_VERTEXES |
+							USE_PARALLAX_MAPPING,
 
-		NUM_MACROS = 5,
+		NUM_MACROS = 6,
 		MAX_PERMUTATIONS = (1 << NUM_MACROS)	// same as 2^NUM_MACROS
 	};
 
@@ -454,16 +593,20 @@ public:
 	void EnableVertexSkinning()					{	_activeMacros |= USE_VERTEX_SKINNING; SelectProgram(NUM_MACROS); }
 	void EnableVertexAnimation()				{	_activeMacros |= USE_VERTEX_ANIMATION; SelectProgram(NUM_MACROS); }
 	void EnableDeformVertexes()					{	_activeMacros |= USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
+	void EnableParallaxMapping()				{	_activeMacros |= USE_PARALLAX_MAPPING; SelectProgram(NUM_MACROS); }
 
 	void DisablePortalClipping()				{	_activeMacros &= ~USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
 	void DisableAlphaTesting()					{	_activeMacros &= ~USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
 	void DisableVertexSkinning()				{	_activeMacros &= ~USE_VERTEX_SKINNING; SelectProgram(NUM_MACROS); }
 	void DisableVertexAnimation()				{	_activeMacros &= ~USE_VERTEX_ANIMATION; SelectProgram(NUM_MACROS); }
 	void DisableDeformVertexes()				{	_activeMacros &= ~USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
+	void DisableParallaxMapping()				{	_activeMacros &= ~USE_PARALLAX_MAPPING; SelectProgram(NUM_MACROS); }
 
 		
 };
 
+
+extern GLShader_lightMapping* gl_lightMappingShader;
 extern GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity;
 
 #endif	// GL_SHADER_H
