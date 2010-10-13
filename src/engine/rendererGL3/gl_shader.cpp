@@ -180,7 +180,7 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 		GLSL_InitGPUShader3(shaderProgram,
 						"vertexLighting_DBS_entity",
 						"vertexLighting_DBS_entity",
-						"vertexSkinning vertexAnimation deformVertexes",
+						"vertexAnimation deformVertexes",
 						"",
 						compileMacros,
 						ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
