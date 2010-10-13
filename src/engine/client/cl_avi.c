@@ -20,7 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+
 #include "client.h"
+
+#if !defined(DEDICATED)
+
 #include "snd_local.h"
 
 #define INDEX_FILE_EXTENSION ".index.dat"
@@ -655,3 +659,5 @@ qboolean CL_VideoRecording(void)
 {
 	return afd.fileOpen;
 }
+
+#endif // DEDICATED
