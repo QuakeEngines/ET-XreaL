@@ -7,7 +7,7 @@ DEVELOPER=../..
 RELEASE=ET-XreaL_snapshot_$DATE
 DEFAULTGAME=etmain
 COREPK3=zz-XreaL-$DATE.pk3
-DLLPK3=mp_bin-$DATE.pk3
+DLLPK3=mp_bin.pk3
 
 # remove previously created package
 rm $RELEASE.7z
@@ -25,7 +25,7 @@ cp $DEVELOPER/$DEFAULTGAME/qagame_mp_x86.dll $RELEASE/$DEFAULTGAME/
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/ui_mp_x86.dll
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/cgame_mp_x86.dll
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/qagame_mp_x86.dll
-#7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/src
+7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/src
 
 # build core pk3 and delete everything else
 cd $RELEASE/$DEFAULTGAME
@@ -39,7 +39,7 @@ zip $DLLPK3 qagame_mp_x86.dll
 mv $DLLPK3 ..
 
 # build pk3 with XreaL addons
-#rm -rf src
+rm -rf src
 zip -r $COREPK3 . -x \*.pk3 \src \*.dll
 cd ..
 mv $DEFAULTGAME/$COREPK3 .
