@@ -4016,6 +4016,8 @@ typedef struct
 	int             numFBOs;
 	FBO_t          *fbos[MAX_FBOS];
 
+	GLuint			vao;
+
 	growList_t      vbos;
 	growList_t      ibos;
 

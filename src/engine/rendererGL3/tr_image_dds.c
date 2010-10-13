@@ -1129,10 +1129,6 @@ image_t        *R_LoadDDSImageData(void *pImageData, const char *name, int bits,
 			break;
 
 		case WT_CLAMP:
-			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			break;
-
 		case WT_EDGE_CLAMP:
 			glTexParameterf(ret->type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameterf(ret->type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

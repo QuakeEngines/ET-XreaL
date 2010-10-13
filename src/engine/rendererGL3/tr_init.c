@@ -1978,6 +1978,13 @@ void R_Init(void)
 
 	R_InitFBOs();
 
+	if(glConfig.driverType == GLDRV_OPENGL3)
+	{
+		tr.vao = 0;
+		glGenVertexArrays(1, &tr.vao);
+		glBindVertexArray(tr.vao);
+	}
+
 	R_InitVBOs();
 
 	R_InitShaders();
@@ -2052,6 +2059,13 @@ void RE_Shutdown(qboolean destroyWindow)
 		R_ShutdownFBOs();
 
 #if !defined(USE_D3D10)
+
+		if(glConfig.driverType == GLDRV_OPENGL3)
+		{
+			glDeleteVertexArrays(1, &tr.vao);
+			tr.vao = 0;
+		}
+
 		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
 		{
 			glDeleteQueriesARB(MAX_OCCLUSION_QUERIES, tr.occlusionQueryObjects);
