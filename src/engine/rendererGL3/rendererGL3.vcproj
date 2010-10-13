@@ -190,7 +190,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tr_backend.c"
+				RelativePath=".\tr_backend.cpp"
 				>
 			</File>
 			<File
@@ -326,7 +326,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tr_sky.c"
+				RelativePath=".\tr_sky.cpp"
 				>
 			</File>
 			<File
@@ -338,7 +338,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tr_world.c"
+				RelativePath=".\tr_world.cpp"
 				>
 			</File>
 			<File

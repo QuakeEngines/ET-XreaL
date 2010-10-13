@@ -154,7 +154,7 @@ rendererGL3_list = [
 'src/engine/rendererGL3/gl_shader.cpp',
 'src/engine/rendererGL3/tr_animation_mdm.c',
 'src/engine/rendererGL3/tr_animation.c',
-'src/engine/rendererGL3/tr_backend.c',
+'src/engine/rendererGL3/tr_backend.cpp',
 'src/engine/rendererGL3/tr_bsp.c',
 'src/engine/rendererGL3/tr_cmds.c',
 'src/engine/rendererGL3/tr_curve.c',
@@ -187,10 +187,10 @@ rendererGL3_list = [
 'src/engine/rendererGL3/tr_shader.c',
 'src/engine/rendererGL3/tr_shadows.c',
 'src/engine/rendererGL3/tr_skin.c',
-'src/engine/rendererGL3/tr_sky.c',
+'src/engine/rendererGL3/tr_sky.cpp',
 'src/engine/rendererGL3/tr_surface.c',
 'src/engine/rendererGL3/tr_vbo.c',
-'src/engine/rendererGL3/tr_world.c',
+'src/engine/rendererGL3/tr_world.cpp',
 ]
 
 server_list = [

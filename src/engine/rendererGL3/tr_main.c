@@ -621,7 +621,7 @@ R_CullLocalBox
 Returns CULL_IN, CULL_CLIP, or CULL_OUT
 =================
 */
-int R_CullLocalBox(vec3_t localBounds[2])
+cullResult_t R_CullLocalBox(vec3_t localBounds[2])
 {
 #if 0
 	int             i, j;

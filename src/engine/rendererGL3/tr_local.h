@@ -4364,7 +4364,7 @@ void            R_AddDrawSurf(surfaceType_t * surface, shader_t * shader, int li
 void            R_LocalNormalToWorld(const vec3_t local, vec3_t world);
 void            R_LocalPointToWorld(const vec3_t local, vec3_t world);
 
-int             R_CullLocalBox(vec3_t bounds[2]);
+cullResult_t    R_CullLocalBox(vec3_t bounds[2]);
 int             R_CullLocalPointAndRadius(vec3_t origin, float radius);
 int             R_CullPointAndRadius(vec3_t origin, float radius);
 

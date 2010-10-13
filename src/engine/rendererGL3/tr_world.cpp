@@ -395,7 +395,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 	vec3_t          v;
 	vec3_t          transformed;
 	vec3_t			boundsCenter;
-	float			boundsRadius;
+//	float			boundsRadius;
 
 	pModel = R_GetModelByHandle(ent->e.hModel);
 	bspModel = pModel->bsp;
@@ -448,7 +448,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 		{
 			vboSurface = bspModel->vboSurfaces[i];
 
-			R_AddDrawSurf((void *)vboSurface, vboSurface->shader, vboSurface->lightmapNum);
+			R_AddDrawSurf((surfaceType_t *) vboSurface, vboSurface->shader, vboSurface->lightmapNum);
 		}
 	}
 	else
@@ -761,7 +761,7 @@ R_inPVS
 qboolean R_inPVS(const vec3_t p1, const vec3_t p2)
 {
 	bspNode_t      *leaf;
-	byte           *vis;
+	const byte     *vis;
 
 	leaf = R_PointInLeaf(p1);
 	vis = R_ClusterPVS(leaf->cluster);
@@ -870,7 +870,7 @@ static void R_UpdateClusterSurfaces()
 		return;
 
 	// build interaction caches list
-	surfacesSorted = ri.Hunk_AllocateTempMemory(numSurfaces * sizeof(surfacesSorted[0]));
+	surfacesSorted = (bspSurface_t **) ri.Hunk_AllocateTempMemory(numSurfaces * sizeof(surfacesSorted[0]));
 
 	numSurfaces = 0;
 	for(k = 0; k < cluster->numMarkSurfaces; k++)
@@ -967,7 +967,7 @@ static void R_UpdateClusterSurfaces()
 
 			// build triangle indices
 			indexesSize = numTriangles * 3 * sizeof(glIndex_t);
-			indexes = ri.Hunk_AllocateTempMemory(indexesSize);
+			indexes = (glIndex_t *) ri.Hunk_AllocateTempMemory(indexesSize);
 
 			numTriangles = 0;
 			for(l = k; l < numSurfaces; l++)
@@ -1066,11 +1066,11 @@ static void R_UpdateClusterSurfaces()
 			}
 			else
 			{
-				vboSurf = ri.Hunk_Alloc(sizeof(*vboSurf), h_low);
+				vboSurf = (srfVBOMesh_t *) ri.Hunk_Alloc(sizeof(*vboSurf), h_low);
 				vboSurf->surfaceType = SF_VBO_MESH;
 
 				vboSurf->vbo = tr.world->vbo;
-				vboSurf->ibo = ibo = ri.Hunk_Alloc(sizeof(*ibo), h_low);
+				vboSurf->ibo = ibo = (IBO_t *) ri.Hunk_Alloc(sizeof(*ibo), h_low);
 
 #if defined(USE_D3D10)
 				// TODO
@@ -1582,7 +1582,7 @@ static qboolean ResultAvailable(bspNode_t *node)
 		GL_CheckErrors();
 	}
 
-	return !!available;
+	return (qboolean) available;
 #endif
 }
 
@@ -1711,7 +1711,7 @@ static void BuildNodeTraversalStackPost_r(bspNode_t * node)
 		if((tr.frameCount - node->lastQueried[tr.viewCount]) <= Q_min((int)ceil((r_chcMaxVisibleFrames->value * 0.5f) + (r_chcMaxVisibleFrames->value * 0.5f) * random()), r_chcMaxVisibleFrames->integer))
 #endif
 		{
-			node->visible[tr.viewCount] = node->occlusionQuerySamples[tr.viewCount] > r_chcVisibilityThreshold->integer;
+			node->visible[tr.viewCount] = (qboolean) (node->occlusionQuerySamples[tr.viewCount] > r_chcVisibilityThreshold->integer);
 		}
 		else
 		{
@@ -1752,8 +1752,13 @@ static void R_CoherentHierachicalCulling()
 	link_t			renderQueue;
 	int             startTime = 0, endTime = 0;
 
+#ifdef __cplusplus
+	bool			wasVisible;
+	bool			needsQuery;
+#else
 	qboolean		wasVisible;
 	qboolean		needsQuery;
+#endif
 
 	//ri.Cvar_Set("r_logFile", "1");
 
@@ -1859,9 +1864,9 @@ static void R_CoherentHierachicalCulling()
 		//ri.Printf(PRINT_ALL, "--- (%i, %i, %i)\n", !StackEmpty(&traversalStack), !QueueEmpty(&occlusionQueryQueue), !QueueEmpty(&invisibleQueue));
 
 		//--PART 1: process finished occlusion queries
-		while(!QueueEmpty(&occlusionQueryQueue) && (ResultAvailable(QueueFront(&occlusionQueryQueue)->data) || StackEmpty(&traversalStack)))
+		while(!QueueEmpty(&occlusionQueryQueue) && (ResultAvailable((bspNode_t *) QueueFront(&occlusionQueryQueue)->data) || StackEmpty(&traversalStack)))
 		{
-			if(ResultAvailable(QueueFront(&occlusionQueryQueue)->data))
+			if(ResultAvailable((bspNode_t *) QueueFront(&occlusionQueryQueue)->data))
 			{
 				node = (bspNode_t *) DeQueue(&occlusionQueryQueue);
 
@@ -1953,7 +1958,7 @@ static void R_CoherentHierachicalCulling()
 
 
 			// identify previously visible nodes
-			wasVisible = node->visible[tr.viewCount] && ((tr.frameCount - node->lastVisited[tr.viewCount]) <= r_chcMaxVisibleFrames->integer);
+			wasVisible = (qboolean) (node->visible[tr.viewCount] && ((tr.frameCount - node->lastVisited[tr.viewCount]) <= r_chcMaxVisibleFrames->integer));
 
 			// identify nodes that we cannot skip queries for
 
@@ -2454,7 +2459,7 @@ void R_AddWorldSurfaces(void)
 					}
 				}
 
-				R_AddDrawSurf((void *)srf, shader, srf->lightmapNum);
+				R_AddDrawSurf((surfaceType_t *)srf, shader, srf->lightmapNum);
 			}
 		}
 	}
@@ -2524,7 +2529,7 @@ void R_AddWorldInteractions(trRefLight_t * light)
 
 			if(intersects)
 			{
-				R_AddLightInteraction(light, (void *)srf, srf->shader, cubeSideBits, iaType);
+				R_AddLightInteraction(light, (surfaceType_t *)srf, srf->shader, cubeSideBits, iaType);
 
 				if(light->isStatic)
 					tr.pc.c_slightSurfaces++;
@@ -2585,7 +2590,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 
 				shadowSrf = iaVBO->vboShadowVolume;
 
-				R_AddLightInteraction(light, (void *)shadowSrf, tr.defaultShader, CUBESIDE_CLIPALL, IA_SHADOWONLY);
+				R_AddLightInteraction(light, (surfaceType_t *)shadowSrf, tr.defaultShader, CUBESIDE_CLIPALL, IA_SHADOWONLY);
 			}
 
 			for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
@@ -2596,7 +2601,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 				srf = iaVBO->vboLightMesh;
 				shader = iaVBO->shader;
 
-				R_AddLightInteraction(light, (void *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
+				R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
 			}
 		}
 		else
@@ -2613,16 +2618,16 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 				switch (light->l.rlType)
 				{
 					case RL_OMNI:
-						R_AddLightInteraction(light, (void *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
+						R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
 						break;
 
 					case RL_DIRECTIONAL:
 					case RL_PROJ:
-						R_AddLightInteraction(light, (void *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
+						R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
 						break;
 
 					default:
-						R_AddLightInteraction(light, (void *)srf, shader, CUBESIDE_CLIPALL, IA_DEFAULT);
+						R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_DEFAULT);
 						break;
 				}
 			}
@@ -2636,7 +2641,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 				srf = iaVBO->vboShadowMesh;
 				shader = iaVBO->shader;
 
-				R_AddLightInteraction(light, (void *)srf, shader, iaVBO->cubeSideBits, IA_SHADOWONLY);
+				R_AddLightInteraction(light, (surfaceType_t *)srf, shader, iaVBO->cubeSideBits, IA_SHADOWONLY);
 			}
 		}
 

@@ -5880,7 +5880,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 						// set uniforms
 						VectorCopy(light->origin, lightOrigin);
 						VectorCopy(tess.svars.color, lightColor);
-						shadowCompare = !light->l.noShadows && light->shadowLOD >= 0;
+						shadowCompare = (qboolean) (!light->l.noShadows && light->shadowLOD >= 0);
 
 						GLSL_SetUniform_ViewOrigin(&tr.deferredLightingShader_DBS_omni, viewOrigin);
 						GLSL_SetUniform_LightOrigin(&tr.deferredLightingShader_DBS_omni, lightOrigin);
@@ -6031,7 +6031,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 							// set uniforms
 							VectorCopy(light->origin, lightOrigin);
 							VectorCopy(tess.svars.color, lightColor);
-							shadowCompare = !light->l.noShadows && light->shadowLOD >= 0;
+							shadowCompare = (qboolean) (!light->l.noShadows && light->shadowLOD >= 0);
 
 							GLSL_SetUniform_ViewOrigin(&tr.deferredLightingShader_DBS_proj, viewOrigin);
 							GLSL_SetUniform_LightOrigin(&tr.deferredLightingShader_DBS_proj, lightOrigin);
@@ -8729,7 +8729,7 @@ static qboolean LightOcclusionResultAvailable(trRefLight_t *light)
 			GL_CheckErrors();
 		}
 
-		return !!available;
+		return (qboolean) available;
 	}
 
 	return qtrue;
@@ -8913,7 +8913,7 @@ void RB_RenderLightOcclusionQueries()
 
 		for(i = 0; i < invisibleList.currentElements; i++)
 		{
-			light = Com_GrowListElement(&invisibleList, i);
+			light = (trRefLight_t *) Com_GrowListElement(&invisibleList, i);
 
 			EnQueue(&invisibleQueue, light);
 
@@ -8944,7 +8944,7 @@ void RB_RenderLightOcclusionQueries()
 
 		while(!QueueEmpty(&occlusionQueryQueue))
 		{
-			if(LightOcclusionResultAvailable(QueueFront(&occlusionQueryQueue)->data))
+			if(LightOcclusionResultAvailable((trRefLight_t *) QueueFront(&occlusionQueryQueue)->data))
 			{
 				light = (trRefLight_t *) DeQueue(&occlusionQueryQueue);
 
@@ -10226,7 +10226,7 @@ static void RB_RenderDebugUtils()
 
 		for(j = 0; j < tr.cubeProbes.currentElements; j++)
 		{
-			cubeProbe = Com_GrowListElement(&tr.cubeProbes, j);
+			cubeProbe = (cubemapProbe_t *) Com_GrowListElement(&tr.cubeProbes, j);
 
 			// bind u_ColorMap
 			GL_SelectTexture(0);
@@ -11315,7 +11315,7 @@ static void RB_RenderView(void)
 		RB_RenderDrawSurfaces(qfalse, qfalse);
 
 		// render global fog post process effect
-		RB_RenderUniformFog(qfalse);
+		RB_RenderUniformFog();
 
 		// scale down rendered HDR scene to 1 / 4th
 		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
@@ -12161,7 +12161,7 @@ void RB_ShowImages(void)
 
 	for(i = 0; i < tr.images.currentElements; i++)
 	{
-		image = Com_GrowListElement(&tr.images, i);
+		image = (image_t *) Com_GrowListElement(&tr.images, i);
 
 		/*
 		   if(image->bits & (IF_RGBA16F | IF_RGBA32F | IF_LA16F | IF_LA32F))
@@ -12246,7 +12246,7 @@ const void     *RB_SwapBuffers(const void *data)
 		long            sum = 0;
 		unsigned char  *stencilReadback;
 
-		stencilReadback = ri.Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight);
+		stencilReadback = (unsigned char *) ri.Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight);
 		glReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencilReadback);
 
 		for(i = 0; i < glConfig.vidWidth * glConfig.vidHeight; i++)
