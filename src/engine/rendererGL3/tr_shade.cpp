@@ -100,7 +100,7 @@ static void GLSL_PrintShaderSource(GLhandleARB object)
 	Com_Dealloc(msg);
 }
 
-static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, char **libs, char **compileMacros, GLenum shaderType, qboolean optimize)
+static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, const char *_libs, const char *_compileMacros, GLenum shaderType, qboolean optimize)
 {
 	char            filename[MAX_QPATH];
 	GLcharARB      *mainBuffer = NULL;
@@ -111,6 +111,9 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, char **lib
 
 	int				libsSize;
 	char           *libsBuffer;		// all libs concatenated
+
+	char          **libs = (char **) &_libs;
+	char          **compileMacros = (char **) &_compileMacros;
 
 	GL_CheckErrors();
 
@@ -812,8 +815,6 @@ static void GLSL_BindAttribLocations(GLhandleARB program, int attribs)
 
 static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int attribs, qboolean fragmentShader, qboolean optimize)
 {
-	static char *empty = "";
-
 	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
 
 	if(strlen(name) >= MAX_QPATH)
@@ -826,8 +827,8 @@ static void GLSL_InitGPUShader(shaderProgram_t * program, const char *name, int 
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, name, &empty, &empty, GL_VERTEX_SHADER_ARB, optimize);
-	GLSL_LoadGPUShader(program->program, name, &empty, &empty, GL_FRAGMENT_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, name, "", "", GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, name, "", "", GL_FRAGMENT_SHADER_ARB, optimize);
 
 	GLSL_BindAttribLocations(program->program, attribs);
 	GLSL_LinkProgram(program->program);
@@ -842,8 +843,6 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 								int attribs,
 								qboolean optimize)
 {
-	static char *empty = "";
-
 	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
 
 	if(strlen(vertexMainShader) >= MAX_QPATH)
@@ -861,8 +860,8 @@ static void GLSL_InitGPUShader2(shaderProgram_t * program,
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, vertexMainShader, (char **) &vertexLibShaders, &empty, GL_VERTEX_SHADER_ARB, optimize);
-	GLSL_LoadGPUShader(program->program, fragmentMainShader, (char **) &fragmentLibShaders, &empty, GL_FRAGMENT_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, vertexMainShader, vertexLibShaders, "", GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, fragmentMainShader, fragmentLibShaders, "", GL_FRAGMENT_SHADER_ARB, optimize);
 	
 	GLSL_BindAttribLocations(program->program, attribs);
 	GLSL_LinkProgram(program->program);
@@ -900,8 +899,8 @@ void GLSL_InitGPUShader3(shaderProgram_t * program,
 	program->program = glCreateProgramObjectARB();
 	program->attribs = attribs;
 
-	GLSL_LoadGPUShader(program->program, vertexMainShader, (char **) &vertexLibShaders, (char **) &compileMacros, GL_VERTEX_SHADER_ARB, optimize);
-	GLSL_LoadGPUShader(program->program, fragmentMainShader, (char **) &fragmentLibShaders, (char **) &compileMacros, GL_FRAGMENT_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, vertexMainShader, vertexLibShaders, compileMacros, GL_VERTEX_SHADER_ARB, optimize);
+	GLSL_LoadGPUShader(program->program, fragmentMainShader, fragmentLibShaders, compileMacros, GL_FRAGMENT_SHADER_ARB, optimize);
 
 	GLSL_BindAttribLocations(program->program, attribs);
 	GLSL_LinkProgram(program->program);

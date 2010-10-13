@@ -50,6 +50,14 @@ public:
 		_shaderPrograms = std::vector<shaderProgram_t>(maxPermutations);
 	}
 
+	~GLShader()
+	{
+		for(std::size_t i = 0; i < _shaderPrograms.size(); i++)
+		{
+			glDeleteObjectARB(_shaderPrograms[i].program);
+		}
+	}
+
 	void RegisterUniform(GLUniform* uniform)
 	{
 		_uniforms.push_back(uniform);
@@ -444,7 +452,7 @@ public:
 
 	void SetUniform_Time(float value)
 	{
-		GLSL_SetUniform_DeformSpread(_parent->GetProgram(), value);
+		GLSL_SetUniform_Time(_parent->GetProgram(), value);
 	}
 };
 
