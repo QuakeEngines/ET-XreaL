@@ -45,40 +45,46 @@ GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity = NULL;
 
 
 
+const char* GLShader::GetCompileMacrosString(int permutation)
+{
+	static char compileMacros[4096];
 
+	Com_Memset(compileMacros, 0, sizeof(compileMacros));
+
+	for(size_t j = 0; j < _compileMacros.size(); j++)
+	{
+		GLCompileMacro* macro = _compileMacros[j];
+
+		if(permutation & macro->GetBit())
+		{
+			Q_strcat(compileMacros, sizeof(compileMacros), macro->GetName());
+			Q_strcat(compileMacros, sizeof(compileMacros), " ");
+		}
+	}
+
+	return compileMacros;
+}
 
 
 GLShader_lightMapping::GLShader_lightMapping():
-		GLShader(MAX_PERMUTATIONS),
+		GLShader(),
 		u_DiffuseTextureMatrix(this),
 		u_AlphaTest(this),
 		u_ModelViewProjectionMatrix(this),
 		u_PortalPlane(this),
-		GLDeformStage(this)
+		GLDeformStage(this),
+		GLCompileMacro_USE_PORTAL_CLIPPING(this),
+		GLCompileMacro_USE_ALPHA_TESTING(this),
+		GLCompileMacro_USE_DEFORM_VERTEXES(this)
 {
-	char compileMacros[4096];
-
+	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	for(int i = 0; i < MAX_PERMUTATIONS; i++)
+	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
+	for(size_t i = 0; i < numPermutations; i++)
 	{
-		Com_Memset(compileMacros, 0, sizeof(compileMacros));
-
-		if(i & USE_PORTAL_CLIPPING)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_PORTAL_CLIPPING ");
-		}
-
-		if(i & USE_ALPHA_TESTING)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_ALPHA_TESTING ");
-		}
-
-		if(i & USE_DEFORM_VERTEXES)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_DEFORM_VERTEXES ");
-		}
+		const char* compileMacros = GetCompileMacrosString(i);
 
 		ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
 
@@ -115,12 +121,14 @@ GLShader_lightMapping::GLShader_lightMapping():
 		GLSL_ShowProgramUniforms(shaderProgram->program);
 		GL_CheckErrors();
 	}
+
+	SelectProgram();
 }
 
 
 
 GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
-		GLShader(MAX_PERMUTATIONS),
+		GLShader(),
 		u_AlphaTest(this),
 		u_AmbientColor(this),
 		u_ViewOrigin(this),
@@ -132,46 +140,22 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 		u_VertexInterpolation(this),
 		u_PortalPlane(this),
 		u_DepthScale(this),
-		GLDeformStage(this)
+		GLDeformStage(this),
+		GLCompileMacro_USE_PORTAL_CLIPPING(this),
+		GLCompileMacro_USE_ALPHA_TESTING(this),
+		GLCompileMacro_USE_VERTEX_SKINNING(this),
+		GLCompileMacro_USE_VERTEX_ANIMATION(this),
+		GLCompileMacro_USE_DEFORM_VERTEXES(this),
+		GLCompileMacro_USE_PARALLAX_MAPPING(this)
 {
-	char compileMacros[4096];
-
+	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	for(int i = 0; i < MAX_PERMUTATIONS; i++)
+	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
+	for(size_t i = 0; i < numPermutations; i++)
 	{
-		Com_Memset(compileMacros, 0, sizeof(compileMacros));
-
-		if(i & USE_PORTAL_CLIPPING)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_PORTAL_CLIPPING ");
-		}
-
-		if(i & USE_ALPHA_TESTING)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_ALPHA_TESTING ");
-		}
-
-		if(i & USE_VERTEX_SKINNING)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_VERTEX_SKINNING ");
-		}
-
-		if(i & USE_VERTEX_ANIMATION)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_VERTEX_ANIMATION ");
-		}
-
-		if(i & USE_DEFORM_VERTEXES)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_DEFORM_VERTEXES ");
-		}
-
-		if(i & USE_PARALLAX_MAPPING)
-		{
-			Q_strcat(compileMacros, sizeof(compileMacros), "USE_PARALLAX_MAPPING ");
-		}
+		const char* compileMacros = GetCompileMacrosString(i);
 
 		ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
 
@@ -226,4 +210,6 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 		GLSL_ShowProgramUniforms(shaderProgram->program);
 		GL_CheckErrors();
 	}
+
+	SelectProgram();
 }

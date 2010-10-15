@@ -30,24 +30,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // *INDENT-OFF*
 
 class GLUniform;
+class GLCompileMacro;
 
 class GLShader
 {
+	//friend class GLCompileMacro_USE_ALPHA_TESTING;
+
 protected:
-	int						_activeMacros;
-	shaderProgram_t*		_currentProgram;
+	int									_activeMacros;
 
-	std::vector<shaderProgram_t> _shaderPrograms;
+	std::vector<shaderProgram_t>		_shaderPrograms;
+	shaderProgram_t*					_currentProgram;
 
-	std::vector<GLUniform*>	_uniforms;
+	std::vector<GLUniform*>				_uniforms;
+	std::vector<GLCompileMacro*>		_compileMacros;
 public:
 
-	GLShader(int maxPermutations)
+	GLShader()
 	{
 		_activeMacros = 0;
 		_currentProgram = NULL;
-
-		_shaderPrograms = std::vector<shaderProgram_t>(maxPermutations);
 	}
 
 	~GLShader()
@@ -63,12 +65,27 @@ public:
 		_uniforms.push_back(uniform);
 	}
 
+	void RegisterCompileMacro(GLCompileMacro* compileMacro)
+	{
+		if(_compileMacros.size() >= 9)
+		{
+			ri.Error(ERR_DROP, "Can't register more than 9 compile macros for a single shader");
+		}
+
+		_compileMacros.push_back(compileMacro);
+	}
+
+	const char* GetCompileMacrosString(int permutation);
+
+	size_t GetNumOfCompiledMacros() const				{ return _compileMacros.size(); }
+
 	shaderProgram_t*		GetProgram() const			{ return _currentProgram; }
 
-	void SelectProgram(int numMacros)
+	void SelectProgram()
 	{
 		int index = 0;
 
+		size_t numMacros = _compileMacros.size();
 		for(int i = 0; i < numMacros; i++)
 		{
 			if(_activeMacros & BIT(i))
@@ -81,6 +98,21 @@ public:
 	void BindProgram()
 	{
 		GL_BindProgram(_currentProgram);
+	}
+
+	bool IsMacroSet(int bit)
+	{
+		return (_activeMacros & bit) != 0;
+	}
+
+	void AddMacroBit(int bit)
+	{
+		_activeMacros |= bit;
+	}
+
+	void DelMacroBit(int bit)
+	{
+		_activeMacros &= ~bit;
 	}
 };
 
@@ -99,6 +131,140 @@ protected:
 };
 
 
+class GLCompileMacro
+{
+private:
+	int						_bit;
+
+protected:
+	GLShader*				_shader;
+
+	GLCompileMacro(GLShader* shader):
+	  _shader(shader)
+	{
+		_bit = BIT(_shader->GetNumOfCompiledMacros());
+		_shader->RegisterCompileMacro(this);
+	}
+
+public:
+	virtual const char* GetName() const = 0;
+
+	void EnableMacro()
+	{
+		int bit = GetBit();
+
+		if(!_shader->IsMacroSet(bit))
+		{
+			_shader->AddMacroBit(bit);
+			_shader->SelectProgram();
+		}
+	}
+
+	void DisableMacro()
+	{
+		int bit = GetBit();
+
+		if(_shader->IsMacroSet(bit))
+		{
+			_shader->DelMacroBit(bit);
+			_shader->SelectProgram();
+		}
+	}
+
+public:
+	const int GetBit() { return _bit; }
+};
+
+
+class GLCompileMacro_USE_ALPHA_TESTING:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_ALPHA_TESTING(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_ALPHA_TESTING"; }
+
+	void EnableAlphaTesting()		{ EnableMacro(); }
+	void DisableAlphaTesting()		{ DisableMacro(); }
+};
+
+class GLCompileMacro_USE_PORTAL_CLIPPING:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_PORTAL_CLIPPING(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_PORTAL_CLIPPING"; }
+
+	void EnablePortalClipping()		{ EnableMacro(); }
+	void DisablePortalClipping()	{ DisableMacro(); }
+};
+
+class GLCompileMacro_USE_VERTEX_SKINNING:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_VERTEX_SKINNING(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_VERTEX_SKINNING"; }
+
+	void EnableVertexSkinning()		{ EnableMacro(); }
+	void DisableVertexSkinning()	{ DisableMacro(); }
+};
+
+class GLCompileMacro_USE_VERTEX_ANIMATION:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_VERTEX_ANIMATION(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_VERTEX_ANIMATION"; }
+
+	void EnableVertexAnimation()		{ EnableMacro(); }
+	void DisableVertexAnimation()		{ DisableMacro(); }
+};
+
+class GLCompileMacro_USE_DEFORM_VERTEXES:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_DEFORM_VERTEXES(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_DEFORM_VERTEXES"; }
+
+	void EnableDeformVertexes()		{ EnableMacro(); }
+	void DisableDeformVertexes()	{ DisableMacro(); }
+};
+
+class GLCompileMacro_USE_PARALLAX_MAPPING:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_PARALLAX_MAPPING(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_PARALLAX_MAPPING"; }
+
+	void EnableParallaxMapping()	{ EnableMacro(); }
+	void DisableParallaxMapping()	{ DisableMacro(); }
+};
 
 
 
@@ -516,39 +682,13 @@ public u_DiffuseTextureMatrix,
 public u_AlphaTest,
 public u_ModelViewProjectionMatrix,
 public u_PortalPlane,
-public GLDeformStage
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_ALPHA_TESTING,
+public GLCompileMacro_USE_DEFORM_VERTEXES
 {
-private:
-	
-	enum
-	{
-		USE_PORTAL_CLIPPING = BIT(0),
-		USE_ALPHA_TESTING = BIT(1),
-		USE_DEFORM_VERTEXES = BIT(2),
-
-		ALL_COMPILE_FLAGS = USE_PORTAL_CLIPPING |
-							USE_ALPHA_TESTING |
-							USE_DEFORM_VERTEXES,
-
-		NUM_MACROS = 3,
-		MAX_PERMUTATIONS = (1 << NUM_MACROS)	// same as 2^NUM_MACROS
-	};
-
-
 public:
 	GLShader_lightMapping();
-	
-public:
-
-	void EnablePortalClipping()					{	_activeMacros |= USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
-	void EnableAlphaTesting()					{	_activeMacros |= USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
-	void EnableDeformVertexes()					{	_activeMacros |= USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
-
-	void DisablePortalClipping()				{	_activeMacros &= ~USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
-	void DisableAlphaTesting()					{	_activeMacros &= ~USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
-	void DisableDeformVertexes()				{	_activeMacros &= ~USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
-
-		
 };
 
 
@@ -566,51 +706,16 @@ public u_BoneMatrix,
 public u_VertexInterpolation,
 public u_PortalPlane,
 public u_DepthScale,
-public GLDeformStage
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_ALPHA_TESTING,
+public GLCompileMacro_USE_VERTEX_SKINNING,
+public GLCompileMacro_USE_VERTEX_ANIMATION,
+public GLCompileMacro_USE_DEFORM_VERTEXES,
+public GLCompileMacro_USE_PARALLAX_MAPPING
 {
-private:
-	
-	enum
-	{
-		USE_PORTAL_CLIPPING = BIT(0),
-		USE_ALPHA_TESTING = BIT(1),
-		USE_VERTEX_SKINNING = BIT(2),
-		USE_VERTEX_ANIMATION = BIT(3),
-		USE_DEFORM_VERTEXES = BIT(4),
-		USE_PARALLAX_MAPPING = BIT(5),
-
-		ALL_COMPILE_FLAGS = USE_PORTAL_CLIPPING |
-							USE_ALPHA_TESTING |
-							USE_VERTEX_SKINNING |
-							USE_VERTEX_ANIMATION |
-							USE_DEFORM_VERTEXES |
-							USE_PARALLAX_MAPPING,
-
-		NUM_MACROS = 6,
-		MAX_PERMUTATIONS = (1 << NUM_MACROS)	// same as 2^NUM_MACROS
-	};
-
-
 public:
 	GLShader_vertexLighting_DBS_entity();
-	
-public:
-
-	void EnablePortalClipping()					{	_activeMacros |= USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
-	void EnableAlphaTesting()					{	_activeMacros |= USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
-	void EnableVertexSkinning()					{	_activeMacros |= USE_VERTEX_SKINNING; SelectProgram(NUM_MACROS); }
-	void EnableVertexAnimation()				{	_activeMacros |= USE_VERTEX_ANIMATION; SelectProgram(NUM_MACROS); }
-	void EnableDeformVertexes()					{	_activeMacros |= USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
-	void EnableParallaxMapping()				{	_activeMacros |= USE_PARALLAX_MAPPING; SelectProgram(NUM_MACROS); }
-
-	void DisablePortalClipping()				{	_activeMacros &= ~USE_PORTAL_CLIPPING; SelectProgram(NUM_MACROS); }
-	void DisableAlphaTesting()					{	_activeMacros &= ~USE_ALPHA_TESTING; SelectProgram(NUM_MACROS); }
-	void DisableVertexSkinning()				{	_activeMacros &= ~USE_VERTEX_SKINNING; SelectProgram(NUM_MACROS); }
-	void DisableVertexAnimation()				{	_activeMacros &= ~USE_VERTEX_ANIMATION; SelectProgram(NUM_MACROS); }
-	void DisableDeformVertexes()				{	_activeMacros &= ~USE_DEFORM_VERTEXES; SelectProgram(NUM_MACROS); }
-	void DisableParallaxMapping()				{	_activeMacros &= ~USE_PARALLAX_MAPPING; SelectProgram(NUM_MACROS); }
-
-		
 };
 
 
