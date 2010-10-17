@@ -21,7 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 // tr_world.c
+
 #include "tr_local.h"
+#include "gl_shader.h"
+
 
 /*
 =================
@@ -1799,7 +1802,13 @@ static void R_CoherentHierachicalCulling()
 		R_BindNullFBO();
 	}
 
-	GL_BindProgram(&tr.genericShader);
+	gl_genericShader->DisablePortalClipping();
+	gl_genericShader->DisableVertexSkinning();
+	gl_genericShader->DisableVertexAnimation();
+	gl_genericShader->DisableDeformVertexes();
+	gl_genericShader->DisableTCGenEnvironment();
+
+	gl_genericShader->BindProgram();
 	GL_Cull(CT_TWO_SIDED);
 
 	GL_LoadProjectionMatrix(tr.viewParms.projectionMatrix);
@@ -1811,24 +1820,17 @@ static void R_CoherentHierachicalCulling()
 			   tr.viewParms.viewportWidth, tr.viewParms.viewportHeight);
 
 	// set uniforms
-	GLSL_SetUniform_TCGen_Environment(&tr.genericShader,  qfalse);
-	GLSL_SetUniform_ColorGen(&tr.genericShader, CGEN_VERTEX);
-	GLSL_SetUniform_AlphaGen(&tr.genericShader, AGEN_VERTEX);
-	if(glConfig2.vboVertexSkinningAvailable)
-	{
-		GLSL_SetUniform_VertexSkinning(&tr.genericShader, qfalse);
-	}
-	GLSL_SetUniform_DeformGen(&tr.genericShader, DGEN_NONE);
-	GLSL_SetUniform_AlphaTest(&tr.genericShader, 0);
+	gl_genericShader->SetUniform_ColorGen(CGEN_VERTEX);
+	gl_genericShader->SetUniform_AlphaGen(AGEN_VERTEX);
 
 	// set up the transformation matrix
 	GL_LoadModelViewMatrix(tr.orientation.modelViewMatrix);
-	GLSL_SetUniform_ModelViewProjectionMatrix(&tr.genericShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+	gl_genericShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 	// bind u_ColorMap
 	GL_SelectTexture(0);
 	GL_Bind(tr.whiteImage);
-	GLSL_SetUniform_ColorTextureMatrix(&tr.genericShader, matrixIdentity);
+	gl_genericShader->SetUniform_ColorTextureMatrix(matrixIdentity);
 
 #if 0
 	GL_ClearColor(0.0f, 0.0f, 0.0f, 0.0f);

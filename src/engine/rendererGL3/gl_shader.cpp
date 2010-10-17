@@ -39,6 +39,7 @@ void		GLSL_ShowProgramUniforms(GLhandleARB program);
 
 
 
+GLShader_generic* gl_genericShader = NULL;
 GLShader_lightMapping* gl_lightMappingShader = NULL;
 GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity = NULL;
 
@@ -64,6 +65,107 @@ const char* GLShader::GetCompileMacrosString(int permutation)
 
 	return compileMacros;
 }
+
+
+
+
+
+
+GLShader_generic::GLShader_generic():
+		GLShader(),
+		u_ColorTextureMatrix(this),
+		u_ViewOrigin(this),
+		u_ColorGen(this),
+		u_AlphaGen(this),
+		u_AlphaTest(this),
+		u_Color(this),
+		u_ModelMatrix(this),
+		u_ModelViewProjectionMatrix(this),
+		u_BoneMatrix(this),
+		u_VertexInterpolation(this),
+		u_PortalPlane(this),
+		GLDeformStage(this),
+		GLCompileMacro_USE_PORTAL_CLIPPING(this),
+		GLCompileMacro_USE_ALPHA_TESTING(this),
+		GLCompileMacro_USE_VERTEX_SKINNING(this),
+		GLCompileMacro_USE_VERTEX_ANIMATION(this),
+		GLCompileMacro_USE_DEFORM_VERTEXES(this),
+		GLCompileMacro_USE_TCGEN_ENVIRONMENT(this)
+{
+	_vertexAttribs = ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL;
+
+	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
+	
+	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
+
+	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
+	for(size_t i = 0; i < numPermutations; i++)
+	{
+		const char* compileMacros = GetCompileMacrosString(i);
+
+		ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
+
+		shaderProgram_t *shaderProgram = &_shaderPrograms[i];
+
+		GLSL_InitGPUShader3(shaderProgram,
+						"generic",
+						"generic",
+						"vertexAnimation deformVertexes",
+						"",
+						compileMacros,
+						ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR |
+						ATTR_POSITION2 | ATTR_NORMAL2,
+						qtrue);
+
+		shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
+		shaderProgram->u_ColorTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ColorTextureMatrix");
+		shaderProgram->u_ColorGen = glGetUniformLocationARB(shaderProgram->program, "u_ColorGen");
+		shaderProgram->u_AlphaGen = glGetUniformLocationARB(shaderProgram->program, "u_AlphaGen");
+		shaderProgram->u_Color = glGetUniformLocationARB(shaderProgram->program, "u_Color");
+		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
+		shaderProgram->u_ViewOrigin = glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");
+		shaderProgram->u_TCGen_Environment = glGetUniformLocationARB(shaderProgram->program, "u_TCGen_Environment");
+		shaderProgram->u_DeformGen = glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
+		shaderProgram->u_DeformWave = glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
+		shaderProgram->u_DeformBulge = glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
+		shaderProgram->u_DeformSpread = glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
+		shaderProgram->u_Time = glGetUniformLocationARB(shaderProgram->program, "u_Time");
+		shaderProgram->u_PortalClipping = glGetUniformLocationARB(shaderProgram->program, "u_PortalClipping");
+		shaderProgram->u_PortalPlane = glGetUniformLocationARB(shaderProgram->program, "u_PortalPlane");
+		shaderProgram->u_ModelMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelMatrix");
+		/*
+		   shaderProgram->u_ModelViewMatrix =
+		   glGetUniformLocationARB(shaderProgram->program, "u_ModelViewMatrix");
+		   shaderProgram->u_ProjectionMatrix =
+		   glGetUniformLocationARB(shaderProgram->program, "u_ProjectionMatrix");
+		 */
+		shaderProgram->u_ModelViewProjectionMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
+		if(glConfig2.vboVertexSkinningAvailable)
+		{
+			shaderProgram->u_VertexSkinning = glGetUniformLocationARB(shaderProgram->program, "u_VertexSkinning");
+			shaderProgram->u_BoneMatrix = glGetUniformLocationARB(shaderProgram->program, "u_BoneMatrix");
+		}
+
+		glUseProgramObjectARB(shaderProgram->program);
+		glUniform1iARB(shaderProgram->u_ColorMap, 0);
+		glUseProgramObjectARB(0);
+
+		GLSL_ValidateProgram(shaderProgram->program);
+		GLSL_ShowProgramUniforms(shaderProgram->program);
+		GL_CheckErrors();
+	}
+
+	SelectProgram();
+}
+
+
+
+
+
+
+
+
+
 
 
 GLShader_lightMapping::GLShader_lightMapping():

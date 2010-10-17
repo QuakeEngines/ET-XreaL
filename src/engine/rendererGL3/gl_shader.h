@@ -44,6 +44,8 @@ protected:
 
 	std::vector<GLUniform*>				_uniforms;
 	std::vector<GLCompileMacro*>		_compileMacros;
+
+	uint32_t							_vertexAttribs;
 public:
 
 	GLShader()
@@ -114,17 +116,37 @@ public:
 	{
 		_activeMacros &= ~bit;
 	}
+
+	bool IsVertexAtttribSet(int bit)
+	{
+		return (_vertexAttribs & bit) != 0;
+	}
+
+	void AddVertexAttribBit(int bit)
+	{
+		_vertexAttribs |= bit;
+	}
+
+	void DelVertexAttribBit(int bit)
+	{
+		_vertexAttribs &= ~bit;
+	}
+
+	void SetVertexAttribs()
+	{
+		GL_VertexAttribsState(_vertexAttribs);
+	}
 };
 
 class GLUniform
 {
 protected:
-	GLShader*				_parent;
+	GLShader*				_shader;
 
-	GLUniform(GLShader* parent):
-	  _parent(parent)
+	GLUniform(GLShader* shader):
+	  _shader(shader)
 	{
-		_parent->RegisterUniform(this);
+		_shader->RegisterUniform(this);
 	}
 
 	virtual const char* GetName() const = 0;
@@ -189,6 +211,14 @@ public:
 
 	void EnableAlphaTesting()		{ EnableMacro(); }
 	void DisableAlphaTesting()		{ DisableMacro(); }
+
+	void SetAlphaTesting(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
 };
 
 class GLCompileMacro_USE_PORTAL_CLIPPING:
@@ -204,6 +234,14 @@ public:
 
 	void EnablePortalClipping()		{ EnableMacro(); }
 	void DisablePortalClipping()	{ DisableMacro(); }
+
+	void SetPortalClipping(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
 };
 
 class GLCompileMacro_USE_VERTEX_SKINNING:
@@ -217,8 +255,26 @@ public:
 
 	const char* GetName() const { return "USE_VERTEX_SKINNING"; }
 
-	void EnableVertexSkinning()		{ EnableMacro(); }
-	void DisableVertexSkinning()	{ DisableMacro(); }
+	void EnableVertexSkinning()
+	{
+		EnableMacro();
+
+		_shader->AddVertexAttribBit(ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
+	}
+	void DisableVertexSkinning()
+	{
+		DisableMacro();
+
+		_shader->DelVertexAttribBit(ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
+	}
+
+	void SetVertexSkinning(bool enable)
+	{
+		if(enable)
+			EnableVertexSkinning();
+		else
+			DisableVertexSkinning();
+	}
 };
 
 class GLCompileMacro_USE_VERTEX_ANIMATION:
@@ -232,8 +288,37 @@ public:
 
 	const char* GetName() const { return "USE_VERTEX_ANIMATION"; }
 
-	void EnableVertexAnimation()		{ EnableMacro(); }
-	void DisableVertexAnimation()		{ DisableMacro(); }
+	void EnableVertexAnimation()
+	{
+		EnableMacro();
+
+		_shader->AddVertexAttribBit(ATTR_POSITION2 | ATTR_NORMAL2);
+
+		if(r_normalMapping->integer)
+		{
+			_shader->AddVertexAttribBit(ATTR_TANGENT2 | ATTR_BINORMAL2);
+		}
+	}
+
+	void DisableVertexAnimation()
+	{
+		DisableMacro();
+
+		_shader->DelVertexAttribBit(ATTR_POSITION2 | ATTR_NORMAL2);
+
+		if(r_normalMapping->integer)
+		{
+			_shader->DelVertexAttribBit(ATTR_TANGENT2 | ATTR_BINORMAL2);
+		}
+	}
+
+	void SetVertexAnimation(bool enable)
+	{
+		if(enable)
+			EnableVertexAnimation();
+		else
+			DisableVertexAnimation();
+	}
 };
 
 class GLCompileMacro_USE_DEFORM_VERTEXES:
@@ -249,6 +334,37 @@ public:
 
 	void EnableDeformVertexes()		{ EnableMacro(); }
 	void DisableDeformVertexes()	{ DisableMacro(); }
+
+	void SetDeformVertexes(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
+};
+
+class GLCompileMacro_USE_TCGEN_ENVIRONMENT:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_TCGEN_ENVIRONMENT(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_TCGEN_ENVIRONMENT"; }
+
+	void EnableTCGenEnvironment()	{ EnableMacro(); }
+	void DisableTCGenEnvironment()	{ DisableMacro(); }
+
+	void SetTCGenEnvironment(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
 };
 
 class GLCompileMacro_USE_PARALLAX_MAPPING:
@@ -264,6 +380,14 @@ public:
 
 	void EnableParallaxMapping()	{ EnableMacro(); }
 	void DisableParallaxMapping()	{ DisableMacro(); }
+
+	void SetParallaxMapping(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
 };
 
 
@@ -273,8 +397,8 @@ class u_ColorTextureMatrix:
 GLUniform
 {
 public:
-	u_ColorTextureMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_ColorTextureMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -282,7 +406,7 @@ public:
 
 	void SetUniform_ColorTextureMatrix(const matrix_t m)
 	{
-		GLSL_SetUniform_ColorTextureMatrix(_parent->GetProgram(), m);
+		GLSL_SetUniform_ColorTextureMatrix(_shader->GetProgram(), m);
 	}
 };
 
@@ -290,8 +414,8 @@ class u_DiffuseTextureMatrix:
 GLUniform
 {
 public:
-	u_DiffuseTextureMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_DiffuseTextureMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -299,7 +423,7 @@ public:
 
 	void SetUniform_DiffuseTextureMatrix(const matrix_t m)
 	{
-		GLSL_SetUniform_DiffuseTextureMatrix(_parent->GetProgram(), m);
+		GLSL_SetUniform_DiffuseTextureMatrix(_shader->GetProgram(), m);
 	}
 };
 
@@ -307,8 +431,8 @@ class u_NormalTextureMatrix:
 GLUniform
 {
 public:
-	u_NormalTextureMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_NormalTextureMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -316,7 +440,7 @@ public:
 
 	void SetUniform_NormalTextureMatrix(const matrix_t m)
 	{
-		GLSL_SetUniform_NormalTextureMatrix(_parent->GetProgram(), m);
+		GLSL_SetUniform_NormalTextureMatrix(_shader->GetProgram(), m);
 	}
 };
 
@@ -324,8 +448,8 @@ class u_SpecularTextureMatrix:
 GLUniform
 {
 public:
-	u_SpecularTextureMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_SpecularTextureMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -333,7 +457,7 @@ public:
 
 	void SetUniform_SpecularTextureMatrix(const matrix_t m)
 	{
-		GLSL_SetUniform_SpecularTextureMatrix(_parent->GetProgram(), m);
+		GLSL_SetUniform_SpecularTextureMatrix(_shader->GetProgram(), m);
 	}
 };
 
@@ -342,8 +466,8 @@ class u_AlphaTest:
 GLUniform
 {
 public:
-	u_AlphaTest(GLShader* parent):
-	  GLUniform(parent)
+	u_AlphaTest(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -351,7 +475,7 @@ public:
 
 	void SetUniform_AlphaTest(uint32_t stateBits)
 	{
-		GLSL_SetUniform_AlphaTest(_parent->GetProgram(), stateBits);
+		GLSL_SetUniform_AlphaTest(_shader->GetProgram(), stateBits);
 	}
 };
 
@@ -360,8 +484,8 @@ class u_AmbientColor:
 GLUniform
 {
 public:
-	u_AmbientColor(GLShader* parent):
-	  GLUniform(parent)
+	u_AmbientColor(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -369,7 +493,7 @@ public:
 
 	void SetUniform_AmbientColor(const vec3_t v)
 	{
-		GLSL_SetUniform_AmbientColor(_parent->GetProgram(), v);
+		GLSL_SetUniform_AmbientColor(_shader->GetProgram(), v);
 	}
 };
 
@@ -378,8 +502,8 @@ class u_ViewOrigin:
 GLUniform
 {
 public:
-	u_ViewOrigin(GLShader* parent):
-	  GLUniform(parent)
+	u_ViewOrigin(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -387,7 +511,7 @@ public:
 
 	void SetUniform_ViewOrigin(const vec3_t v)
 	{
-		GLSL_SetUniform_ViewOrigin(_parent->GetProgram(), v);
+		GLSL_SetUniform_ViewOrigin(_shader->GetProgram(), v);
 	}
 };
 
@@ -396,8 +520,8 @@ class u_LightDir:
 GLUniform
 {
 public:
-	u_LightDir(GLShader* parent):
-	  GLUniform(parent)
+	u_LightDir(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -405,7 +529,7 @@ public:
 
 	void SetUniform_LightDir(const vec3_t v)
 	{
-		GLSL_SetUniform_LightDir(_parent->GetProgram(), v);
+		GLSL_SetUniform_LightDir(_shader->GetProgram(), v);
 	}
 };
 
@@ -414,8 +538,8 @@ class u_LightColor:
 GLUniform
 {
 public:
-	u_LightColor(GLShader* parent):
-	  GLUniform(parent)
+	u_LightColor(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -423,17 +547,36 @@ public:
 
 	void SetUniform_LightColor(const vec3_t v)
 	{
-		GLSL_SetUniform_LightColor(_parent->GetProgram(), v);
+		GLSL_SetUniform_LightColor(_shader->GetProgram(), v);
 	}
 };
+
+class u_Color:
+GLUniform
+{
+public:
+	u_Color(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_Color"; }
+
+	void SetUniform_Color(const vec3_t v)
+	{
+		GLSL_SetUniform_Color(_shader->GetProgram(), v);
+	}
+};
+
+
 
 
 class u_ModelMatrix:
 GLUniform
 {
 public:
-	u_ModelMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_ModelMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -441,7 +584,7 @@ public:
 
 	void SetUniform_ModelMatrix(const matrix_t m)
 	{
-		GLSL_SetUniform_ModelMatrix(_parent->GetProgram(), m);
+		GLSL_SetUniform_ModelMatrix(_shader->GetProgram(), m);
 	}
 };
 
@@ -450,8 +593,8 @@ class u_ModelViewProjectionMatrix:
 GLUniform
 {
 public:
-	u_ModelViewProjectionMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_ModelViewProjectionMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -459,7 +602,7 @@ public:
 
 	void SetUniform_ModelViewProjectionMatrix(const matrix_t m)
 	{
-		GLSL_SetUniform_ModelViewProjectionMatrix(_parent->GetProgram(), m);
+		GLSL_SetUniform_ModelViewProjectionMatrix(_shader->GetProgram(), m);
 	}
 };
 
@@ -468,8 +611,8 @@ class u_BoneMatrix:
 GLUniform
 {
 public:
-	u_BoneMatrix(GLShader* parent):
-	  GLUniform(parent)
+	u_BoneMatrix(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -477,7 +620,7 @@ public:
 
 	void SetUniform_BoneMatrix(int numBones, const matrix_t boneMatrices[MAX_BONES])
 	{
-		glUniformMatrix4fvARB(_parent->GetProgram()->u_BoneMatrix, numBones, GL_FALSE, &boneMatrices[0][0]);
+		glUniformMatrix4fvARB(_shader->GetProgram()->u_BoneMatrix, numBones, GL_FALSE, &boneMatrices[0][0]);
 	}
 };
 
@@ -486,8 +629,8 @@ class u_VertexInterpolation:
 GLUniform
 {
 public:
-	u_VertexInterpolation(GLShader* parent):
-	  GLUniform(parent)
+	u_VertexInterpolation(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -495,7 +638,7 @@ public:
 
 	void SetUniform_VertexInterpolation(float value)
 	{
-		GLSL_SetUniform_VertexInterpolation(_parent->GetProgram(), value);
+		GLSL_SetUniform_VertexInterpolation(_shader->GetProgram(), value);
 	}
 };
 
@@ -504,8 +647,8 @@ class u_PortalPlane:
 GLUniform
 {
 public:
-	u_PortalPlane(GLShader* parent):
-	  GLUniform(parent)
+	u_PortalPlane(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -513,7 +656,7 @@ public:
 
 	void SetUniform_PortalPlane(const vec4_t v)
 	{
-		GLSL_SetUniform_PortalPlane(_parent->GetProgram(), v);
+		GLSL_SetUniform_PortalPlane(_shader->GetProgram(), v);
 	}
 };
 
@@ -521,8 +664,8 @@ class u_DepthScale:
 GLUniform
 {
 public:
-	u_DepthScale(GLShader* parent):
-	  GLUniform(parent)
+	u_DepthScale(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -530,7 +673,7 @@ public:
 
 	void SetUniform_DepthScale(float value)
 	{
-		GLSL_SetUniform_DepthScale(_parent->GetProgram(), value);
+		GLSL_SetUniform_DepthScale(_shader->GetProgram(), value);
 	}
 };
 
@@ -540,8 +683,8 @@ class u_DeformGen:
 GLUniform
 {
 public:
-	u_DeformGen(GLShader* parent):
-	  GLUniform(parent)
+	u_DeformGen(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -549,7 +692,7 @@ public:
 
 	void SetUniform_DeformGen(deformGen_t value)
 	{
-		GLSL_SetUniform_DeformGen(_parent->GetProgram(), value);
+		GLSL_SetUniform_DeformGen(_shader->GetProgram(), value);
 	}
 };
 
@@ -557,8 +700,8 @@ class u_DeformWave:
 GLUniform
 {
 public:
-	u_DeformWave(GLShader* parent):
-	  GLUniform(parent)
+	u_DeformWave(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -566,7 +709,7 @@ public:
 
 	void SetUniform_DeformWave(const waveForm_t * wf)
 	{
-		GLSL_SetUniform_DeformWave(_parent->GetProgram(), wf);
+		GLSL_SetUniform_DeformWave(_shader->GetProgram(), wf);
 	}
 };
 
@@ -574,8 +717,8 @@ class u_DeformSpread:
 GLUniform
 {
 public:
-	u_DeformSpread(GLShader* parent):
-	  GLUniform(parent)
+	u_DeformSpread(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -583,7 +726,7 @@ public:
 
 	void SetUniform_DeformSpread(float value)
 	{
-		GLSL_SetUniform_DeformSpread(_parent->GetProgram(), value);
+		GLSL_SetUniform_DeformSpread(_shader->GetProgram(), value);
 	}
 };
 
@@ -591,8 +734,8 @@ class u_DeformBulge:
 GLUniform
 {
 public:
-	u_DeformBulge(GLShader* parent):
-	  GLUniform(parent)
+	u_DeformBulge(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -600,7 +743,7 @@ public:
 
 	void SetUniform_DeformBulge(deformStage_t *ds)
 	{
-		GLSL_SetUniform_DeformBulge(_parent->GetProgram(), ds);
+		GLSL_SetUniform_DeformBulge(_shader->GetProgram(), ds);
 	}
 };
 
@@ -609,8 +752,8 @@ class u_Time:
 GLUniform
 {
 public:
-	u_Time(GLShader* parent):
-	  GLUniform(parent)
+	u_Time(GLShader* shader):
+	  GLUniform(shader)
 	{
 	}
 
@@ -618,7 +761,7 @@ public:
 
 	void SetUniform_Time(float value)
 	{
-		GLSL_SetUniform_Time(_parent->GetProgram(), value);
+		GLSL_SetUniform_Time(_shader->GetProgram(), value);
 	}
 };
 
@@ -632,12 +775,12 @@ u_DeformBulge,
 u_Time
 {
 public:
-	GLDeformStage(GLShader* parent):
-	  u_DeformGen(parent),
-	  u_DeformWave(parent),
-	  u_DeformSpread(parent),
-	  u_DeformBulge(parent),
-	  u_Time(parent)
+	GLDeformStage(GLShader* shader):
+	  u_DeformGen(shader),
+	  u_DeformWave(shader),
+	  u_DeformSpread(shader),
+	  u_DeformBulge(shader),
+	  u_Time(shader)
 	{
 
 	}
@@ -668,11 +811,100 @@ public:
 
 
 
+class u_TCGen_Environment:
+GLUniform
+{
+public:
+	u_TCGen_Environment(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_TCGen_Environment"; }
+
+	void SetUniform_TCGen_Environment(qboolean value)
+	{
+		GLSL_SetUniform_TCGen_Environment(_shader->GetProgram(), value);
+	}
+};
+
+class u_ColorGen:
+GLUniform
+{
+public:
+	u_ColorGen(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_ColorGen"; }
+
+	void SetUniform_ColorGen(colorGen_t value)
+	{
+		GLSL_SetUniform_ColorGen(_shader->GetProgram(), value);
+
+		switch (value)
+		{
+			case CGEN_VERTEX:
+			case CGEN_ONE_MINUS_VERTEX:
+				_shader->AddVertexAttribBit(ATTR_COLOR);
+				break;
+
+			default:
+				_shader->DelVertexAttribBit(ATTR_COLOR);
+				break;
+		}
+	}
+};
+
+class u_AlphaGen:
+GLUniform
+{
+public:
+	u_AlphaGen(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_AlphaGen"; }
+
+	void SetUniform_AlphaGen(alphaGen_t value)
+	{
+		GLSL_SetUniform_AlphaGen(_shader->GetProgram(), value);
+	}
+};
 
 
 
 
 
+
+
+
+class GLShader_generic:
+public GLShader,
+public u_ColorTextureMatrix,
+public u_ViewOrigin,
+public u_ColorGen,
+public u_AlphaGen,
+public u_AlphaTest,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix,
+public u_Color,
+public u_BoneMatrix,
+public u_VertexInterpolation,
+public u_PortalPlane,
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_ALPHA_TESTING,
+public GLCompileMacro_USE_VERTEX_SKINNING,
+public GLCompileMacro_USE_VERTEX_ANIMATION,
+public GLCompileMacro_USE_DEFORM_VERTEXES,
+public GLCompileMacro_USE_TCGEN_ENVIRONMENT
+{
+public:
+	GLShader_generic();
+};
 
 
 
@@ -719,6 +951,7 @@ public:
 };
 
 
+extern GLShader_generic* gl_genericShader;
 extern GLShader_lightMapping* gl_lightMappingShader;
 extern GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity;
 

@@ -3891,7 +3891,7 @@ typedef struct
 	//
 #if !defined(USE_D3D10)
 	// Q3A standard simple vertex color rendering
-	shaderProgram_t genericShader;
+	//shaderProgram_t genericShader;
 
 	// simple vertex color shading for entities
 	//shaderProgram_t vertexLightingShader_DBS_entity[GLSLMACRO_vertexLighting_DBS_entity_MAX_PERMUTATIONS];
