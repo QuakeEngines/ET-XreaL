@@ -28,7 +28,7 @@ This file contains the following sections:
 
 	2) LICENSE
 
-	3) GENERAL NOTES
+	3) INSTALLATION
 	
 	4) GETTING THE SOURCE CODE AND MEDIA
 
@@ -37,6 +37,8 @@ This file contains the following sections:
 	6) COMPILING ON GNU/LINUX
 	
 	7) CHANGES
+	
+	8) KNOWN ISSUES
 
 
 
@@ -73,11 +75,8 @@ See COPYING.txt for all the legal stuff.
 
 _______________________________
 
-3) GENERAL NOTES
+3) INSTALLATION
 ______________________
-
-If you use a Nvidia card then keep the Nvidia Threaded Optimzation ON !!!
-
 
 This release does not contain Enemy Territory's game data, the game data is still
 covered by the original EULA and must be obeyed as usual.
@@ -85,8 +84,8 @@ covered by the original EULA and must be obeyed as usual.
 Wolfenstein: Enemy Territory is a free release, and can be downloaded from
 http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
 
-Install the latest version of the game for your platform to get the game data and copy it to ET-XreaL/etmain or
-patch your Wolfenstein: Enemy Territory by extracting ET-XreaL over it.
+Install the latest version of Wolfenstein: Enemy Territory for your platform to get the game data
+and copy it to ET-XreaL/etmain or patch your Wolfenstein: Enemy Territory by extracting ET-XreaL_snapshot_date.7z over it.
 
 
 
@@ -127,11 +126,11 @@ You need the following dependencies in order to compile XreaL with all features:
  
 On Debian or Ubuntu:
 
-	> apt-get install libsdl1.2-dev libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
+	> apt-get install scons libcurl-openssl-dev libsdl1.2-dev libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
 	
 On Fedora
 
-	> yum install SDL-devel libXxf86dga-devel libXxf86vm-devel mesa-libGLU-devel
+	> yum install scons SDL-devel libXxf86dga-devel libXxf86vm-devel mesa-libGLU-devel
 
 Compile XreaL:
 	
@@ -154,4 +153,14 @@ __________________________________________
 	* added new ETXMap bsp compiler based on NetRadiant's q3map2
 	* added new ETXRadiant level editor based on DarkRadiant
 
+
+___________________________________________________
+
+8) KNOWN ISSUES
+__________________________________________
+
+	* no global fog
+	* no fog volumes
+	* flames created by the flamethrower are messed up
+	* no lightmaps on terrain if a map was compiled with deluxe mapping enabled
 
