@@ -26,6 +26,7 @@ cp $DEVELOPER/$DEFAULTGAME/qagame_mp_x86.dll $RELEASE/$DEFAULTGAME/
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/cgame_mp_x86.dll
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/qagame_mp_x86.dll
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/src
+7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/ui
 
 # build core pk3 and delete everything else
 cd $RELEASE/$DEFAULTGAME
