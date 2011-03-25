@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2010 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2010-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -857,6 +857,69 @@ public:
 	}
 };
 
+class u_ColorModulate:
+GLUniform
+{
+public:
+	u_ColorModulate(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_ColorModulate"; }
+
+	void SetUniform_ColorModulate(colorGen_t colorGen, alphaGen_t alphaGen)
+	{
+		vec4_t				v;
+
+		if(r_logFile->integer)
+		{
+			GLimp_LogComment(va("--- u_ColorModulate::SetUniform_ColorModulate( program = %s, colorGen = %i, alphaGen = %i ) ---\n", _shader->GetProgram()->name, colorGen, alphaGen));
+		}
+
+		switch (colorGen)
+		{
+			case CGEN_VERTEX:
+				_shader->AddVertexAttribBit(ATTR_COLOR);
+				VectorSet(v, 1, 1, 1);
+				break;
+
+			case CGEN_ONE_MINUS_VERTEX:
+				_shader->AddVertexAttribBit(ATTR_COLOR);
+				VectorSet(v, -1, -1, -1);
+				break;
+
+			default:
+				_shader->DelVertexAttribBit(ATTR_COLOR);
+				VectorSet(v, 0, 0, 0);
+				break;
+		}
+
+		switch (alphaGen)
+		{
+			case AGEN_VERTEX:
+				_shader->AddVertexAttribBit(ATTR_COLOR);
+				v[3] = 1.0f;
+				break;
+
+			case AGEN_ONE_MINUS_VERTEX:
+				_shader->AddVertexAttribBit(ATTR_COLOR);
+				v[3] = -1.0f;
+				break;
+
+			default:
+				v[3] = 0.0f;
+				break;
+		}
+
+		GLSL_SetUniform_ColorModulate(_shader->GetProgram(), v);
+	}
+};
+
+
+
+
+
 class u_AlphaGen:
 GLUniform
 {
@@ -885,11 +948,10 @@ class GLShader_generic:
 public GLShader,
 public u_ColorTextureMatrix,
 public u_ViewOrigin,
-public u_ColorGen,
-public u_AlphaGen,
 public u_AlphaTest,
 public u_ModelMatrix,
 public u_ModelViewProjectionMatrix,
+public u_ColorModulate,
 public u_Color,
 public u_BoneMatrix,
 public u_VertexInterpolation,

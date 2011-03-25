@@ -75,9 +75,8 @@ GLShader_generic::GLShader_generic():
 		GLShader(),
 		u_ColorTextureMatrix(this),
 		u_ViewOrigin(this),
-		u_ColorGen(this),
-		u_AlphaGen(this),
 		u_AlphaTest(this),
+		u_ColorModulate(this),
 		u_Color(this),
 		u_ModelMatrix(this),
 		u_ModelViewProjectionMatrix(this),
@@ -119,8 +118,7 @@ GLShader_generic::GLShader_generic():
 
 		shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
 		shaderProgram->u_ColorTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ColorTextureMatrix");
-		shaderProgram->u_ColorGen = glGetUniformLocationARB(shaderProgram->program, "u_ColorGen");
-		shaderProgram->u_AlphaGen = glGetUniformLocationARB(shaderProgram->program, "u_AlphaGen");
+		shaderProgram->u_ColorModulate = glGetUniformLocationARB(shaderProgram->program, "u_ColorModulate");
 		shaderProgram->u_Color = glGetUniformLocationARB(shaderProgram->program, "u_Color");
 		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
 		shaderProgram->u_ViewOrigin = glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");

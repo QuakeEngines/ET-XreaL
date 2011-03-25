@@ -1320,11 +1320,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\etmain\glsl\genericSingle_fp.glsl"
+				RelativePath="..\..\..\etmain\glsl\generic_fp.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\etmain\glsl\genericSingle_vp.glsl"
+				RelativePath="..\..\..\etmain\glsl\generic_vp.glsl"
 				>
 			</File>
 			<File

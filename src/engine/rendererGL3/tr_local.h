@@ -1371,6 +1371,9 @@ typedef struct shaderProgram_s
 	GLint           u_Color;
 	vec4_t			t_Color;
 
+	GLint           u_ColorModulate;
+	vec4_t			t_ColorModulate;
+
 	GLint           u_AmbientColor;
 	vec3_t			t_AmbientColor;
 
@@ -1852,6 +1855,25 @@ static ID_INLINE void GLSL_SetUniform_Color(shaderProgram_t * program, const vec
 #endif
 
 	glUniform4fARB(program->u_Color, v[0], v[1], v[2], v[3]);
+}
+
+static ID_INLINE void GLSL_SetUniform_ColorModulate(shaderProgram_t * program, const vec4_t v)
+{
+#if defined(USE_UNIFORM_FIREWALL)
+	if(Vector4Compare(program->t_ColorModulate, v))
+		return;
+
+	Vector4Copy(v, program->t_ColorModulate);
+#endif
+
+#if defined(LOG_GLSL_UNIFORMS)
+	if(r_logFile->integer)
+	{
+		GLimp_LogComment(va("--- GLSL_SetUniform_ColorModulate( program = %s, color = ( %5.3f, %5.3f, %5.3f, %5.3f ) ) ---\n", program->name, v[0], v[1], v[2], v[3]));
+	}
+#endif
+
+	glUniform4fARB(program->u_ColorModulate, v[0], v[1], v[2], v[3]);
 }
 
 static ID_INLINE void GLSL_SetUniform_AmbientColor(shaderProgram_t * program, const vec3_t v)

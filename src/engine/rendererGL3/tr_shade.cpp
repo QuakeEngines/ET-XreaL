@@ -2736,8 +2736,7 @@ static void DrawTris()
 		gl_genericShader->SetUniform_Color(colorWhite);
 	}
 
-	gl_genericShader->SetUniform_ColorGen(CGEN_CONST);
-	gl_genericShader->SetUniform_AlphaGen(AGEN_CONST);
+	gl_genericShader->SetUniform_ColorModulate(CGEN_CONST, AGEN_CONST);
 
 	gl_genericShader->SetUniform_ModelMatrix(backEnd.orientation.transformMatrix);
 	gl_genericShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
@@ -2857,12 +2856,14 @@ void Tess_Begin(	 void (*stageIteratorFunc)(),
 }
 // *INDENT-ON*
 
-static void Render_genericSingle(int stage)
+static void Render_generic(int stage)
 {
 	shaderStage_t  *pStage;
 	uint32_t 		attribBits = ATTR_POSITION | ATTR_TEXCOORD;
+	colorGen_t		rgbGen;
+	alphaGen_t		alphaGen;
 
-	GLimp_LogComment("--- Render_genericSingle ---\n");
+	GLimp_LogComment("--- Render_generic ---\n");
 
 	pStage = tess.surfaceStages[stage];
 
@@ -2892,32 +2893,35 @@ static void Render_genericSingle(int stage)
 	}
 
 	// u_ColorGen
-	switch (pStage->rgbGen)
+	rgbGen = pStage->rgbGen;
+	switch (rgbGen)
 	{
 		case CGEN_VERTEX:
 		case CGEN_ONE_MINUS_VERTEX:
-			gl_genericShader->SetUniform_ColorGen(pStage->rgbGen);
 			attribBits |= ATTR_COLOR;
 			break;
 
 		default:
-			gl_genericShader->SetUniform_ColorGen(CGEN_CONST);
+			rgbGen = CGEN_CONST;
 			break;
 	}
 
 	// u_AlphaGen
-	switch (pStage->alphaGen)
+	alphaGen = pStage->alphaGen;
+	switch (alphaGen)
 	{
 		case AGEN_VERTEX:
 		case AGEN_ONE_MINUS_VERTEX:
-			gl_genericShader->SetUniform_AlphaGen(pStage->alphaGen);
 			attribBits |= ATTR_COLOR;
 			break;
 
 		default:
-			gl_genericShader->SetUniform_AlphaGen(AGEN_CONST);
+			alphaGen = AGEN_CONST;
 			break;
 	}
+
+	// u_ColorModulate
+	gl_genericShader->SetUniform_ColorModulate(rgbGen, alphaGen);
 
 	// u_Color
 	gl_genericShader->SetUniform_Color(tess.svars.color);
@@ -5368,6 +5372,16 @@ void Tess_ComputeColor(shaderStage_t * pStage)
 			break;
 		}
 
+		case CGEN_VERTEX:
+		case CGEN_ONE_MINUS_VERTEX:
+		{
+			tess.svars.color[0] = 0.0;
+			tess.svars.color[1] = 0.0;
+			tess.svars.color[2] = 0.0;
+			tess.svars.color[3] = 0.0;
+			break;
+		}
+
 		default:
 		case CGEN_IDENTITY_LIGHTING:
 		{
@@ -5524,6 +5538,13 @@ void Tess_ComputeColor(shaderStage_t * pStage)
 			{
 				tess.svars.color[3] = 1.0;
 			}
+			break;
+		}
+
+		case AGEN_VERTEX:
+		case AGEN_ONE_MINUS_VERTEX:
+		{
+			tess.svars.color[3] = 0.0;
 			break;
 		}
 
@@ -5699,7 +5720,7 @@ void Tess_StageIteratorGeneric()
 		{
 			case ST_COLORMAP:
 			{
-				Render_genericSingle(stage);
+				Render_generic(stage);
 				break;
 			}
 
@@ -5900,7 +5921,7 @@ void Tess_StageIteratorGBuffer()
 			{
 #if !defined(DEFERRED_SHADING_Z_PREPASS)
 				R_BindFBO(tr.deferredRenderFBO);
-				Render_genericSingle(stage);
+				Render_generic(stage);
 #endif
 
 #if 1
