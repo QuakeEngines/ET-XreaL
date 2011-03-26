@@ -606,7 +606,7 @@ public:
 
 	const char* GetName() const { return "u_Color"; }
 
-	void SetUniform_Color(const vec3_t v)
+	void SetUniform_Color(const vec4_t v)
 	{
 		GLSL_SetUniform_Color(_shader->GetProgram(), v);
 	}

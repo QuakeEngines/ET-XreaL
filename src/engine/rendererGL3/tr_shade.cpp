@@ -5386,7 +5386,10 @@ void Tess_ComputeColor(shaderStage_t * pStage)
 		{
 			if(pStage->rgbGen != CGEN_IDENTITY)
 			{
-				tess.svars.color[3] = 1.0;
+				if((pStage->rgbGen == CGEN_VERTEX && tr.identityLight != 1) || pStage->rgbGen != CGEN_VERTEX)
+				{
+					tess.svars.color[3] = 1.0;
+				}
 			}
 			break;
 		}
