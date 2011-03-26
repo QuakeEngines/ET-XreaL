@@ -1498,23 +1498,7 @@ typedef struct shaderProgram_s
 	float			t_Time;
 } shaderProgram_t;
 
-/*
-enum
-{
-	GLSLMACRO_vertexLighting_DBS_entity_USE_PORTAL_CLIPPING = BIT(0),
-	GLSLMACRO_vertexLighting_DBS_entity_USE_ALPHA_TESTING = BIT(1),
-	GLSLMACRO_vertexLighting_DBS_entity_USE_VERTEX_SKINNING = BIT(2),
-	GLSLMACRO_vertexLighting_DBS_entity_USE_VERTEX_ANIMATION = BIT(3),
-
-	GLSLMACRO_vertexLighting_DBS_entity_ALL_COMPILE_FLAGS =
-						GLSLMACRO_vertexLighting_DBS_entity_USE_PORTAL_CLIPPING |
-						GLSLMACRO_vertexLighting_DBS_entity_USE_ALPHA_TESTING |
-						GLSLMACRO_vertexLighting_DBS_entity_USE_VERTEX_SKINNING |
-						GLSLMACRO_vertexLighting_DBS_entity_USE_VERTEX_ANIMATION,
-
-	GLSLMACRO_vertexLighting_DBS_entity_MAX_PERMUTATIONS = GLSLMACRO_vertexLighting_DBS_entity_USE_VERTEX_ANIMATION
-};
-*/	
+	
 
 //
 // Tr3B: these are fire wall functions to avoid expensive redundant glUniform* calls
@@ -3919,7 +3903,7 @@ typedef struct
 	//shaderProgram_t vertexLightingShader_DBS_entity[GLSLMACRO_vertexLighting_DBS_entity_MAX_PERMUTATIONS];
 
 	// simple vertex color shading for the world
-	shaderProgram_t vertexLightingShader_DBS_world;
+	//shaderProgram_t vertexLightingShader_DBS_world;
 
 	// standard light mapping
 	shaderProgram_t lightMappingShader;

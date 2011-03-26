@@ -8855,7 +8855,7 @@ void RB_RenderLightOcclusionQueries()
 		gl_genericShader->DisableTCGenEnvironment();
 
 		gl_genericShader->BindProgram();
-		//gl_genericShader->SetVertexAttribs();
+		gl_genericShader->SetVertexAttribs();
 
 		
 		GL_Cull(CT_TWO_SIDED);

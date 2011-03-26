@@ -42,6 +42,7 @@ void		GLSL_ShowProgramUniforms(GLhandleARB program);
 GLShader_generic* gl_genericShader = NULL;
 GLShader_lightMapping* gl_lightMappingShader = NULL;
 GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity = NULL;
+GLShader_vertexLighting_DBS_world* gl_vertexLightingShader_DBS_world = NULL;
 
 
 
@@ -72,7 +73,9 @@ const char* GLShader::GetCompileMacrosString(int permutation)
 
 
 GLShader_generic::GLShader_generic():
-		GLShader(),
+		GLShader(	ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL,
+					ATTR_COLOR | ATTR_POSITION2 | ATTR_NORMAL2,
+					ATTR_TANGENT | ATTR_TANGENT2 | ATTR_BINORMAL | ATTR_BINORMAL2),
 		u_ColorTextureMatrix(this),
 		u_ViewOrigin(this),
 		u_AlphaTest(this),
@@ -91,8 +94,6 @@ GLShader_generic::GLShader_generic():
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_TCGEN_ENVIRONMENT(this)
 {
-	_vertexAttribs = ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL;
-
 	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
@@ -112,8 +113,7 @@ GLShader_generic::GLShader_generic():
 						"vertexAnimation deformVertexes",
 						"",
 						compileMacros,
-						ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR |
-						ATTR_POSITION2 | ATTR_NORMAL2,
+						_vertexAttribsRequired | _vertexAttribsOptional,
 						qtrue);
 
 		shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
@@ -167,7 +167,9 @@ GLShader_generic::GLShader_generic():
 
 
 GLShader_lightMapping::GLShader_lightMapping():
-		GLShader(),
+		GLShader(	ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_NORMAL,
+					0,
+					ATTR_TANGENT | ATTR_TANGENT2 | ATTR_BINORMAL | ATTR_BINORMAL2),
 		u_DiffuseTextureMatrix(this),
 		u_AlphaTest(this),
 		u_ModelViewProjectionMatrix(this),
@@ -196,7 +198,7 @@ GLShader_lightMapping::GLShader_lightMapping():
 						"deformVertexes",
 						"",
 						compileMacros,
-						ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_NORMAL,
+						_vertexAttribsRequired | _vertexAttribsOptional,
 						qtrue);
 
 		shaderProgram->u_ModelViewProjectionMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
@@ -228,7 +230,12 @@ GLShader_lightMapping::GLShader_lightMapping():
 
 
 GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
-		GLShader(),
+		GLShader(	ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL,
+					ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
+					0),
+		u_DiffuseTextureMatrix(this),
+		u_NormalTextureMatrix(this),
+		u_SpecularTextureMatrix(this),
 		u_AlphaTest(this),
 		u_AmbientColor(this),
 		u_ViewOrigin(this),
@@ -265,18 +272,19 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 						"vertexLighting_DBS_entity",
 						"vertexLighting_DBS_entity",
 						"vertexAnimation deformVertexes",
-						"",
+						"reliefMapping",
 						compileMacros,
-						ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL |
-						ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
+						_vertexAttribsRequired | _vertexAttribsOptional,
 						qtrue);
 
 		shaderProgram->u_DiffuseMap	= glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
 		shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
 		shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+
 		shaderProgram->u_DiffuseTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
 		shaderProgram->u_NormalTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_NormalTextureMatrix");
 		shaderProgram->u_SpecularTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_SpecularTextureMatrix");
+
 		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
 		shaderProgram->u_DeformGen = glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
 		shaderProgram->u_DeformWave = glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
@@ -299,6 +307,125 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 			shaderProgram->u_BoneMatrix = glGetUniformLocationARB(shaderProgram->program, "u_BoneMatrix");
 		}
 		shaderProgram->u_VertexInterpolation = glGetUniformLocationARB(shaderProgram->program, "u_VertexInterpolation");
+
+		glUseProgramObjectARB(shaderProgram->program);
+		glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
+		glUniform1iARB(shaderProgram->u_NormalMap, 1);
+		glUniform1iARB(shaderProgram->u_SpecularMap, 2);
+		glUseProgramObjectARB(0);
+
+		GLSL_ValidateProgram(shaderProgram->program);
+		GLSL_ShowProgramUniforms(shaderProgram->program);
+		GL_CheckErrors();
+	}
+
+	SelectProgram();
+}
+
+
+
+
+
+GLShader_vertexLighting_DBS_world::GLShader_vertexLighting_DBS_world():
+		GLShader(	ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL | ATTR_COLOR | ATTR_LIGHTDIRECTION,
+					0,
+					ATTR_TANGENT | ATTR_TANGENT2 | ATTR_BINORMAL | ATTR_BINORMAL2),
+		u_DiffuseTextureMatrix(this),
+		u_NormalTextureMatrix(this),
+		u_SpecularTextureMatrix(this),
+		u_ColorModulate(this),
+		u_Color(this),
+		u_AlphaTest(this),
+		u_ViewOrigin(this),
+		u_ModelMatrix(this),
+		u_ModelViewProjectionMatrix(this),
+		u_PortalPlane(this),
+		u_DepthScale(this),
+		u_LightWrapAround(this),
+		GLDeformStage(this),
+		GLCompileMacro_USE_PORTAL_CLIPPING(this),
+		GLCompileMacro_USE_ALPHA_TESTING(this),
+		GLCompileMacro_USE_DEFORM_VERTEXES(this),
+		GLCompileMacro_USE_PARALLAX_MAPPING(this)
+{
+	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
+	
+	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
+
+	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
+	for(size_t i = 0; i < numPermutations; i++)
+	{
+		const char* compileMacros = GetCompileMacrosString(i);
+
+		ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros);
+
+		shaderProgram_t *shaderProgram = &_shaderPrograms[i];
+
+		GLSL_InitGPUShader3(shaderProgram,
+						"vertexLighting_DBS_world",
+						"vertexLighting_DBS_world",
+						"vertexAnimation deformVertexes",
+						"reliefMapping",
+						compileMacros,
+						_vertexAttribsRequired | _vertexAttribsOptional,
+						qtrue);
+
+		shaderProgram->u_DiffuseMap	= glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+		shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
+		shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+
+		shaderProgram->u_DiffuseTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_DiffuseTextureMatrix");
+		shaderProgram->u_NormalTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_NormalTextureMatrix");
+		shaderProgram->u_SpecularTextureMatrix = glGetUniformLocationARB(shaderProgram->program, "u_SpecularTextureMatrix");
+
+		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, "u_AlphaTest");
+		shaderProgram->u_DeformGen = glGetUniformLocationARB(shaderProgram->program, "u_DeformGen");
+		shaderProgram->u_DeformWave = glGetUniformLocationARB(shaderProgram->program, "u_DeformWave");
+		shaderProgram->u_DeformBulge = glGetUniformLocationARB(shaderProgram->program, "u_DeformBulge");
+		shaderProgram->u_DeformSpread = glGetUniformLocationARB(shaderProgram->program, "u_DeformSpread");
+		shaderProgram->u_ViewOrigin = glGetUniformLocationARB(shaderProgram->program, "u_ViewOrigin");
+		shaderProgram->u_ParallaxMapping = glGetUniformLocationARB(shaderProgram->program, "u_ParallaxMapping");
+		shaderProgram->u_DepthScale = glGetUniformLocationARB(shaderProgram->program, "u_DepthScale");
+		shaderProgram->u_PortalClipping = glGetUniformLocationARB(shaderProgram->program, "u_PortalClipping");
+		shaderProgram->u_PortalPlane = glGetUniformLocationARB(shaderProgram->program, "u_PortalPlane");
+		shaderProgram->u_ModelMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelMatrix");
+		shaderProgram->u_ModelViewProjectionMatrix = glGetUniformLocationARB(shaderProgram->program, "u_ModelViewProjectionMatrix");
+		shaderProgram->u_Time = glGetUniformLocationARB(shaderProgram->program, "u_Time");
+		shaderProgram->u_LightWrapAround = glGetUniformLocationARB(shaderProgram->program, "u_LightWrapAround");
+		shaderProgram->u_ColorModulate = glGetUniformLocationARB(shaderProgram->program, "u_ColorModulate");
+		shaderProgram->u_Color = glGetUniformLocationARB(shaderProgram->program, "u_Color");
+		
+		/*
+		
+		
+		tr.vertexLightingShader_DBS_world.u_ColorGen =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_ColorGen");
+		tr.vertexLightingShader_DBS_world.u_AlphaGen =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_AlphaGen");
+		tr.vertexLightingShader_DBS_world.u_Color =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_Color");
+		tr.vertexLightingShader_DBS_world.u_ViewOrigin =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_ViewOrigin");
+		tr.vertexLightingShader_DBS_world.u_ParallaxMapping =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_ParallaxMapping");
+		tr.vertexLightingShader_DBS_world.u_DepthScale =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_DepthScale");
+		tr.vertexLightingShader_DBS_world.u_PortalClipping =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_PortalClipping");
+		tr.vertexLightingShader_DBS_world.u_PortalPlane =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_PortalPlane");
+		tr.vertexLightingShader_DBS_world.u_ModelViewProjectionMatrix =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_ModelViewProjectionMatrix");
+		tr.vertexLightingShader_DBS_world.u_Time =
+			glGetUniformLocationARB(tr.vertexLightingShader_DBS_world.program, "u_Time");
+		tr.vertexLightingShader_DBS_world.
+
+		glUseProgramObjectARB(tr.vertexLightingShader_DBS_world.program);
+		glUniform1iARB(tr.vertexLightingShader_DBS_world.u_DiffuseMap, 0);
+		glUniform1iARB(tr.vertexLightingShader_DBS_world.u_NormalMap, 1);
+		glUniform1iARB(tr.vertexLightingShader_DBS_world.u_SpecularMap, 2);
+		glUseProgramObjectARB(0);
+		*/
 
 		glUseProgramObjectARB(shaderProgram->program);
 		glUniform1iARB(shaderProgram->u_DiffuseMap, 0);

@@ -45,13 +45,20 @@ protected:
 	std::vector<GLUniform*>				_uniforms;
 	std::vector<GLCompileMacro*>		_compileMacros;
 
+	const uint32_t						_vertexAttribsRequired;
+	const uint32_t						_vertexAttribsOptional;
+	const uint32_t						_vertexAttribsUnsupported;
 	uint32_t							_vertexAttribs;
 public:
 
-	GLShader()
+	GLShader(uint32_t vertexAttribsRequired, uint32_t vertexAttribsOptional, uint32_t vertexAttribsUnsupported):
+	  _vertexAttribsRequired(vertexAttribsRequired),
+	  _vertexAttribsOptional(vertexAttribsOptional),
+	  _vertexAttribsUnsupported(vertexAttribsUnsupported)
 	{
 		_activeMacros = 0;
 		_currentProgram = NULL;
+		_vertexAttribs = 0;
 	}
 
 	~GLShader()
@@ -134,7 +141,7 @@ public:
 
 	void SetVertexAttribs()
 	{
-		GL_VertexAttribsState(_vertexAttribs);
+		GL_VertexAttribsState((_vertexAttribsRequired | _vertexAttribs) & ~_vertexAttribsUnsupported);
 	}
 };
 
@@ -332,8 +339,17 @@ public:
 
 	const char* GetName() const { return "USE_DEFORM_VERTEXES"; }
 
-	void EnableDeformVertexes()		{ EnableMacro(); }
-	void DisableDeformVertexes()	{ DisableMacro(); }
+	void EnableDeformVertexes()
+	{
+		EnableMacro();
+
+		_shader->AddVertexAttribBit(ATTR_NORMAL);
+	}
+	
+	void DisableDeformVertexes()
+	{
+		DisableMacro();
+	}
 
 	void SetDeformVertexes(bool enable)
 	{
@@ -355,8 +371,17 @@ public:
 
 	const char* GetName() const { return "USE_TCGEN_ENVIRONMENT"; }
 
-	void EnableTCGenEnvironment()	{ EnableMacro(); }
-	void DisableTCGenEnvironment()	{ DisableMacro(); }
+	void EnableTCGenEnvironment()
+	{
+		EnableMacro();
+
+		_shader->AddVertexAttribBit(ATTR_NORMAL);
+	}
+	
+	void DisableTCGenEnvironment()
+	{
+		DisableMacro();
+	}
 
 	void SetTCGenEnvironment(bool enable)
 	{
@@ -550,6 +575,25 @@ public:
 		GLSL_SetUniform_LightColor(_shader->GetProgram(), v);
 	}
 };
+
+
+class u_LightWrapAround:
+GLUniform
+{
+public:
+	u_LightWrapAround(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_LightWrapAround"; }
+
+	void SetUniform_LightWrapAround(float value)
+	{
+		GLSL_SetUniform_LightWrapAround(_shader->GetProgram(), value);
+	}
+};
+
 
 class u_Color:
 GLUniform
@@ -989,6 +1033,9 @@ public:
 
 class GLShader_vertexLighting_DBS_entity:
 public GLShader,
+public u_DiffuseTextureMatrix,
+public u_NormalTextureMatrix,
+public u_SpecularTextureMatrix,
 public u_AlphaTest,
 public u_AmbientColor,
 public u_ViewOrigin,
@@ -1013,8 +1060,34 @@ public:
 };
 
 
+class GLShader_vertexLighting_DBS_world:
+public GLShader,
+public u_DiffuseTextureMatrix,
+public u_NormalTextureMatrix,
+public u_SpecularTextureMatrix,
+public u_ColorModulate,
+public u_Color,
+public u_AlphaTest,
+public u_ViewOrigin,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix,
+public u_PortalPlane,
+public u_DepthScale,
+public u_LightWrapAround,
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_ALPHA_TESTING,
+public GLCompileMacro_USE_DEFORM_VERTEXES,
+public GLCompileMacro_USE_PARALLAX_MAPPING
+{
+public:
+	GLShader_vertexLighting_DBS_world();
+};
+
+
 extern GLShader_generic* gl_genericShader;
 extern GLShader_lightMapping* gl_lightMappingShader;
 extern GLShader_vertexLighting_DBS_entity* gl_vertexLightingShader_DBS_entity;
+extern GLShader_vertexLighting_DBS_world* gl_vertexLightingShader_DBS_world;
 
 #endif	// GL_SHADER_H
