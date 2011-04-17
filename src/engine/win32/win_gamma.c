@@ -129,7 +129,7 @@ void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned c
 {
 	unsigned short  table[3][256];
 	int             i, j;
-	int             ret;
+	BOOL            ret;
 	OSVERSIONINFO   vinfo;
 
 	if(!glConfig.deviceSupportsGamma || r_ignorehwgamma->integer || !glw_state.hDC)
@@ -154,7 +154,7 @@ void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned c
 	GetVersionEx(&vinfo);
 	if(vinfo.dwMajorVersion >= 5 && vinfo.dwPlatformId == VER_PLATFORM_WIN32_NT)
 	{
-		Com_DPrintf("performing gamma clamp.\n");
+		Com_Printf("performing gamma clamp.\n");
 		for(j = 0; j < 3; j++)
 		{
 			for(i = 0; i < 128; i++)
@@ -172,7 +172,7 @@ void GLimp_SetGamma(unsigned char red[256], unsigned char green[256], unsigned c
 	}
 	else
 	{
-		Com_DPrintf("skipping W2K gamma clamp.\n");
+		Com_Printf("skipping W2K gamma clamp.\n");
 	}
 
 	// enforce constantly increasing
