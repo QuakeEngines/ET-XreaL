@@ -169,7 +169,7 @@ rendererGL3_list = [
 'src/engine/rendererGL3/tr_image_jpg.c',
 'src/engine/rendererGL3/tr_image_png.c',
 'src/engine/rendererGL3/tr_image_tga.c',
-'src/engine/rendererGL3/tr_init.c',
+'src/engine/rendererGL3/tr_init.cpp',
 'src/engine/rendererGL3/tr_light.c',
 'src/engine/rendererGL3/tr_main.c',
 'src/engine/rendererGL3/tr_marks.c',

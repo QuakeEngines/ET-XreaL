@@ -27,9 +27,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	LF(x) x=LittleFloat(x)
 
 qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const char *name);
-//qboolean R_LoadMDC(model_t * mod, int lod, void *buffer, int bufferSize, const char *name);
-//qboolean R_LoadMDM(model_t * mod, void *buffer, const char *name);
-//static qboolean R_LoadMDX(model_t * mod, void *buffer, const char *name);
+
+#if defined(COMPAT_ET)
+qboolean R_LoadMDC(model_t * mod, int lod, void *buffer, int bufferSize, const char *name);
+qboolean R_LoadMDM(model_t * mod, void *buffer, const char *name);
+static qboolean R_LoadMDX(model_t * mod, void *buffer, const char *name);
+#endif
 
 qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const char *name);
 qboolean R_LoadPSK(model_t * mod, void *buffer, int bufferSize, const char *name);
