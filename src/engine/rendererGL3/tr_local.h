@@ -1162,34 +1162,6 @@ typedef struct shader_s
 	struct shader_s *next;
 } shader_t;
 
-static ID_INLINE qboolean ShaderRequiresCPUDeforms(const shader_t * shader)
-{
-	if(shader->numDeforms)
-	{
-		int			i;
-		qboolean	cpuDeforms = qfalse;
-	
-		for(i = 0; i < shader->numDeforms; i++)
-		{
-			const deformStage_t *ds = &shader->deforms[0];
-
-			switch (ds->deformation)
-			{
-				case DEFORM_WAVE:
-				case DEFORM_BULGE:
-					break;
-
-				default:
-					cpuDeforms = qtrue;
-			}
-		}
-
-		return cpuDeforms;
-	}
-
-	return qfalse;
-}
-
 #if 0
 enum
 {
@@ -4279,6 +4251,7 @@ extern cvar_t  *r_vboDynamicLighting;
 extern cvar_t  *r_vboModels;
 extern cvar_t  *r_vboOptimizeVertices;
 extern cvar_t  *r_vboVertexSkinning;
+extern cvar_t  *r_vboDeformVertexes;
 extern cvar_t  *r_vboSmoothNormals;
 
 extern cvar_t  *r_mergeClusterSurfaces;
@@ -5031,7 +5004,8 @@ void            R_TransformClipToWindow(const vec4_t clip, const viewParms_t * v
 float           R_ProjectRadius(float r, vec3_t location);
 
 
-void            Tess_DeformGeometry(void);
+qboolean		ShaderRequiresCPUDeforms(const shader_t * shader);
+void            Tess_DeformGeometry();
 
 float           RB_EvalWaveForm(const waveForm_t * wf);
 float           RB_EvalWaveFormClamped(const waveForm_t * wf);

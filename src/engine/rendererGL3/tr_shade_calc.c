@@ -924,6 +924,37 @@ static void Autosprite2Deform(void)
 	}
 }
 
+qboolean ShaderRequiresCPUDeforms(const shader_t * shader)
+{
+	if(shader->numDeforms)
+	{
+		int			i;
+		qboolean	cpuDeforms = qfalse;
+
+		if(glConfig.driverType != GLDRV_OPENGL3 || !r_vboDeformVertexes->integer)
+			return qtrue;
+	
+		for(i = 0; i < shader->numDeforms; i++)
+		{
+			const deformStage_t *ds = &shader->deforms[0];
+
+			switch (ds->deformation)
+			{
+				case DEFORM_WAVE:
+				case DEFORM_BULGE:
+					break;
+
+				default:
+					cpuDeforms = qtrue;
+			}
+		}
+
+		return cpuDeforms;
+	}
+
+	return qfalse;
+}
+
 
 /*
 =====================

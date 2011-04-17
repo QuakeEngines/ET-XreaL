@@ -254,6 +254,7 @@ cvar_t         *r_vboDynamicLighting;
 cvar_t         *r_vboModels;
 cvar_t         *r_vboOptimizeVertices;
 cvar_t         *r_vboVertexSkinning;
+cvar_t         *r_vboDeformVertexes;
 cvar_t         *r_vboSmoothNormals;
 
 cvar_t         *r_mergeClusterSurfaces;
@@ -1477,6 +1478,7 @@ void R_Register(void)
 	r_vboModels = ri.Cvar_Get("r_vboModels", "1", CVAR_CHEAT);
 	r_vboOptimizeVertices = ri.Cvar_Get("r_vboOptimizeVertices", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_vboVertexSkinning = ri.Cvar_Get("r_vboVertexSkinning", "1", CVAR_CHEAT | CVAR_LATCH);
+	r_vboDeformVertexes = ri.Cvar_Get("r_vboDeformVertexes", "0", CVAR_CHEAT);
 	r_vboSmoothNormals = ri.Cvar_Get("r_vboSmoothNormals", "1", CVAR_ARCHIVE | CVAR_LATCH);
 
 	r_mergeClusterSurfaces = ri.Cvar_Get("r_mergeClusterSurfaces", "0", CVAR_CHEAT);

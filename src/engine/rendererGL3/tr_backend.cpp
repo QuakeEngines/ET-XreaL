@@ -10951,7 +10951,7 @@ static void RB_RenderDebugUtils()
 		gl_reflectionShader->SetDeformVertexes(false);
 
 		gl_reflectionShader->SetNormalMapping(false);
-		gl_reflectionShader->DisableMacro_TWOSIDED();
+//		gl_reflectionShader->DisableMacro_TWOSIDED();
 
 		gl_reflectionShader->BindProgram();
 		

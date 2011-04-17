@@ -392,12 +392,19 @@ public:
 
 	const char* GetName() const { return "USE_DEFORM_VERTEXES"; }
 	EGLCompileMacro GetType() const { return USE_DEFORM_VERTEXES; }
+	bool		HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
 
 	void EnableDeformVertexes()
 	{
-		EnableMacro();
-
-		_shader->AddVertexAttribBit(ATTR_NORMAL);
+		if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+		{
+			EnableMacro();
+			_shader->AddVertexAttribBit(ATTR_NORMAL);
+		}
+		else
+		{
+			DisableMacro();
+		}
 	}
 	
 	void DisableDeformVertexes()
@@ -407,7 +414,7 @@ public:
 
 	void SetDeformVertexes(bool enable)
 	{
-		if(enable)
+		if(enable && (glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer))
 			EnableMacro();
 		else
 			DisableMacro();
@@ -1810,8 +1817,8 @@ public GLCompileMacro_USE_PORTAL_CLIPPING,
 public GLCompileMacro_USE_ALPHA_TESTING,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
-public GLCompileMacro_USE_PARALLAX_MAPPING,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_PARALLAX_MAPPING//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_lightMapping();
@@ -1844,8 +1851,8 @@ public GLCompileMacro_USE_VERTEX_ANIMATION,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
 public GLCompileMacro_USE_PARALLAX_MAPPING,
-public GLCompileMacro_USE_REFLECTIVE_SPECULAR,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_REFLECTIVE_SPECULAR//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_vertexLighting_DBS_entity();
@@ -1871,8 +1878,8 @@ public GLCompileMacro_USE_PORTAL_CLIPPING,
 public GLCompileMacro_USE_ALPHA_TESTING,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
-public GLCompileMacro_USE_PARALLAX_MAPPING,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_PARALLAX_MAPPING//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_vertexLighting_DBS_world();
@@ -1911,8 +1918,8 @@ public GLCompileMacro_USE_VERTEX_ANIMATION,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
 public GLCompileMacro_USE_PARALLAX_MAPPING,
-public GLCompileMacro_USE_SHADOWING,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_SHADOWING//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_forwardLighting_omniXYZ();
@@ -1951,8 +1958,8 @@ public GLCompileMacro_USE_VERTEX_ANIMATION,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
 public GLCompileMacro_USE_PARALLAX_MAPPING,
-public GLCompileMacro_USE_SHADOWING,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_SHADOWING//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_forwardLighting_projXYZ();
@@ -1993,8 +2000,8 @@ public GLCompileMacro_USE_VERTEX_ANIMATION,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
 public GLCompileMacro_USE_PARALLAX_MAPPING,
-public GLCompileMacro_USE_SHADOWING,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_SHADOWING//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_forwardLighting_directionalSun();
@@ -2043,8 +2050,8 @@ public GLCompileMacro_USE_PORTAL_CLIPPING,
 public GLCompileMacro_USE_VERTEX_SKINNING,
 public GLCompileMacro_USE_VERTEX_ANIMATION,
 public GLCompileMacro_USE_DEFORM_VERTEXES,
-public GLCompileMacro_USE_NORMAL_MAPPING,
-public GLCompileMacro_TWOSIDED
+public GLCompileMacro_USE_NORMAL_MAPPING//,
+//public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_reflection();

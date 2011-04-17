@@ -86,6 +86,11 @@ bool GLCompileMacro_USE_VERTEX_ANIMATION::HasConflictingMacros(int permutation, 
 	return false;
 }
 
+bool GLCompileMacro_USE_DEFORM_VERTEXES::HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const
+{
+	return (glConfig.driverType != GLDRV_OPENGL3 || !r_vboDeformVertexes->integer);
+}
+
 bool GLCompileMacro_USE_PARALLAX_MAPPING::MissesRequiredMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const
 {
 	bool foundUSE_NORMAL_MAPPING = false;
@@ -760,7 +765,7 @@ void GLShader::CompileAndLinkGPUShaderProgram(	shaderProgram_t * program,
 												const std::string& fragmentShaderText,
 												const std::string& compileMacros) const
 {
-	ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
+	//ri.Printf(PRINT_DEVELOPER, "------- GPU shader -------\n");
 
 	Q_strncpyz(program->name, programName, sizeof(program->name));
 
@@ -868,7 +873,7 @@ void GLShader::CompileGPUShader(GLhandleARB program, const char* programName, co
 		return;
 	}
 
-	PrintInfoLog(shader, qtrue);
+	//PrintInfoLog(shader, qtrue);
 	//ri.Printf(PRINT_ALL, "%s\n", GLSL_PrintShaderSource(shader));
 
 	// attach shader to program
@@ -1196,7 +1201,7 @@ GLShader_generic::GLShader_generic():
 		std::string compileMacros;
 		if(GetCompileMacrosString(i, compileMacros))
 		{
-			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
+			ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 
 			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
 
@@ -1258,8 +1263,8 @@ GLShader_lightMapping::GLShader_lightMapping():
 		GLCompileMacro_USE_ALPHA_TESTING(this),
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_NORMAL_MAPPING(this),
-		GLCompileMacro_USE_PARALLAX_MAPPING(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_PARALLAX_MAPPING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating lightMapping shaders -------------------\n");
@@ -1300,6 +1305,8 @@ GLShader_lightMapping::GLShader_lightMapping():
 		std::string compileMacros;
 		if(GetCompileMacrosString(i, compileMacros))
 		{
+			compileMacros += "TWOSIDED ";
+
 			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 
 			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
@@ -1371,8 +1378,8 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_NORMAL_MAPPING(this),
 		GLCompileMacro_USE_PARALLAX_MAPPING(this),
-		GLCompileMacro_USE_REFLECTIVE_SPECULAR(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_REFLECTIVE_SPECULAR(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating vertexLighting_DBS_entity shaders ------\n");
@@ -1413,6 +1420,8 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 		std::string compileMacros;
 		if(GetCompileMacrosString(i, compileMacros))
 		{
+			compileMacros += "TWOSIDED ";
+
 			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 
 			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
@@ -1479,8 +1488,8 @@ GLShader_vertexLighting_DBS_world::GLShader_vertexLighting_DBS_world():
 		GLCompileMacro_USE_ALPHA_TESTING(this),
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_NORMAL_MAPPING(this),
-		GLCompileMacro_USE_PARALLAX_MAPPING(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_PARALLAX_MAPPING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating vertexLighting_DBS_world shaders -------\n");
@@ -1521,6 +1530,8 @@ GLShader_vertexLighting_DBS_world::GLShader_vertexLighting_DBS_world():
 		std::string compileMacros;
 		if(GetCompileMacrosString(i, compileMacros))
 		{
+			compileMacros += "TWOSIDED ";
+
 			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 
 			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
@@ -1593,8 +1604,8 @@ GLShader_forwardLighting_omniXYZ::GLShader_forwardLighting_omniXYZ():
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_NORMAL_MAPPING(this),
 		GLCompileMacro_USE_PARALLAX_MAPPING(this),
-		GLCompileMacro_USE_SHADOWING(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_SHADOWING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating forwardLighting_omniXYZ shaders --------\n");
@@ -1635,6 +1646,8 @@ GLShader_forwardLighting_omniXYZ::GLShader_forwardLighting_omniXYZ():
 		std::string compileMacros;
 		if(GetCompileMacrosString(i, compileMacros))
 		{
+			compileMacros += "TWOSIDED ";
+
 			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 		
 			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
@@ -1720,8 +1733,8 @@ GLShader_forwardLighting_projXYZ::GLShader_forwardLighting_projXYZ():
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_NORMAL_MAPPING(this),
 		GLCompileMacro_USE_PARALLAX_MAPPING(this),
-		GLCompileMacro_USE_SHADOWING(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_SHADOWING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating forwardLighting_projXYZ shaders --------\n");
@@ -1763,6 +1776,7 @@ GLShader_forwardLighting_projXYZ::GLShader_forwardLighting_projXYZ():
 		if(GetCompileMacrosString(i, compileMacros))
 		{
 			compileMacros += "LIGHT_PROJ ";
+			compileMacros += "TWOSIDED ";
 
 			//ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros.c_str());
 		
@@ -1852,8 +1866,8 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
 		GLCompileMacro_USE_NORMAL_MAPPING(this),
 		GLCompileMacro_USE_PARALLAX_MAPPING(this),
-		GLCompileMacro_USE_SHADOWING(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_SHADOWING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating forwardLighting_directionalSun shaders -\n");
@@ -1895,6 +1909,7 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 		if(GetCompileMacrosString(i, compileMacros))
 		{
 			compileMacros += "LIGHT_DIRECTIONAL ";
+			compileMacros += "TWOSIDED ";
 
 			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 		
@@ -2069,8 +2084,8 @@ GLShader_reflection::GLShader_reflection():
 		GLCompileMacro_USE_VERTEX_SKINNING(this),
 		GLCompileMacro_USE_VERTEX_ANIMATION(this),
 		GLCompileMacro_USE_DEFORM_VERTEXES(this),
-		GLCompileMacro_USE_NORMAL_MAPPING(this),
-		GLCompileMacro_TWOSIDED(this)
+		GLCompileMacro_USE_NORMAL_MAPPING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
 	ri.Printf(PRINT_ALL, "/// creating reflection shaders ---------------------\n");
@@ -2111,6 +2126,8 @@ GLShader_reflection::GLShader_reflection():
 		std::string compileMacros;
 		if(GetCompileMacrosString(i, compileMacros))
 		{
+			compileMacros += "TWOSIDED ";
+
 			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
 
 			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
