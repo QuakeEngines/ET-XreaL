@@ -506,7 +506,6 @@ typedef struct
 	int             maxColorAttachments;
 	qboolean        framebufferPackedDepthStencilAvailable;
 	qboolean        framebufferBlitAvailable;
-//	qboolean        framebufferMixedFormatsAvailable;
 
 	qboolean        generateMipmapAvailable;
 } glconfig2_t;

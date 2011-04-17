@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2007-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2007-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -321,6 +321,7 @@ VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * vert
 	}
 
 	vbo->vertexesSize = dataSize;
+	vbo->vertexesNum = numVertexes;
 
 	glGenBuffersARB(1, &vbo->vertexesVBO);
 
@@ -463,6 +464,7 @@ IBO_t          *R_CreateIBO2(const char *name, int numTriangles, srfTriangle_t *
 	}
 
 	ibo->indexesSize = indexesSize;
+	ibo->indexesNum = numTriangles * 3;
 
 	glGenBuffersARB(1, &ibo->indexesVBO);
 
@@ -595,6 +597,51 @@ void R_BindNullIBO(void)
 #endif
 }
 
+static void R_InitUnitCubeVBO()
+{
+	vec3_t			mins = {-1, -1, -1};
+	vec3_t			maxs = { 1,  1,  1};
+	
+	int             i, j;
+	vec4_t          quadVerts[4];
+	srfVert_t      *verts;
+	srfTriangle_t  *triangles;
+
+	if(glConfig.smpActive)
+		ri.Error(ERR_FATAL, "R_InitUnitCubeVBO: FIXME SMP");
+
+	tess.multiDrawPrimitives = 0;
+	tess.numIndexes = 0;
+	tess.numVertexes = 0;
+
+	Tess_AddCube(vec3_origin, mins, maxs, colorWhite);
+
+	verts = ri.Hunk_AllocateTempMemory(tess.numVertexes * sizeof(srfVert_t));
+	triangles = ri.Hunk_AllocateTempMemory((tess.numIndexes / 3) * sizeof(srfTriangle_t));
+
+	for(i = 0; i < tess.numVertexes; i++)
+	{
+		VectorCopy(tess.xyz[i], verts[i].xyz);
+	}
+
+	for(i = 0; i < (tess.numIndexes / 3); i++)
+	{
+		triangles[i].indexes[0] = tess.indexes[i * 3 + 0];
+		triangles[i].indexes[1] = tess.indexes[i * 3 + 1];
+		triangles[i].indexes[2] = tess.indexes[i * 3 + 2];
+	}
+
+	tr.unitCubeVBO = R_CreateVBO2("unitCube_VBO", tess.numVertexes, verts, ATTR_POSITION, VBO_USAGE_STATIC);
+	tr.unitCubeIBO = R_CreateIBO2("unitCube_IBO", tess.numIndexes / 3, triangles, VBO_USAGE_STATIC);
+
+	ri.Hunk_FreeTempMemory(triangles);
+	ri.Hunk_FreeTempMemory(verts);
+
+	tess.multiDrawPrimitives = 0;
+	tess.numIndexes = 0;
+	tess.numVertexes = 0;
+}
+
 /*
 ============
 R_InitVBOs
@@ -641,6 +688,8 @@ void R_InitVBOs(void)
 	tess.ibo = R_CreateIBO("tessVertexArray_IBO", data, dataSize, VBO_USAGE_DYNAMIC);
 
 	Com_Dealloc(data);
+
+	R_InitUnitCubeVBO();
 
 	R_BindNullVBO();
 	R_BindNullIBO();

@@ -369,10 +369,10 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 		return;
 	}
 
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_ET)
 	Com_sprintf(fileName, sizeof(fileName), "fonts/%s_%i.dat", fontName, pointSize);
 #else
-	COM_StripExtension3(fontName, strippedName, sizeof(strippedName));
+	Com_StripExtension(fontName, strippedName, sizeof(strippedName));
 	Com_sprintf(fileName, sizeof(fileName), "%s_%i.dat", strippedName, pointSize);
 #endif
 	for(i = 0; i < registeredFontCount; i++)
@@ -384,7 +384,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 		}
 	}
 
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_ET) // DON'T DO THIS WITH VANILLA XREAL
 	len = ri.FS_ReadFile(fileName, NULL);
 	if(len == sizeof(fontInfo_t))
 	{

@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -46,8 +46,8 @@ Tess_EndBegin
 void Tess_EndBegin()
 {
 	Tess_End();
-	Tess_Begin(tess.stageIteratorFunc, tess.surfaceShader, tess.lightShader, tess.skipTangentSpaces, tess.shadowVolume,
-			   tess.lightmapNum);
+	Tess_Begin(tess.stageIteratorFunc, tess.stageIteratorFunc2, tess.surfaceShader, tess.lightShader, tess.skipTangentSpaces, tess.skipVBO, tess.shadowVolume,
+		tess.lightmapNum, tess.fogNum);
 }
 
 /*
@@ -94,8 +94,8 @@ void Tess_CheckOverflow(int verts, int indexes)
 		ri.Error(ERR_DROP, "Tess_CheckOverflow: indices > MAX (%d > %d)", indexes, SHADER_MAX_INDEXES);
 	}
 
-	Tess_Begin(tess.stageIteratorFunc, tess.surfaceShader, tess.lightShader, tess.skipTangentSpaces, tess.shadowVolume,
-			   tess.lightmapNum);
+	Tess_Begin(tess.stageIteratorFunc, tess.stageIteratorFunc2, tess.surfaceShader, tess.lightShader, tess.skipTangentSpaces, tess.skipVBO, tess.shadowVolume,
+		tess.lightmapNum, tess.fogNum);
 }
 
 
@@ -456,7 +456,7 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 
 			if(backEnd.currentEntity == &tr.worldEntity)
 			{
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 				attribBits |= ATTR_LIGHTCOORD;
 #else
 				attribBits |= ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION;
@@ -537,7 +537,7 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsColors, tess.numVertexes * sizeof(vec4_t), tess.colors);
 		}
 
-#if !defined(COMPAT_ET)
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 		if(attribBits & ATTR_PAINTCOLOR)
 		{
 			if(r_logFile->integer)
@@ -1149,7 +1149,10 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 	}
 	else
 	{
-		if(r_vboFaces->integer && srf->vbo && srf->ibo && !ShaderRequiresCPUDeforms(tess.surfaceShader) && tess.stageIteratorFunc != Tess_StageIteratorSky)
+		if(r_vboFaces->integer && srf->vbo && srf->ibo &&
+			!tess.skipVBO && 
+			!ShaderRequiresCPUDeforms(tess.surfaceShader) &&
+			tess.stageIteratorFunc != &Tess_StageIteratorSky)
 		{
 			if(tess.multiDrawPrimitives >= MAX_MULTIDRAW_PRIMITIVES)
 			{
@@ -2040,10 +2043,10 @@ static void Tess_SurfaceLightningBolt(void)
 
 /*
 =============
-Tess_SurfaceMDX
+Tess_SurfaceMDV
 =============
 */
-static void Tess_SurfaceMDX(mdvSurface_t * srf)
+static void Tess_SurfaceMDV(mdvSurface_t * srf)
 {
 	int             i, j;
 	int             numIndexes = 0;
@@ -2056,7 +2059,7 @@ static void Tess_SurfaceMDX(mdvSurface_t * srf)
 	float           backlerp;
 	float           oldXyzScale, newXyzScale;
 
-	GLimp_LogComment("--- Tess_SurfaceMDX ---\n");
+	GLimp_LogComment("--- Tess_SurfaceMDV ---\n");
 
 	if(backEnd.currentEntity->e.oldframe == backEnd.currentEntity->e.frame)
 	{
@@ -2906,7 +2909,7 @@ static void Tess_SurfaceFlare(srfFlare_t * surf)
 #if defined(USE_D3D10)
 	// TODO
 #else
-	RB_AddFlare((void *)surf, origin, surf->color, surf->normal);
+	RB_AddFlare((void *)surf, tess.fogNum, origin, surf->color, surf->normal);
 #endif
 }
 
@@ -3089,16 +3092,19 @@ void            (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *) =
 		(void (*)(void *))Tess_SurfacePolychain,	// SF_POLY,
 		(void (*)(void *))Tess_SurfacePolybuffer,	// SF_POLYBUFFER,
 		(void (*)(void *))Tess_SurfaceDecal,	// SF_DECAL
-		(void (*)(void *))Tess_SurfaceMDX,	// SF_MDX,
-
+		(void (*)(void *))Tess_SurfaceMDV,	// SF_MDV,
+#if defined(COMPAT_ET)
 		(void (*)(void *))Tess_MDM_SurfaceAnim,	// SF_MDM,
+#endif
 		(void (*)(void *))Tess_SurfaceMD5,	// SF_MD5,
 
 		(void (*)(void *))Tess_SurfaceFlare,	// SF_FLARE,
 		(void (*)(void *))Tess_SurfaceEntity,	// SF_ENTITY
 		(void (*)(void *))Tess_SurfaceVBOMesh,	// SF_VBO_MESH
 		(void (*)(void *))Tess_SurfaceVBOMD5Mesh,	// SF_VBO_MD5MESH
+#if defined(COMPAT_ET)
 		(void (*)(void *))Tess_SurfaceVBOMDMMesh,	// SF_VBO_MD5MESH
+#endif
 		(void (*)(void *))Tess_SurfaceVBOMDVMesh,	// SF_VBO_MDVMESH
 		(void (*)(void *))Tess_SurfaceVBOShadowVolume	// SF_VBO_SHADOW_VOLUME
 };

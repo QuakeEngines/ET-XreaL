@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -1596,10 +1596,10 @@ image_t        *R_CreateCubeImage(const char *name,
 
 
 
-static void     R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int *bits);
+static void     R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int *bits, const char *materialName);
 image_t        *R_LoadDDSImage(const char *name, int bits, filterType_t filterType, wrapType_t wrapType);
 
-static void ParseHeightMap(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseHeightMap(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 	float           scale;
@@ -1608,21 +1608,21 @@ static void ParseHeightMap(char **text, byte ** pic, int *width, int *height, in
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for heightMap\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of image for heightMap\n", token);
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ',')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: no matching ',' found\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
@@ -1632,16 +1632,18 @@ static void ParseHeightMap(char **text, byte ** pic, int *width, int *height, in
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for heightMap\n", token);
-		return;
+		return qfalse;
 	}
 
 	R_HeightMapToNormalMap(*pic, *width, *height, scale);
 
 	*bits &= ~IF_ALPHA;
 	*bits |= IF_NORMALMAP;
+
+	return qtrue;
 }
 
-static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 	byte           *pic2;
@@ -1651,28 +1653,28 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for displaceMap\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of first image for displaceMap\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ',')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: no matching ',' found\n");
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, &pic2, &width2, &height2, bits);
+	R_LoadImage(text, &pic2, &width2, &height2, bits, materialName);
 	if(!pic2)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of second image for displaceMap\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
@@ -1690,7 +1692,7 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 		//*pic = NULL;
 
 		ri.Free(pic2);
-		return;
+		return qfalse;
 	}
 
 	R_DisplaceMap(*pic, pic2, *width, *height);
@@ -1700,9 +1702,11 @@ static void ParseDisplaceMap(char **text, byte ** pic, int *width, int *height, 
 	*bits &= ~IF_ALPHA;
 	*bits |= IF_NORMALMAP;
 	*bits |= IF_DISPLACEMAP;
+
+	return qtrue;
 }
 
-static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseAddNormals(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 	byte           *pic2;
@@ -1712,28 +1716,28 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for addNormals\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of first image for addNormals\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ',')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: no matching ',' found\n");
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, &pic2, &width2, &height2, bits);
+	R_LoadImage(text, &pic2, &width2, &height2, bits, materialName);
 	if(!pic2)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of second image for addNormals\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
@@ -1751,7 +1755,7 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 		//*pic = NULL;
 
 		ri.Free(pic2);
-		return;
+		return qfalse;
 	}
 
 	R_AddNormals(*pic, pic2, *width, *height);
@@ -1760,9 +1764,11 @@ static void ParseAddNormals(char **text, byte ** pic, int *width, int *height, i
 
 	*bits &= ~IF_ALPHA;
 	*bits |= IF_NORMALMAP;
+
+	return qtrue;
 }
 
-static void ParseInvertAlpha(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseInvertAlpha(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 
@@ -1770,27 +1776,29 @@ static void ParseInvertAlpha(char **text, byte ** pic, int *width, int *height, 
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for invertAlpha\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of image for invertAlpha\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for invertAlpha\n", token);
-		return;
+		return qfalse;
 	}
 
 	R_InvertAlpha(*pic, *width, *height);
+
+	return qtrue;
 }
 
-static void ParseInvertColor(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseInvertColor(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 
@@ -1798,27 +1806,29 @@ static void ParseInvertColor(char **text, byte ** pic, int *width, int *height, 
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for invertColor\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of image for invertColor\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for invertColor\n", token);
-		return;
+		return qfalse;
 	}
 
 	R_InvertColor(*pic, *width, *height);
+
+	return qtrue;
 }
 
-static void ParseMakeIntensity(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseMakeIntensity(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 
@@ -1826,30 +1836,32 @@ static void ParseMakeIntensity(char **text, byte ** pic, int *width, int *height
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for makeIntensity\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of image for makeIntensity\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for makeIntensity\n", token);
-		return;
+		return qfalse;
 	}
 
 	R_MakeIntensity(*pic, *width, *height);
 
 	*bits &= ~IF_ALPHA;
 	*bits &= ~IF_NORMALMAP;
+
+	return qtrue;
 }
 
-static void ParseMakeAlpha(char **text, byte ** pic, int *width, int *height, int *bits)
+static qboolean ParseMakeAlpha(char **text, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 
@@ -1857,27 +1869,29 @@ static void ParseMakeAlpha(char **text, byte ** pic, int *width, int *height, in
 	if(token[0] != '(')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting '(', found '%s' for makeAlpha\n", token);
-		return;
+		return qfalse;
 	}
 
-	R_LoadImage(text, pic, width, height, bits);
+	R_LoadImage(text, pic, width, height, bits, materialName);
 	if(!pic)
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: failed loading of image for makeAlpha\n");
-		return;
+		return qfalse;
 	}
 
 	token = COM_ParseExt2(text, qfalse);
 	if(token[0] != ')')
 	{
 		ri.Printf(PRINT_WARNING, "WARNING: expecting ')', found '%s' for makeAlpha\n", token);
-		return;
+		return qfalse;
 	}
 
 	R_MakeAlpha(*pic, *width, *height);
 
 //	*bits |= IF_ALPHA;
 	*bits &= IF_NORMALMAP;
+
+	return qtrue;
 }
 
 typedef struct
@@ -1907,7 +1921,7 @@ Loads any of the supported image types into a canonical
 32 bit format.
 =================
 */
-static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int *bits)
+static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int *bits, const char *materialName)
 {
 	char           *token;
 
@@ -1927,17 +1941,35 @@ static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int
 	// heightMap(<map>, <float>)  Turns a grayscale height map into a normal map. <float> varies the bumpiness
 	if(!Q_stricmp(token, "heightMap"))
 	{
-		ParseHeightMap(buffer, pic, width, height, bits);
+		if(!ParseHeightMap(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse heightMap(<map>, <float>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	// displaceMap(<map>, <map>)  Sets the alpha channel to an average of the second image's RGB channels.
 	else if(!Q_stricmp(token, "displaceMap"))
 	{
-		ParseDisplaceMap(buffer, pic, width, height, bits);
+		if(!ParseDisplaceMap(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse displaceMap(<map>, <map>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	// addNormals(<map>, <map>)  Adds two normal maps together. Result is normalized.
 	else if(!Q_stricmp(token, "addNormals"))
 	{
-		ParseAddNormals(buffer, pic, width, height, bits);
+		if(!ParseAddNormals(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse addNormals(<map>, <map>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	// smoothNormals(<map>)  Does a box filter on the normal map, and normalizes the result.
 	else if(!Q_stricmp(token, "smoothNormals"))
@@ -1957,22 +1989,46 @@ static void R_LoadImage(char **buffer, byte ** pic, int *width, int *height, int
 	// invertAlpha(<map>)  Inverts the alpha channel (0 becomes 1, 1 becomes 0)
 	else if(!Q_stricmp(token, "invertAlpha"))
 	{
-		ParseInvertAlpha(buffer, pic, width, height, bits);
+		if(!ParseInvertAlpha(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse invertAlpha(<map>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	// invertColor(<map>)  Inverts the R, G, and B channels
 	else if(!Q_stricmp(token, "invertColor"))
 	{
-		ParseInvertColor(buffer, pic, width, height, bits);
+		if(!ParseInvertColor(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse invertColor(<map>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	// makeIntensity(<map>)  Copies the red channel to the G, B, and A channels
 	else if(!Q_stricmp(token, "makeIntensity"))
 	{
-		ParseMakeIntensity(buffer, pic, width, height, bits);
+		if(!ParseMakeIntensity(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse makeIntensity(<map>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	// makeAlpha(<map>)  Sets the alpha channel to an average of the RGB channels. Sets the RGB channels to white.
 	else if(!Q_stricmp(token, "makeAlpha"))
 	{
-		ParseMakeAlpha(buffer, pic, width, height, bits);
+		if(!ParseMakeAlpha(buffer, pic, width, height, bits, materialName))
+		{
+			if(materialName && materialName[0] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: failed to parse makeAlpha(<map>) expression for shader '%s'\n", materialName);
+			}
+		}
 	}
 	else
 	{
@@ -2053,7 +2109,7 @@ Finds or loads the given image.
 Returns NULL if it fails, not a default image.
 ==============
 */
-image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterType, wrapType_t wrapType)
+image_t        *R_FindImageFile(const char *imageName, int bits, filterType_t filterType, wrapType_t wrapType, const char *materialName)
 {
 	image_t        *image = NULL;
 	int             width = 0, height = 0;
@@ -2064,12 +2120,12 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 	char           *buffer_p;
 	unsigned long   diff;
 
-	if(!name)
+	if(!imageName)
 	{
 		return NULL;
 	}
 
-	Q_strncpyz(buffer, name, sizeof(buffer));
+	Q_strncpyz(buffer, imageName, sizeof(buffer));
 	hash = GenerateImageHashValue(buffer);
 
 //  ri.Printf(PRINT_ALL, "R_FindImageFile: buffer '%s'\n", buffer);
@@ -2093,12 +2149,12 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 
 				if(diff & IF_NOPICMIP)
 				{
-					ri.Printf(PRINT_DEVELOPER, "WARNING: reused image %s with mixed allowPicmip parm\n", name);
+					ri.Printf(PRINT_DEVELOPER, "WARNING: reused image '%s' with mixed allowPicmip parm for shader '%s\n", imageName, materialName);
 				}
 
 				if(image->wrapType != wrapType)
 				{
-					ri.Printf(PRINT_ALL, "WARNING: reused image %s with mixed glWrapType parm\n", name);
+					ri.Printf(PRINT_ALL, "WARNING: reused image '%s' with mixed glWrapType parm for shader '%s'\n", imageName, materialName);
 				}
 			}
 			return image;
@@ -2108,9 +2164,9 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(glConfig.textureCompression == TC_S3TC && !(bits & IF_NOCOMPRESSION) && Q_stricmpn(name, "fonts", 5))
+	if(glConfig.textureCompression == TC_S3TC && !(bits & IF_NOCOMPRESSION) && Q_stricmpn(imageName, "fonts", 5))
 	{
-		Q_strncpyz(ddsName, name, sizeof(ddsName));
+		Q_strncpyz(ddsName, imageName, sizeof(ddsName));
 		COM_StripExtension3(ddsName, ddsName, sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), ".dds");
 
@@ -2144,7 +2200,7 @@ image_t        *R_FindImageFile(const char *name, int bits, filterType_t filterT
 
 	// load the pic from disk
 	buffer_p = &buffer[0];
-	R_LoadImage(&buffer_p, &pic, &width, &height, &bits);
+	R_LoadImage(&buffer_p, &pic, &width, &height, &bits, materialName);
 	if(pic == NULL)
 	{
 		return NULL;
@@ -2348,7 +2404,7 @@ Returns NULL if it fails, not a default image.
 Tr3B: fear the use of goto
 ==============
 */
-image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterType, wrapType_t wrapType)
+image_t        *R_FindCubeImage(const char *imageName, int bits, filterType_t filterType, wrapType_t wrapType, const char *materialName)
 {
 	int             i;
 	image_t        *image = NULL;
@@ -2395,12 +2451,12 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 	char            ddsName[1024];
 	char           *filename_p;
 
-	if(!name)
+	if(!imageName)
 	{
 		return NULL;
 	}
 
-	Q_strncpyz(buffer, name, sizeof(buffer));
+	Q_strncpyz(buffer, imageName, sizeof(buffer));
 	hash = GenerateImageHashValue(buffer);
 
 	// see if the image is already loaded
@@ -2416,9 +2472,9 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 #if defined(USE_D3D10)
 	// TODO
 #else
-	if(glConfig.textureCompression == TC_S3TC && !(bits & IF_NOCOMPRESSION) && Q_stricmpn(name, "fonts", 5))
+	if(glConfig.textureCompression == TC_S3TC && !(bits & IF_NOCOMPRESSION) && Q_stricmpn(imageName, "fonts", 5))
 	{
-		Q_strncpyz(ddsName, name, sizeof(ddsName));
+		Q_strncpyz(ddsName, imageName, sizeof(ddsName));
 		COM_StripExtension3(ddsName, ddsName, sizeof(ddsName));
 		Q_strcat(ddsName, sizeof(ddsName), ".dds");
 
@@ -2460,7 +2516,7 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 		Com_sprintf(filename, sizeof(filename), "%s_%s", buffer, openglSuffices[i]);
 
 		filename_p = &filename[0];
-		R_LoadImage(&filename_p, &pic[i], &width, &height, &bitsIgnore);
+		R_LoadImage(&filename_p, &pic[i], &width, &height, &bitsIgnore, materialName);
 
 		if(!pic[i] || width != height)
 		{
@@ -2476,7 +2532,7 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
   		Com_sprintf(filename, sizeof(filename), "%s_%s", buffer, doom3Suffices[i]);
 
   		filename_p = &filename[0];
-  		R_LoadImage(&filename_p, &pic[i], &width, &height, &bitsIgnore);
+  		R_LoadImage(&filename_p, &pic[i], &width, &height, &bitsIgnore, materialName);
 
   		if(!pic[i] || width != height)
 		{
@@ -2504,7 +2560,7 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 		Com_sprintf(filename, sizeof(filename), "%s_%s", buffer, quakeSuffices[i]);
 
 		filename_p = &filename[0];
-		R_LoadImage(&filename_p, &pic[i], &width, &height, &bitsIgnore);
+		R_LoadImage(&filename_p, &pic[i], &width, &height, &bitsIgnore, materialName);
 
 		if(!pic[i] || width != height)
 		{
@@ -2537,6 +2593,114 @@ image_t        *R_FindCubeImage(const char *name, int bits, filterType_t filterT
 	return image;
 }
 
+
+
+/*
+=================
+R_InitFogTable
+=================
+*/
+void R_InitFogTable(void)
+{
+	int             i;
+	float           d;
+	float           exp;
+
+	exp = 0.5;
+
+	for(i = 0; i < FOG_TABLE_SIZE; i++)
+	{
+		d = pow((float)i / (FOG_TABLE_SIZE - 1), exp);
+
+		tr.fogTable[i] = d;
+	}
+}
+
+
+/*
+================
+R_FogFactor
+
+Returns a 0.0 to 1.0 fog density value
+This is called for each texel of the fog texture on startup
+and for each vertex of transparent shaders in fog dynamically
+================
+*/
+float R_FogFactor(float s, float t)
+{
+	float           d;
+
+	s -= 1.0 / 512;
+	if(s < 0)
+	{
+		return 0;
+	}
+	if(t < 1.0 / 32)
+	{
+		return 0;
+	}
+	if(t < 31.0 / 32)
+	{
+		s *= (t - 1.0f / 32.0f) / (30.0f / 32.0f);
+	}
+
+	// we need to leave a lot of clamp range
+	s *= 8;
+
+	if(s > 1.0)
+	{
+		s = 1.0;
+	}
+
+	d = tr.fogTable[(int)(s * (FOG_TABLE_SIZE - 1))];
+
+	return d;
+}
+
+
+/*
+================
+R_CreateFogImage
+================
+*/
+#define	FOG_S	256
+#define	FOG_T	32
+static void R_CreateFogImage(void)
+{
+	int             x, y;
+	byte           *data;
+	float           g;
+	float           d;
+	float           borderColor[4];
+
+	data = ri.Hunk_AllocateTempMemory(FOG_S * FOG_T * 4);
+
+	g = 2.0;
+
+	// S is distance, T is depth
+	for(x = 0; x < FOG_S; x++)
+	{
+		for(y = 0; y < FOG_T; y++)
+		{
+			d = R_FogFactor((x + 0.5f) / FOG_S, (y + 0.5f) / FOG_T);
+
+			data[(y * FOG_S + x) * 4 + 0] = data[(y * FOG_S + x) * 4 + 1] = data[(y * FOG_S + x) * 4 + 2] = 255;
+			data[(y * FOG_S + x) * 4 + 3] = 255 * d;
+		}
+	}
+	// standard openGL clamping doesn't really do what we want -- it includes
+	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
+	// what we want.
+	tr.fogImage = R_CreateImage("_fog", (byte *) data, FOG_S, FOG_T, IF_NOPICMIP, FT_LINEAR, WT_CLAMP);
+	ri.Hunk_FreeTempMemory(data);
+
+	borderColor[0] = 1.0;
+	borderColor[1] = 1.0;
+	borderColor[2] = 1.0;
+	borderColor[3] = 1;
+
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+}
 
 
 /*
@@ -3089,6 +3253,31 @@ static void R_CreateBlackCubeImage(void)
 }
 // *INDENT-ON*
 
+// *INDENT-OFF*
+static void R_CreateWhiteCubeImage(void)
+{
+	int             i;
+	int             width, height;
+	byte           *data[6];
+
+	width = REF_CUBEMAP_SIZE;
+	height = REF_CUBEMAP_SIZE;
+
+	for(i = 0; i < 6; i++)
+	{
+		data[i] = ri.Hunk_AllocateTempMemory(width * height * 4);
+		Com_Memset(data[i], 0xFF, width * height * 4);
+	}
+
+	tr.whiteCubeImage = R_CreateCubeImage("_whiteCube", (const byte **)data, width, height, IF_NOPICMIP, FT_LINEAR, WT_EDGE_CLAMP);
+
+	for(i = 5; i >= 0; i--)
+	{
+		ri.Hunk_FreeTempMemory(data[i]);
+	}
+}
+// *INDENT-ON*
+
 /*
 ==================
 R_CreateBuiltinImages
@@ -3155,6 +3344,7 @@ void R_CreateBuiltinImages(void)
 		R_CreateImage("_quadratic", (byte *) data, DEFAULT_SIZE, DEFAULT_SIZE, IF_NOPICMIP | IF_NOCOMPRESSION, FT_LINEAR,
 					  WT_CLAMP);
 
+	R_CreateFogImage();
 	R_CreateNoFalloffImage();
 	R_CreateAttenuationXYImage();
 	R_CreateContrastRenderFBOImage();
@@ -3169,6 +3359,7 @@ void R_CreateBuiltinImages(void)
 	R_CreateShadowMapFBOImage();
 	R_CreateShadowCubeFBOImage();
 	R_CreateBlackCubeImage();
+	R_CreateWhiteCubeImage();
 }
 
 
@@ -3304,19 +3495,19 @@ void R_InitImages(void)
 	// create default texture and white texture
 	R_CreateBuiltinImages();
 
-	tr.charsetImage = R_FindImageFile(charsetImage, IF_NOCOMPRESSION | IF_NOPICMIP, FT_DEFAULT, WT_CLAMP);
+	tr.charsetImage = R_FindImageFile(charsetImage, IF_NOCOMPRESSION | IF_NOPICMIP, FT_DEFAULT, WT_CLAMP, NULL);
 	if(!tr.charsetImage)
 	{
 		ri.Error(ERR_FATAL, "R_InitImages: could not load '%s'", charsetImage);
 	}
 
-	tr.grainImage = R_FindImageFile(grainImage, IF_NOCOMPRESSION | IF_NOPICMIP, FT_DEFAULT, WT_REPEAT);
+	tr.grainImage = R_FindImageFile(grainImage, IF_NOCOMPRESSION | IF_NOPICMIP, FT_DEFAULT, WT_REPEAT, NULL);
 	if(!tr.grainImage)
 	{
 		ri.Error(ERR_FATAL, "R_InitImages: could not load '%s'", grainImage);
 	}
 
-	tr.vignetteImage = R_FindImageFile(vignetteImage, IF_NOCOMPRESSION | IF_NOPICMIP, FT_DEFAULT, WT_CLAMP);
+	tr.vignetteImage = R_FindImageFile(vignetteImage, IF_NOCOMPRESSION | IF_NOPICMIP, FT_DEFAULT, WT_CLAMP, NULL);
 	if(!tr.vignetteImage)
 	{
 		ri.Error(ERR_FATAL, "R_InitImages: could not load '%s'", vignetteImage);
@@ -3376,7 +3567,7 @@ int RE_GetTextureId(const char *name)
 	int             i;
 	image_t			*image;
 
-	ri.Printf(PRINT_ALL, S_COLOR_ORANGE "RE_GetTextureId [%s].\n", name);
+	ri.Printf(PRINT_ALL, S_COLOR_YELLOW "RE_GetTextureId [%s].\n", name);
 
 	for(i = 0; i < tr.images.currentElements; i++)
 	{

@@ -34,6 +34,7 @@ Returns true if the grid is completely culled away.
 Also sets the clipped hint bit in tess
 =================
 */
+/*
 static qboolean R_CullTriSurf(srfTriangles_t * cv)
 {
 	int             boxCull;
@@ -46,6 +47,7 @@ static qboolean R_CullTriSurf(srfTriangles_t * cv)
 	}
 	return qfalse;
 }
+*/
 
 /*
 =================
@@ -55,6 +57,7 @@ Returns true if the grid is completely culled away.
 Also sets the clipped hint bit in tess
 =================
 */
+/*
 static qboolean R_CullGrid(srfGridMesh_t * cv)
 {
 	int             boxCull;
@@ -109,6 +112,7 @@ static qboolean R_CullGrid(srfGridMesh_t * cv)
 
 	return qfalse;
 }
+*/
 
 
 /*
@@ -350,7 +354,7 @@ static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 		return;
 	}
 
-	R_AddDrawSurf(surf->data, surf->shader, surf->lightmapNum);
+	R_AddDrawSurf(surf->data, surf->shader, surf->lightmapNum, surf->fogIndex);
 }
 
 /*
@@ -366,7 +370,7 @@ static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 R_AddBrushModelSurface
 ======================
 */
-static void R_AddBrushModelSurface(bspSurface_t * surf)
+static void R_AddBrushModelSurface(bspSurface_t * surf, int fogIndex)
 {
 	int			frontFace;
 
@@ -382,7 +386,7 @@ static void R_AddBrushModelSurface(bspSurface_t * surf)
 		return;
 	}
 
-	R_AddDrawSurf(surf->data, surf->shader, surf->lightmapNum);
+	R_AddDrawSurf(surf->data, surf->shader, surf->lightmapNum, fogIndex);
 }
 
 /*
@@ -399,6 +403,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 	vec3_t          transformed;
 	vec3_t			boundsCenter;
 //	float			boundsRadius;
+	int             fogNum;
 
 	pModel = R_GetModelByHandle(ent->e.hModel);
 	bspModel = pModel->bsp;
@@ -442,6 +447,8 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 	// Tr3B: BSP inline models should always use vertex lighting
 	R_SetupEntityLighting(&tr.refdef, ent, boundsCenter);
 
+	fogNum = R_FogWorldBox(ent->worldBounds);
+
 	if(r_vboModels->integer && bspModel->numVBOSurfaces)
 	{
 		int             i;
@@ -451,14 +458,14 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 		{
 			vboSurface = bspModel->vboSurfaces[i];
 
-			R_AddDrawSurf((surfaceType_t *) vboSurface, vboSurface->shader, vboSurface->lightmapNum);
+			R_AddDrawSurf((surfaceType_t *) vboSurface, vboSurface->shader, vboSurface->lightmapNum, fogNum);
 		}
 	}
 	else
 	{
 		for(i = 0; i < bspModel->numSurfaces; i++)
 		{
-			R_AddBrushModelSurface(bspModel->firstSurface + i);
+			R_AddBrushModelSurface(bspModel->firstSurface + i, fogNum);
 		}
 	}
 }
@@ -1820,7 +1827,8 @@ static void R_CoherentHierachicalCulling()
 			   tr.viewParms.viewportWidth, tr.viewParms.viewportHeight);
 
 	// set uniforms
-	gl_genericShader->SetUniform_ColorModulate(CGEN_VERTEX, AGEN_VERTEX);
+	gl_genericShader->SetUniform_ColorModulate(CGEN_CONST, AGEN_CONST);
+	gl_genericShader->SetUniform_Color(colorWhite);
 
 	// set up the transformation matrix
 	GL_LoadModelViewMatrix(tr.orientation.modelViewMatrix);
@@ -2460,7 +2468,7 @@ void R_AddWorldSurfaces(void)
 					}
 				}
 
-				R_AddDrawSurf((surfaceType_t *)srf, shader, srf->lightmapNum);
+				R_AddDrawSurf((surfaceType_t *)srf, shader, srf->lightmapNum, 0);
 			}
 		}
 	}

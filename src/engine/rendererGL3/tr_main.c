@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -797,6 +797,102 @@ int R_CullPointAndRadius(vec3_t pt, float radius)
 	}
 
 	return CULL_IN;				// completely inside frustum
+}
+
+/*
+=================
+R_FogLocalPointAndRadius
+=================
+*/
+int R_FogLocalPointAndRadius(const vec3_t pt, float radius)
+{
+	vec3_t          transformed;
+
+	R_LocalPointToWorld(pt, transformed);
+
+	return R_FogPointAndRadius(transformed, radius);
+}
+
+/*
+=================
+R_FogPointAndRadius
+=================
+*/
+int R_FogPointAndRadius(const vec3_t pt, float radius)
+{
+	int             i, j;
+	fog_t          *fog;
+
+	if(tr.refdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		return 0;
+	}
+
+	// FIXME: non-normalized axis issues
+	for(i = 1; i < tr.world->numFogs; i++)
+	{
+		fog = &tr.world->fogs[i];
+		for(j = 0; j < 3; j++)
+		{
+			if(pt[j] - radius >= fog->bounds[1][j])
+			{
+				break;
+			}
+			
+			if(pt[j] + radius <= fog->bounds[0][j])
+			{
+				break;
+			}
+		}
+		if(j == 3)
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
+
+
+/*
+=================
+R_FogWorldBox
+=================
+*/
+int R_FogWorldBox(vec3_t bounds[2])
+{
+	int             i, j;
+	fog_t          *fog;
+
+	if(tr.refdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		return 0;
+	}
+
+	for(i = 1; i < tr.world->numFogs; i++)
+	{
+		fog = &tr.world->fogs[i];
+		
+		for(j = 0; j < 3; j++)
+		{
+			if(bounds[0][j] >= fog->bounds[1][j])
+			{
+				break;
+			}
+			
+			if(bounds[1][j] <= fog->bounds[0][j])
+			{
+				break;
+			}
+		}
+		
+		if(j == 3)
+		{
+			return i;
+		}
+	}
+
+	return 0;
 }
 
 
@@ -1922,7 +2018,7 @@ static qboolean R_GetPortalOrientations(drawSurf_t * drawSurf, orientation_t * s
 		// if the entity is just a mirror, don't use as a camera point
 		if(e->e.oldorigin[0] == e->e.origin[0] && e->e.oldorigin[1] == e->e.origin[1] && e->e.oldorigin[2] == e->e.origin[2])
 		{
-			//ri.Printf(PRINT_DEVELOPER, "Portal surface with a mirror entity\n");
+			//ri.Printf(PRINT_ALL, "Portal surface with a mirror entity\n");
 
 			VectorScale(plane.normal, plane.dist, surface->origin);
 			VectorCopy(surface->origin, camera->origin);
@@ -1974,6 +2070,9 @@ static qboolean R_GetPortalOrientations(drawSurf_t * drawSurf, orientation_t * s
 			RotatePointAroundVector(camera->axis[1], camera->axis[0], transformed, d);
 			CrossProduct(camera->axis[0], camera->axis[1], camera->axis[2]);
 		}
+
+		//ri.Printf(PRINT_ALL, "Portal surface with a portal entity\n");
+
 		*mirror = qfalse;
 		return qtrue;
 	}
@@ -1987,7 +2086,7 @@ static qboolean R_GetPortalOrientations(drawSurf_t * drawSurf, orientation_t * s
 	// to see a surface before the server has communicated the matching
 	// portal surface entity, so we don't want to print anything here...
 
-	//ri.Printf( PRINT_ALL, "Portal surface without a portal entity\n");
+	//ri.Printf(PRINT_ALL, "Portal surface without a portal entity\n");
 
 	return qfalse;
 }
@@ -2076,15 +2175,16 @@ static qboolean SurfIsOffscreen(const drawSurf_t * drawSurf, vec4_t clipDest[128
 	// rotate if necessary
 	if(tr.currentEntity != &tr.worldEntity)
 	{
-		//ri.Printf(PRINT_ALL, "entity Portal surface\n");
+		//ri.Printf(PRINT_ALL, "entity portal surface\n");
 		R_RotateEntityForViewParms(tr.currentEntity, &tr.viewParms, &tr.orientation);
 	}
 	else
 	{
+		//ri.Printf(PRINT_ALL, "world portal surface\n");
 		tr.orientation = tr.viewParms.world;
 	}
 
-	Tess_Begin(Tess_StageIteratorGeneric, shader, NULL, qfalse, qfalse, -1);
+	Tess_Begin(Tess_StageIteratorGeneric, NULL, shader, NULL, qtrue, qtrue, qfalse, -1, 0);
 	rb_surfaceTable[*drawSurf->surface] (drawSurf->surface);
 
 	// Tr3B: former assertion
@@ -2149,7 +2249,7 @@ static qboolean SurfIsOffscreen(const drawSurf_t * drawSurf, vec4_t clipDest[128
 	}
 	if(!numTriangles)
 	{
-		//ri.Printf(PRINT_ALL, "entity Portal surface triangles culled\n");
+		//ri.Printf(PRINT_ALL, "entity portal surface triangles culled\n");
 		return qtrue;
 	}
 
@@ -2198,6 +2298,7 @@ static qboolean R_MirrorViewBySurface(drawSurf_t * drawSurf)
 	// trivially reject portal/mirror
 	if(SurfIsOffscreen(drawSurf, clipDest))
 	{
+		//ri.Printf(PRINT_ALL, "WARNING: offscreen mirror/portal surface\n");
 		return qfalse;
 	}
 
@@ -2234,13 +2335,53 @@ static qboolean R_MirrorViewBySurface(drawSurf_t * drawSurf)
 	return qtrue;
 }
 
+/*
+=================
+R_SpriteFogNum
+
+See if a sprite is inside a fog volume
+=================
+*/
+int R_SpriteFogNum(trRefEntity_t * ent)
+{
+	int             i, j;
+	fog_t          *fog;
+
+	if(tr.refdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		return 0;
+	}
+
+	for(i = 1; i < tr.world->numFogs; i++)
+	{
+		fog = &tr.world->fogs[i];
+		for(j = 0; j < 3; j++)
+		{
+			if(ent->e.origin[j] - ent->e.radius >= fog->bounds[1][j])
+			{
+				break;
+			}
+			if(ent->e.origin[j] + ent->e.radius <= fog->bounds[0][j])
+			{
+				break;
+			}
+		}
+		if(j == 3)
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
+
 
 /*
 =================
 R_AddDrawSurf
 =================
 */
-void R_AddDrawSurf(surfaceType_t * surface, shader_t * shader, int lightmapNum)
+void R_AddDrawSurf(surfaceType_t * surface, shader_t * shader, int lightmapNum, int fogNum)
 {
 	int             index;
 	drawSurf_t     *drawSurf;
@@ -2255,6 +2396,7 @@ void R_AddDrawSurf(surfaceType_t * surface, shader_t * shader, int lightmapNum)
 	drawSurf->surface = surface;
 	drawSurf->shaderNum = shader->sortedIndex;
 	drawSurf->lightmapNum = lightmapNum;
+	drawSurf->fogNum = fogNum;
 
 	tr.refdef.numDrawSurfs++;
 }
@@ -2297,6 +2439,15 @@ static int DrawSurfCompare(const void *a, const void *b)
 		return -1;
 
 	else if(((drawSurf_t *) a)->entity > ((drawSurf_t *) b)->entity)
+		return 1;
+#endif
+
+#if 1
+	// by fog
+	if(((drawSurf_t *) a)->fogNum < ((drawSurf_t *) b)->fogNum)
+		return -1;
+
+	else if(((drawSurf_t *) a)->fogNum > ((drawSurf_t *) b)->fogNum)
 		return 1;
 #endif
 
@@ -2459,7 +2610,7 @@ void R_AddEntitySurfaces(void)
 					continue;
 				}
 				shader = R_GetShaderByHandle(ent->e.customShader);
-				R_AddDrawSurf(&entitySurface, shader, -1);
+				R_AddDrawSurf(&entitySurface, shader, -1, R_SpriteFogNum(ent));
 				break;
 
 			case RT_MODEL:
@@ -2469,7 +2620,7 @@ void R_AddEntitySurfaces(void)
 				tr.currentModel = R_GetModelByHandle(ent->e.hModel);
 				if(!tr.currentModel)
 				{
-					R_AddDrawSurf(&entitySurface, tr.defaultShader, -1);
+					R_AddDrawSurf(&entitySurface, tr.defaultShader, -1, 0);
 				}
 				else
 				{
@@ -2478,10 +2629,15 @@ void R_AddEntitySurfaces(void)
 						case MOD_MESH:
 							R_AddMDVSurfaces(ent);
 							break;
+#if defined(COMPAT_ET)
+						case MOD_MDX:
+							// not a model, just a skeleton
+							break;
 
 						case MOD_MDM:
 							R_MDM_AddAnimSurfaces(ent);
 							break;
+#endif
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 						case MOD_MD5:
@@ -2503,7 +2659,7 @@ void R_AddEntitySurfaces(void)
 							VectorClear(ent->worldBounds[0]);
 							VectorClear(ent->worldBounds[1]);
 							shader = R_GetShaderByHandle(ent->e.customShader);
-							R_AddDrawSurf(&entitySurface, tr.defaultShader, -1);
+							R_AddDrawSurf(&entitySurface, tr.defaultShader, -1, 0);
 							break;
 
 						default:
@@ -2577,9 +2733,15 @@ void R_AddEntityInteractions(trRefLight_t * light)
 							R_AddMDVInteractions(ent, light);
 							break;
 
+#if defined(COMPAT_ET)
+						case MOD_MDX:
+							// not a model, just a skeleton
+							break;
+
 						case MOD_MDM:
 							R_AddMDMInteractions(ent, light);
 							break;
+#endif
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 						case MOD_MD5:

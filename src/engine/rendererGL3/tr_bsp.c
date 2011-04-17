@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 Copyright (C) 2009 Peter McNeill <n27@bigpond.net.au>
 
 This file is part of XreaL source code.
@@ -101,7 +101,7 @@ void HSVtoRGB(float h, float s, float v, float rgb[3])
 R_ColorShiftLightingBytes
 ===============
 */
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 static void R_ColorShiftLightingBytes(byte in[4], byte out[4])
 {
 	int             shift, r, g, b;
@@ -138,7 +138,7 @@ static void R_ColorShiftLightingBytes(byte in[4], byte out[4])
 R_ColorShiftLightingFloats
 ===============
 */
-#if 1 //defined(COMPAT_ET)
+#if 1 //defined(COMPAT_Q3A)
 static void R_ColorShiftLightingFloats(const vec4_t in, vec4_t out)
 {
 	int             shift, r, g, b;
@@ -279,7 +279,7 @@ R_ProcessLightmap
 	returns maxIntensity
 ===============
 */
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 float R_ProcessLightmap(byte ** pic, int in_padding, int width, int height, byte ** pic_out)
 {
 	int             j;
@@ -931,7 +931,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 				{
 					ri.Printf(PRINT_ALL, "...loading external lightmap '%s/%s'\n", mapName, lightmapFiles[i]);
 
-					image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_NORMALMAP | IF_NOCOMPRESSION, FT_DEFAULT, WT_CLAMP);
+					image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_NORMALMAP | IF_NOCOMPRESSION, FT_DEFAULT, WT_CLAMP, NULL);
 					Com_AddToGrowList(&tr.deluxemaps, image);
 				}
 			}
@@ -966,18 +966,18 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 				{
 					if(i % 2 == 0)
 					{
-						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP);
+						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP, NULL);
 						Com_AddToGrowList(&tr.lightmaps, image);
 					}
 					else
 					{
-						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_NORMALMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP);
+						image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_NORMALMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP, NULL);
 						Com_AddToGrowList(&tr.deluxemaps, image);
 					}
 				}
 				else
 				{
-					image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP);
+					image = R_FindImageFile(va("%s/%s", mapName, lightmapFiles[i]), IF_LIGHTMAP | IF_NOCOMPRESSION, FT_LINEAR, WT_CLAMP, NULL);
 					Com_AddToGrowList(&tr.lightmaps, image);
 				}
 			}
@@ -1328,6 +1328,9 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 #endif
 	}
 
+	// get fog volume
+	surf->fogIndex = LittleLong(ds->fogNum) + 1;
+
 	// get shader value
 	surf->shader = ShaderForShaderNum(ds->shaderNum);
 	if(r_singleShader->integer && !surf->shader->isSky)
@@ -1384,7 +1387,7 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 		}
 		R_ColorShiftLightingFloats(cv->verts[i].lightColor, cv->verts[i].lightColor);
 
-#elif defined(COMPAT_ET)
+#elif defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		for(j = 0; j < 4; j++)
 		{
 			cv->verts[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
@@ -1534,6 +1537,9 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 #endif
 	}
 
+	// get fog volume
+	surf->fogIndex = LittleLong(ds->fogNum) + 1;
+
 	// get shader value
 	surf->shader = ShaderForShaderNum(ds->shaderNum);
 	if(r_singleShader->integer && !surf->shader->isSky)
@@ -1543,7 +1549,11 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 
 	// we may have a nodraw surface, because they might still need to
 	// be around for movement clipping
-	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW))// | SURF_COLLISION))
+#if defined(COMPAT_ET)
+	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & SURF_NODRAW)
+#else
+	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW | SURF_COLLISION))
+#endif
 	{
 		surf->data = &skipData;
 		return;
@@ -1653,8 +1663,11 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 	else
 	{
 		surf->lightmapNum = realLightmapNum;
-#endif
 	}
+#endif
+
+	// get fog volume
+	surf->fogIndex = LittleLong(ds->fogNum) + 1;
 
 	// get shader
 	surf->shader = ShaderForShaderNum(ds->shaderNum);
@@ -1665,7 +1678,11 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 
 	// we may have a nodraw surface, because they might still need to
 	// be around for movement clipping
-	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW))// | SURF_COLLISION))
+#if defined(COMPAT_ET)
+	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & SURF_NODRAW)
+#else
+	if(s_worldData.shaders[LittleLong(ds->shaderNum)].surfaceFlags & (SURF_NODRAW | SURF_COLLISION))
+#endif
 	{
 		surf->data = &skipData;
 		return;
@@ -1701,7 +1718,7 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 			cv->verts[i].lightmap[j] = LittleFloat(verts[i].lightmap[j]);
 		}
 
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		for(j = 0; j < 4; j++)
 		{
 			cv->verts[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
@@ -1865,6 +1882,9 @@ static void ParseFlare(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf,
 
 	// set lightmap
 	surf->lightmapNum = -1;
+
+	// get fog volume
+	surf->fogIndex = LittleLong(ds->fogNum) + 1;
 
 	// get shader
 	surf->shader = ShaderForShaderNum(ds->shaderNum);
@@ -5369,6 +5389,156 @@ static void R_LoadPlanes(lump_t * l)
 	}
 }
 
+/*
+=================
+R_LoadFogs
+=================
+*/
+static void R_LoadFogs(lump_t * l, lump_t * brushesLump, lump_t * sidesLump)
+{
+	int             i;
+	fog_t          *out;
+	dfog_t         *fogs;
+	dbrush_t       *brushes, *brush;
+	dbrushside_t   *sides;
+	int             count, brushesCount, sidesCount;
+	int             sideNum;
+	int             planeNum;
+	shader_t       *shader;
+	float           d;
+	int             firstSide;
+
+	ri.Printf(PRINT_ALL, "...loading fogs\n");
+
+	fogs = (void *)(fileBase + l->fileofs);
+	if(l->filelen % sizeof(*fogs))
+	{
+		ri.Error(ERR_DROP, "LoadMap: funny lump size in %s", s_worldData.name);
+	}
+	count = l->filelen / sizeof(*fogs);
+
+	// create fog strucutres for them
+	s_worldData.numFogs = count + 1;
+	s_worldData.fogs = ri.Hunk_Alloc(s_worldData.numFogs * sizeof(*out), h_low);
+	out = s_worldData.fogs + 1;
+
+	// ydnar: reset global fog
+	s_worldData.globalFog = -1;
+
+	if(!count)
+	{
+		ri.Printf(PRINT_ALL, "no fog volumes loaded\n");
+		return;
+	}
+
+	brushes = (void *)(fileBase + brushesLump->fileofs);
+	if(brushesLump->filelen % sizeof(*brushes))
+	{
+		ri.Error(ERR_DROP, "LoadMap: funny lump size in %s", s_worldData.name);
+	}
+	brushesCount = brushesLump->filelen / sizeof(*brushes);
+
+	sides = (void *)(fileBase + sidesLump->fileofs);
+	if(sidesLump->filelen % sizeof(*sides))
+	{
+		ri.Error(ERR_DROP, "LoadMap: funny lump size in %s", s_worldData.name);
+	}
+	sidesCount = sidesLump->filelen / sizeof(*sides);
+
+	for(i = 0; i < count; i++, fogs++)
+	{
+		out->originalBrushNumber = LittleLong(fogs->brushNum);
+
+		// ydnar: global fog has a brush number of -1, and no visible side
+		if(out->originalBrushNumber == -1)
+		{
+			VectorSet(out->bounds[0], MIN_WORLD_COORD, MIN_WORLD_COORD, MIN_WORLD_COORD);
+			VectorSet(out->bounds[1], MAX_WORLD_COORD, MAX_WORLD_COORD, MAX_WORLD_COORD);
+		}
+		else
+		{
+			if((unsigned)out->originalBrushNumber >= brushesCount)
+			{
+				ri.Error(ERR_DROP, "fog brushNumber out of range");
+			}
+			brush = brushes + out->originalBrushNumber;
+
+			firstSide = LittleLong(brush->firstSide);
+
+			if((unsigned)firstSide > sidesCount - 6)
+			{
+				ri.Error(ERR_DROP, "fog brush sideNumber out of range");
+			}
+
+			// brushes are always sorted with the axial sides first
+			sideNum = firstSide + 0;
+			planeNum = LittleLong(sides[sideNum].planeNum);
+			out->bounds[0][0] = -s_worldData.planes[planeNum].dist;
+
+			sideNum = firstSide + 1;
+			planeNum = LittleLong(sides[sideNum].planeNum);
+			out->bounds[1][0] = s_worldData.planes[planeNum].dist;
+
+			sideNum = firstSide + 2;
+			planeNum = LittleLong(sides[sideNum].planeNum);
+			out->bounds[0][1] = -s_worldData.planes[planeNum].dist;
+
+			sideNum = firstSide + 3;
+			planeNum = LittleLong(sides[sideNum].planeNum);
+			out->bounds[1][1] = s_worldData.planes[planeNum].dist;
+
+			sideNum = firstSide + 4;
+			planeNum = LittleLong(sides[sideNum].planeNum);
+			out->bounds[0][2] = -s_worldData.planes[planeNum].dist;
+
+			sideNum = firstSide + 5;
+			planeNum = LittleLong(sides[sideNum].planeNum);
+			out->bounds[1][2] = s_worldData.planes[planeNum].dist;
+		}
+
+		// get information from the shader for fog parameters
+		shader = R_FindShader(fogs->shader, SHADER_3D_DYNAMIC, qtrue);
+
+		out->parms = shader->fogParms;
+
+		out->color[0] = shader->fogParms.color[0] * tr.identityLight;
+		out->color[1] = shader->fogParms.color[1] * tr.identityLight;
+		out->color[2] = shader->fogParms.color[2] * tr.identityLight;
+		out->color[3] = 1;
+
+		d = shader->fogParms.depthForOpaque < 1 ? 1 : shader->fogParms.depthForOpaque;
+		out->tcScale = 1.0f / (d * 8);
+
+		// ydnar: global fog sets clearcolor/zfar
+		if(out->originalBrushNumber == -1)
+		{
+			s_worldData.globalFog = i + 1;
+			VectorCopy(shader->fogParms.color, s_worldData.globalOriginalFog);
+			s_worldData.globalOriginalFog[3] = shader->fogParms.depthForOpaque;
+		}
+
+		// set the gradient vector
+		sideNum = LittleLong(fogs->visibleSide);
+
+		if(sideNum == -1)
+		{
+			out->hasSurface = qfalse;
+		}
+		else
+		{
+			out->hasSurface = qtrue;
+			planeNum = LittleLong(sides[firstSide + sideNum].planeNum);
+			VectorSubtract(vec3_origin, s_worldData.planes[planeNum].normal, out->surface);
+			out->surface[3] = -s_worldData.planes[planeNum].dist;
+		}
+
+		out++;
+	}
+
+
+	ri.Printf(PRINT_ALL, "%i fog volumes loaded\n", s_worldData.numFogs);
+}
+
 
 /*
 ================
@@ -5488,7 +5658,7 @@ void R_LoadLightGrid(lump_t * l)
 			  i, gridPoint->ambient[0], gridPoint->ambient[1], gridPoint->ambient[2], gridPoint->directed[0], gridPoint->directed[1], gridPoint->directed[2]);
 #endif
 
-#if !defined(COMPAT_ET)
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 		// deal with overbright bits
 		R_HDRTonemapLightingColors(gridPoint->ambientColor, gridPoint->ambientColor, qtrue);
 		R_HDRTonemapLightingColors(gridPoint->directedColor, gridPoint->directedColor, qtrue);
@@ -8627,7 +8797,7 @@ void GL_BindNearestCubeMap(const vec3_t xyz)
 	unsigned int    hash;
 	vertexHash_t	*vertexHash;
 
-	tr.autoCubeImage = tr.blackCubeImage;
+	tr.autoCubeImage = tr.whiteCubeImage;
 	if(!r_reflectionMapping->integer)
 		return;
 
@@ -8658,6 +8828,53 @@ void GL_BindNearestCubeMap(const vec3_t xyz)
 #endif
 }
 
+void R_FindTwoNearestCubeMaps(const vec3_t position, cubemapProbe_t **cubeProbeNearest, cubemapProbe_t **cubeProbeSecondNearest)
+{
+	int             j;
+	float			distance, maxDistance, maxDistance2;
+	cubemapProbe_t *cubeProbe;
+	unsigned int    hash;
+	vertexHash_t	*vertexHash;
+
+	GLimp_LogComment("--- R_FindTwoNearestCubeMaps ---\n");
+
+	*cubeProbeNearest = NULL;
+	*cubeProbeSecondNearest = NULL;
+
+	if(tr.cubeHashTable == NULL || position == NULL)
+		return;
+
+	hash = VertexCoordGenerateHash(position);
+	maxDistance = maxDistance2 = 9999999.0f;
+	
+#if 0
+	for(j = 0; j < tr.cubeProbes.currentElements; j++)
+	{
+		cubeProbe = Com_GrowListElement(&tr.cubeProbes, j);
+#else
+	for(j = 0, vertexHash = tr.cubeHashTable[hash]; vertexHash; vertexHash = vertexHash->next, j++)
+	{
+		cubeProbe = vertexHash->data;
+#endif
+		distance = Distance(cubeProbe->origin, position);
+		if(distance < maxDistance)
+		{
+			*cubeProbeSecondNearest = *cubeProbeNearest;
+			maxDistance2 = maxDistance;
+
+			*cubeProbeNearest = cubeProbe;
+			maxDistance = distance;
+		}
+		else if(distance < maxDistance2 && distance > maxDistance)
+		{
+			*cubeProbeSecondNearest = cubeProbe;
+			maxDistance2 = distance;
+		}
+	}
+
+	//ri.Printf(PRINT_ALL, "iterated through %i cubeprobes\n", j);
+}
+
 void R_BuildCubeMaps(void)
 {
 #if 1
@@ -8672,11 +8889,13 @@ void R_BuildCubeMaps(void)
 	byte            temp[REF_CUBEMAP_SIZE * REF_CUBEMAP_SIZE * 4];
 	byte           *dest;
 
+#if 0
 	byte           *fileBuf;
 	char           *fileName = NULL;
 	int             fileCount = 0;
 	int             fileBufX = 0;
 	int             fileBufY = 0;
+#endif
 
 	//
 
@@ -8684,8 +8903,9 @@ void R_BuildCubeMaps(void)
 	//qboolean        bad;
 
 //  srfSurfaceStatic_t *sv;
-	int             progress = 0;
 	int             startTime, endTime;
+	size_t			tics = 0;
+	size_t			nextTicCount = 0;
 
 	startTime = ri.Milliseconds();
 
@@ -8696,7 +8916,7 @@ void R_BuildCubeMaps(void)
 		tr.cubeTemp[i] = ri.Z_Malloc(REF_CUBEMAP_SIZE * REF_CUBEMAP_SIZE * 4);
 	}
 
-	fileBuf = ri.Z_Malloc(REF_CUBEMAP_STORE_SIZE * REF_CUBEMAP_STORE_SIZE * 4);
+//	fileBuf = ri.Z_Malloc(REF_CUBEMAP_STORE_SIZE * REF_CUBEMAP_STORE_SIZE * 4);
 
 	// calculate origins for our probes
 	Com_InitGrowList(&tr.cubeProbes, 4000);
@@ -8828,6 +9048,9 @@ void R_BuildCubeMaps(void)
 	}
 
 	ri.Printf(PRINT_ALL, "...pre-rendering %d cubemaps\n", tr.cubeProbes.currentElements);
+	ri.Cvar_Set("viewlog", "1");
+	ri.Printf(PRINT_ALL, "0%%  10   20   30   40   50   60   70   80   90   100%%\n");
+	ri.Printf(PRINT_ALL, "|----|----|----|----|----|----|----|----|----|----|\n");
 	for(j = 0; j < tr.cubeProbes.currentElements; j++)
 	{
 		cubeProbe = Com_GrowListElement(&tr.cubeProbes, j);
@@ -8835,17 +9058,25 @@ void R_BuildCubeMaps(void)
 		//ri.Printf(PRINT_ALL, "rendering cubemap at (%i %i %i)\n", (int)cubeProbe->origin[0], (int)cubeProbe->origin[1],
 		//		  (int)cubeProbe->origin[2]);
 
-		if(tr.cubeProbes.currentElements > 10 &&  ((j % (tr.cubeProbes.currentElements / 10)) == 0))
+		if((j + 1) >= nextTicCount)
 		{
-			ri.Printf(PRINT_ALL, "%i", progress);
-			progress += 10;
+			size_t ticsNeeded = (size_t)(((double)(j + 1) / tr.cubeProbes.currentElements) * 50.0);
+
+			do
+			{
+				ri.Printf(PRINT_ALL, "*"); 
+				ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
+
+			} while ( ++tics < ticsNeeded );
+
+			nextTicCount = (size_t)((tics / 50.0) * tr.cubeProbes.currentElements);
+			if((j + 1) == tr.cubeProbes.currentElements)
+			{
+				if(tics < 51)
+					ri.Printf(PRINT_ALL, "*");
+				ri.Printf(PRINT_ALL, "\n");
+			}
 		}
-		else if(tr.cubeProbes.currentElements > 100 &&  ((j % (tr.cubeProbes.currentElements / 100)) == 0))
-		{
-			ri.Printf(PRINT_ALL, ".");
-			ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
-		}
-		
 
 		VectorCopy(cubeProbe->origin, rf.vieworg);
 
@@ -9045,6 +9276,7 @@ void R_BuildCubeMaps(void)
 			}
 
 			// collate cubemaps into one large image and write it out
+#if 0
 			if(qfalse)
 			{
 				// Initialize output buffer
@@ -9080,6 +9312,7 @@ void R_BuildCubeMaps(void)
 					fileBufY = 0;
 				}
 			}
+#endif
 		}
 
 #if defined(USE_D3D10)
@@ -9110,6 +9343,7 @@ void R_BuildCubeMaps(void)
 	}
 	ri.Printf(PRINT_ALL, "\n");
 
+#if 0
 	// write buffer if theres any still unwritten
 	if(fileBufX != 0 || fileBufY != 0)
 	{
@@ -9120,6 +9354,7 @@ void R_BuildCubeMaps(void)
 	}
 	ri.Printf(PRINT_ALL, "Wrote %d cubemaps in %d files.\n", j, fileCount+1);
 	ri.Free(fileBuf);
+#endif
 
 	// turn pixel targets off
 	tr.refdef.pixelTarget = NULL;
@@ -9257,6 +9492,7 @@ void RE_LoadWorldMap(const char *name)
 	R_LoadShaders(&header->lumps[LUMP_SHADERS]);
 	R_LoadLightmaps(&header->lumps[LUMP_LIGHTMAPS], name);
 	R_LoadPlanes(&header->lumps[LUMP_PLANES]);
+	R_LoadFogs(&header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES]);
 	R_LoadSurfaces(&header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES]);
 	R_LoadMarksurfaces(&header->lumps[LUMP_LEAFSURFACES]);
 	R_LoadNodesAndLeafs(&header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS]);

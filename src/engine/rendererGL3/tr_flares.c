@@ -62,6 +62,7 @@ typedef struct flare_s
 	qboolean        inPortal;	// true if in a portal view of the scene
 	int             frameSceneNum;
 	void           *surface;
+	int             fogNum;
 
 	int             fadeTime;
 
@@ -108,7 +109,7 @@ RB_AddFlare
 This is called at surface tesselation time
 ==================
 */
-void RB_AddFlare(void *surface, vec3_t point, vec3_t color, vec3_t normal)
+void RB_AddFlare(void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t normal)
 {
 	int             i;
 	flare_t        *f, *oldest;
@@ -175,6 +176,7 @@ void RB_AddFlare(void *surface, vec3_t point, vec3_t color, vec3_t normal)
 	}
 
 	f->addedFrame = backEnd.viewParms.frameCount;
+	f->fogNum = fogNum;
 
 	VectorCopy(color, f->color);
 
@@ -220,19 +222,44 @@ RB_AddLightFlares
 */
 void RB_AddLightFlares(void)
 {
+	int             i, j, k;
 	trRefLight_t   *l;
-	int             i;
+	fog_t          *fog;
 
 	if(!r_flares->integer)
 		return;
 
 	l = backEnd.refdef.lights;
+	fog = tr.world->fogs;
+
 	for(i = 0; i < backEnd.refdef.numLights; i++, l++)
 	{
 		if(!l->isStatic)
 			continue;
 
-		RB_AddFlare((void *)l, l->l.origin, l->l.color, NULL);
+		// find which fog volume the light is in 
+		for(j = 1; j < tr.world->numFogs; j++)
+		{
+			fog = &tr.world->fogs[j];
+			for(k = 0; k < 3; k++)
+			{
+				if(l->l.origin[k] < fog->bounds[0][k] || l->l.origin[k] > fog->bounds[1][k])
+				{
+					break;
+				}
+			}
+			if(k == 3)
+			{
+				break;
+			}
+		}
+		
+		if(j == tr.world->numFogs)
+		{
+			j = 0;
+		}
+
+		RB_AddFlare((void *)l, j, l->l.origin, l->l.color, NULL);
 	}
 }
 
@@ -351,7 +378,7 @@ void RB_RenderFlare(flare_t * f)
 	iColor[2] = color[2] * 255;
 #endif
 
-	Tess_Begin(Tess_StageIteratorGeneric, tr.flareShader, NULL, qfalse, qfalse, -1);
+	Tess_Begin(Tess_StageIteratorGeneric, NULL, tr.flareShader, NULL, qfalse, qfalse, qfalse, -1, f->fogNum);
 
 	// FIXME: use quadstamp?
 	tess.xyz[tess.numVertexes][0] = f->windowX - size;

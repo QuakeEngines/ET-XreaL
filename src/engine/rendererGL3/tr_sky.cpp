@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -776,7 +776,7 @@ void RB_DrawSun(void)
 	glDepthRange(1.0, 1.0);
 
 	// FIXME: use quad stamp
-	Tess_Begin(Tess_StageIteratorGeneric, tr.sunShader, NULL, tess.skipTangentSpaces, qfalse, -1);
+	Tess_Begin(Tess_StageIteratorGeneric, tr.sunShader, NULL, tess.skipTangentSpaces, qfalse, -1, tess.fogNum);
 	VectorCopy(origin, temp);
 	VectorSubtract(temp, vec1, temp);
 	VectorSubtract(temp, vec2, temp);
@@ -863,11 +863,7 @@ Other things could be stuck in here, like birds in the sky, etc
 */
 void Tess_StageIteratorSky(void)
 {
-	if(r_fastsky->integer)
-	{
-		return;
-	}
-
+#if !defined(USE_D3D10)
 	// log this call
 	if(r_logFile->integer)
 	{
@@ -878,74 +874,107 @@ void Tess_StageIteratorSky(void)
 						  tess.numVertexes, tess.numIndexes / 3));
 	}
 
+	if(r_fastsky->integer)
+	{
+		return;
+	}
+
 	// trebor: HACK why does this happen with cg_draw2D 0 ?
 	if(tess.stageIteratorFunc2 == NULL)
 	{
-		tess.stageIteratorFunc2 = Tess_StageIteratorGeneric;
+		//tess.stageIteratorFunc2 = Tess_StageIteratorGeneric;
+		ri.Error(ERR_FATAL, "tess.stageIteratorFunc == NULL");
 	}
 
-	if(tess.stageIteratorFunc2 == Tess_StageIteratorGBuffer)
+	if(tess.stageIteratorFunc2 == &Tess_StageIteratorDepthFill)
 	{
-		R_BindFBO(tr.deferredRenderFBO);
-	}
+		// go through all the polygons and project them onto
+		// the sky box to see which blocks on each side need
+		// to be drawn
+		Tess_ClipSkyPolygons();
 
-	// go through all the polygons and project them onto
-	// the sky box to see which blocks on each side need
-	// to be drawn
-	Tess_ClipSkyPolygons();
+		// generate the vertexes for all the clouds, which will be drawn
+		// by the generic shader routine
+		BuildCloudData();
 
-	// r_showSky will let all the sky blocks be drawn in
-	// front of everything to allow developers to see how
-	// much sky is getting sucked in
-	if(r_showSky->integer)
-	{
-		glDepthRange(0.0, 0.0);
+		if(tess.numVertexes || tess.multiDrawPrimitives)
+			tess.stageIteratorFunc2();
 	}
 	else
 	{
-		glDepthRange(1.0, 1.0);
+
+		if(tess.stageIteratorFunc2 == &Tess_StageIteratorGBuffer)
+		{
+			R_BindFBO(tr.deferredRenderFBO);
+		}
+
+		// go through all the polygons and project them onto
+		// the sky box to see which blocks on each side need
+		// to be drawn
+		Tess_ClipSkyPolygons();
+
+		// r_showSky will let all the sky blocks be drawn in
+		// front of everything to allow developers to see how
+		// much sky is getting sucked in
+		
+		if(r_showSky->integer)
+		{
+			glDepthRange(0.0, 0.0);
+		}
+		else
+		{
+			glDepthRange(1.0, 1.0);
+		}
+
+		// draw the outer skybox
+		if(tess.surfaceShader->sky.outerbox && tess.surfaceShader->sky.outerbox != tr.blackCubeImage)
+		{
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
+			R_BindVBO(tess.vbo);
+			R_BindIBO(tess.ibo);
+
+			// enable shader, set arrays
+			GL_BindProgram(&tr.skyBoxShader);
+			GL_VertexAttribsState(tr.skyBoxShader.attribs);
+
+			// set uniforms
+			GLSL_SetUniform_ViewOrigin(&tr.skyBoxShader, backEnd.viewParms.orientation.origin);
+
+			GLSL_SetUniform_ModelMatrix(&tr.skyBoxShader, backEnd.orientation.transformMatrix);
+			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.skyBoxShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+
+			// bind u_ColorMap
+			GL_SelectTexture(0);
+			GL_Bind(tess.surfaceShader->sky.outerbox);
+
+			DrawSkyBox(tess.surfaceShader);
+#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
+		}
+		
+
+		// generate the vertexes for all the clouds, which will be drawn
+		// by the generic shader routine
+		BuildCloudData();
+
+		if(tess.numVertexes || tess.multiDrawPrimitives)
+			tess.stageIteratorFunc2();
+
+		// Tr3B: TODO draw the inner skybox?
+
+		if(tess.stageIteratorFunc2 == Tess_StageIteratorGBuffer)
+		{
+			R_BindNullFBO();
+		}
+
+		if(tess.stageIteratorFunc2 != Tess_StageIteratorDepthFill)
+		{
+			// back to normal depth range
+			glDepthRange(0.0, 1.0);
+
+			// note that sky was drawn so we will draw a sun later
+			backEnd.skyRenderedThisView = qtrue;
+		}
 	}
-
-	// draw the outer skybox
-	if(tess.surfaceShader->sky.outerbox && tess.surfaceShader->sky.outerbox != tr.blackCubeImage)
-	{
-		R_BindVBO(tess.vbo);
-		R_BindIBO(tess.ibo);
-
-		// enable shader, set arrays
-		GL_BindProgram(&tr.skyBoxShader);
-		GL_VertexAttribsState(tr.skyBoxShader.attribs);
-
-		// set uniforms
-		GLSL_SetUniform_ViewOrigin(&tr.skyBoxShader, backEnd.viewParms.orientation.origin);
-
-		GLSL_SetUniform_ModelMatrix(&tr.skyBoxShader, backEnd.orientation.transformMatrix);
-		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.skyBoxShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
-
-		// bind u_ColorMap
-		GL_SelectTexture(0);
-		GL_Bind(tess.surfaceShader->sky.outerbox);
-
-		DrawSkyBox(tess.surfaceShader);
-	}
-
-	// generate the vertexes for all the clouds, which will be drawn
-	// by the generic shader routine
-	BuildCloudData();
-
-	if(tess.numVertexes || tess.multiDrawPrimitives)
-		tess.stageIteratorFunc2();
-
-	// Tr3B: TODO draw the inner skybox?
-
-	if(tess.stageIteratorFunc2 == Tess_StageIteratorGBuffer)
-	{
-		R_BindNullFBO();
-	}
-
-	// back to normal depth range
-	glDepthRange(0.0, 1.0);
-
-	// note that sky was drawn so we will draw a sun later
-	backEnd.skyRenderedThisView = qtrue;
+#endif
 }
+

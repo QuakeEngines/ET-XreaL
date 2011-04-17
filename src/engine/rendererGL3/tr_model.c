@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	LL(x) x=LittleLong(x)
 #define	LF(x) x=LittleFloat(x)
 
-qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const char *name, qboolean forceStatic);
-qboolean R_LoadMDC(model_t * mod, int lod, void *buffer, int bufferSize, const char *name);
-qboolean R_LoadMDM(model_t * mod, void *buffer, const char *name);
-static qboolean R_LoadMDX(model_t * mod, void *buffer, const char *name);
+qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const char *name);
+//qboolean R_LoadMDC(model_t * mod, int lod, void *buffer, int bufferSize, const char *name);
+//qboolean R_LoadMDM(model_t * mod, void *buffer, const char *name);
+//static qboolean R_LoadMDX(model_t * mod, void *buffer, const char *name);
 
 qboolean R_LoadMD5(model_t * mod, void *buffer, int bufferSize, const char *name);
 qboolean R_LoadPSK(model_t * mod, void *buffer, int bufferSize, const char *name);
@@ -143,7 +143,11 @@ qhandle_t RE_RegisterModel(const char *name)
 	// load the files
 	numLoaded = 0;
 
+#if defined(COMPAT_ET)
 	if(strstr(name, ".mds") || strstr(name, ".mdm") || strstr(name, ".mdx") || strstr(name, ".md5mesh") || strstr(name, ".psk"))
+#else
+	if(strstr(name, ".md5mesh") || strstr(name, ".psk"))
+#endif
 	{
 		// try loading skeletal file
 
@@ -154,6 +158,7 @@ qhandle_t RE_RegisterModel(const char *name)
 			loadmodel = mod;
 
 			ident = LittleLong(*(unsigned *)buffer);
+#if defined(COMPAT_ET)
 #if 0
 			if(ident == MDS_IDENT)
 			{
@@ -168,6 +173,8 @@ qhandle_t RE_RegisterModel(const char *name)
 			{
 				loaded = R_LoadMDX(mod, buffer, name);
 			}
+#endif
+
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
 			if(!Q_stricmpn((const char *)buffer, "MD5Version", 10))
 			{
@@ -229,7 +236,7 @@ qhandle_t RE_RegisterModel(const char *name)
 
 		if(ident == MD3_IDENT)
 		{
-			loaded = R_LoadMD3(mod, lod, buffer, bufferLen, name, qfalse);
+			loaded = R_LoadMD3(mod, lod, buffer, bufferLen, name);
 			ri.FS_FreeFile(buffer);
 		}
 		else if(ident == MDC_IDENT)
@@ -317,6 +324,7 @@ qhandle_t RE_RegisterModel(const char *name)
 R_LoadMDX
 =================
 */
+#if defined(COMPAT_ET)
 static qboolean R_LoadMDX(model_t * mod, void *buffer, const char *mod_name)
 {
 	int             i, j;
@@ -389,6 +397,7 @@ static qboolean R_LoadMDX(model_t * mod, void *buffer, const char *mod_name)
 
 	return qtrue;
 }
+#endif // #if defined(COMPAT_ET)
 
 
 
@@ -493,6 +502,9 @@ void RE_BeginRegistration(glconfig_t * glconfigOut)
 	// FIXME: world entity shadows always use zfail algorithm which is slower than zpass
 	tr.worldEntity.needZFail = qtrue;
 	tr.worldEntity.e.nonNormalizedAxes = qfalse;
+
+	// RB: world will be never ignored by occusion query test
+	tr.worldEntity.occlusionQuerySamples = 1;
 
 	tr.registered = qtrue;
 
@@ -655,10 +667,62 @@ static int R_GetTag(mdvModel_t * model, int frame, const char *_tagName, int sta
 
 /*
 ================
+RE_LerpTagQ3A
+================
+*/
+int RE_LerpTagQ3A(orientation_t * tag, qhandle_t handle, int startFrame, int endFrame, float frac, const char *tagNameIn)
+{
+	mdvTag_t       *start, *end;
+	int             i;
+	float           frontLerp, backLerp;
+	model_t        *model;
+	char            tagName[MAX_QPATH];
+	int             retval;
+
+	Q_strncpyz(tagName, tagNameIn, MAX_QPATH);
+
+	model = R_GetModelByHandle(handle);
+	if(!model->mdv[0])
+	{
+		AxisClear(tag->axis);
+		VectorClear(tag->origin);
+		return -1;
+	}
+
+	start = end = NULL;
+
+	retval = R_GetTag(model->mdv[0], startFrame, tagName, 0, &start);
+	retval = R_GetTag(model->mdv[0], endFrame, tagName, 0, &end);
+	if(!start || !end)
+	{
+		AxisClear(tag->axis);
+		VectorClear(tag->origin);
+		return -1;
+	}
+
+	frontLerp = frac;
+	backLerp = 1.0f - frac;
+
+	for(i = 0; i < 3; i++)
+	{
+		tag->origin[i] = start->origin[i] * backLerp + end->origin[i] * frontLerp;
+		tag->axis[0][i] = start->axis[0][i] * backLerp + end->axis[0][i] * frontLerp;
+		tag->axis[1][i] = start->axis[1][i] * backLerp + end->axis[1][i] * frontLerp;
+		tag->axis[2][i] = start->axis[2][i] * backLerp + end->axis[2][i] * frontLerp;
+	}
+	VectorNormalize(tag->axis[0]);
+	VectorNormalize(tag->axis[1]);
+	VectorNormalize(tag->axis[2]);
+	return retval;
+}
+
+/*
+================
 RE_LerpTag
 ================
 */
-int RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagNameIn, int startIndex)
+#if defined(COMPAT_ET)
+int RE_LerpTagET(orientation_t * tag, const refEntity_t * refent, const char *tagNameIn, int startIndex)
 {
 	mdvTag_t       *start, *end;
 	int             i;
@@ -791,6 +855,7 @@ int RE_LerpTag(orientation_t * tag, const refEntity_t * refent, const char *tagN
 
 	return retval;
 }
+#endif
 
 /*
 ================

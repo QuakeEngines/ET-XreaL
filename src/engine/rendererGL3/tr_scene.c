@@ -132,7 +132,7 @@ void R_AddPolygonSurfaces(void)
 	for(i = 0, poly = tr.refdef.polys; i < tr.refdef.numPolys; i++, poly++)
 	{
 		sh = R_GetShaderByHandle(poly->hShader);
-		R_AddDrawSurf((void *)poly, sh, -1);
+		R_AddDrawSurf((void *)poly, sh, -1, poly->fogIndex);
 	}
 }
 
@@ -156,7 +156,7 @@ void R_AddPolygonBufferSurfaces(void)
 		sh = R_GetShaderByHandle(polybuffer->pPolyBuffer->shader);
 
 		//R_AddDrawSurf((void *)polybuffer, sh, polybuffer->fogIndex, 0, 0);
-		R_AddDrawSurf((void *)polybuffer, sh, -1);
+		R_AddDrawSurf((void *)polybuffer, sh, -1, polybuffer->fogIndex);
 	}
 }
 
@@ -169,7 +169,10 @@ R_AddPolysToScene
 static void R_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts, int numPolys)
 {
 	srfPoly_t      *poly;
-	int             j;
+	int             i, j;
+	int             fogIndex;
+	fog_t          *fog;
+	vec3_t          bounds[2];
 
 	if(!tr.registered)
 	{
@@ -210,6 +213,43 @@ static void R_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t 
 		// done.
 		r_numPolys++;
 		r_numPolyVerts += numVerts;
+
+		// if no world is loaded
+		if(tr.world == NULL)
+		{
+			fogIndex = 0;
+		}
+		// see if it is in a fog volume
+		else if(tr.world->numFogs == 1)
+		{
+			fogIndex = 0;
+		}
+		else
+		{
+			// find which fog volume the poly is in
+			VectorCopy(poly->verts[0].xyz, bounds[0]);
+			VectorCopy(poly->verts[0].xyz, bounds[1]);
+			
+			for(i = 1; i < poly->numVerts; i++)
+			{
+				AddPointToBounds(poly->verts[i].xyz, bounds[0], bounds[1]);
+			}
+			
+			for(fogIndex = 1; fogIndex < tr.world->numFogs; fogIndex++)
+			{
+				fog = &tr.world->fogs[fogIndex];
+
+				
+				if(BoundsIntersect(bounds[0], bounds[1], fog->bounds[0], fog->bounds[1]))
+					break;
+			}
+			
+			if(fogIndex == tr.world->numFogs)
+			{
+				fogIndex = 0;
+			}
+		}
+		poly->fogIndex = fogIndex;
 	}
 }
 
@@ -218,7 +258,12 @@ static void R_AddPolysToScene(qhandle_t hShader, int numVerts, const polyVert_t 
 RE_AddPolyToScene
 =====================
 */
-void RE_AddPolyToScene(qhandle_t hShader, int numVerts, const polyVert_t * verts)
+void RE_AddPolyToSceneQ3A(qhandle_t hShader, int numVerts, const polyVert_t * verts, int num)
+{
+	R_AddPolysToScene(hShader, numVerts, verts, num);
+}
+
+void RE_AddPolyToSceneET(qhandle_t hShader, int numVerts, const polyVert_t * verts)
 {
 	R_AddPolysToScene(hShader, numVerts, verts, 1);
 }
@@ -427,7 +472,7 @@ RE_AddDynamicLightToScene
 ydnar: modified dlight system to support seperate radius and intensity
 =====================
 */
-void RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, float r, float g, float b, qhandle_t hShader, int flags)
+void RE_AddDynamicLightToSceneET(const vec3_t org, float radius, float intensity, float r, float g, float b, qhandle_t hShader, int flags)
 {
 	trRefLight_t   *light;
 
@@ -488,6 +533,10 @@ void RE_AddDynamicLightToScene(const vec3_t org, float radius, float intensity, 
 #endif
 }
 
+void RE_AddDynamicLightToSceneQ3A(const vec3_t org, float radius, float r, float g, float b)
+{
+	RE_AddDynamicLightToSceneET(org, radius, r_lightScale->value, r, g, b, 0, 0);
+}
 
 /*
 ==============

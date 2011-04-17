@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -1477,7 +1477,7 @@ static qboolean LoadMap(shaderStage_t * stage, char *buffer)
 	}
 
 	// try to load the image
-	stage->bundle[0].image[0] = R_FindImageFile(buffer, imageBits, filterType, wrapType);
+	stage->bundle[0].image[0] = R_FindImageFile(buffer, imageBits, filterType, wrapType, shader.name);
 
 	if(!stage->bundle[0].image[0])
 	{
@@ -1539,7 +1539,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 		// lightmap <name>
 		else if(!Q_stricmp(token, "lightmap"))
 		{
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 			if(!ParseMap(stage, text, buffer, sizeof(buffer)))
 			{
 				//ri.Printf(PRINT_WARNING, "WARNING: ParseMap could not create '%s' in shader '%s'\n", token, shader.name);
@@ -1593,7 +1593,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				filterType = shader.filterType;
 			}
 
-			stage->bundle[0].image[0] = R_FindImageFile(token, imageBits, filterType, WT_CLAMP);
+			stage->bundle[0].image[0] = R_FindImageFile(token, imageBits, filterType, WT_CLAMP, shader.name);
 			if(!stage->bundle[0].image[0])
 			{
 				ri.Printf(PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name);
@@ -1624,7 +1624,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				num = stage->bundle[0].numImages;
 				if(num < MAX_IMAGE_ANIMATIONS)
 				{
-					stage->bundle[0].image[num] = R_FindImageFile(token, IF_NONE, FT_DEFAULT, WT_REPEAT);
+					stage->bundle[0].image[num] = R_FindImageFile(token, IF_NONE, FT_DEFAULT, WT_REPEAT, shader.name);
 					if(!stage->bundle[0].image[num])
 					{
 						ri.Printf(PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token,
@@ -1681,7 +1681,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				filterType = shader.filterType;
 			}
 
-			stage->bundle[0].image[0] = R_FindCubeImage(token, imageBits, filterType, WT_EDGE_CLAMP);
+			stage->bundle[0].image[0] = R_FindCubeImage(token, imageBits, filterType, WT_EDGE_CLAMP, shader.name);
 			if(!stage->bundle[0].image[0])
 			{
 				ri.Printf(PRINT_WARNING, "WARNING: R_FindCubeImage could not find '%s' in shader '%s'\n", token, shader.name);
@@ -2245,13 +2245,13 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 			}
 			else if(!Q_stricmp(token, "lightmap"))
 			{
-#if !defined(COMPAT_ET)
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 				ri.Printf(PRINT_WARNING, "WARNING: texGen lightmap keyword not supported in shader '%s'\n", shader.name);
 #endif
 			}
 			else if(!Q_stricmp(token, "texture") || !Q_stricmp(token, "base"))
 			{
-#if !defined(COMPAT_ET)
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 				ri.Printf(PRINT_WARNING, "WARNING: texGen texture keyword not supported in shader '%s'\n", shader.name);
 #endif
 			}
@@ -2593,10 +2593,6 @@ static void ParseDeform(char **text)
 		ri.Printf(PRINT_WARNING, "WARNING: MAX_SHADER_DEFORMS in '%s'\n", shader.name);
 		return;
 	}
-	else if(shader.numDeforms)
-	{
-		ri.Printf(PRINT_WARNING, "WARNING: more than one deformVertexes command in shader '%s'\n", shader.name);
-	}
 
 	ds = &shader.deforms[shader.numDeforms];
 	shader.numDeforms++;
@@ -2773,7 +2769,7 @@ static void ParseSkyParms(char **text)
 	{
 		Q_strncpyz(prefix, token, sizeof(prefix));
 
-		shader.sky.outerbox = R_FindCubeImage(prefix, IF_NONE, FT_DEFAULT, WT_EDGE_CLAMP);
+		shader.sky.outerbox = R_FindCubeImage(prefix, IF_NONE, FT_DEFAULT, WT_EDGE_CLAMP, shader.name);
 		if(!shader.sky.outerbox)
 		{
 			ri.Printf(PRINT_WARNING, "WARNING: could not find cubemap '%s' for outer skybox in shader '%s'\n", prefix, shader.name);
@@ -2812,7 +2808,7 @@ static void ParseSkyParms(char **text)
 	{
 		Q_strncpyz(prefix, token, sizeof(prefix));
 
-		shader.sky.innerbox = R_FindCubeImage(prefix, IF_NONE, FT_DEFAULT, WT_EDGE_CLAMP);
+		shader.sky.innerbox = R_FindCubeImage(prefix, IF_NONE, FT_DEFAULT, WT_EDGE_CLAMP, shader.name);
 		if(!shader.sky.innerbox)
 		{
 			ri.Printf(PRINT_WARNING, "WARNING: could not find cubemap '%s' for inner skybox in shader '%s'\n", prefix, shader.name);
@@ -2916,21 +2912,28 @@ typedef struct
 infoParm_t	infoParms[] = {
 	// server relevant contents
 
-//----(SA)  modified
+#if defined(COMPAT_ET)
 	{"clipmissile",		1,	0,	CONTENTS_MISSILECLIP},	// impact only specific weapons (rl, gl)
-//----(SA)  end
+#endif
 
 	{"water",			1,	0,	CONTENTS_WATER},
 	
 	{"slag",			1,	0,	CONTENTS_SLIME},	// uses the CONTENTS_SLIME flag, but the shader reference is changed to 'slag'
 	// to idendify that this doesn't work the same as 'slime' did.
 
-//	{"slime",			1,	0,	CONTENTS_SLIME},		// mildly damaging
+#if !defined(COMPAT_ET)
+	{"slime",			1,	0,	CONTENTS_SLIME},		// mildly damaging
+#endif
+
 	{"lava",			1,	0,	CONTENTS_LAVA},			// very damaging
 	{"playerclip",		1,	0,	CONTENTS_PLAYERCLIP},
 	{"monsterclip",		1,	0,	CONTENTS_MONSTERCLIP},
-//	{"moveableclip",	1,	0,	0},						// FIXME
-//	{"ikclip",			1,	0,	0},						// FIXME
+
+#if !defined(COMPAT_ET)
+	{"moveableclip",	1,	0,	0},						// FIXME
+	{"ikclip",			1,	0,	0},						// FIXME
+#endif
+
 	{"nodrop",			1,	0,	CONTENTS_NODROP},		// don't drop items or leave bodies (death fog, lava, etc)
 	{"nonsolid",		1,	SURF_NONSOLID,	0},			// clears the solid flag
 
@@ -2948,8 +2951,11 @@ infoParm_t	infoParms[] = {
 	{"clusterportal",	1,	0,  CONTENTS_CLUSTERPORTAL},	// for bots
 	{"donotenter",  	1,  0,  CONTENTS_DONOTENTER},	// for bots
 	
-	// Rafael - nopass
+#if defined(COMPAT_ET)
 	{"donotenterlarge", 1, 0, CONTENTS_DONOTENTER_LARGE},	// for larger bots
+#else
+	{"botclip",			1,  0,  CONTENTS_BOTCLIP},		// for bots
+#endif
 
 	{"fog",				1,	0,	CONTENTS_FOG},			// carves surfaces entering
 	{"sky",				0,	SURF_SKY,		0},			// emit light from an environment map
@@ -2959,7 +2965,11 @@ infoParm_t	infoParms[] = {
 
 	// server attributes
 	{"slick",			0,	SURF_SLICK,		0},
-//	{"collision",		0,	SURF_COLLISION,	0},
+
+#if !defined(COMPAT_ET)
+	{"collision",		0,	SURF_COLLISION,	0},
+#endif
+
 	{"noimpact",		0,	SURF_NOIMPACT,	0},			// don't make impact explosions or marks
 
 	{"nomarks",			0,	SURF_NOMARKS,	0},			// don't make impact marks, but still explode
@@ -2969,16 +2979,30 @@ infoParm_t	infoParms[] = {
 
 	{"nodamage",		0,	SURF_NODAMAGE,	0},
 
+#if defined(COMPAT_ET)
 	{"monsterslick",	0,	SURF_MONSTERSLICK, 0},	// surf only slick for monsters
+#endif
 
-//	{"flesh",			0,	SURF_FLESH,		0},
+#if !defined(COMPAT_ET)
+	{"flesh",			0,	SURF_FLESH,		0},
+#endif
 	{"glass",			0,	SURF_GLASS, 0},	//----(SA) added
 	{"splash",			0,	SURF_SPLASH, 0},	//----(SA) added
 
 	// steps
+#if defined(COMPAT_ET)
 	{"metal",			0,	SURF_METAL, 0},
 	{"metalsteps",		0,	SURF_METAL, 0},
-	
+#else
+	{"metal",			0,	SURF_METALSTEPS, 0},
+	{"metalsteps",		0,	SURF_METALSTEPS, 0},
+#endif
+
+#if !defined(COMPAT_ET)
+	{"wallwalk",		0,	SURF_WALLWALK,	0},
+#endif
+
+
 	{"nosteps",			0,	SURF_NOSTEPS,	0},
 	{"woodsteps",		0, 	SURF_WOOD, 0},
 	{"grasssteps",		0, 	SURF_GRASS, 0},
@@ -2994,17 +3018,27 @@ infoParm_t	infoParms[] = {
 	{"pointlight",		0,	SURF_POINTLIGHT,	0},		// sample lighting at vertexes
 	{"nolightmap",		0,	SURF_NOLIGHTMAP,	0},		// don't generate a lightmap
 	{"nodlight",		0,	0,					0},		// OBSELETE: don't ever add dynamic lights
-//	{"dust",			0,	SURF_DUST,			0},		// leave a dust trail when walking on this surface
+
+#if !defined(COMPAT_ET)
+	{"dust",			0,	SURF_DUST,			0},		// leave a dust trail when walking on this surface
+#endif
 
 	// monster ai
+#if defined(COMPAT_ET)
 	{"monsterslicknorth", 0, SURF_MONSLICK_N, 0},
 	{"monsterslickeast", 0, SURF_MONSLICK_E, 0},
 	{"monsterslicksouth", 0, SURF_MONSLICK_S, 0},
 	{"monsterslickwest", 0, SURF_MONSLICK_W, 0},
+#endif
 
 
 	// unsupported Doom3 surface types for sound effects and blood splats
+#if defined(COMPAT_ET)
 	{"metal",			0,	SURF_METAL,		0},
+#else
+	{"metal",			0,	SURF_METALSTEPS,	0},
+#endif
+
 	{"stone",			0,	0,				0},
 	{"wood",			0,	SURF_WOOD,		0},
 	{"cardboard",		0,	0,				0},
@@ -3861,9 +3895,9 @@ static qboolean ParseShader(char *_text)
 				ri.Printf(PRINT_WARNING, "WARNING: missing parm for 'fogParms' keyword in shader '%s'\n", shader.name);
 				continue;
 			}
-			shader.fogParms.density = atof(token);
+			shader.fogParms.depthForOpaque = atof(token);
 
-			shader.fogVolume = qtrue;
+			//shader.fogVolume = qtrue;
 			shader.sort = SS_FOG;
 
 			// skip any old gradient directions
@@ -4169,7 +4203,7 @@ static qboolean ParseShader(char *_text)
 	}
 
 	// ignore shaders that don't have any stages, unless it is a sky or fog
-	if(s == 0 && !shader.forceOpaque && !shader.isSky && !shader.fogVolume && implicitMap[0] == '\0')
+	if(s == 0 && !shader.forceOpaque && !shader.isSky && !(shader.contentFlags & CONTENTS_FOG) && implicitMap[0] == '\0')
 	{
 		return qfalse;
 	}
@@ -4546,6 +4580,15 @@ static shader_t *GeneratePermanentShader(void)
 
 	*newShader = shader;
 
+	if(shader.sort <= SS_OPAQUE)
+	{
+		newShader->fogPass = FP_EQUAL;
+	}
+	else if(shader.contentFlags & CONTENTS_FOG)
+	{
+		newShader->fogPass = FP_LE;
+	}
+
 	tr.shaders[tr.numShaders] = newShader;
 	newShader->index = tr.numShaders;
 
@@ -4701,7 +4744,7 @@ static shader_t *FinishShader(void)
 		switch (pStage->type)
 		{
 			case ST_LIQUIDMAP:
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 			case ST_LIGHTMAP:
 #endif
 				// skip
@@ -4786,6 +4829,37 @@ static shader_t *FinishShader(void)
 		if((pStage->stateBits & (GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS)) &&
 		   (stages[0].stateBits & (GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS)))
 		{
+			int             blendSrcBits = pStage->stateBits & GLS_SRCBLEND_BITS;
+			int             blendDstBits = pStage->stateBits & GLS_DSTBLEND_BITS;
+
+			// fog color adjustment only works for blend modes that have a contribution
+			// that aproaches 0 as the modulate values aproach 0 --
+			// GL_ONE, GL_ONE
+			// GL_ZERO, GL_ONE_MINUS_SRC_COLOR
+			// GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA
+
+			// modulate, additive
+			if(((blendSrcBits == GLS_SRCBLEND_ONE) && (blendDstBits == GLS_DSTBLEND_ONE)) ||
+			   ((blendSrcBits == GLS_SRCBLEND_ZERO) && (blendDstBits == GLS_DSTBLEND_ONE_MINUS_SRC_COLOR)))
+			{
+				pStage->adjustColorsForFog = ACFF_MODULATE_RGB;
+			}
+			// strict blend
+			else if((blendSrcBits == GLS_SRCBLEND_SRC_ALPHA) &&
+					(blendDstBits == GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA))
+			{
+				pStage->adjustColorsForFog = ACFF_MODULATE_ALPHA;
+			}
+			// premultiplied alpha
+			else if((blendSrcBits == GLS_SRCBLEND_ONE) && (blendDstBits == GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA))
+			{
+				pStage->adjustColorsForFog = ACFF_MODULATE_RGBA;
+			}
+			else
+			{
+				// we can't adjust this one correctly, so it won't be exactly correct in fog
+			}
+
 			// don't screw with sort order if this is a portal or environment
 			if(!shader.sort)
 			{
@@ -4825,6 +4899,12 @@ static shader_t *FinishShader(void)
 
 	// look for multitexture potential
 	CollapseStages();
+
+	// fogonly shaders don't have any normal passes
+	if(shader.numStages == 0 && !shader.isSky)
+	{
+		shader.sort = SS_FOG;
+	}
 
 	return GeneratePermanentShader();
 }
@@ -5239,7 +5319,7 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 	// if not defined in the in-memory shader descriptions,
 	// look for a single supported image file
 	image = R_FindImageFile(fileName, mipRawImage ? IF_NONE : IF_NOPICMIP,
-							mipRawImage ? FT_DEFAULT : FT_LINEAR, mipRawImage ? WT_REPEAT : WT_CLAMP);
+							mipRawImage ? FT_DEFAULT : FT_LINEAR, mipRawImage ? WT_REPEAT : WT_CLAMP, shader.name);
 	if(!image)
 	{
 		ri.Printf(PRINT_DEVELOPER, "Couldn't find image file for shader %s\n", name);
@@ -5991,7 +6071,7 @@ static void ScanAndLoadShaderFiles(void)
 	ri.Printf(PRINT_ALL, "----- ScanAndLoadShaderFiles -----\n");
 
 	// scan for shader files
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 	shaderFiles = ri.FS_ListFiles("scripts", ".shader", &numShaders);
 #else
 	shaderFiles = ri.FS_ListFiles("materials", ".mtr", &numShaders);
@@ -6011,7 +6091,7 @@ static void ScanAndLoadShaderFiles(void)
 	// build single large buffer
 	for(i = 0; i < numShaders; i++)
 	{
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
@@ -6024,7 +6104,7 @@ static void ScanAndLoadShaderFiles(void)
 	// load in reverse order, so doubled shaders are overriden properly
 	for(i = numShaders - 1; i >= 0; i--)
 	{
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
@@ -6049,7 +6129,7 @@ static void ScanAndLoadShaderFiles(void)
 	size = 0;
 	for(i = 0; i < numShaders; i++)
 	{
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);
@@ -6150,7 +6230,7 @@ static void ScanAndLoadShaderFiles(void)
 	//
 	for(i = 0; i < numShaders; i++)
 	{
-#if 1 //defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		Com_sprintf(filename, sizeof(filename), "scripts/%s", shaderFiles[i]);
 #else
 		Com_sprintf(filename, sizeof(filename), "materials/%s", shaderFiles[i]);

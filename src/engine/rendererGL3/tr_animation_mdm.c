@@ -453,7 +453,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 	mdmModel_t     *mdm;
 	mdmSurfaceIntern_t   *mdmSurface;
 	shader_t       *shader = 0;
-	int             i /*fogNum*/;
+	int             i, fogNum;
 	qboolean        personalModel;
 
 	// don't add third_person objects if not in a portal
@@ -477,8 +477,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 
 	
 	// see if we are in a fog volume
-	//fogNum = R_ComputeFogNum(ent);
-
+	fogNum = R_FogWorldBox(ent->worldBounds);
 
 	// draw all surfaces
 	if(r_vboModels->integer && mdm->numVBOSurfaces && glConfig2.vboVertexSkinningAvailable)// && ent->e.skeleton.type == SK_ABSOLUTE))
@@ -497,7 +496,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddDrawSurf((void *)vboSurface, shader, -1);
+				R_AddDrawSurf((void *)vboSurface, shader, -1, fogNum);
 			}
 		}
 	}
@@ -510,7 +509,7 @@ void R_MDM_AddAnimSurfaces(trRefEntity_t * ent)
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddDrawSurf((void *)mdmSurface, shader, -1);
+				R_AddDrawSurf((void *)mdmSurface, shader, -1, fogNum);
 			}
 		}
 	}

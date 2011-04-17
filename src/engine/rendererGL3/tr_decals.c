@@ -699,10 +699,10 @@ static void ProjectDecalOntoWinding(decalProjector_t * dp, int numPoints, vec3_t
 		}
 
 		/* set color */
-		vert->modulate[0] = myftol(pd * alpha * dp->color[0]);
-		vert->modulate[1] = myftol(pd * alpha * dp->color[1]);
-		vert->modulate[2] = myftol(pd * alpha * dp->color[2]);
-		vert->modulate[3] = myftol(alpha * dp->color[3]);
+		vert->modulate[0] = Q_ftol(pd * alpha * dp->color[0]);
+		vert->modulate[1] = Q_ftol(pd * alpha * dp->color[1]);
+		vert->modulate[2] = Q_ftol(pd * alpha * dp->color[2]);
+		vert->modulate[3] = Q_ftol(alpha * dp->color[3]);
 	}
 }
 
@@ -937,7 +937,7 @@ void R_AddDecalSurface(decal_t * decal)
 
 	/* add surface to scene */
 	//R_AddDrawSurf((void *)srf, decal->shader, decal->fogIndex, 0, dlightMap);
-	R_AddDrawSurf((void *)srf, decal->shader, -1);
+	R_AddDrawSurf((void *)srf, decal->shader, -1, decal->fogIndex);
 	tr.pc.c_decalSurfaces++;
 
 	/* free temporary decal */

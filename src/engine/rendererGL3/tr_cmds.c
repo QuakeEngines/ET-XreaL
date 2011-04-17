@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -103,25 +103,30 @@ void R_PerformanceCounters(void)
 	}
 	else if(r_speeds->integer == 6)
 	{
-		ri.Printf(PRINT_ALL, "flare adds:%i tests:%i renders:%i\n",
-				  backEnd.pc.c_flareAdds, backEnd.pc.c_flareTests, backEnd.pc.c_flareRenders);
+		ri.Printf(PRINT_ALL, "fog srf:%i batches:%i\n", backEnd.pc.c_fogSurfaces, backEnd.pc.c_fogBatches);
 	}
 	else if(r_speeds->integer == 7)
 	{
-		ri.Printf(PRINT_ALL, "occlusion queries:%i multi:%i saved:%i culled lights:%i culled leafs:%i response time:%i fetch time:%i\n",
+		ri.Printf(PRINT_ALL, "flare adds:%i tests:%i renders:%i\n",
+				  backEnd.pc.c_flareAdds, backEnd.pc.c_flareTests, backEnd.pc.c_flareRenders);
+	}
+	else if(r_speeds->integer == 8)
+	{
+		ri.Printf(PRINT_ALL, "occlusion queries:%i multi:%i saved:%i culled lights:%i culled entities:%i culled leafs:%i response time:%i fetch time:%i\n",
 				  backEnd.pc.c_occlusionQueries,
 				  backEnd.pc.c_occlusionQueriesMulti,
 				  backEnd.pc.c_occlusionQueriesSaved,
 				  backEnd.pc.c_occlusionQueriesLightsCulled,
+				  backEnd.pc.c_occlusionQueriesEntitiesCulled,
 				  backEnd.pc.c_occlusionQueriesLeafsCulled,
 				  backEnd.pc.c_occlusionQueriesResponseTime,
 				  backEnd.pc.c_occlusionQueriesFetchTime);
 	}
-	else if(r_speeds->integer == 8)
+	else if(r_speeds->integer == 9)
 	{
 		ri.Printf(PRINT_ALL, "depth bounds tests:%i rejected:%i\n", tr.pc.c_depthBoundsTests, tr.pc.c_depthBoundsTestsRejected);
 	}
-	else if(r_speeds->integer == 9)
+	else if(r_speeds->integer == 10)
 	{
 		if(DS_STANDARD_ENABLED())
 			ri.Printf(PRINT_ALL, "deferred shading times: g-buffer:%i lighting:%i\n", backEnd.pc.c_deferredGBufferTime,
@@ -134,7 +139,7 @@ void R_PerformanceCounters(void)
 			ri.Printf(PRINT_ALL, "forward shading times: ambient:%i lighting:%i\n", backEnd.pc.c_forwardAmbientTime,
 					  backEnd.pc.c_forwardLightingTime);
 	}
-	else if(r_speeds->integer == 10)
+	else if(r_speeds->integer == 11)
 	{
 		ri.Printf(PRINT_ALL, "%i CHC++ ms %i queries %i multi queries %i saved\n",
 						  tr.pc.c_CHCTime,
@@ -142,11 +147,11 @@ void R_PerformanceCounters(void)
 						  tr.pc.c_occlusionQueriesMulti,
 						  tr.pc.c_occlusionQueriesSaved);
 	}
-	else if(r_speeds->integer == 11)
+	else if(r_speeds->integer == 12)
 	{
 		ri.Printf(PRINT_ALL, "zNear: %.0f zFar: %.0f\n", tr.viewParms.zNear, tr.viewParms.zFar);
 	}
-	else if(r_speeds->integer == 12)
+	else if(r_speeds->integer == 13)
 	{
 		ri.Printf(PRINT_ALL, "decal projectors: %d test surfs: %d clip surfs: %d decal surfs: %d created: %d\n",
 				  tr.pc.c_decalProjectors, tr.pc.c_decalTestSurfaces, tr.pc.c_decalClipSurfaces, tr.pc.c_decalSurfaces,

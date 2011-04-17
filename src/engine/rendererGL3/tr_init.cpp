@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -172,11 +172,14 @@ cvar_t         *r_offsetFactor;
 cvar_t         *r_offsetUnits;
 cvar_t         *r_forceSpecular;
 cvar_t         *r_specularExponent;
+cvar_t         *r_specularExponent2;
 cvar_t         *r_specularScale;
 cvar_t         *r_normalScale;
 cvar_t         *r_normalMapping;
 cvar_t         *r_wrapAroundLighting;
 cvar_t         *r_halfLambertLighting;
+cvar_t         *r_rimLighting;
+cvar_t         *r_rimExponent;
 cvar_t         *r_gamma;
 cvar_t         *r_intensity;
 cvar_t         *r_lockpvs;
@@ -263,6 +266,7 @@ cvar_t         *r_parallaxMapping;
 cvar_t         *r_parallaxDepthScale;
 
 cvar_t         *r_dynamicBspOcclusionCulling;
+cvar_t         *r_dynamicEntityOcclusionCulling;
 cvar_t         *r_chcMaxPrevInvisNodesBatchSize;
 cvar_t         *r_chcMaxVisibleFrames;
 cvar_t         *r_chcVisibilityThreshold;
@@ -279,6 +283,7 @@ cvar_t         *r_hdrLightmapGamma;
 cvar_t         *r_hdrLightmapCompensate;
 cvar_t         *r_hdrToneMappingOperator;
 cvar_t         *r_hdrGamma;
+cvar_t         *r_hdrDebug;
 
 #ifdef EXPERIMENTAL
 cvar_t         *r_screenSpaceAmbientOcclusion;
@@ -367,6 +372,10 @@ static void InitOpenGL(void)
 		{
 			glConfig.maxTextureSize = 0;
 		}
+
+#if defined(GLSL_COMPILE_STARTUP_ONLY)
+		GLSL_InitGPUShaders();
+#endif
 	}
 
 	GL_CheckErrors();
@@ -828,6 +837,7 @@ the menu system, sampled down from full screen distorted images
 	ri.Printf(PRINT_ALL, "Wrote %s\n", checkname);
 }*/
 
+/*
 static int QDECL MaterialNameCompare(const void *a, const void *b)
 {
 	char           *s1, *s2;
@@ -873,6 +883,7 @@ static int QDECL MaterialNameCompare(const void *a, const void *b)
 	// strings are equal
 	return 0;
 }
+*/
 
 /*
 static void R_GenerateMaterialFile_f(void)
@@ -1253,7 +1264,7 @@ void GfxInfo_f(void)
 	{
 		int				contextFlags, profile;
 
-		ri.Printf(PRINT_ALL, S_COLOR_ORANGE "Using OpenGL 3.x context\n");
+		ri.Printf(PRINT_ALL, S_COLOR_GREEN "Using OpenGL 3.x context\n");
 
 		// check if we have a core-profile
 		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
@@ -1381,7 +1392,7 @@ void R_Register(void)
 	r_compressDiffuseMaps = ri.Cvar_Get("r_compressDiffuseMaps", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_compressSpecularMaps = ri.Cvar_Get("r_compressSpecularMaps", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_compressNormalMaps = ri.Cvar_Get("r_compressNormalMaps", "0", CVAR_ARCHIVE | CVAR_LATCH);
-	r_heatHazeFix = ri.Cvar_Get("r_heatHazeFix", "1", CVAR_CHEAT);
+	r_heatHazeFix = ri.Cvar_Get("r_heatHazeFix", "0", CVAR_CHEAT);
 	r_noMarksOnTrisurfs = ri.Cvar_Get("r_noMarksOnTrisurfs", "1", CVAR_CHEAT);
 
 	r_forceFog = ri.Cvar_Get("r_forceFog", "0", CVAR_ARCHIVE /* | CVAR_LATCH */ );
@@ -1395,7 +1406,7 @@ void R_Register(void)
 	r_depthOfField = ri.Cvar_Get("r_depthOfField", "0", CVAR_ARCHIVE);
 #endif
 
-	r_reflectionMapping = ri.Cvar_Get("r_reflectionMapping", "1", CVAR_ARCHIVE | CVAR_LATCH);
+	r_reflectionMapping = ri.Cvar_Get("r_reflectionMapping", "0", CVAR_CHEAT);
 	r_highQualityNormalMapping = ri.Cvar_Get("r_highQualityNormalMapping", "0", CVAR_ARCHIVE | CVAR_LATCH);
 
 	r_forceAmbient = ri.Cvar_Get("r_forceAmbient", "0.125", CVAR_ARCHIVE | CVAR_LATCH);
@@ -1406,7 +1417,7 @@ void R_Register(void)
 	// temporary latched variables that can only change over a restart
 	r_displayRefresh = ri.Cvar_Get("r_displayRefresh", "0", CVAR_LATCH);
 	AssertCvarRange(r_displayRefresh, 0, 200, qtrue);
-#if defined(COMPAT_ET)
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 	r_overBrightBits = ri.Cvar_Get("r_overBrightBits", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_mapOverBrightBits = ri.Cvar_Get("r_mapOverBrightBits", "2", CVAR_CHEAT | CVAR_LATCH);
 #else
@@ -1474,6 +1485,7 @@ void R_Register(void)
 	r_mergeClusterTriangles = ri.Cvar_Get("r_mergeClusterTriangles", "1", CVAR_CHEAT);
 
 	r_dynamicBspOcclusionCulling = ri.Cvar_Get("r_dynamicBspOcclusionCulling", "0", CVAR_ARCHIVE);
+	r_dynamicEntityOcclusionCulling = ri.Cvar_Get("r_dynamicEntityOcclusionCulling", "0", CVAR_ARCHIVE);
 	r_chcMaxPrevInvisNodesBatchSize = ri.Cvar_Get("r_chcMaxPrevInvisNodesBatchSize", "50", CVAR_CHEAT);
 	r_chcMaxVisibleFrames = ri.Cvar_Get("r_chcMaxVisibleFrames", "10", CVAR_CHEAT);
 	r_chcVisibilityThreshold = ri.Cvar_Get("r_chcVisibilityThreshold", "20", CVAR_CHEAT);
@@ -1491,20 +1503,21 @@ void R_Register(void)
 	r_hdrMinLuminance = ri.Cvar_Get("r_hdrMinLuminance", "0.18", CVAR_CHEAT);
 	r_hdrMaxLuminance = ri.Cvar_Get("r_hdrMaxLuminance", "3000", CVAR_CHEAT);
 	r_hdrKey = ri.Cvar_Get("r_hdrKey", "0.72", CVAR_CHEAT);
-	r_hdrContrastThreshold = ri.Cvar_Get("r_hdrContrastThreshold", "0.71", CVAR_CHEAT);
-	r_hdrContrastOffset = ri.Cvar_Get("r_hdrContrastOffset", "1.0", CVAR_CHEAT);
+	r_hdrContrastThreshold = ri.Cvar_Get("r_hdrContrastThreshold", "3.0", CVAR_CHEAT);
+	r_hdrContrastOffset = ri.Cvar_Get("r_hdrContrastOffset", "6.0", CVAR_CHEAT);
 	r_hdrLightmap = ri.Cvar_Get("r_hdrLightmap", "1", CVAR_CHEAT | CVAR_LATCH);
 	r_hdrLightmapExposure = ri.Cvar_Get("r_hdrLightmapExposure", "1.0", CVAR_CHEAT | CVAR_LATCH);
 	r_hdrLightmapGamma = ri.Cvar_Get("r_hdrLightmapGamma", "1.7", CVAR_CHEAT | CVAR_LATCH);
 	r_hdrLightmapCompensate = ri.Cvar_Get("r_hdrLightmapCompensate", "1.0", CVAR_CHEAT | CVAR_LATCH);
 	r_hdrToneMappingOperator = ri.Cvar_Get("r_hdrToneMappingOperator", "1", CVAR_CHEAT);
 	r_hdrGamma = ri.Cvar_Get("r_hdrGamma", "1.1", CVAR_CHEAT);
+	r_hdrDebug = ri.Cvar_Get("r_hdrDebug", "0", CVAR_CHEAT);
 
 	r_printShaders = ri.Cvar_Get("r_printShaders", "0", CVAR_ARCHIVE);
 
 	r_bloom = ri.Cvar_Get("r_bloom", "0", CVAR_ARCHIVE);
-	r_bloomBlur = ri.Cvar_Get("r_bloomBlur", "7.0", CVAR_CHEAT);
-	r_bloomPasses = ri.Cvar_Get("r_bloomPasses", "1", CVAR_CHEAT);
+	r_bloomBlur = ri.Cvar_Get("r_bloomBlur", "5.0", CVAR_CHEAT);
+	r_bloomPasses = ri.Cvar_Get("r_bloomPasses", "2", CVAR_CHEAT);
 	r_rotoscope = ri.Cvar_Get("r_rotoscope", "0", CVAR_ARCHIVE);
 	r_cameraPostFX = ri.Cvar_Get("r_cameraPostFX", "1", CVAR_ARCHIVE);
 	r_cameraVignette = ri.Cvar_Get("r_cameraVignette", "0", CVAR_ARCHIVE);
@@ -1553,6 +1566,7 @@ void R_Register(void)
 	r_offsetUnits = ri.Cvar_Get("r_offsetUnits", "-2", CVAR_CHEAT);
 	r_forceSpecular = ri.Cvar_Get("r_forceSpecular", "0", CVAR_CHEAT);
 	r_specularExponent = ri.Cvar_Get("r_specularExponent", "16", CVAR_CHEAT);
+	r_specularExponent2 = ri.Cvar_Get("r_specularExponent2", "3", CVAR_CHEAT);
 	r_specularScale = ri.Cvar_Get("r_specularScale", "1.4", CVAR_CHEAT);
 	r_normalScale = ri.Cvar_Get("r_normalScale", "1.1", CVAR_CHEAT);
 	r_normalMapping = ri.Cvar_Get("r_normalMapping", "1", CVAR_ARCHIVE | CVAR_LATCH);
@@ -1560,6 +1574,9 @@ void R_Register(void)
 
 	r_wrapAroundLighting = ri.Cvar_Get("r_wrapAroundLighting", "0.7", CVAR_CHEAT);
 	r_halfLambertLighting = ri.Cvar_Get("r_halfLambertLighting", "1", CVAR_CHEAT);
+	r_rimLighting = ri.Cvar_Get("r_rimLighting", "1", CVAR_CHEAT);
+	r_rimExponent = ri.Cvar_Get("r_rimExponent", "3", CVAR_CHEAT);
+	AssertCvarRange(r_rimExponent, 0.5, 8.0, qfalse);
 
 	r_drawBuffer = ri.Cvar_Get("r_drawBuffer", "GL_BACK", CVAR_CHEAT);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", CVAR_CHEAT);
@@ -1683,7 +1700,9 @@ void R_Init(void)
 	ri.Printf(PRINT_ALL, "----- R_Init -----\n");
 	
 	// RB: Wolf's q_shared.c requires this
+#if defined(COMPAT_ET)
 	Swap_Init();
+#endif
 
 	// clear all our internal state
 	Com_Memset(&tr, 0, sizeof(tr));
@@ -1717,6 +1736,8 @@ void R_Init(void)
 			tr.triangleTable[i] = -tr.triangleTable[i - FUNCTABLE_SIZE / 2];
 		}
 	}
+
+	R_InitFogTable();
 
 	R_NoiseInit();
 
@@ -1971,7 +1992,10 @@ void R_Init(void)
 #else
 	InitOpenGL();
 
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 	GLSL_InitGPUShaders();
+#endif
+
 #endif
 
 	R_InitImages();
@@ -2058,8 +2082,6 @@ void RE_Shutdown(qboolean destroyWindow)
 		R_ShutdownVBOs();
 		R_ShutdownFBOs();
 
-#if !defined(USE_D3D10)
-
 		if(glConfig.driverType == GLDRV_OPENGL3)
 		{
 			glDeleteVertexArrays(1, &tr.vao);
@@ -2094,6 +2116,7 @@ void RE_Shutdown(qboolean destroyWindow)
 			}
 		}
 
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 		GLSL_ShutdownGPUShaders();
 #endif
 
@@ -2109,10 +2132,15 @@ void RE_Shutdown(qboolean destroyWindow)
 	// Maybe an OpenGL driver problem. It is safer to destroy the context in that case or you will get really weird crashes when rendering stuff.
 	//
 
-#if !defined(SMP) && !defined(USE_JAVA)
+#if !defined(SMP)// && !defined(USE_JAVA)
 	if(destroyWindow)
 #endif
 	{
+
+#if defined(GLSL_COMPILE_STARTUP_ONLY)
+		GLSL_ShutdownGPUShaders();
+#endif
+
 		GLimp_Shutdown();
 
 #if defined(USE_D3D10)
@@ -2170,9 +2198,9 @@ static void RE_PurgeCache(void)
 GetRefAPI
 =====================
 */
-#if defined(__cplusplus)
-extern "C" {
-#endif
+//#if defined(__cplusplus)
+//extern "C" {
+//#endif
 refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 {
 	static refexport_t re;
@@ -2200,6 +2228,9 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.RegisterSkin = RE_RegisterSkin;
 	re.RegisterShader = RE_RegisterShader;
 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
+#if !defined(COMPAT_ET)
+	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
+#endif
 
 	re.LoadWorld = RE_LoadWorldMap;
 	re.SetWorldVisData = RE_SetWorldVisData;
@@ -2210,18 +2241,32 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 
 	re.MarkFragments = R_MarkFragments;
 
-	re.LerpTag = RE_LerpTag;
+#if defined(COMPAT_ET)
+	re.LerpTag = RE_LerpTagET;
+#else
+	re.LerpTag = RE_LerpTagQ3A;
+#endif
 
 	re.ModelBounds = R_ModelBounds;
 
 	re.ClearScene = RE_ClearScene;
 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
-	
-	re.AddPolyToScene = RE_AddPolyToScene;
-	re.AddPolysToScene = RE_AddPolysToScene;
 
-//	re.LightForPoint = R_LightForPoint;
-	re.AddLightToScene = RE_AddDynamicLightToScene;
+#if defined(COMPAT_ET)
+	re.AddPolyToScene = RE_AddPolyToSceneET;
+	re.AddPolysToScene = RE_AddPolysToScene;
+#else
+	re.AddPolyToScene = RE_AddPolyToSceneQ3A;
+#endif
+#if !defined(COMPAT_ET)
+	re.LightForPoint = R_LightForPoint;
+#endif
+
+#if defined(COMPAT_ET)
+	re.AddLightToScene = RE_AddDynamicLightToSceneET;
+#else
+	re.AddLightToScene = RE_AddDynamicLightToSceneQ3A;
+#endif
 
 	re.RenderScene = RE_RenderScene;
 
@@ -2230,6 +2275,10 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.DrawStretchRaw = RE_StretchRaw;
 	re.UploadCinematic = RE_UploadCinematic;
 
+	re.DrawRotatedPic = RE_RotatedPic;
+	re.Add2dPolys = RE_2DPolyies;
+	re.DrawStretchPicGradient = RE_StretchPicGradient;
+
 	re.RegisterFont = RE_RegisterFont;
 	re.RemapShader = R_RemapShader;
 	re.GetEntityToken = R_GetEntityToken;
@@ -2237,6 +2286,7 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	// Q3A END
 
 	// ET BEGIN
+#if defined(COMPAT_ET)
 	re.GetSkinModel = RE_GetSkinModel;
 	re.GetShaderFromModel = RE_GetShaderFromModel;
 
@@ -2251,10 +2301,6 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 
 	re.AddCoronaToScene = RE_AddCoronaToScene;
 	re.AddPolyBufferToScene = RE_AddPolyBufferToScene;
-
-	re.DrawRotatedPic = RE_RotatedPic;	// NERVE - SMF
-	re.Add2dPolys = RE_2DPolyies;
-	re.DrawStretchPicGradient = RE_StretchPicGradient;
 	
 	re.SetFog = RE_SetFog;
 	re.SetGlobalFog = RE_SetGlobalFog;
@@ -2265,13 +2311,19 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	re.GetTextureId = RE_GetTextureId;
 	re.RenderToTexture = RE_RenderToTexture;
 	re.Finish = RE_Finish;
+#endif
 	// ET END
 
 	// XreaL BEGIN
 	re.TakeVideoFrame = RE_TakeVideoFrame;
 
+#if !defined(COMPAT_ET)
+	re.TakeScreenshotPNG = RB_TakeScreenshotPNG;
+#endif
+
 #if defined(USE_REFLIGHT)
-//	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
+	re.RegisterShaderLightAttenuation = RE_RegisterShaderLightAttenuation;
+	re.AddRefLightToScene = RE_AddRefLightToScene;
 #endif
 
 #if defined(USE_REFENTITY_ANIMATIONSYSTEM)
@@ -2289,13 +2341,14 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 	return &re;
 }
 
-#if defined(__cplusplus)
-} // extern "C"
-#endif
-
 
 #ifndef REF_HARD_LINKED
+
 // this is only here so the functions in q_shared.c and q_math.c can link
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 void QDECL Com_Printf(const char *msg, ...)
 {
 	va_list         argptr;
@@ -2331,6 +2384,10 @@ void QDECL Com_Error(int level, const char *error, ...)
 
 	ri.Error(level, "%s", text);
 }
+#if defined(__cplusplus)
+}
+#endif
+
 #endif
 
 #if defined(__cplusplus)

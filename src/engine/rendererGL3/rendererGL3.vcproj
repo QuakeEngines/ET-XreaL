@@ -250,7 +250,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tr_init.c"
+				RelativePath=".\tr_init.cpp"
 				>
 			</File>
 			<File

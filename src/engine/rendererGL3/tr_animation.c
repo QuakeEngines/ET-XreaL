@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2009 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -908,6 +908,7 @@ void R_AddMD5Surfaces(trRefEntity_t * ent)
 	shader_t       *shader;
 	int             i;
 	qboolean        personalModel;
+	int				fogNum;
 
 	model = tr.currentModel->md5;
 
@@ -930,6 +931,9 @@ void R_AddMD5Surfaces(trRefEntity_t * ent)
 	{
 		R_SetupEntityLighting(&tr.refdef, ent, NULL);
 	}
+
+	// see if we are in a fog volume
+	fogNum = R_FogWorldBox(ent->worldBounds);
 
 	if(!r_vboModels->integer || !model->numVBOSurfaces ||
 	   (!glConfig2.vboVertexSkinningAvailable && ent->e.skeleton.type == SK_ABSOLUTE))
@@ -974,13 +978,13 @@ void R_AddMD5Surfaces(trRefEntity_t * ent)
 			// projection shadows work fine with personal models
 			if(r_shadows->integer == SHADOWING_PLANAR && (ent->e.renderfx & RF_SHADOW_PLANE) && shader->sort == SS_OPAQUE)
 			{
-				R_AddDrawSurf((void *)surface, tr.projectionShadowShader, -1);
+				R_AddDrawSurf((void *)surface, tr.projectionShadowShader, -1, 0);
 			}
 
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddDrawSurf((void *)surface, shader, -1);
+				R_AddDrawSurf((void *)surface, shader, -1, fogNum);
 			}
 		}
 	}
@@ -1031,7 +1035,7 @@ void R_AddMD5Surfaces(trRefEntity_t * ent)
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
-				R_AddDrawSurf((void *)vboSurface, shader, -1);
+				R_AddDrawSurf((void *)vboSurface, shader, -1, fogNum);
 			}
 		}
 	}

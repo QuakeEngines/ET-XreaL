@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2006-2008 Robert Beckebans <trebor_7@users.sourceforge.net>
+Copyright (C) 2006-2011 Robert Beckebans <trebor_7@users.sourceforge.net>
 
 This file is part of XreaL source code.
 
@@ -331,9 +331,9 @@ by the Calc_* functions
 */
 void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent, vec3_t forcedOrigin)
 {
-	vec3_t          lightDir;
+	//vec3_t          lightDir;
 	//vec3_t          lightOrigin;
-	float           d;
+	//float           d;
 
 	// lighting calculations
 	if(ent->lightingCalculated)
@@ -441,10 +441,12 @@ void R_SetupEntityLighting(const trRefdef_t * refdef, trRefEntity_t * ent, vec3_
 	}
 #endif
 
+#if defined(COMPAT_ET)
 	if(ent->e.entityNum < MAX_CLIENTS && (refdef->rdflags & RDF_SNOOPERVIEW))
 	{
 		VectorSet(ent->ambientLight, 0.96f, 0.96f, 0.96f);	// allow a little room for flicker from directed light
 	}
+#endif
 
 
 	// Tr3B: keep it in world space
