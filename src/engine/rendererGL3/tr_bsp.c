@@ -5033,6 +5033,10 @@ static void R_LoadSubmodels(lump_t * l)
 			s_worldData.numWorldSurfaces = out->numSurfaces;
 		}
 
+		// ydnar: for attaching fog brushes to models
+		//out->firstBrush = LittleLong(in->firstBrush);
+		//out->numBrushes = LittleLong(in->numBrushes);
+
 		// ydnar: allocate decal memory
 		j = (i == 0 ? MAX_WORLD_DECALS : MAX_ENTITY_DECALS);
 		out->decals = ri.Hunk_Alloc(j * sizeof(*out->decals), h_low);
@@ -5499,7 +5503,7 @@ static void R_LoadFogs(lump_t * l, lump_t * brushesLump, lump_t * sidesLump)
 		// get information from the shader for fog parameters
 		shader = R_FindShader(fogs->shader, SHADER_3D_DYNAMIC, qtrue);
 
-		out->parms = shader->fogParms;
+		out->fogParms = shader->fogParms;
 
 		out->color[0] = shader->fogParms.color[0] * tr.identityLight;
 		out->color[1] = shader->fogParms.color[1] * tr.identityLight;
@@ -5520,7 +5524,8 @@ static void R_LoadFogs(lump_t * l, lump_t * brushesLump, lump_t * sidesLump)
 		// set the gradient vector
 		sideNum = LittleLong(fogs->visibleSide);
 
-		if(sideNum == -1)
+		// ydnar: made this check a little more strenuous (was sideNum == -1)
+		if(sideNum < 0 || sideNum >= sidesCount)
 		{
 			out->hasSurface = qfalse;
 		}
@@ -9443,6 +9448,21 @@ void RE_LoadWorldMap(const char *name)
 
 	VectorNormalize(tr.sunDirection);
 
+	// inalidate fogs (likely to be re-initialized to new values by the current map)
+	// TODO:(SA)this is sort of silly.  I'm going to do a general cleanup on fog stuff
+	//          now that I can see how it's been used.  (functionality can narrow since
+	//          it's not used as much as it's designed for.)
+	RE_SetFog(FOG_SKY, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_PORTALVIEW, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_HUD, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_MAP, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_CURRENT, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_TARGET, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_WATER, 0, 0, 0, 0, 0, 0);
+	RE_SetFog(FOG_SERVER, 0, 0, 0, 0, 0, 0);
+
+	tr.glfogNum = 0;
+
 	VectorCopy(colorMdGrey, tr.fogColor);
 	tr.fogDensity = 0;
 
@@ -9488,16 +9508,38 @@ void RE_LoadWorldMap(const char *name)
 	}
 
 	// load into heap
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadEntities(&header->lumps[LUMP_ENTITIES]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadShaders(&header->lumps[LUMP_SHADERS]);
+	
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadLightmaps(&header->lumps[LUMP_LIGHTMAPS], name);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadPlanes(&header->lumps[LUMP_PLANES]);
-	R_LoadFogs(&header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadSurfaces(&header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadMarksurfaces(&header->lumps[LUMP_LEAFSURFACES]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadNodesAndLeafs(&header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadSubmodels(&header->lumps[LUMP_MODELS]);
+
+	// moved fog lump loading here, so fogs can be tagged with a model num
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
+	R_LoadFogs(&header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadVisibility(&header->lumps[LUMP_VISIBILITY]);
+
+	ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
 	R_LoadLightGrid(&header->lumps[LUMP_LIGHTGRID]);
 
 	// create static VBOS from the world
@@ -9516,6 +9558,9 @@ void RE_LoadWorldMap(const char *name)
 
 	// only set tr.world now that we know the entire level has loaded properly
 	tr.world = &s_worldData;
+
+	// reset fog to world fog (if present)
+	RE_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP, 20, 0, 0, 0, 0);
 
 	// make sure the VBO glState entries are save
 	R_BindNullVBO();

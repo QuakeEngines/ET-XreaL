@@ -7950,7 +7950,8 @@ void RB_RenderDepthOfField()
 
 void RB_RenderGlobalFog()
 {
-	vec4_t          fogDensity;
+	vec3_t          local;
+	vec4_t          fogDistanceVector, fogDepthVector;
 	vec4_t          fogColor;
 	matrix_t        ortho;
 
@@ -7962,37 +7963,83 @@ void RB_RenderGlobalFog()
 	if(r_noFog->integer)
 		return;
 
-	if(r_forceFog->value <= 0 && tr.fogDensity <= 0)
+#if defined(COMPAT_ET)
+	if(!tr.world || tr.world->globalFog < 0)
 		return;
-
+#else
 	if(r_forceFog->value <= 0 && VectorLength(tr.fogColor) <= 0)
 		return;
 
-	GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE_MINUS_SRC_ALPHA | GLS_DSTBLEND_SRC_ALPHA);
+	if(r_forceFog->value <= 0 && tr.fogDensity <= 0)
+		return;
+#endif
+
 	GL_Cull(CT_TWO_SIDED);
 
 	gl_fogGlobalShader->BindProgram();
 
-	glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+	// go back to the world modelview matrix
+	backEnd.orientation = backEnd.viewParms.world;
+
+	gl_fogGlobalShader->SetUniform_ViewOrigin(backEnd.viewParms.orientation.origin); // world space
+
+#if defined(COMPAT_ET)
+	{
+		fog_t          *fog;
+		
+		fog = &tr.world->fogs[tr.world->globalFog];
+
+		if(r_logFile->integer)
+		{
+			GLimp_LogComment(va("--- RB_RenderGlobalFog( fogNum = %i, originalBrushNumber = %i ) ---\n", tr.world->globalFog, fog->originalBrushNumber));
+		}
+
+		GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA);
+
+		// all fogging distance is based on world Z units
+		VectorSubtract(backEnd.orientation.origin, backEnd.viewParms.orientation.origin, local);
+		fogDistanceVector[0] = -backEnd.orientation.modelViewMatrix[2];
+		fogDistanceVector[1] = -backEnd.orientation.modelViewMatrix[6];
+		fogDistanceVector[2] = -backEnd.orientation.modelViewMatrix[10];
+		fogDistanceVector[3] = DotProduct(local, backEnd.viewParms.orientation.axis[0]);
+
+		// scale the fog vectors based on the fog's thickness
+		fogDistanceVector[0] *= fog->tcScale;
+		fogDistanceVector[1] *= fog->tcScale;
+		fogDistanceVector[2] *= fog->tcScale;
+		fogDistanceVector[3] *= fog->tcScale;
+
+		gl_fogGlobalShader->SetUniform_FogDistanceVector(fogDistanceVector);
+		gl_fogGlobalShader->SetUniform_Color(fog->color);
+	}
+#else
+	GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE_MINUS_SRC_ALPHA | GLS_DSTBLEND_SRC_ALPHA)
 
 	if(r_forceFog->value)
 	{
-		Vector4Set(fogDensity, r_forceFog->value, 0, 0, 0);
+		Vector4Set(fogDepthVector, r_forceFog->value, 0, 0, 0);
 		VectorCopy(colorMdGrey, fogColor);
 	}
 	else
 	{
-		Vector4Set(fogDensity, tr.fogDensity, 0, 0, 0);
+		Vector4Set(fogDepthVector, tr.fogDensity, 0, 0, 0);
 		VectorCopy(tr.fogColor, fogColor);
 	}
 
-	gl_fogGlobalShader->SetUniform_ViewOrigin(backEnd.viewParms.orientation.origin); // world space
-	gl_fogGlobalShader->SetUniform_FogDepthVector(fogDensity);
+	gl_fogGlobalShader->SetUniform_FogDepthVector(fogDepthVector);
 	gl_fogGlobalShader->SetUniform_Color(fogColor);
+#endif
+	
+	gl_fogGlobalShader->SetUniform_ViewMatrix(backEnd.viewParms.world.viewMatrix);
 	gl_fogGlobalShader->SetUniform_UnprojectMatrix(backEnd.viewParms.unprojectionMatrix);
 
-	// bind u_DepthMap
+	
+	// bind u_ColorMap
 	GL_SelectTexture(0);
+	GL_Bind(tr.fogImage);
+
+	// bind u_DepthMap
+	GL_SelectTexture(1);
 	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
 			   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 	{
@@ -11987,14 +12034,140 @@ static void RB_RenderView(void)
 		{
 			clearBits |= GL_STENCIL_BUFFER_BIT;
 		}
-
-		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
+		// ydnar: global q3 fog volume
+		else if(tr.world && tr.world->globalFog >= 0)
 		{
-			clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
-			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
+			clearBits |= GL_DEPTH_BUFFER_BIT;
+
+			if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
+			{
+				clearBits |= GL_COLOR_BUFFER_BIT;
+			
+				glClearColor(tr.world->fogs[tr.world->globalFog].color[0],
+							tr.world->fogs[tr.world->globalFog].color[1],
+							tr.world->fogs[tr.world->globalFog].color[2], 1.0);
+			}
+		}
+		else if(tr.world && tr.world->hasSkyboxPortal)
+		{
+			if(backEnd.refdef.rdflags & RDF_SKYBOXPORTAL)
+			{
+				// portal scene, clear whatever is necessary
+				clearBits |= GL_DEPTH_BUFFER_BIT;
+
+				if(r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
+				{
+					// fastsky: clear color
+
+					// try clearing first with the portal sky fog color, then the world fog color, then finally a default
+					clearBits |= GL_COLOR_BUFFER_BIT;
+					if(tr.glfogsettings[FOG_PORTALVIEW].registered)
+					{
+						glClearColor(tr.glfogsettings[FOG_PORTALVIEW].color[0], tr.glfogsettings[FOG_PORTALVIEW].color[1],
+									  tr.glfogsettings[FOG_PORTALVIEW].color[2], tr.glfogsettings[FOG_PORTALVIEW].color[3]);
+					}
+					else if(tr.glfogNum > FOG_NONE && tr.glfogsettings[FOG_CURRENT].registered)
+					{
+						glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+									  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
+					}
+					else
+					{
+	//                  glClearColor ( 1.0, 0.0, 0.0, 1.0 );   // red clear for testing portal sky clear
+						glClearColor(0.5, 0.5, 0.5, 1.0);
+					}
+				}
+				else
+				{					
+					// rendered sky (either clear color or draw quake sky)
+					if(tr.glfogsettings[FOG_PORTALVIEW].registered)
+					{
+						glClearColor(tr.glfogsettings[FOG_PORTALVIEW].color[0], tr.glfogsettings[FOG_PORTALVIEW].color[1],
+									  tr.glfogsettings[FOG_PORTALVIEW].color[2], tr.glfogsettings[FOG_PORTALVIEW].color[3]);
+
+						if(tr.glfogsettings[FOG_PORTALVIEW].clearscreen)
+						{			
+							// portal fog requests a screen clear (distance fog rather than quake sky)
+							clearBits |= GL_COLOR_BUFFER_BIT;
+						}
+					}
+				}
+			}
+			else
+			{						
+				// world scene with portal sky, don't clear any buffers, just set the fog color if there is one
+				clearBits |= GL_DEPTH_BUFFER_BIT;	// this will go when I get the portal sky rendering way out in the zbuffer (or not writing to zbuffer at all)
+
+				if(tr.glfogNum > FOG_NONE && tr.glfogsettings[FOG_CURRENT].registered)
+				{
+					if(backEnd.refdef.rdflags & RDF_UNDERWATER)
+					{
+						if(tr.glfogsettings[FOG_CURRENT].mode == GL_LINEAR)
+						{
+							clearBits |= GL_COLOR_BUFFER_BIT;
+						}
+					}
+					else if(!r_portalSky->integer)
+					{				
+						// portal skies have been manually turned off, clear bg color
+						clearBits |= GL_COLOR_BUFFER_BIT;
+					}
+
+					glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+								  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
+				}
+				else if(!r_portalSky->integer)
+				{					
+					// ydnar: portal skies have been manually turned off, clear bg color
+					clearBits |= GL_COLOR_BUFFER_BIT;
+					glClearColor(0.5, 0.5, 0.5, 1.0);
+				}
+			}
 		}
 		else
-		{
+		{							
+			// world scene with no portal sky
+			clearBits |= GL_DEPTH_BUFFER_BIT;
+
+			// NERVE - SMF - we don't want to clear the buffer when no world model is specified
+			if(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
+			{
+				clearBits &= ~GL_COLOR_BUFFER_BIT;
+			}
+			// -NERVE - SMF
+			else if(r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
+			{
+				clearBits |= GL_COLOR_BUFFER_BIT;
+
+				if(tr.glfogsettings[FOG_CURRENT].registered)
+				{					
+					// try to clear fastsky with current fog color
+					glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+								  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
+				}
+				else
+				{
+	//              glClearColor ( 0.0, 0.0, 1.0, 1.0 );   // blue clear for testing world sky clear
+					glClearColor(0.05, 0.05, 0.05, 1.0);	// JPW NERVE changed per id req was 0.5s
+				}
+			}
+			else
+			{						
+				// world scene, no portal sky, not fastsky, clear color if fog says to, otherwise, just set the clearcolor
+				if(tr.glfogsettings[FOG_CURRENT].registered)
+				{					
+					// try to clear fastsky with current fog color
+					glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+							  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
+
+					if(tr.glfogsettings[FOG_CURRENT].clearscreen)
+					{				
+						// world fog requests a screen clear (distance fog rather than quake sky)
+						clearBits |= GL_COLOR_BUFFER_BIT;
+					}
+				}
+			}
+
 			if(HDR_ENABLED())
 			{
 				// copy color of the main context to deferredRenderFBO
@@ -12006,6 +12179,7 @@ static void RB_RenderView(void)
 									   GL_NEAREST);
 			}
 		}
+
 		glClear(clearBits);
 
 		if((backEnd.refdef.rdflags & RDF_HYPERSPACE))

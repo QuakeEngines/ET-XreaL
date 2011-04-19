@@ -1526,6 +1526,13 @@ static void SetFarClip(void)
 
 #endif
 	tr.viewParms.zFar = sqrt(farthestCornerDistance);
+
+	// ydnar: add global q3 fog
+	if(tr.world != NULL && tr.world->globalFog >= 0 &&
+	   tr.world->fogs[tr.world->globalFog].fogParms.depthForOpaque < tr.viewParms.zFar)
+	{
+		tr.viewParms.zFar = tr.world->fogs[tr.world->globalFog].fogParms.depthForOpaque;
+	}
 }
 
 /*
@@ -3466,6 +3473,8 @@ void R_RenderView(viewParms_t * parms)
 	// added, because they use the projection
 	// matrix for lod calculation
 	R_SetupProjection(qfalse);
+
+	R_SetFrameFog();
 
 	R_SetupUnprojection();
 

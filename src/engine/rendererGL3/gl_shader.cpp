@@ -274,6 +274,11 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 		Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef COMPAT_Q3A\n#define COMPAT_Q3A 1\n#endif\n");
 #endif
 
+#if defined(COMPAT_ET)
+		Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef COMPAT_ET\n#define COMPAT_ET 1\n#endif\n");
+#endif
+
+
 		// HACK: add some macros to avoid extra uniforms and save speed and code maintenance
 		Q_strcat(bufferExtra, sizeof(bufferExtra),
 				 va("#ifndef r_SpecularExponent\n#define r_SpecularExponent %f\n#endif\n", r_specularExponent->value));
@@ -2351,8 +2356,10 @@ GLShader_fogGlobal::GLShader_fogGlobal():
 					ATTR_TANGENT | ATTR_TANGENT2 | ATTR_BINORMAL | ATTR_BINORMAL2),
 		u_ViewOrigin(this),
 		u_Color(this),
+		u_ViewMatrix(this),
 		u_ModelViewProjectionMatrix(this),
 		u_UnprojectMatrix(this),
+		u_FogDistanceVector(this),
 		u_FogDepthVector(this)
 {
 	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
@@ -2406,10 +2413,12 @@ GLShader_fogGlobal::GLShader_fogGlobal():
 
 			UpdateShaderProgramUniformLocations(shaderProgram);
 
+			shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
 			shaderProgram->u_DepthMap = glGetUniformLocationARB(shaderProgram->program, "u_DepthMap");
 
 			glUseProgramObjectARB(shaderProgram->program);
-			glUniform1iARB(shaderProgram->u_DepthMap, 0);
+			glUniform1iARB(shaderProgram->u_ColorMap, 0);
+			glUniform1iARB(shaderProgram->u_DepthMap, 1);
 			glUseProgramObjectARB(0);
 
 			ValidateProgram(shaderProgram->program);

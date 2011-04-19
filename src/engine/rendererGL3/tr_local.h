@@ -2472,6 +2472,8 @@ typedef struct
 	byte           *pixelTarget;		//set this to Non Null to copy to a buffer after scene rendering
 	int             pixelTargetWidth;
 	int             pixelTargetHeight;
+
+	glfog_t         glFog;				// (SA) added (needed to pass fog infos into the portal sky scene)
 } trRefdef_t;
 
 
@@ -2545,7 +2547,7 @@ typedef struct
 
 	vec4_t			color;		// in packed byte format
 	float           tcScale;	// texture coordinate vector scales
-	fogParms_t      parms;
+	fogParms_t      fogParms;
 
 	// for clipping distance in fog when outside
 	qboolean        hasSurface;
@@ -3207,6 +3209,8 @@ typedef struct
 
 	char           *entityString;
 	char           *entityParsePoint;
+
+	qboolean		hasSkyboxPortal;
 } world_t;
 
 
@@ -3958,6 +3962,9 @@ typedef struct
 
 	vec3_t          fogColor;
 	float           fogDensity;
+	
+	glfog_t         glfogsettings[NUM_FOGS];
+	glfogType_t     glfogNum;
 
 	frontEndCounters_t pc;
 	int             frontEndMsec;	// not in pc due to clearing issue
@@ -4188,6 +4195,7 @@ extern cvar_t  *r_intensity;
 extern cvar_t  *r_lockpvs;
 extern cvar_t  *r_noportals;
 extern cvar_t  *r_portalOnly;
+extern cvar_t  *r_portalSky;
 
 extern cvar_t  *r_subdivisions;
 extern cvar_t  *r_stitchCurves;
@@ -4769,6 +4777,7 @@ FOG, tr_fog.c
 ============================================================
 */
 
+void			R_SetFrameFog();
 void			RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density);
 void			RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque);
 

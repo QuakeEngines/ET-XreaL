@@ -2102,9 +2102,11 @@ public:
 class GLShader_fogGlobal:
 public GLShader,
 public u_ViewOrigin,
+public u_ViewMatrix,
 public u_ModelViewProjectionMatrix,
 public u_UnprojectMatrix,
 public u_Color,
+public u_FogDistanceVector,
 public u_FogDepthVector
 {
 public:

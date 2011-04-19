@@ -4489,12 +4489,35 @@ static void Render_fog()
 	qboolean        eyeOutside;
 	vec3_t          local;
 	vec4_t          fogDistanceVector, fogDepthVector;
-
-	GLimp_LogComment("--- Render_fog ---\n");
 	
 	//ri.Printf(PRINT_ALL, "--- Render_fog ---\n");
 
+#if defined(COMPAT_ET)
+	// no fog pass in snooper
+	if(tr.refdef.rdflags & RDF_SNOOPERVIEW)// || tess.shader->noFog || !r_wolffog->integer)
+	{
+		return;
+	}
+#endif
+
+	// ydnar: no world, no fogging
+	if(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		return;
+	}
+
 	fog = tr.world->fogs + tess.fogNum;
+
+	// Tr3B: use this only to render fog brushes
+	if(fog->originalBrushNumber < 0)
+	{
+		return;
+	}
+
+	if(r_logFile->integer)
+	{
+		GLimp_LogComment(va("--- Render_fog( fogNum = %i, originalBrushNumber = %i ) ---\n", tess.fogNum, fog->originalBrushNumber));
+	}
 
 	// all fogging distance is based on world Z units
 	VectorSubtract(backEnd.orientation.origin, backEnd.viewParms.orientation.origin, local);

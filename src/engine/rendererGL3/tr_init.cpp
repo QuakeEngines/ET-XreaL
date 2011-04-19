@@ -182,9 +182,11 @@ cvar_t         *r_rimLighting;
 cvar_t         *r_rimExponent;
 cvar_t         *r_gamma;
 cvar_t         *r_intensity;
+
 cvar_t         *r_lockpvs;
 cvar_t         *r_noportals;
 cvar_t         *r_portalOnly;
+cvar_t         *r_portalSky;
 
 cvar_t         *r_subdivisions;
 cvar_t         *r_stitchCurves;
@@ -1541,6 +1543,7 @@ void R_Register(void)
 	r_noStaticLighting = ri.Cvar_Get("r_noStaticLighting", "0", CVAR_CHEAT);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", CVAR_CHEAT);
 	r_portalOnly = ri.Cvar_Get("r_portalOnly", "0", CVAR_CHEAT);
+	r_portalSky = ri.Cvar_Get("cg_skybox", "1", 0);
 
 	r_flareSize = ri.Cvar_Get("r_flareSize", "40", CVAR_CHEAT);
 	r_flareFade = ri.Cvar_Get("r_flareFade", "7", CVAR_CHEAT);
@@ -1576,7 +1579,7 @@ void R_Register(void)
 
 	r_wrapAroundLighting = ri.Cvar_Get("r_wrapAroundLighting", "0.7", CVAR_CHEAT);
 	r_halfLambertLighting = ri.Cvar_Get("r_halfLambertLighting", "1", CVAR_CHEAT);
-	r_rimLighting = ri.Cvar_Get("r_rimLighting", "1", CVAR_CHEAT);
+	r_rimLighting = ri.Cvar_Get("r_rimLighting", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_rimExponent = ri.Cvar_Get("r_rimExponent", "3", CVAR_CHEAT);
 	AssertCvarRange(r_rimExponent, 0.5, 8.0, qfalse);
 

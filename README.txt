@@ -39,6 +39,8 @@ This file contains the following sections:
 	7) CHANGES
 	
 	8) KNOWN ISSUES
+	
+	9) FUTURE PLAN
 
 
 
@@ -159,8 +161,15 @@ ___________________________________________________
 8) KNOWN ISSUES
 __________________________________________
 
-	* no global fog
-	* no fog volumes
+	* broken map loading screen
 	* flames created by the flamethrower are messed up
 	* no lightmaps on terrain if a map was compiled with deluxe mapping enabled
+	
+
+___________________________________________________
+
+9) FUTURE PLAN
+__________________________________________
+
+	* optimize ET decal system with VBOs
 

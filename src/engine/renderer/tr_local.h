@@ -983,10 +983,10 @@ typedef struct
 
 	int             numfogs;
 	fog_t          *fogs;
-	int             globalFog;	// Arnout: index of global fog
-	vec4_t          globalOriginalFog;	// Arnout: to be able to restore original global fog
-	vec4_t          globalTransStartFog;	// Arnout: start fog for switch fog transition
-	vec4_t          globalTransEndFog;	// Arnout: end fog for switch fog transition
+	int             globalFog;					// Arnout: index of global fog
+	vec4_t          globalOriginalFog;			// Arnout: to be able to restore original global fog
+	vec4_t          globalTransStartFog;		// Arnout: start fog for switch fog transition
+	vec4_t          globalTransEndFog;			// Arnout: end fog for switch fog transition
 	int             globalFogTransStartTime;
 	int             globalFogTransEndTime;
 

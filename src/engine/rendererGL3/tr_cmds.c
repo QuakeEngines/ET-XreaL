@@ -307,10 +307,11 @@ void           *R_GetCommandBuffer(int bytes)
 
 	cmdList = &backEndData[tr.smpFrame]->commands;
 
-	// always leave room for the end of list command
-	if(cmdList->used + bytes + 4 > MAX_RENDER_COMMANDS)
+	// always leave room for the swap buffers and end of list commands
+	// RB: added swapBuffers_t from ET
+	if(cmdList->used + bytes + (sizeof(swapBuffersCommand_t) + sizeof(int)) > MAX_RENDER_COMMANDS)
 	{
-		if(bytes > MAX_RENDER_COMMANDS - 4)
+		if(bytes > MAX_RENDER_COMMANDS - (sizeof(swapBuffersCommand_t) + sizeof(int)))
 		{
 			ri.Error(ERR_FATAL, "R_GetCommandBuffer: bad size %i", bytes);
 		}
@@ -522,68 +523,7 @@ void RE_StretchPicGradient(float x, float y, float w, float h,
 
 //----(SA)  end
 
-/*
-====================
-RE_SetGlobalFog
-	rgb = colour
-	depthForOpaque is depth for opaque
 
-	the restore flag can be used to restore the original level fog
-	duration can be set to fade over a certain period
-====================
-*/
-void RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque)
-{
-#if 0
-	if(restore)
-	{
-		if(duration > 0)
-		{
-			VectorCopy(tr.world->fogs[tr.world->globalFog].shader->fogParms.color, tr.world->globalTransStartFog);
-			tr.world->globalTransStartFog[3] = tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque;
-
-			Vector4Copy(tr.world->globalOriginalFog, tr.world->globalTransEndFog);
-
-			tr.world->globalFogTransStartTime = tr.refdef.time;
-			tr.world->globalFogTransEndTime = tr.refdef.time + duration;
-		}
-		else
-		{
-			VectorCopy(tr.world->globalOriginalFog, tr.world->fogs[tr.world->globalFog].shader->fogParms.color);
-			tr.world->fogs[tr.world->globalFog].shader->fogParms.colorInt =
-				ColorBytes4(tr.world->globalOriginalFog[0] * tr.identityLight, tr.world->globalOriginalFog[1] * tr.identityLight,
-							tr.world->globalOriginalFog[2] * tr.identityLight, 1.0);
-			tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque = tr.world->globalOriginalFog[3];
-			tr.world->fogs[tr.world->globalFog].shader->fogParms.tcScale =
-				1.0f / (tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque);
-		}
-	}
-	else
-	{
-		if(duration > 0)
-		{
-			VectorCopy(tr.world->fogs[tr.world->globalFog].shader->fogParms.color, tr.world->globalTransStartFog);
-			tr.world->globalTransStartFog[3] = tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque;
-
-			VectorSet(tr.world->globalTransEndFog, r, g, b);
-			tr.world->globalTransEndFog[3] = depthForOpaque < 1 ? 1 : depthForOpaque;
-
-			tr.world->globalFogTransStartTime = tr.refdef.time;
-			tr.world->globalFogTransEndTime = tr.refdef.time + duration;
-		}
-		else
-		{
-			VectorSet(tr.world->fogs[tr.world->globalFog].shader->fogParms.color, r, g, b);
-			tr.world->fogs[tr.world->globalFog].shader->fogParms.colorInt = ColorBytes4(r * tr.identityLight,
-																						g * tr.identityLight,
-																						b * tr.identityLight, 1.0);
-			tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque = depthForOpaque < 1 ? 1 : depthForOpaque;
-			tr.world->fogs[tr.world->globalFog].shader->fogParms.tcScale =
-				1.0f / (tr.world->fogs[tr.world->globalFog].shader->fogParms.depthForOpaque);
-		}
-	}
-#endif
-}
 
 /*
 ====================
