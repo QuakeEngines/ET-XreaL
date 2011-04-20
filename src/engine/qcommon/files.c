@@ -356,6 +356,17 @@ qboolean FS_PakIsPure(pack_t * pack)
 				return qtrue;	// on the approved list
 			}
 		}
+
+		// XreaL BEGIN
+
+		// CHEAT ALARM: always allow zz-XreaL-<date>.pk3 files so we don't need them on the server
+		if(strstr(pack->pakBasename, "zz-XreaL-"))
+		{
+			return qtrue;
+		}
+
+		// XreaL END
+
 		return qfalse;			// not on the pure server pak list
 	}
 	return qtrue;
@@ -4016,7 +4027,7 @@ const char     *FS_LoadedPakPureChecksums(void)
 
 	// DO_LIGHT_DEDICATED
 	// only comment out when you need a new pure checksums string
-	//Com_DPrintf("FS_LoadPakPureChecksums: %s\n", info);
+	Com_Printf("FS_LoadPakPureChecksums: %s\n", info);
 
 	return info;
 }
@@ -4130,13 +4141,24 @@ const char     *FS_ReferencedPakPureChecksums(void)
 			// is the element a pak file and has it been referenced based on flag?
 			if(search->pack && (search->pack->referenced & nFlags))
 			{
-				Q_strcat(info, sizeof(info), va("%i ", search->pack->pure_checksum));
-				if(nFlags & (FS_CGAME_REF | FS_UI_REF))
+				// XreaL BEGIN
+
+				// CHEAT ALARM: always allow zz-XreaL-<date>.pk3 files so we don't need them on the server
+				if(strstr(search->pack->pakBasename, "zz-XreaL-"))
 				{
-					break;
+					continue;
 				}
-				checksum ^= search->pack->pure_checksum;
-				numPaks++;
+				// XreaL END
+				else
+				{
+					Q_strcat(info, sizeof(info), va("%i ", search->pack->pure_checksum));
+					if(nFlags & (FS_CGAME_REF | FS_UI_REF))
+					{
+						break;
+					}
+					checksum ^= search->pack->pure_checksum;
+					numPaks++;
+				}
 			}
 		}
 		if(fs_fakeChkSum != 0)
