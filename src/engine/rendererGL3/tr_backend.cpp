@@ -8040,12 +8040,7 @@ void RB_RenderGlobalFog()
 
 	// bind u_DepthMap
 	GL_SelectTexture(1);
-	if(r_deferredShading->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable &&
-			   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
-	{
-		GL_Bind(tr.depthRenderImage);
-	}
-	else if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
+	if(DS_STANDARD_ENABLED() || DS_PREPASS_LIGHTING_ENABLED() || HDR_ENABLED())
 	{
 		GL_Bind(tr.depthRenderImage);
 	}

@@ -69,6 +69,13 @@ bool GLCompileMacro_USE_VERTEX_SKINNING::HasConflictingMacros(int permutation, c
 	return false;
 }
 
+bool GLCompileMacro_USE_VERTEX_SKINNING::MissesRequiredMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const
+{
+	return !glConfig2.vboVertexSkinningAvailable;
+}
+
+
+
 bool GLCompileMacro_USE_VERTEX_ANIMATION::HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const
 {
 #if 1
@@ -608,6 +615,11 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 
 			Q_strcat(bufferExtra, sizeof(bufferExtra),
 								 va("#ifndef MAX_GLSL_BONES\n#define MAX_GLSL_BONES %i\n#endif\n", glConfig2.maxVertexSkinningBones));
+		}
+		else
+		{
+			Q_strcat(bufferExtra, sizeof(bufferExtra),
+								 va("#ifndef MAX_GLSL_BONES\n#define MAX_GLSL_BONES %i\n#endif\n", 4));
 		}
 
 		/*

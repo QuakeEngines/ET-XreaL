@@ -1400,7 +1400,7 @@ void R_Register(void)
 
 	r_forceFog = ri.Cvar_Get("r_forceFog", "0", CVAR_ARCHIVE /* | CVAR_LATCH */ );
 	AssertCvarRange(r_forceFog, 0.0f, 1.0f, qfalse);
-	r_noFog = ri.Cvar_Get("r_noFog", "0", CVAR_ARCHIVE);
+	r_noFog = ri.Cvar_Get("r_noFog", "0", CVAR_CHEAT);
 #ifdef EXPERIMENTAL
 	r_screenSpaceAmbientOcclusion = ri.Cvar_Get("r_screenSpaceAmbientOcclusion", "0", CVAR_ARCHIVE);
 	//AssertCvarRange(r_screenSpaceAmbientOcclusion, 0, 2, qtrue);

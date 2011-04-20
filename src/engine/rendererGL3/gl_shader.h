@@ -311,6 +311,7 @@ public:
 	const char* GetName() const { return "USE_VERTEX_SKINNING"; }
 	EGLCompileMacro GetType() const { return USE_VERTEX_SKINNING; }
 	bool		HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
+	bool		MissesRequiredMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
 	
 
 	void EnableVertexSkinning()
