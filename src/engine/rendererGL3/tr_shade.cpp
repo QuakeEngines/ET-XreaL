@@ -317,7 +317,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, const char
 
 		if(glConfig.driverType == GLDRV_MESA)
 		{
-			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef MESA\n#define MESA 1\n#endif\n");
+			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GLDRV_MESA\n#define GLDRV_MESA 1\n#endif\n");
 		}
 
 		if(glConfig.hardwareType == GLHW_ATI)

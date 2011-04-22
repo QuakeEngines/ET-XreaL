@@ -1188,7 +1188,13 @@ GLShader_generic::GLShader_generic():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("generic", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("generic", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("generic", "", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -1292,7 +1298,13 @@ GLShader_lightMapping::GLShader_lightMapping():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("lightMapping", "deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("lightMapping", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("lightMapping", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -1407,7 +1419,13 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("vertexLighting_DBS_entity", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("vertexLighting_DBS_entity", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("vertexLighting_DBS_entity", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -1517,7 +1535,13 @@ GLShader_vertexLighting_DBS_world::GLShader_vertexLighting_DBS_world():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("vertexLighting_DBS_world", "deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("vertexLighting_DBS_world", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("vertexLighting_DBS_world", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -1633,7 +1657,13 @@ GLShader_forwardLighting_omniXYZ::GLShader_forwardLighting_omniXYZ():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("forwardLighting", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("forwardLighting", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("forwardLighting", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -1762,7 +1792,13 @@ GLShader_forwardLighting_projXYZ::GLShader_forwardLighting_projXYZ():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("forwardLighting", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("forwardLighting", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("forwardLighting", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -1895,7 +1931,13 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("forwardLighting", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("forwardLighting", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("forwardLighting", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -2018,7 +2060,13 @@ GLShader_shadowFill::GLShader_shadowFill():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("shadowFill", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("shadowFill", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("shadowFill", "", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -2113,7 +2161,13 @@ GLShader_reflection::GLShader_reflection():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("reflection_CB", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("reflection_CB", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("reflection_CB", "", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -2297,7 +2351,13 @@ GLShader_fogQuake3::GLShader_fogQuake3():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("fogQuake3", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("fogQuake3", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("fogQuake3", "", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
@@ -2483,7 +2543,13 @@ GLShader_heatHaze::GLShader_heatHaze():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexShaderText = BuildGPUShaderText("heatHaze", "vertexAnimation deformVertexes", GL_VERTEX_SHADER_ARB);
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("heatHaze", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
 	std::string fragmentShaderText = BuildGPUShaderText("heatHaze", "", GL_FRAGMENT_SHADER_ARB);
 
 	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
