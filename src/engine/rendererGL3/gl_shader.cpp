@@ -403,7 +403,7 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 
 		if(glConfig.driverType == GLDRV_MESA)
 		{
-			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef MESA\n#define MESA 1\n#endif\n");
+			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GLDRV_MESA\n#define GLDRV_MESA 1\n#endif\n");
 		}
 
 		if(glConfig.hardwareType == GLHW_ATI)
