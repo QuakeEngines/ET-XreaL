@@ -954,7 +954,7 @@ void AddTriangleModels(entity_t * e)
 		temp = FloatForKey(e2, "modelscale");
 		if(temp != 0.0f)
 			scale[0] = scale[1] = scale[2] = temp;
-		value = ValueForKey(e, "modelscale_vec");
+		value = ValueForKey(e2, "modelscale_vec");
 		if(value[0] != '\0')
 			sscanf(value, "%f %f %f", &scale[0], &scale[1], &scale[2]);
 
