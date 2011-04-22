@@ -3406,7 +3406,7 @@ typedef struct mdmSurfaceIntern_s
 	int             numBoneReferences;
 	int            *boneReferences;
 
-	int            *collapseMap;	// numVerts many
+	int32_t        *collapseMap;	// numVerts many
 
 	struct mdmModel_s *model;
 } mdmSurfaceIntern_t;

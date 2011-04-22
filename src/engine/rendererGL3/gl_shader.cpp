@@ -1238,6 +1238,8 @@ GLShader_generic::GLShader_generic():
 
 			shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
 
+			//ri.Printf(PRINT_ALL, "u_ColorMap = %i\n", shaderProgram->u_ColorMap);
+
 			glUseProgramObjectARB(shaderProgram->program);
 			glUniform1iARB(shaderProgram->u_ColorMap, 0);
 			glUseProgramObjectARB(0);

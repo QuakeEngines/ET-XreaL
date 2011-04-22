@@ -1328,6 +1328,16 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 #endif
 	}
 
+	if(tr.worldDeluxeMapping && surf->lightmapNum >= 2)
+	{
+		surf->lightmapNum /= 2;
+	}
+
+	if(surf->lightmapNum >= tr.lightmaps.currentElements)
+	{
+		ri.Error(ERR_DROP, "Bad lightmap number %i in face surface", surf->lightmapNum);
+	}
+
 	// get fog volume
 	surf->fogIndex = LittleLong(ds->fogNum) + 1;
 
@@ -1537,6 +1547,11 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 #endif
 	}
 
+	if(tr.worldDeluxeMapping && surf->lightmapNum >= 2)
+	{
+		surf->lightmapNum /= 2;
+	}
+
 	// get fog volume
 	surf->fogIndex = LittleLong(ds->fogNum) + 1;
 
@@ -1665,6 +1680,11 @@ static void ParseTriSurf(dsurface_t * ds, drawVert_t * verts, bspSurface_t * sur
 		surf->lightmapNum = realLightmapNum;
 	}
 #endif
+
+	if(tr.worldDeluxeMapping && surf->lightmapNum >= 2)
+	{
+		surf->lightmapNum /= 2;
+	}
 
 	// get fog volume
 	surf->fogIndex = LittleLong(ds->fogNum) + 1;
@@ -5313,7 +5333,7 @@ static void R_LoadShaders(lump_t * l)
 
 	for(i = 0; i < count; i++)
 	{
-		ri.Printf(PRINT_DEVELOPER, "shader: '%s'\n", out[i].shader);
+		ri.Printf(PRINT_ALL, "shader: '%s'\n", out[i].shader);
 
 		out[i].surfaceFlags = LittleLong(out[i].surfaceFlags);
 		out[i].contentFlags = LittleLong(out[i].contentFlags);
