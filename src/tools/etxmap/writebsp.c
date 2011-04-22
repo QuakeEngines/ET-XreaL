@@ -586,23 +586,24 @@ void EndModel(entity_t * e, node_t * headnode)
 	parseMesh_t    *p;
 	const char     *name;
 	const char     *model;
+	const char     *classname;
 	int             i, j;
 
 	/* note it */
 	Sys_FPrintf(SYS_VRB, "--- EndModel ---\n");
 
-	ClearBounds(mins, maxs);
-
 	/* emit the bsp */
 	mod = &bspModels[numBSPModels];
 	EmitDrawNode_r(headnode);
-
-	BoundsAdd(mins, maxs, headnode->mins, headnode->maxs);
 
 	/* ydnar: lightgrid mins/maxs */
 	ClearBounds(lgMins, lgMaxs);
 
 	/* bound the brushes */
+	ClearBounds(mins, maxs);
+
+	//BoundsAdd(mins, maxs, headnode->mins, headnode->maxs);
+
 	for(b = e->brushes; b; b = b->next)
 	{
 		/* ignore non-real brushes (origin, etc) */
@@ -632,13 +633,16 @@ void EndModel(entity_t * e, node_t * headnode)
 	}
 
 	/* Tr3B: bound triangle surfaces */
+	classname = ValueForKey(e, "classname");
 	name = ValueForKey(e, "name");
 	model = ValueForKey(e, "model");
-	//if(!e->brushes && !e->patches && model[0] != '\0')
+#if 1
+	if(inlineEntityModels && !e->brushes && !e->patches && model[0] != '\0' && Q_stricmp("misc_model", classname))
 	{
-		//Sys_FPrintf(SYS_STD, "calculating BSP bounds from draw surfaces for entity '%s' with model '%s'\n", name, model);
-
 		qboolean noVerts = qtrue;
+
+		//Sys_FPrintf(SYS_STD, "calculating BSP bounds from draw surfaces for entity '%s' with model '%s'\n", name, model);
+		
 		for(i = mod->firstBSPSurface; i < numBSPDrawSurfaces; i++)
 		{
 			ds = &bspDrawSurfaces[i];
@@ -661,11 +665,12 @@ void EndModel(entity_t * e, node_t * headnode)
 			// Tr3B: model could not be loaded or something else went wrong.
 			// reset to zero bounds so the entity doesn't mess up the server collision code
 
-			Sys_FPrintf(SYS_WRN, "WARNING: resetting BSP bounds for entity '%s' with model '%s'\n", name, model);
+			Sys_FPrintf(SYS_WRN, "WARNING: resetting BSP bounds for entity = '%s', classname = '%s', model = '%s'\n", name, classname, model);
 			VectorClear(mins);
 			VectorClear(maxs);
 		}
 	}
+#endif
 
 	/* ydnar: lightgrid mins/maxs */
 #if 0
