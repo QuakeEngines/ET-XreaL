@@ -152,7 +152,7 @@ __________________________________________
 	* added support for Linux 64-bit
 	* replaced Linux sound backend with SDL
 	* added .avi recorder from ioquake3 including sound support
-	* added new ETXMap bsp compiler based on NetRadiant's q3map2
+	* added new ETXMap BSP compiler based on NetRadiant's q3map2
 	* added new ETXRadiant level editor based on DarkRadiant
 
 
@@ -162,9 +162,6 @@ ___________________________________________________
 __________________________________________
 
 	* broken map loading screen
-	* flames created by the flamethrower are messed up
-	* no lightmaps on terrain if a map was compiled with deluxe mapping enabled
-	
 
 ___________________________________________________
 

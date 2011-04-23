@@ -916,6 +916,7 @@ void Tess_SurfacePolybuffer(srfPolyBuffer_t * surf)
 	int             i;
 	int				numIndexes;
 	int				numVertexes;
+	int			   *indices;
 	float          *xyzw;
 	float          *st;
 	byte           *color;
@@ -930,9 +931,10 @@ void Tess_SurfacePolybuffer(srfPolyBuffer_t * surf)
 	Tess_CheckOverflow(surf->pPolyBuffer->numVerts, surf->pPolyBuffer->numIndicies);
 
 	numIndexes = Q_min(surf->pPolyBuffer->numIndicies, MAX_PB_INDICIES);
+	indices = surf->pPolyBuffer->indicies;
 	for(i = 0; i < numIndexes; i++)
 	{
-		tess.indexes[tess.numIndexes + i] = tess.numVertexes + i;
+		tess.indexes[tess.numIndexes + i] = tess.numVertexes + indices[i];
 	}
 	tess.numIndexes += numIndexes;
 
