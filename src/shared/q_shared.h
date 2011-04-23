@@ -171,7 +171,7 @@ typedef unsigned __int8 uint8_t;
 #else
 #define id386_3dnow  0
 #endif
-#if 0 //defined(_M_IX86_FP) || defined(__SSE__)//defined(_MSC_VER)
+#if defined(_M_IX86_FP) || defined(__SSE__)//defined(_MSC_VER)
 //#error SIMD_SSE
 #define id386_sse  1
 #include <xmmintrin.h>
