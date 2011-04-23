@@ -612,9 +612,12 @@ typedef enum
 {
 	SS_BAD,
 	SS_PORTAL,					// mirrors, portals, viewscreens
+
+	SS_ENVIRONMENT_FOG,			// sky
+
 	SS_OPAQUE,					// opaque
 	
-	SS_ENVIRONMENT,				// Tr3B: moved skybox here so we can fog post process all SS_OPAQUE materials
+	SS_ENVIRONMENT_NOFOG,		// Tr3B: moved skybox here so we can fog post process all SS_OPAQUE materials
 
 	SS_DECAL,					// scorch marks, etc.
 	SS_SEE_THROUGH,				// ladders, grates, grills that may have small blended edges
@@ -1044,7 +1047,7 @@ typedef struct
 
 	expression_t    wrapAroundLightingExp;
 
-	qboolean        isFogged;	// used only for shaders that have fog disabled, so we can enable it for individual stages
+	qboolean        noFog;		// used only for shaders that have fog disabled, so we can enable it for individual stages
 } shaderStage_t;
 
 struct shaderCommands_s;

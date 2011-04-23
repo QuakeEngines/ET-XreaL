@@ -1399,7 +1399,7 @@ void R_Register(void)
 	r_heatHazeFix = ri.Cvar_Get("r_heatHazeFix", "0", CVAR_CHEAT);
 	r_noMarksOnTrisurfs = ri.Cvar_Get("r_noMarksOnTrisurfs", "1", CVAR_CHEAT);
 
-	r_forceFog = ri.Cvar_Get("r_forceFog", "0", CVAR_ARCHIVE /* | CVAR_LATCH */ );
+	r_forceFog = ri.Cvar_Get("r_forceFog", "0", CVAR_CHEAT /* | CVAR_LATCH */ );
 	AssertCvarRange(r_forceFog, 0.0f, 1.0f, qfalse);
 	r_wolfFog = ri.Cvar_Get("r_wolfFog", "1", CVAR_CHEAT);
 	r_noFog = ri.Cvar_Get("r_noFog", "0", CVAR_CHEAT);

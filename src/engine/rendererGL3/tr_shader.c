@@ -1819,11 +1819,11 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 			}
 			if(!Q_stricmp(token, "on"))
 			{
-				stage->isFogged = qtrue;
+				stage->noFog = qfalse;
 			}
 			else
 			{
-				stage->isFogged = qfalse;
+				stage->noFog = qtrue;
 			}
 		}
 		// blendfunc <srcFactor> <dstFactor>
@@ -2842,7 +2842,7 @@ static void ParseSort(char **text)
 	}
 	else if(!Q_stricmp(token, "sky") || !Q_stricmp(token, "environment"))
 	{
-		shader.sort = SS_ENVIRONMENT;
+		shader.sort = SS_ENVIRONMENT_FOG;
 	}
 	else if(!Q_stricmp(token, "opaque"))
 	{
@@ -4684,7 +4684,14 @@ static shader_t *FinishShader(void)
 	// set sky stuff appropriate
 	if(shader.isSky)
 	{
-		shader.sort = SS_ENVIRONMENT;
+		if(shader.noFog)
+		{
+			shader.sort = SS_ENVIRONMENT_NOFOG;
+		}
+		else
+		{
+			shader.sort = SS_ENVIRONMENT_FOG;
+		}
 	}
 
 	if(shader.forceOpaque)
@@ -4823,6 +4830,11 @@ static shader_t *FinishShader(void)
 		if(shader.forceOpaque)
 		{
 			pStage->stateBits |= GLS_DEPTHMASK_TRUE;
+		}
+		
+		if(shader.isSky && pStage->noFog)
+		{
+			shader.sort = SS_ENVIRONMENT_NOFOG;
 		}
 
 		// determine sort order and fog color adjustment
@@ -5684,9 +5696,13 @@ void R_ShaderList_f(void)
 		{
 			ri.Printf(PRINT_ALL, "SS_PORTAL           ");
 		}
-		else if(shader->sort == SS_ENVIRONMENT)
+		else if(shader->sort == SS_ENVIRONMENT_FOG)
 		{
-			ri.Printf(PRINT_ALL, "SS_ENVIRONMENT      ");
+			ri.Printf(PRINT_ALL, "SS_ENVIRONMENT_FOG  ");
+		}
+		else if(shader->sort == SS_ENVIRONMENT_NOFOG)
+		{
+			ri.Printf(PRINT_ALL, "SS_ENVIRONMENT_NOFOG");
 		}
 		else if(shader->sort == SS_OPAQUE)
 		{

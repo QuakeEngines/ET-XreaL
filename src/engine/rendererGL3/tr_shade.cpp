@@ -4510,7 +4510,7 @@ static void Render_fog()
 
 	// Tr3B: use this only to render fog brushes
 #if 1
-	if(fog->originalBrushNumber < 0)// && tess.surfaceShader->sort <= SS_OPAQUE)
+	if(fog->originalBrushNumber < 0 && tess.surfaceShader->sort <= SS_OPAQUE)
 	{
 		return;
 	}

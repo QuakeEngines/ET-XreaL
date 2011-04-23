@@ -286,8 +286,8 @@ RE_AddPolyBufferToScene
 void RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer)
 {
 	srfPolyBuffer_t *pPolySurf;
-//	int             fogIndex;
-//	fog_t          *fog;
+	int             fogIndex;
+	fog_t          *fog;
 	vec3_t          bounds[2];
 	int             i;
 
@@ -309,25 +309,21 @@ void RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer)
 		AddPointToBounds(pPolyBuffer->xyz[i], bounds[0], bounds[1]);
 	}
 
-#if 0
-	for(fogIndex = 1; fogIndex < tr.world->numfogs; fogIndex++)
+	for(fogIndex = 1; fogIndex < tr.world->numFogs; fogIndex++)
 	{
 		fog = &tr.world->fogs[fogIndex];
-		if(bounds[1][0] >= fog->bounds[0][0]
-		   && bounds[1][1] >= fog->bounds[0][1]
-		   && bounds[1][2] >= fog->bounds[0][2]
-		   && bounds[0][0] <= fog->bounds[1][0] && bounds[0][1] <= fog->bounds[1][1] && bounds[0][2] <= fog->bounds[1][2])
+
+		if(BoundsIntersect(bounds[0], bounds[1], fog->bounds[0], fog->bounds[1]))
 		{
 			break;
 		}
 	}
-	if(fogIndex == tr.world->numfogs)
+	if(fogIndex == tr.world->numFogs)
 	{
 		fogIndex = 0;
 	}
 
 	pPolySurf->fogIndex = fogIndex;
-#endif
 }
 
 
