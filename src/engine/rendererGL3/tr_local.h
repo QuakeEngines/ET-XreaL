@@ -612,8 +612,9 @@ typedef enum
 {
 	SS_BAD,
 	SS_PORTAL,					// mirrors, portals, viewscreens
-	SS_ENVIRONMENT,				// sky box
 	SS_OPAQUE,					// opaque
+	
+	SS_ENVIRONMENT,				// Tr3B: moved skybox here so we can fog post process all SS_OPAQUE materials
 
 	SS_DECAL,					// scorch marks, etc.
 	SS_SEE_THROUGH,				// ladders, grates, grills that may have small blended edges
@@ -4069,6 +4070,7 @@ extern cvar_t  *r_lodbias;		// push/pull LOD transitions
 extern cvar_t  *r_lodscale;
 
 extern cvar_t  *r_forceFog;
+extern cvar_t  *r_wolfFog;
 extern cvar_t  *r_noFog;
 
 extern cvar_t  *r_forceAmbient;
@@ -4778,6 +4780,9 @@ FOG, tr_fog.c
 */
 
 void			R_SetFrameFog();
+void			RB_Fog(glfog_t * curfog);
+void			RB_FogOff();
+void			RB_FogOn();
 void			RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density);
 void			RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque);
 

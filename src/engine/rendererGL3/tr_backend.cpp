@@ -625,6 +625,26 @@ void GL_State(uint32_t stateBits)
 	}
 
 	// alpha test - deprecated in OpenGL 3.0
+#if 0
+	if(diff & GLS_ATEST_BITS)
+	{
+		switch (stateBits & GLS_ATEST_BITS)
+		{
+			case GLS_ATEST_GT_0:
+			case GLS_ATEST_LT_128:
+			case GLS_ATEST_GE_128:
+			//case GLS_ATEST_GT_CUSTOM:
+				glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE_ARB);
+				break;
+
+			default:
+			case 0:
+				glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE_ARB);
+				break;
+		}
+	}
+#endif
+
 	/*
 	   if(diff & GLS_ATEST_BITS)
 	   {
@@ -12261,11 +12281,11 @@ static void RB_RenderView(void)
 		if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 			R_BindFBO(tr.deferredRenderFBO);
 
-		// draw everything that is translucent
-		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
-
 		// render global fog post process effect
 		RB_RenderGlobalFog();
+
+		// draw everything that is translucent
+		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
 
 		// scale down rendered HDR scene to 1 / 4th
 		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)

@@ -4494,7 +4494,7 @@ static void Render_fog()
 
 #if defined(COMPAT_ET)
 	// no fog pass in snooper
-	if(tr.refdef.rdflags & RDF_SNOOPERVIEW)// || tess.shader->noFog || !r_wolffog->integer)
+	if((tr.refdef.rdflags & RDF_SNOOPERVIEW) || tess.surfaceShader->noFog || !r_wolfFog->integer)
 	{
 		return;
 	}
@@ -4509,10 +4509,12 @@ static void Render_fog()
 	fog = tr.world->fogs + tess.fogNum;
 
 	// Tr3B: use this only to render fog brushes
-	if(fog->originalBrushNumber < 0)
+#if 1
+	if(fog->originalBrushNumber < 0)// && tess.surfaceShader->sort <= SS_OPAQUE)
 	{
 		return;
 	}
+#endif
 
 	if(r_logFile->integer)
 	{
@@ -5084,6 +5086,63 @@ static void Tess_ComputeTexMatrices(shaderStage_t * pStage)
 }
 
 
+/*
+==============
+SetIteratorFog
+	set the fog parameters for this pass
+==============
+*/
+static void SetIteratorFog()
+{
+	GLimp_LogComment("--- SetIteratorFog() ---\n");
+
+	// changed for problem when you start the game with r_fastsky set to '1'
+//  if(r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
+	if(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		RB_FogOff();
+		return;
+	}
+
+	if(backEnd.refdef.rdflags & RDF_DRAWINGSKY)
+	{
+		if(tr.glfogsettings[FOG_SKY].registered)
+		{
+			RB_Fog(&tr.glfogsettings[FOG_SKY]);
+		}
+		else
+		{
+			RB_FogOff();
+		}
+
+		return;
+	}
+
+	if(tr.world && tr.world->hasSkyboxPortal && (backEnd.refdef.rdflags & RDF_SKYBOXPORTAL))
+	{
+		if(tr.glfogsettings[FOG_PORTALVIEW].registered)
+		{
+			RB_Fog(&tr.glfogsettings[FOG_PORTALVIEW]);
+		}
+		else
+		{
+			RB_FogOff();
+		}
+	}
+	else
+	{
+		if(tr.glfogNum > FOG_NONE)
+		{
+			RB_Fog(&tr.glfogsettings[FOG_CURRENT]);
+		}
+		else
+		{
+			RB_FogOff();
+		}
+	}
+}
+
+
 void Tess_StageIteratorDebug()
 {
 	// log this call
@@ -5104,7 +5163,6 @@ void Tess_StageIteratorDebug()
 
 	Tess_DrawElements();
 }
-
 
 void Tess_StageIteratorGeneric()
 {
@@ -5130,11 +5188,16 @@ void Tess_StageIteratorGeneric()
 		Tess_UpdateVBOs(0);
 	}
 
+	/*
 	if(tess.surfaceShader->fogVolume)
 	{
 		Render_volumetricFog();
 		return;
 	}
+	*/
+
+	// set GL fog
+	//SetIteratorFog();
 
 	// set face culling appropriately
 	GL_Cull(tess.surfaceShader->cullType);
@@ -5160,6 +5223,23 @@ void Tess_StageIteratorGeneric()
 		{
 			continue;
 		}
+
+#if 0
+		// Ridah, per stage fogging (detail textures)
+		if(tess.surfaceShader->noFog && pStage->isFogged)
+		{
+			RB_FogOn();
+		}
+		else if(tess.surfaceShader->noFog && !pStage->isFogged)
+		{
+			RB_FogOff();
+		}
+		else
+		{					
+			// make sure it's on
+			RB_FogOn();
+		}
+#endif
 
 		Tess_ComputeColor(pStage);
 		Tess_ComputeTexMatrices(pStage);

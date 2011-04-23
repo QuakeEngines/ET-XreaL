@@ -975,6 +975,16 @@ static void GLW_InitExtensions(void)
 			ri.Error(ERR_VID_FATAL, "...GL_ARB_multitexture not found\n");
 		}
 	}
+
+	// GL_ARB_multisample
+	if(GLEW_ARB_multisample)
+	{
+		ri.Printf(PRINT_ALL, "...using GL_ARB_multisample\n");
+	}
+	else
+	{
+		ri.Error(ERR_VID_FATAL, "...GL_ARB_multisample not found\n");
+	}
 	
 
 	// GL_ARB_depth_texture

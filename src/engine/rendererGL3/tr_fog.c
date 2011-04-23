@@ -31,6 +31,159 @@ If you have questions concerning this license or the applicable additional terms
 #include "tr_local.h"
 
 
+static qboolean        fogIsOn = qfalse;
+
+/*
+=================
+R_Fog (void)
+=================
+*/
+void RB_Fog(glfog_t * curfog)
+{
+	static glfog_t  setfog;
+
+	GLimp_LogComment("--- RB_Fog() ---\n");
+
+#if 0
+	if(!r_wolfFog->integer)
+	{
+		RB_FogOff();
+		return;
+	}
+
+	if(!curfog->registered)
+	{							//----(SA)
+		RB_FogOff();
+		return;
+	}
+
+	//----(SA) assme values of '0' for these parameters means 'use default'
+	if(!curfog->density)
+	{
+		curfog->density = 1;
+	}
+	if(!curfog->hint)
+	{
+		curfog->hint = GL_DONT_CARE;
+	}
+	if(!curfog->mode)
+	{
+		curfog->mode = GL_LINEAR;
+	}
+	//----(SA)  end
+
+
+	RB_FogOn();
+
+	// only send changes if necessary
+
+//  if(curfog->mode != setfog.mode || !setfog.registered) {
+	glFogi(GL_FOG_MODE, curfog->mode);
+//      setfog.mode = curfog->mode;
+//  }
+//  if(curfog->color[0] != setfog.color[0] || curfog->color[1] != setfog.color[1] || curfog->color[2] != setfog.color[2] || !setfog.registered) {
+	glFogfv(GL_FOG_COLOR, curfog->color);
+//      VectorCopy(setfog.color, curfog->color);
+//  }
+//  if(curfog->density != setfog.density || !setfog.registered) {
+	glFogf(GL_FOG_DENSITY, curfog->density);
+//      setfog.density = curfog->density;
+//  }
+//  if(curfog->hint != setfog.hint || !setfog.registered) {
+	glHint(GL_FOG_HINT, curfog->hint);
+//      setfog.hint = curfog->hint;
+//  }
+//  if(curfog->start != setfog.start || !setfog.registered) {
+	glFogf(GL_FOG_START, curfog->start);
+//      setfog.start = curfog->start;
+//  }
+
+	if(r_zfar->value)
+	{							// (SA) allow override for helping level designers test fog distances
+//      if(setfog.end != r_zfar->value || !setfog.registered) {
+		glFogf(GL_FOG_END, r_zfar->value);
+//          setfog.end = r_zfar->value;
+//      }
+	}
+	else
+	{
+//      if(curfog->end != setfog.end || !setfog.registered) {
+		glFogf(GL_FOG_END, curfog->end);
+//          setfog.end = curfog->end;
+//      }
+	}
+
+// TTimo - from SP NV fog code
+	// NV fog mode
+	if(glConfig.NVFogAvailable)
+	{
+		glFogi(GL_FOG_DISTANCE_MODE_NV, glConfig.NVFogMode);
+	}
+// end
+
+	setfog.registered = qtrue;
+
+	glClearColor(curfog->color[0], curfog->color[1], curfog->color[2], curfog->color[3]);
+#endif
+}
+
+void RB_FogOff()
+{
+	GLimp_LogComment("--- RB_FogOff() ---\n");
+
+#if 0
+	if(!fogIsOn)
+	{
+		return;
+	}
+
+	glDisable(GL_FOG);
+	fogIsOn = qfalse;
+#endif
+}
+
+void RB_FogOn()
+{
+	GLimp_LogComment("--- RB_FogOn() ---\n");
+
+#if 0
+	if(fogIsOn)
+	{
+		return;
+	}
+
+//  if(r_uiFullScreen->integer) {   // don't fog in the menu
+//      R_FogOff();
+//      return;
+//  }
+
+	if(!r_wolfFog->integer)
+	{
+		return;
+	}
+
+//  if(backEnd.viewParms.isGLFogged) {
+//      if(!(backEnd.viewParms.glFog.registered))
+//          return;
+//  }
+
+	if(backEnd.refdef.rdflags & RDF_SKYBOXPORTAL)
+	{							
+		// don't force world fog on portal sky
+		if(!(tr.glfogsettings[FOG_PORTALVIEW].registered))
+		{
+			return;
+		}
+	}
+	else if(!tr.glfogNum)
+	{
+		return;
+	}
+
+	glEnable(GL_FOG);
+	fogIsOn = qtrue;
+#endif
+}
 
 
 /*
@@ -53,6 +206,9 @@ RE_SetFog
 */
 void RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density)
 {
+	ri.Printf(PRINT_ALL, "RE_SetFog( fogvar = %i, var1 = %i, var2 = %i, r = %f, g = %f, b = %f, density = %f )\n",
+							fogvar, var1, var2, r, g, b, density);
+
 	if(fogvar != FOG_CMD_SWITCHFOG)
 	{
 		// just set the parameters and return
@@ -278,7 +434,7 @@ void R_SetFrameFog()
 //      tr.glfogsettings[FOG_CURRENT].end = 5;
 
 
-	if(r_speeds->integer == 5)
+	if(r_speeds->integer == 6)
 	{
 		if(tr.glfogsettings[FOG_CURRENT].mode == GL_LINEAR)
 		{
