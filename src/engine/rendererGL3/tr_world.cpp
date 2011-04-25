@@ -1790,15 +1790,7 @@ static void R_CoherentHierachicalCulling()
 
 	if(DS_STANDARD_ENABLED())
 	{
-		R_BindFBO(tr.deferredRenderFBO);
-	}
-	else if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
+		R_BindFBO(tr.geometricRenderFBO);
 	}
 	else if(HDR_ENABLED())
 	{

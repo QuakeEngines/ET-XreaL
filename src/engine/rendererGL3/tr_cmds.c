@@ -129,12 +129,8 @@ void R_PerformanceCounters(void)
 	else if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		if(DS_STANDARD_ENABLED())
-			ri.Printf(PRINT_ALL, "deferred shading times: g-buffer:%i lighting:%i\n", backEnd.pc.c_deferredGBufferTime,
-					  backEnd.pc.c_deferredLightingTime);
-
-		else if(DS_PREPASS_LIGHTING_ENABLED())
-					ri.Printf(PRINT_ALL, "deferred lighting times: g-buffer:%i light-buffer:%i post shading:%i translucent:%i\n", backEnd.pc.c_deferredGBufferTime,
-							  backEnd.pc.c_deferredLightingTime, backEnd.pc.c_forwardLightingTime, backEnd.pc.c_forwardTranslucentTime);
+			ri.Printf(PRINT_ALL, "deferred shading times: g-buffer:%i lighting:%i translucent:%i\n", backEnd.pc.c_deferredGBufferTime,
+					  backEnd.pc.c_deferredLightingTime, backEnd.pc.c_forwardTranslucentTime);
 		else
 			ri.Printf(PRINT_ALL, "forward shading times: ambient:%i lighting:%i\n", backEnd.pc.c_forwardAmbientTime,
 					  backEnd.pc.c_forwardLightingTime);

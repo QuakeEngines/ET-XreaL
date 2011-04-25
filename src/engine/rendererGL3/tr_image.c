@@ -3113,7 +3113,7 @@ static void R_CreateDeferredRenderFBOImages(void)
 		tr.deferredNormalFBOImage = R_CreateImage("_deferredNormalFBO", data, width, height, IF_NOPICMIP | IF_NOCOMPRESSION, FT_NEAREST, WT_CLAMP);
 		tr.deferredSpecularFBOImage = R_CreateImage("_deferredSpecularFBO", data, width, height, IF_NOPICMIP | IF_NOCOMPRESSION, FT_NEAREST, WT_CLAMP);
 	}
-	else if(DS_PREPASS_LIGHTING_ENABLED())
+	else //if(DS_PREPASS_LIGHTING_ENABLED())
 	{
 		tr.deferredNormalFBOImage = R_CreateImage("_deferredNormalFBO", data, width, height, IF_NOPICMIP | IF_NOCOMPRESSION, FT_NEAREST, WT_CLAMP);
 

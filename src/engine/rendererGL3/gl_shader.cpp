@@ -36,6 +36,7 @@ GLShader_vertexLighting_DBS_world* gl_vertexLightingShader_DBS_world = NULL;
 GLShader_forwardLighting_omniXYZ* gl_forwardLightingShader_omniXYZ = NULL;
 GLShader_forwardLighting_projXYZ* gl_forwardLightingShader_projXYZ = NULL;
 GLShader_forwardLighting_directionalSun* gl_forwardLightingShader_directionalSun = NULL;
+GLShader_deferredLighting_omniXYZ* gl_deferredLightingShader_omniXYZ = NULL;
 GLShader_geometricFill* gl_geometricFillShader = NULL;
 GLShader_shadowFill* gl_shadowFillShader = NULL;
 GLShader_reflection* gl_reflectionShader = NULL;
@@ -530,19 +531,6 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_DeferredShading\n#define r_DeferredShading 1\n#endif\n");
 			}
-
-			if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
-			{
-				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_DeferredLighting\n#define r_DeferredLighting 1\n#endif\n");
-			}
-
-			/*
-			if(glConfig.framebufferMixedFormatsAvailable)
-			{
-				Q_strcat(bufferExtra, sizeof(bufferExtra),
-						 "#ifndef GL_EXTX_framebuffer_mixed_formats\n#define GL_EXTX_framebuffer_mixed_formats 1\n#endif\n");
-			}
-			*/
 		}
 
 		if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
@@ -2034,6 +2022,127 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 	int endTime = ri.Milliseconds();
 	ri.Printf(PRINT_ALL, "...compiled %i forwardLighting_directionalSun shader permutations in %5.2f seconds\n", numCompiled, (endTime - startTime) / 1000.0);
 }
+
+
+
+
+GLShader_deferredLighting_omniXYZ::GLShader_deferredLighting_omniXYZ():
+		GLShader(	"deferredLighting_omniXYZ",
+					ATTR_POSITION,
+					0,
+					0),
+		u_ViewOrigin(this),
+		u_LightOrigin(this),
+		u_LightColor(this),
+		u_LightRadius(this),
+		u_LightScale(this),
+		u_LightWrapAround(this),
+		u_LightAttenuationMatrix(this),
+		u_ShadowTexelSize(this),
+		u_ShadowBlur(this),
+		u_ModelMatrix(this),
+		u_ModelViewProjectionMatrix(this),
+		u_UnprojectMatrix(this),
+		u_PortalPlane(this),
+		GLDeformStage(this),
+		GLCompileMacro_USE_PORTAL_CLIPPING(this),
+		GLCompileMacro_USE_NORMAL_MAPPING(this),
+		GLCompileMacro_USE_SHADOWING(this)//,
+		//GLCompileMacro_TWOSIDED(this)
+{
+	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
+	ri.Printf(PRINT_ALL, "/// creating deferredLighting_omniXYZ shaders --------\n");
+
+	int startTime = ri.Milliseconds();
+
+	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
+	
+	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
+
+	std::string vertexShaderText = BuildGPUShaderText("deferredLighting", "", GL_VERTEX_SHADER_ARB);
+	std::string fragmentShaderText = BuildGPUShaderText("deferredLighting", "", GL_FRAGMENT_SHADER_ARB);
+
+	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
+	size_t numCompiled = 0;
+	ri.Printf(PRINT_ALL, "...compiling deferredLighting_omniXYZ shaders\n");
+	ri.Printf(PRINT_ALL, "0%%  10   20   30   40   50   60   70   80   90   100%%\n");
+	ri.Printf(PRINT_ALL, "|----|----|----|----|----|----|----|----|----|----|\n");
+	size_t tics = 0;
+	size_t nextTicCount = 0;
+	for(size_t i = 0; i < numPermutations; i++)
+	{
+		if((i + 1) >= nextTicCount)
+		{
+			size_t ticsNeeded = (size_t)(((double)(i + 1) / numPermutations) * 50.0);
+
+			do { ri.Printf(PRINT_ALL, "*"); } while ( ++tics < ticsNeeded );
+
+			nextTicCount = (size_t)((tics / 50.0) * numPermutations);
+			if(i == (numPermutations - 1))
+			{
+				if(tics < 51)
+					ri.Printf(PRINT_ALL, "*");
+				ri.Printf(PRINT_ALL, "\n");
+			}
+		}
+
+		std::string compileMacros;
+		if(GetCompileMacrosString(i, compileMacros))
+		{
+			compileMacros += "TWOSIDED ";
+
+			//ri.Printf(PRINT_DEVELOPER, "Compile macros: '%s'\n", compileMacros.c_str());
+		
+			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
+
+			CompileAndLinkGPUShaderProgram(	shaderProgram,
+											"deferredLighting_omniXYZ",
+											vertexShaderText,
+											fragmentShaderText,
+											compileMacros);
+
+			UpdateShaderProgramUniformLocations(shaderProgram);
+
+			shaderProgram->u_DiffuseMap	= glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+			shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
+			shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+			shaderProgram->u_DepthMap = glGetUniformLocationARB(shaderProgram->program, "u_DepthMap");
+			shaderProgram->u_AttenuationMapXY = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapXY");
+			shaderProgram->u_AttenuationMapZ = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapZ");
+			//if(r_shadows->integer >= SHADOWING_VSM16)
+			{
+				shaderProgram->u_ShadowMap = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap");
+			}
+
+			glUseProgramObjectARB(shaderProgram->program);
+			glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
+			glUniform1iARB(shaderProgram->u_NormalMap, 1);
+			glUniform1iARB(shaderProgram->u_SpecularMap, 2);
+			glUniform1iARB(shaderProgram->u_DepthMap, 3);
+			glUniform1iARB(shaderProgram->u_AttenuationMapXY, 4);
+			glUniform1iARB(shaderProgram->u_AttenuationMapZ, 5);
+			//if(r_shadows->integer >= SHADOWING_VSM16)
+			{
+				glUniform1iARB(shaderProgram->u_ShadowMap, 6);
+			}
+			glUseProgramObjectARB(0);
+
+			ValidateProgram(shaderProgram->program);
+			//ShowProgramUniforms(shaderProgram->program);
+			GL_CheckErrors();
+
+			numCompiled++;
+		}
+	}
+
+	SelectProgram();
+
+	int endTime = ri.Milliseconds();
+	ri.Printf(PRINT_ALL, "...compiled %i deferredLighting_omniXYZ shader permutations in %5.2f seconds\n", numCompiled, (endTime - startTime) / 1000.0);
+}
+
+
+
 
 
 

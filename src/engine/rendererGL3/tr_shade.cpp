@@ -435,23 +435,7 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, const char
 			}
 		}
 
-		if(r_deferredShading->integer && glConfig2.maxColorAttachments >= 4 && glConfig2.textureFloatAvailable &&
-		   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
-		{
-
-			if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
-			{
-				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_DeferredLighting\n#define r_DeferredLighting 1\n#endif\n");
-			}
-
-			/*
-			if(glConfig2.framebufferMixedFormatsAvailable)
-			{
-				Q_strcat(bufferExtra, sizeof(bufferExtra),
-						 "#ifndef GL_EXTX_framebuffer_mixed_formats\n#define GL_EXTX_framebuffer_mixed_formats 1\n#endif\n");
-			}
-			*/
-		}
+		
 
 		if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
 		{
@@ -946,66 +930,16 @@ void GLSL_InitGPUShaders(void)
 	// standard light mapping
 	gl_lightMappingShader = new GLShader_lightMapping();
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
-
 	// geometric-buffer fill rendering with diffuse + bump + specular
-	if(DS_STANDARD_ENABLED() || DS_PREPASS_LIGHTING_ENABLED())
+	if(DS_STANDARD_ENABLED())
 	{
 		// G-Buffer construction
 		gl_geometricFillShader = new GLShader_geometricFill();
 
-		/*
-		GLSL_InitGPUShader(&tr.geometricFillShader_DBS, "geometricFill_DBS",
-						   ATTR_POSITION | ATTR_TEXCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL, qtrue, qtrue);
-
-		tr.geometricFillShader_DBS.u_DiffuseMap = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DiffuseMap");
-		tr.geometricFillShader_DBS.u_NormalMap = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_NormalMap");
-		tr.geometricFillShader_DBS.u_SpecularMap = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_SpecularMap");
-		tr.geometricFillShader_DBS.u_DiffuseTextureMatrix =
-			glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DiffuseTextureMatrix");
-		tr.geometricFillShader_DBS.u_NormalTextureMatrix =
-			glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_NormalTextureMatrix");
-		tr.geometricFillShader_DBS.u_SpecularTextureMatrix =
-			glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_SpecularTextureMatrix");
-		tr.geometricFillShader_DBS.u_AlphaTest = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_AlphaTest");
-		tr.geometricFillShader_DBS.u_ViewOrigin = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ViewOrigin");
-		tr.geometricFillShader_DBS.u_AmbientColor =
-			glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_AmbientColor");
-		tr.geometricFillShader_DBS.u_ParallaxMapping = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ParallaxMapping");
-		tr.geometricFillShader_DBS.u_DepthScale = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DepthScale");
-		tr.geometricFillShader_DBS.u_ModelMatrix = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ModelMatrix");
-		tr.geometricFillShader_DBS.u_ModelViewMatrix =
-			glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ModelViewMatrix");
-		tr.geometricFillShader_DBS.u_ModelViewProjectionMatrix =
-			glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_ModelViewProjectionMatrix");
-		if(glConfig2.vboVertexSkinningAvailable)
-		{
-			tr.geometricFillShader_DBS.u_VertexSkinning =
-				glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_VertexSkinning");
-			tr.geometricFillShader_DBS.u_BoneMatrix =
-				glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_BoneMatrix");
-		}
-
-		
-		tr.geometricFillShader_DBS.u_DeformGen = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DeformGen");
-		tr.geometricFillShader_DBS.u_DeformWave = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DeformWave");
-		tr.geometricFillShader_DBS.u_DeformBulge = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DeformBulge");
-		tr.geometricFillShader_DBS.u_DeformSpread = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_DeformSpread");
-		tr.geometricFillShader_DBS.u_Time = glGetUniformLocationARB(tr.geometricFillShader_DBS.program, "u_Time");
-		
-
-		glUseProgramObjectARB(tr.geometricFillShader_DBS.program);
-		glUniform1iARB(tr.geometricFillShader_DBS.u_DiffuseMap, 0);
-		glUniform1iARB(tr.geometricFillShader_DBS.u_NormalMap, 1);
-		glUniform1iARB(tr.geometricFillShader_DBS.u_SpecularMap, 2);
-		glUseProgramObjectARB(0);
-
-		GLSL_ValidateProgram(tr.geometricFillShader_DBS.program);
-		GLSL_ShowProgramUniforms(tr.geometricFillShader_DBS.program);
-		GL_CheckErrors();
-		*/
-
 		// deferred omni-directional lighting post process effect
+		gl_deferredLightingShader_omniXYZ = new GLShader_deferredLighting_omniXYZ();
+
+		/*
 		GLSL_InitGPUShader(&tr.deferredLightingShader_DBS_omni, "deferredLighting_DBS_omni", ATTR_POSITION, qtrue, qtrue);
 
 		tr.deferredLightingShader_DBS_omni.u_DiffuseMap =
@@ -1058,6 +992,9 @@ void GLSL_InitGPUShaders(void)
 		GLSL_ValidateProgram(tr.deferredLightingShader_DBS_omni.program);
 		GLSL_ShowProgramUniforms(tr.deferredLightingShader_DBS_omni.program);
 		GL_CheckErrors();
+		*/
+
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 		// deferred projective lighting post process effect
 		GLSL_InitGPUShader(&tr.deferredLightingShader_DBS_proj, "deferredLighting_DBS_proj", ATTR_POSITION, qtrue, qtrue);
@@ -1186,7 +1123,11 @@ void GLSL_InitGPUShaders(void)
 		GLSL_ValidateProgram(tr.deferredLightingShader_DBS_directional.program);
 		GLSL_ShowProgramUniforms(tr.deferredLightingShader_DBS_directional.program);
 		GL_CheckErrors();
+#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
+
 	}
+
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 	// depth to color encoding
 	GLSL_InitGPUShader(&tr.depthToColorShader, "depthToColor", ATTR_POSITION, qtrue, qtrue);
@@ -1219,6 +1160,7 @@ void GLSL_InitGPUShaders(void)
 	GL_CheckErrors();
 
 #endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
+
 
 	// shadowmap distance compression
 	gl_shadowFillShader = new GLShader_shadowFill();
@@ -1569,13 +1511,13 @@ void GLSL_ShutdownGPUShaders(void)
 		gl_geometricFillShader = NULL;
 	}
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
-
-	if(tr.deferredLightingShader_DBS_omni.program)
+	if(gl_deferredLightingShader_omniXYZ)
 	{
-		glDeleteObjectARB(tr.deferredLightingShader_DBS_omni.program);
-		Com_Memset(&tr.deferredLightingShader_DBS_omni, 0, sizeof(shaderProgram_t));
+		delete gl_deferredLightingShader_omniXYZ;
+		gl_deferredLightingShader_omniXYZ = NULL;
 	}
+
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 	if(tr.deferredLightingShader_DBS_proj.program)
 	{
@@ -2209,14 +2151,6 @@ static void Render_vertexLighting_DBS_entity(int stage)
 
 	stateBits = pStage->stateBits;
 
-	/*
-	if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-		stateBits &= ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS | GLS_ATEST_BITS);
-		stateBits |= (GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-	}
-	*/
-
 	GL_State(stateBits);
 
 	bool normalMapping = r_normalMapping->integer && (pStage->bundle[TB_NORMALMAP].image[0] != NULL);
@@ -2447,22 +2381,6 @@ static void Render_vertexLighting_DBS_world(int stage)
 
 	stateBits = pStage->stateBits;
 
-	/*
-	if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-		stateBits &= ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS | GLS_ATEST_BITS);
-		stateBits |= (GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-	}
-	*/
-
-	/*
-	if(DS_STANDARD_ENABLED())
-	{
-		R_BindFBO(tr.geometricRenderFBO);
-		glDrawBuffers(4, geometricRenderTargets);
-	}
-	*/
-
 	bool normalMapping = r_normalMapping->integer && (pStage->bundle[TB_NORMALMAP].image[0] != NULL);
 
 	// choose right shader program ----------------------------------
@@ -2645,14 +2563,6 @@ static void Render_lightMapping(int stage, bool asColorMap, bool normalMapping)
 			alphaGen = AGEN_CONST;
 			break;
 	}
-
-	/*
-	if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-		stateBits &= ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS | GLS_ATEST_BITS);
-		stateBits |= (GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
-	}
-	*/
 
 	if(r_showLightMaps->integer)
 	{
@@ -2978,11 +2888,6 @@ static void Render_geometricFill(int stage, bool cmap2black)
 	// end choose right shader program ------------------------------
 
 	/*
-	if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-		VectorClear(ambientColor);
-	}
-	else
 	{
 		if(r_precomputedLighting->integer)
 		{
@@ -4218,34 +4123,12 @@ static void Render_heatHaze(int stage)
 		if(DS_STANDARD_ENABLED())
 		{
 			// copy deferredRenderFBO to occlusionRenderFBO
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.geometricRenderFBO->frameBuffer);
 			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
 			glBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
 								   0, 0, tr.occlusionRenderFBO->width, tr.occlusionRenderFBO->height,
 								   GL_DEPTH_BUFFER_BIT,
 								   GL_NEAREST);
-		}
-		else if(DS_PREPASS_LIGHTING_ENABLED())
-		{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-			// copy deferredRenderFBO to occlusionRenderFBO
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
-			glBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
-								   0, 0, tr.occlusionRenderFBO->width, tr.occlusionRenderFBO->height,
-								   GL_DEPTH_BUFFER_BIT,
-								   GL_NEAREST);
-#else
-#if 1
-			// copy depth of the main context to occlusionRenderFBO
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.occlusionRenderFBO->frameBuffer);
-			glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-								   0, 0, glConfig.vidWidth, glConfig.vidHeight,
-								   GL_DEPTH_BUFFER_BIT,
-								   GL_NEAREST);
-#endif
-#endif
 		}
 		else if(HDR_ENABLED())
 		{
@@ -4423,15 +4306,6 @@ static void Render_heatHaze(int stage)
 	if(DS_STANDARD_ENABLED())
 	{
 		GL_Bind(tr.deferredRenderFBOImage);
-	}
-	else if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		GL_Bind(tr.deferredRenderFBOImage);
-#else
-		GL_Bind(tr.currentRenderImage);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
-#endif
 	}
 	else if(HDR_ENABLED())
 	{
@@ -5365,24 +5239,10 @@ void Tess_StageIteratorGeneric()
 						{
 							Render_vertexLighting_DBS_world(stage);
 						}
-
-						/*
-						if(DS_PREPASS_LIGHTING_ENABLED())
-						{
-							Render_forwardLighting_DBS_post(stage, qfalse);
-						}
-						*/
 					}
 					else
 					{
-						if(DS_PREPASS_LIGHTING_ENABLED())
-						{
-							Render_forwardLighting_DBS_post(stage, qfalse);
-						}
-						else
-						{
-							Render_depthFill(stage);
-						}
+						Render_depthFill(stage);
 					}
 				}
 				break;

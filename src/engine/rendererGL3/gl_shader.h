@@ -2037,6 +2037,34 @@ public:
 };
 
 
+
+class GLShader_deferredLighting_omniXYZ:
+public GLShader,
+public u_ViewOrigin,
+public u_LightOrigin,
+public u_LightColor,
+public u_LightRadius,
+public u_LightScale,
+public u_LightWrapAround,
+public u_LightAttenuationMatrix,
+public u_ShadowTexelSize,
+public u_ShadowBlur,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix,
+public u_UnprojectMatrix,
+public u_PortalPlane,
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_NORMAL_MAPPING,
+public GLCompileMacro_USE_SHADOWING//,
+//public GLCompileMacro_TWOSIDED
+{
+public:
+	GLShader_deferredLighting_omniXYZ();
+};
+
+
+
 class GLShader_geometricFill:
 public GLShader,
 public u_DiffuseTextureMatrix,
@@ -2275,6 +2303,7 @@ extern GLShader_vertexLighting_DBS_world* gl_vertexLightingShader_DBS_world;
 extern GLShader_forwardLighting_omniXYZ* gl_forwardLightingShader_omniXYZ;
 extern GLShader_forwardLighting_projXYZ* gl_forwardLightingShader_projXYZ;
 extern GLShader_forwardLighting_directionalSun* gl_forwardLightingShader_directionalSun;
+extern GLShader_deferredLighting_omniXYZ* gl_deferredLightingShader_omniXYZ;
 extern GLShader_geometricFill* gl_geometricFillShader;
 extern GLShader_shadowFill* gl_shadowFillShader;
 extern GLShader_reflection* gl_reflectionShader;

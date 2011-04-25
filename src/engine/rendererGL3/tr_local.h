@@ -80,22 +80,17 @@ typedef unsigned short glIndex_t;
 
 #define MAX_SHADOWMAPS			5
 
-#if !defined(USE_D3D10)
 //#define VOLUMETRIC_LIGHTING 1
-#endif
 
 #define DEBUG_OPTIMIZEVERTICES 0
 #define CALC_REDUNDANT_SHADOWVERTS 0
 
-//#define OFFSCREEN_PREPASS_LIGHTING 1
-
-//#define GLSL_COMPILE_STARTUP_ONLY 1
+#define GLSL_COMPILE_STARTUP_ONLY 1
 
 typedef enum
 {
 	DS_DISABLED,				// traditional Doom 3 style rendering
 	DS_STANDARD,				// deferred rendering like in Stalker
-	DS_PREPASS_LIGHTING			// light pre pass rendering like in Cry Engine 3
 } deferredShading_t;
 
 typedef enum
@@ -127,27 +122,7 @@ typedef enum
 } renderSpeeds_t;
 
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
-
 #define DS_STANDARD_ENABLED() ((r_deferredShading->integer == DS_STANDARD && glConfig2.maxColorAttachments >= 4 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4 && /*glConfig2.framebufferPackedDepthStencilAvailable &&*/ glConfig.driverType != GLDRV_MESA))
-
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-#define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING && glConfig2.maxColorAttachments >= 2 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 2 && /*glConfig2.framebufferPackedDepthStencilAvailable &&*/ glConfig.driverType != GLDRV_MESA))
-#else
-#define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING))
-#endif
-
-#else // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
-
-#define DS_STANDARD_ENABLED() (1 == 0)
-
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-#define DS_PREPASS_LIGHTING_ENABLED() (1 == 0)
-#else
-#define DS_PREPASS_LIGHTING_ENABLED() (1 == 0)
-#endif
-
-#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 #define HDR_ENABLED() ((r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable && glConfig.driverType != GLDRV_MESA))
 
@@ -3924,7 +3899,6 @@ typedef struct
 
 #if !defined(GLSL_COMPILE_STARTUP_ONLY)
 	// deferred lighting
-	shaderProgram_t deferredLightingShader_DBS_omni;
 	shaderProgram_t deferredLightingShader_DBS_proj;
 	shaderProgram_t deferredLightingShader_DBS_directional;
 

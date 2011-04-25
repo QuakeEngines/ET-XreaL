@@ -1501,12 +1501,10 @@ void R_Register(void)
 	r_hdrRendering = ri.Cvar_Get("r_hdrRendering", "0", CVAR_ARCHIVE | CVAR_LATCH);
 
 	// HACK turn off HDR for development
-#if !defined(OFFSCREEN_PREPASS_LIGHTING)
-	if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
+	if(r_deferredShading->integer)
 	{
 		AssertCvarRange(r_hdrRendering, 0, 0, qtrue);
 	}
-#endif
 
 	r_hdrMinLuminance = ri.Cvar_Get("r_hdrMinLuminance", "0.18", CVAR_CHEAT);
 	r_hdrMaxLuminance = ri.Cvar_Get("r_hdrMaxLuminance", "3000", CVAR_CHEAT);

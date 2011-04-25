@@ -3896,6 +3896,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 			break;
 		}
 
+		/*
 		if(DS_PREPASS_LIGHTING_ENABLED())
 		{
 			if(entity == oldEntity && shader == oldShader)
@@ -3921,6 +3922,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 			}
 		}
 		else
+		*/
 		{
 			if(entity == oldEntity && shader == oldShader && lightmapNum == oldLightmapNum)
 			{
@@ -4021,7 +4023,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 }
 
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
+
 
 void RB_RenderInteractionsDeferred()
 {
@@ -4061,32 +4063,8 @@ void RB_RenderInteractionsDeferred()
 			   backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight);
 
 
-	if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.lightRenderFBO);
-#else
-		R_BindNullFBO();
-
-		// update normal render image
-		GL_SelectTexture(0);
-		GL_Bind(tr.deferredNormalFBOImage);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredNormalFBOImage->uploadWidth, tr.deferredNormalFBOImage->uploadHeight);
-
-		// update depth render image
-		GL_SelectTexture(1);
-		GL_Bind(tr.depthRenderImage);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.depthRenderImage->uploadWidth, tr.depthRenderImage->uploadHeight);
-#endif
-
-		GL_ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-	else
-	{
-		R_BindFBO(tr.geometricRenderFBO);
-		glDrawBuffers(1, geometricRenderTargets);
-	}
+	R_BindFBO(tr.geometricRenderFBO);
+	glDrawBuffers(1, geometricRenderTargets);
 
 	// update uniforms
 	VectorCopy(backEnd.viewParms.orientation.origin, viewOrigin);
@@ -4461,29 +4439,33 @@ void RB_RenderInteractionsDeferred()
 
 					if(light->l.rlType == RL_OMNI)
 					{
-						// enable shader, set arrays
-						GL_BindProgram(&tr.deferredLightingShader_DBS_omni);
+						// choose right shader program ----------------------------------
+						gl_deferredLightingShader_omniXYZ->SetPortalClipping(backEnd.viewParms.isPortal);
+						gl_deferredLightingShader_omniXYZ->SetNormalMapping(r_normalMapping->integer);
+						gl_deferredLightingShader_omniXYZ->SetShadowing(false);
+
+						gl_deferredLightingShader_omniXYZ->BindProgram();
+						
+						// end choose right shader program ------------------------------
 
 						// set OpenGL state for additive lighting
-						GL_State(GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHTEST_DISABLE | GLS_STENCILTEST_ENABLE);
+						GL_State(GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHTEST_DISABLE /*| GLS_STENCILTEST_ENABLE */);
 
 						GL_Cull(CT_TWO_SIDED);
 
 						// set uniforms
-						VectorCopy(light->origin, lightOrigin);
 						VectorCopy(tess.svars.color, lightColor);
 
-						GLSL_SetUniform_ViewOrigin(&tr.deferredLightingShader_DBS_omni, viewOrigin);
-						GLSL_SetUniform_LightOrigin(&tr.deferredLightingShader_DBS_omni, lightOrigin);
-						GLSL_SetUniform_LightColor(&tr.deferredLightingShader_DBS_omni, lightColor);
-						GLSL_SetUniform_LightRadius(&tr.deferredLightingShader_DBS_omni, light->sphereRadius);
-						GLSL_SetUniform_LightScale(&tr.deferredLightingShader_DBS_omni, light->l.scale);
-						GLSL_SetUniform_LightAttenuationMatrix(&tr.deferredLightingShader_DBS_omni, light->attenuationMatrix2);
+						gl_deferredLightingShader_omniXYZ->SetUniform_ViewOrigin(light->origin);
+						gl_deferredLightingShader_omniXYZ->SetUniform_LightOrigin(lightOrigin);
+						gl_deferredLightingShader_omniXYZ->SetUniform_LightColor(lightColor);
+						gl_deferredLightingShader_omniXYZ->SetUniform_LightRadius(light->sphereRadius);
+						gl_deferredLightingShader_omniXYZ->SetUniform_LightScale(light->l.scale);
+						gl_deferredLightingShader_omniXYZ->SetUniform_LightAttenuationMatrix(light->attenuationMatrix2);
 
-						GLSL_SetUniform_ModelViewProjectionMatrix(&tr.deferredLightingShader_DBS_omni, glState.modelViewProjectionMatrix[glState.stackIndex]);
-						GLSL_SetUniform_UnprojectMatrix(&tr.deferredLightingShader_DBS_omni, backEnd.viewParms.unprojectionMatrix);
+						gl_deferredLightingShader_omniXYZ->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
+						gl_deferredLightingShader_omniXYZ->SetUniform_UnprojectMatrix(backEnd.viewParms.unprojectionMatrix);
 
-						GLSL_SetUniform_PortalClipping(&tr.deferredLightingShader_DBS_omni, backEnd.viewParms.isPortal);
 						if(backEnd.viewParms.isPortal)
 						{
 							float           plane[4];
@@ -4494,21 +4476,18 @@ void RB_RenderInteractionsDeferred()
 							plane[2] = backEnd.viewParms.portalPlane.normal[2];
 							plane[3] = backEnd.viewParms.portalPlane.dist;
 
-							GLSL_SetUniform_PortalPlane(&tr.deferredLightingShader_DBS_omni, plane);
+							gl_deferredLightingShader_omniXYZ->SetUniform_PortalPlane(plane);
 						}
 
-						if(DS_STANDARD_ENABLED())
-						{
-							// bind u_DiffuseMap
-							GL_SelectTexture(0);
-							GL_Bind(tr.deferredDiffuseFBOImage);
-						}
+						// bind u_DiffuseMap
+						GL_SelectTexture(0);
+						GL_Bind(tr.deferredDiffuseFBOImage);
 
 						// bind u_NormalMap
 						GL_SelectTexture(1);
 						GL_Bind(tr.deferredNormalFBOImage);
 
-						if(DS_STANDARD_ENABLED() && r_normalMapping->integer)
+						if(r_normalMapping->integer)
 						{
 							// bind u_SpecularMap
 							GL_SelectTexture(2);
@@ -4538,6 +4517,7 @@ void RB_RenderInteractionsDeferred()
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
+#if 0
 					else if(light->l.rlType == RL_PROJ)
 					{
 						// enable shader, set arrays
@@ -4686,6 +4666,7 @@ void RB_RenderInteractionsDeferred()
 						Tess_InstantQuad(quadVerts);
 #endif
 					}
+#endif // if(light->l.rlType == RL_PROJ)
 				}
 
 				GL_PopMatrix();
@@ -4730,6 +4711,8 @@ void RB_RenderInteractionsDeferred()
 		backEnd.pc.c_deferredLightingTime = endTime - startTime;
 	}
 }
+
+#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 static void RB_RenderInteractionsDeferredShadowMapped()
 {
@@ -8089,7 +8072,7 @@ void RB_RenderGlobalFog()
 
 	// bind u_DepthMap
 	GL_SelectTexture(1);
-	if(DS_STANDARD_ENABLED() || DS_PREPASS_LIGHTING_ENABLED() || HDR_ENABLED())
+	if(DS_STANDARD_ENABLED() || HDR_ENABLED())
 	{
 		GL_Bind(tr.depthRenderImage);
 	}
@@ -8154,7 +8137,7 @@ void RB_RenderBloom()
 #endif
 		
 
-		if(DS_STANDARD_ENABLED() || DS_PREPASS_LIGHTING_ENABLED())
+		if(DS_STANDARD_ENABLED())
 		{
 			if(HDR_ENABLED())
 			{
@@ -8562,9 +8545,6 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 
 	R_BindNullFBO();
 
-	if(r_deferredShading->integer == DS_PREPASS_LIGHTING && !r_showDeferredLight->integer && !r_showDeferredNormal->integer)
-		return;
-
 	/*
 	   if(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
 	   {
@@ -8632,7 +8612,7 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 		{
 			GL_Bind(tr.depthRenderImage);
 		}
-		else if(r_deferredShading->integer == DS_PREPASS_LIGHTING && r_showDeferredLight->integer)
+		else if(r_showDeferredLight->integer)
 		{
 			GL_Bind(tr.lightRenderFBOImage);
 		}
@@ -11454,355 +11434,7 @@ static void RB_RenderView(void)
 
 	backEnd.pc.c_surfaces += backEnd.viewParms.numDrawSurfs;
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
-
-	if(DS_PREPASS_LIGHTING_ENABLED())
-	{
-		//
-		// Deferred lighting path described by Wolfgang Engels
-		//
-
-		int             clearBits = 0;
-		int             startTime = 0, endTime = 0;
-
-		// sync with gl if needed
-		if(r_finish->integer == 1 && !glState.finishCalled)
-		{
-			glFinish();
-			glState.finishCalled = qtrue;
-		}
-		if(r_finish->integer == 0)
-		{
-			glState.finishCalled = qtrue;
-		}
-
-		// we will need to change the projection matrix before drawing
-		// 2D images again
-		backEnd.projection2D = qfalse;
-
-		// set the modelview matrix for the viewer
-		SetViewportAndScissor();
-
-		// ensures that depth writes are enabled for the depth clear
-		GL_State(GLS_DEFAULT);
-
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		// clear frame buffer objects
-		R_BindFBO(tr.deferredRenderFBO);
-
-		clearBits = GL_DEPTH_BUFFER_BIT;
-
-		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
-		{
-			clearBits |= GL_COLOR_BUFFER_BIT;
-			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
-		}
-		glClear(clearBits);
-
-		R_BindFBO(tr.geometricRenderFBO);
-		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
-		{
-			clearBits = GL_COLOR_BUFFER_BIT;
-			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
-		}
-		else
-		{
-			if(glConfig2.framebufferBlitAvailable)
-			{
-				// copy color of the main context to deferredRenderFBO
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   GL_COLOR_BUFFER_BIT,
-									   GL_NEAREST);
-			}
-		}
-		glClear(clearBits);
-
-#else
-		if(glConfig2.framebufferObjectAvailable)
-		{
-			R_BindNullFBO();
-		}
-
-		// clear relevant buffers
-		clearBits = GL_DEPTH_BUFFER_BIT;
-
-		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
-		{
-			clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
-			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
-		}
-		glClear(clearBits);
-#endif
-
-		if((backEnd.refdef.rdflags & RDF_HYPERSPACE))
-		{
-			RB_Hyperspace();
-			return;
-		}
-		else
-		{
-			backEnd.isHyperspace = qfalse;
-		}
-
-
-		glState.faceCulling = -1;	// force face culling to set next time
-
-		// we will only draw a sun if there was sky rendered in this view
-		backEnd.skyRenderedThisView = qfalse;
-
-		GL_CheckErrors();
-
-
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
-
-		RB_RenderDrawSurfacesIntoGeometricBuffer();
-
-		// update normal render image
-#if !defined(OFFSCREEN_PREPASS_LIGHTING)
-		GL_SelectTexture(0);
-		GL_Bind(tr.deferredRenderFBOImage);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredRenderFBOImage->uploadWidth, tr.deferredRenderFBOImage->uploadHeight);
-#endif
-
-
-
-
-		// try to cull lights using hardware occlusion queries
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
-		RB_RenderLightOcclusionQueries();
-
-		if(r_shadows->integer >= SHADOWING_VSM16)
-		{
-			// render dynamic shadowing and lighting using shadow mapping
-			RB_RenderInteractionsDeferredShadowMapped();
-		}
-		else
-		{
-			// render dynamic lighting
-			RB_RenderInteractionsDeferred();
-		}
-
-#if !defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindNullFBO();
-
-		// update light render image
-		GL_SelectTexture(0);
-		GL_Bind(tr.lightRenderFBOImage);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.lightRenderFBOImage->uploadWidth, tr.lightRenderFBOImage->uploadHeight);
-
-		// restore color buffer
-#if 1
-		{
-			matrix_t        ortho;
-
-			// set 2D virtual screen size
-			GL_PushMatrix();
-			MatrixOrthogonalProjection(ortho, backEnd.viewParms.viewportX,
-											backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
-											backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
-											-99999, 99999);
-			GL_LoadProjectionMatrix(ortho);
-			GL_LoadModelViewMatrix(matrixIdentity);
-
-			GL_State(GLS_DEPTHTEST_DISABLE);
-			GL_Cull(CT_TWO_SIDED);
-
-			// enable shader, set arrays
-			gl_screenShader->BindProgram();
-
-			gl_screenShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
-
-			GL_SelectTexture(0);
-			GL_Bind(tr.currentRenderImage);
-			glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.currentRenderImage->uploadWidth, tr.currentRenderImage->uploadHeight);
-
-			// draw viewport
-			Tess_InstantQuad(backEnd.viewParms.viewportVerts);
-
-			// go back to 3D
-			GL_PopMatrix();
-
-			GL_CheckErrors();
-		}
-#endif
-#endif
-
-		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
-		{
-			glFinish();
-			startTime = ri.Milliseconds();
-		}
-
-		
-		// render opaque surfaces using the light buffer results
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
-		RB_RenderDrawSurfaces(true, false, DRAWSURFACES_ALL);
-
-		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
-		{
-			glFinish();
-			endTime = ri.Milliseconds();
-			backEnd.pc.c_forwardLightingTime = endTime - startTime;
-		}
-
-		// draw everything that is translucent
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
-		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
-
-		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
-		{
-			glFinish();
-			endTime = ri.Milliseconds();
-			backEnd.pc.c_forwardTranslucentTime = endTime - startTime;
-		}
-
-		// render debug information
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
-		RB_RenderDebugUtils();
-
-		// scale down rendered HDR scene to 1 / 4th
-		if(HDR_ENABLED())
-		{
-			if(glConfig2.framebufferBlitAvailable)
-			{
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
-										GL_COLOR_BUFFER_BIT,
-										GL_LINEAR);
-
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
-				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   0, 0, 64, 64,
-									   GL_COLOR_BUFFER_BIT,
-									   GL_LINEAR);
-			}
-			else
-			{
-				// FIXME add non EXT_framebuffer_blit code
-			}
-
-			RB_CalculateAdaptation();
-		}
-		else
-		{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-			if(glConfig2.framebufferBlitAvailable)
-			{
-				// copy deferredRenderFBO to downScaleFBO_quarter
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
-				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
-										GL_COLOR_BUFFER_BIT,
-										GL_LINEAR);
-			}
-			else
-			{
-				// FIXME add non EXT_framebuffer_blit code
-			}
-#else
-#if 0
-			// FIXME: this trashes the OpenGL context for an unknown reason
-			if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
-			{
-				// copy main context to portalRenderFBO
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   GL_COLOR_BUFFER_BIT,
-									   GL_NEAREST);
-			}
-			else
-#endif
-			{
-				// FIXME add non EXT_framebuffer_blit code
-			}
-#endif
-		}
-
-		GL_CheckErrors();
-
-#if 1 // defined(OFFSCREEN_PREPASS_LIGHTING)
-		// render bloom post process effect
-		RB_RenderBloom();
-
-		// copy offscreen rendered scene to the current OpenGL context
-		RB_RenderDeferredShadingResultToFrameBuffer();
-#endif
-
-		if(backEnd.viewParms.isPortal)
-		{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-			if(glConfig2.framebufferBlitAvailable)
-			{
-				// copy deferredRenderFBO to portalRenderFBO
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				glBlitFramebufferEXT(0, 0, tr.deferredRenderFBO->width, tr.deferredRenderFBO->height,
-									   0, 0, tr.portalRenderFBO->width, tr.portalRenderFBO->height,
-									   GL_COLOR_BUFFER_BIT,
-									   GL_NEAREST);
-			}
-			else
-			{
-				// capture current color buffer
-				GL_SelectTexture(0);
-				GL_Bind(tr.portalRenderImage);
-				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
-			}
-#else
-#if 0
-			// FIXME: this trashes the OpenGL context for an unknown reason
-			if(glConfig2.framebufferObjectAvailable && glConfig2.framebufferBlitAvailable)
-			{
-				// copy main context to portalRenderFBO
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.portalRenderFBO->frameBuffer);
-				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
-									   GL_COLOR_BUFFER_BIT,
-									   GL_NEAREST);
-			}
-			else
-#endif
-			{
-				// capture current color buffer
-				GL_SelectTexture(0);
-				GL_Bind(tr.portalRenderImage);
-				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
-			}
-#endif
-			backEnd.pc.c_portals++;
-		}
-	}
-	else if(DS_STANDARD_ENABLED())
+	if(DS_STANDARD_ENABLED())
 	{
 		//
 		// Deferred shading path
@@ -11910,7 +11542,7 @@ static void RB_RenderView(void)
 			if(r_shadows->integer >= SHADOWING_VSM16)
 			{
 				// render dynamic shadowing and lighting using shadow mapping
-				RB_RenderInteractionsDeferredShadowMapped();
+				RB_RenderInteractionsDeferred(); // TODO ShadowMapped();
 			}
 			else
 			{
@@ -11919,8 +11551,10 @@ static void RB_RenderView(void)
 			}
 		}
 
-		// render global fog
 		R_BindFBO(tr.geometricRenderFBO);
+		glDrawBuffers(1, geometricRenderTargets);
+
+		// render global fog
 		RB_RenderGlobalFog();
 
 		// draw everything that is translucent
@@ -12014,7 +11648,6 @@ static void RB_RenderView(void)
 		}
 	}
 	else
-#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
 	{
 		//
 		// Forward shading path
