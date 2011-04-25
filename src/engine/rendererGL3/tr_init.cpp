@@ -271,6 +271,7 @@ cvar_t         *r_parallaxDepthScale;
 
 cvar_t         *r_dynamicBspOcclusionCulling;
 cvar_t         *r_dynamicEntityOcclusionCulling;
+cvar_t         *r_dynamicLightOcclusionCulling;
 cvar_t         *r_chcMaxPrevInvisNodesBatchSize;
 cvar_t         *r_chcMaxVisibleFrames;
 cvar_t         *r_chcVisibilityThreshold;
@@ -1492,6 +1493,7 @@ void R_Register(void)
 
 	r_dynamicBspOcclusionCulling = ri.Cvar_Get("r_dynamicBspOcclusionCulling", "0", CVAR_ARCHIVE);
 	r_dynamicEntityOcclusionCulling = ri.Cvar_Get("r_dynamicEntityOcclusionCulling", "0", CVAR_ARCHIVE);
+	r_dynamicLightOcclusionCulling = ri.Cvar_Get("r_dynamicLightOcclusionCulling", "1", CVAR_ARCHIVE);
 	r_chcMaxPrevInvisNodesBatchSize = ri.Cvar_Get("r_chcMaxPrevInvisNodesBatchSize", "50", CVAR_CHEAT);
 	r_chcMaxVisibleFrames = ri.Cvar_Get("r_chcMaxVisibleFrames", "10", CVAR_CHEAT);
 	r_chcVisibilityThreshold = ri.Cvar_Get("r_chcVisibilityThreshold", "20", CVAR_CHEAT);

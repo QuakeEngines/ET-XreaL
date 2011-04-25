@@ -87,11 +87,11 @@ typedef unsigned short glIndex_t;
 #define DEBUG_OPTIMIZEVERTICES 0
 #define CALC_REDUNDANT_SHADOWVERTS 0
 
-#define OFFSCREEN_PREPASS_LIGHTING 1
+//#define OFFSCREEN_PREPASS_LIGHTING 1
 
-//#define DEFERRED_SHADING_Z_PREPASS 1
+#define DEFERRED_SHADING_Z_PREPASS 1
 
-#define GLSL_COMPILE_STARTUP_ONLY 1
+//#define GLSL_COMPILE_STARTUP_ONLY 1
 
 typedef enum
 {
@@ -110,13 +110,31 @@ typedef enum
 	SHADOWING_ESM
 } shadowingMode_t;
 
+typedef enum
+{
+	RSPEEDS_GENERAL = 1,
+	RSPEEDS_CULLING,
+	RSPEEDS_VIEWCLUSTER,
+	RSPEEDS_LIGHTS,
+	RSPEEDS_SHADOWCUBE_CULLING,
+	RSPEEDS_FOG,
+	RSPEEDS_FLARES,
+	RSPEEDS_OCCLUSION_QUERIES,
+	RSPEEDS_DEPTH_BOUNDS_TESTS,
+	RSPEEDS_SHADING_TIMES,
+	RSPEEDS_CHC,
+	RSPEEDS_NEAR_FAR,
+	RSPEEDS_DECALS
+
+} renderSpeeds_t;
+
 
 #if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
-#define DS_STANDARD_ENABLED() ((r_deferredShading->integer == DS_STANDARD && glConfig.maxColorAttachments >= 4 && glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 4 && glConfig.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
+#define DS_STANDARD_ENABLED() ((r_deferredShading->integer == DS_STANDARD && glConfig2.maxColorAttachments >= 4 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4 && /*glConfig2.framebufferPackedDepthStencilAvailable &&*/ glConfig.driverType != GLDRV_MESA))
 
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
-#define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING && glConfig.maxColorAttachments >= 2 && glConfig.drawBuffersAvailable && glConfig.maxDrawBuffers >= 2 && glConfig.framebufferPackedDepthStencilAvailable && glConfig.driverType != GLDRV_MESA))
+#define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING && glConfig2.maxColorAttachments >= 2 && glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 2 && /*glConfig2.framebufferPackedDepthStencilAvailable &&*/ glConfig.driverType != GLDRV_MESA))
 #else
 #define DS_PREPASS_LIGHTING_ENABLED() ((r_deferredShading->integer == DS_PREPASS_LIGHTING))
 #endif
@@ -979,7 +997,8 @@ typedef enum
 	COLLAPSE_genericMulti,
 	COLLAPSE_lighting_DB,
 	COLLAPSE_lighting_DBS,
-	COLLAPSE_reflection_CB
+	COLLAPSE_reflection_CB,
+	COLLAPSE_color_lightmap
 } collapseType_t;
 
 typedef struct
@@ -3903,9 +3922,6 @@ typedef struct
 #if !defined(USE_D3D10)
 
 #if !defined(GLSL_COMPILE_STARTUP_ONLY)
-	// deferred Geometric-Buffer processing
-	shaderProgram_t geometricFillShader_DBS;
-
 	// deferred lighting
 	shaderProgram_t deferredLightingShader_DBS_omni;
 	shaderProgram_t deferredLightingShader_DBS_proj;
@@ -4025,6 +4041,7 @@ extern const matrix_t quakeToOpenGLMatrix;
 extern const matrix_t openGLToQuakeMatrix;
 extern const matrix_t quakeToD3DMatrix;
 extern const matrix_t flipZMatrix;
+extern const GLenum	geometricRenderTargets[];
 extern int      shadowMapResolutions[5];
 
 extern backEndState_t backEnd;
@@ -4278,6 +4295,7 @@ extern cvar_t  *r_parallaxDepthScale;
 
 extern cvar_t  *r_dynamicBspOcclusionCulling;
 extern cvar_t  *r_dynamicEntityOcclusionCulling;
+extern cvar_t  *r_dynamicLightOcclusionCulling;
 extern cvar_t  *r_chcMaxPrevInvisNodesBatchSize;
 extern cvar_t  *r_chcMaxVisibleFrames;
 extern cvar_t  *r_chcVisibilityThreshold;
@@ -4676,6 +4694,7 @@ void            Tess_ComputeColor(shaderStage_t * pStage);
 void            Tess_StageIteratorDebug();
 void            Tess_StageIteratorGeneric();
 void            Tess_StageIteratorGBuffer();
+void            Tess_StageIteratorGBufferNormalsOnly();
 void            Tess_StageIteratorDepthFill();
 void            Tess_StageIteratorShadowFill();
 void            Tess_StageIteratorStencilShadowVolume();

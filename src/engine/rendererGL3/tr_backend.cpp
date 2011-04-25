@@ -1368,7 +1368,7 @@ static void RB_RenderDrawSurfaces(bool opaque, bool depthFill, renderDrawSurface
 			}
 
 			if(depthFill)
-				Tess_Begin(Tess_StageIteratorDepthFill, NULL, shader, NULL, qtrue, qfalse, qfalse, lightmapNum, fogNum);
+				Tess_Begin(Tess_StageIteratorGBuffer, NULL, shader, NULL, qtrue, qfalse, qfalse, lightmapNum, fogNum);
 			else
 				Tess_Begin(Tess_StageIteratorGeneric, NULL, shader, NULL, qfalse, qfalse, qfalse, lightmapNum, fogNum);
 
@@ -1955,7 +1955,7 @@ static void RB_RenderInteractions()
 
 	GLimp_LogComment("--- RB_RenderInteractions ---\n");
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -1976,10 +1976,10 @@ static void RB_RenderInteractions()
 		surface = ia->surface;
 		shader = ia->surfaceShader;
 
-		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !ia->occlusionQuerySamples)
+		if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
 		{
 			// skip all interactions of this light because it failed the occlusion query
-			if(!ia->occlusionQuerySamples)
+			if(r_dynamicLightOcclusionCulling->integer && !ia->occlusionQuerySamples)
 				goto skipInteraction;
 
 			if(r_dynamicEntityOcclusionCulling->integer && !entity->occlusionQuerySamples)
@@ -2161,7 +2161,7 @@ static void RB_RenderInteractions()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -2199,7 +2199,7 @@ static void RB_RenderInteractionsStencilShadowed()
 
 	GLimp_LogComment("--- RB_RenderInteractionsStencilShadowed ---\n");
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -2609,7 +2609,7 @@ static void RB_RenderInteractionsStencilShadowed()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -2656,7 +2656,7 @@ static void RB_RenderInteractionsShadowMapped()
 
 	GLimp_LogComment("--- RB_RenderInteractionsShadowMapped ---\n");
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -3847,7 +3847,7 @@ static void RB_RenderInteractionsShadowMapped()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -3867,7 +3867,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 
 	GLimp_LogComment("--- RB_RenderDrawSurfacesIntoGeometricBuffer ---\n");
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -3896,27 +3896,56 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 			break;
 		}
 
-		if(entity == oldEntity && shader == oldShader && lightmapNum == oldLightmapNum)
+		if(DS_PREPASS_LIGHTING_ENABLED())
 		{
-			// fast path, same as previous sort
-			rb_surfaceTable[*drawSurf->surface] (drawSurf->surface);
-			continue;
-		}
-
-		// change the tess parameters if needed
-		// a "entityMergable" shader is a shader that can have surfaces from seperate
-		// entities merged into a single batch, like smoke and blood puff sprites
-		if(shader != oldShader || (entity != oldEntity && !shader->entityMergable))
-		{
-			if(oldShader != NULL)
+			if(entity == oldEntity && shader == oldShader)
 			{
-				Tess_End();
+				// fast path, same as previous sort
+				rb_surfaceTable[*drawSurf->surface] (drawSurf->surface);
+				continue;
 			}
 
-			Tess_Begin(Tess_StageIteratorGBuffer, NULL, shader, NULL, qfalse, qfalse, qfalse, lightmapNum, 0);
-			oldShader = shader;
-			oldLightmapNum = lightmapNum;
+			// change the tess parameters if needed
+			// a "entityMergable" shader is a shader that can have surfaces from seperate
+			// entities merged into a single batch, like smoke and blood puff sprites
+			if(shader != oldShader || (entity != oldEntity && !shader->entityMergable))
+			{
+				if(oldShader != NULL)
+				{
+					Tess_End();
+				}
+
+				Tess_Begin(Tess_StageIteratorGBufferNormalsOnly, NULL, shader, NULL, qfalse, qfalse, qfalse, -1, 0);
+				oldShader = shader;
+				oldLightmapNum = lightmapNum;
+			}
 		}
+		else
+		{
+			if(entity == oldEntity && shader == oldShader && lightmapNum == oldLightmapNum)
+			{
+				// fast path, same as previous sort
+				rb_surfaceTable[*drawSurf->surface] (drawSurf->surface);
+				continue;
+			}
+
+			// change the tess parameters if needed
+			// a "entityMergable" shader is a shader that can have surfaces from seperate
+			// entities merged into a single batch, like smoke and blood puff sprites
+			if(shader != oldShader || (entity != oldEntity && !shader->entityMergable))
+			{
+				if(oldShader != NULL)
+				{
+					Tess_End();
+				}
+
+				Tess_Begin(Tess_StageIteratorGBuffer, NULL, shader, NULL, qfalse, qfalse, qfalse, lightmapNum, 0);
+				oldShader = shader;
+				oldLightmapNum = lightmapNum;
+			}
+		}
+
+		
 
 		// change the modelview matrix if needed
 		if(entity != oldEntity)
@@ -3983,7 +4012,7 @@ static void RB_RenderDrawSurfacesIntoGeometricBuffer()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -4016,7 +4045,7 @@ void RB_RenderInteractionsDeferred()
 	if(r_skipLightBuffer->integer)
 		return;
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -4694,7 +4723,7 @@ void RB_RenderInteractionsDeferred()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -4741,7 +4770,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 	if(r_skipLightBuffer->integer)
 		return;
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -6982,7 +7011,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -7029,7 +7058,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 	if(r_hdrRendering->integer && !glConfig2.textureFloatAvailable)
 		return;
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		startTime = ri.Milliseconds();
@@ -7781,7 +7810,7 @@ static void RB_RenderInteractionsDeferredInverseShadows()
 
 	GL_CheckErrors();
 
-	if(r_speeds->integer == 9)
+	if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		glFinish();
 		endTime = ri.Milliseconds();
@@ -8125,34 +8154,30 @@ void RB_RenderBloom()
 #endif
 		
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
 		if(DS_STANDARD_ENABLED() || DS_PREPASS_LIGHTING_ENABLED())
 		{
 			if(HDR_ENABLED())
 			{
-				if(r_hdrKey->value <= 0)
-				{
-					float			key;
+				gl_toneMappingShader->EnableMacro_BRIGHTPASS_FILTER();
+				gl_toneMappingShader->BindProgram();
 
-					// calculation from: Perceptual Effects in Real-time Tone Mapping - Krawczyk et al.
-					key = 1.03 - 2.0 / (2.0 + log10f(backEnd.hdrAverageLuminance + 1.0f));
-					glUniform1fARB(tr.contrastShader.u_HDRKey, key);
-				}
-				else
-				{
-					glUniform1fARB(tr.contrastShader.u_HDRKey, r_hdrKey->value);
-				}
+				gl_toneMappingShader->SetUniform_HDRKey(backEnd.hdrKey);
+				gl_toneMappingShader->SetUniform_HDRAverageLuminance(backEnd.hdrAverageLuminance);
+				gl_toneMappingShader->SetUniform_HDRMaxLuminance(backEnd.hdrMaxLuminance);
 
-				glUniform1fARB(tr.contrastShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
-				glUniform1fARB(tr.contrastShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
+				gl_toneMappingShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
+			}
+			else
+			{
+				gl_contrastShader->BindProgram();
+
+				gl_contrastShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 			}
 
 			GL_SelectTexture(0);
 			GL_Bind(tr.downScaleFBOImage_quarter);
 		}
-		else 
-#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)	
-		if(HDR_ENABLED())
+		else if(HDR_ENABLED())
 		{
 			gl_toneMappingShader->EnableMacro_BRIGHTPASS_FILTER();
 			gl_toneMappingShader->BindProgram();
@@ -8308,7 +8333,7 @@ void RB_RenderBloom()
 
 void RB_RenderRotoscope(void)
 {
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
+#if 0 //!defined(GLSL_COMPILE_STARTUP_ONLY)
 	matrix_t        ortho;
 
 	GLimp_LogComment("--- RB_CameraPostFX ---\n");
@@ -8529,8 +8554,6 @@ static void RB_CalculateAdaptation()
 }
 
 
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
-
 void RB_RenderDeferredShadingResultToFrameBuffer()
 {
 	matrix_t        ortho;
@@ -8538,6 +8561,9 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 	GLimp_LogComment("--- RB_RenderDeferredShadingResultToFrameBuffer ---\n");
 
 	R_BindNullFBO();
+
+	if(r_deferredShading->integer == DS_PREPASS_LIGHTING && !r_showDeferredLight->integer && !r_showDeferredNormal->integer)
+		return;
 
 	/*
 	   if(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)
@@ -8567,34 +8593,25 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 	{
 		R_BindNullFBO();
 
-		GL_BindProgram(&tr.toneMappingShader);
+		gl_toneMappingShader->DisableMacro_BRIGHTPASS_FILTER();
+		gl_toneMappingShader->BindProgram();
+
+		gl_toneMappingShader->SetUniform_HDRKey(backEnd.hdrKey);
+		gl_toneMappingShader->SetUniform_HDRAverageLuminance(backEnd.hdrAverageLuminance);
+		gl_toneMappingShader->SetUniform_HDRMaxLuminance(backEnd.hdrMaxLuminance);
+
+		gl_toneMappingShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
 		GL_Bind(tr.deferredRenderFBOImage);
-
-		if(r_hdrKey->value <= 0)
-		{
-			float			key;
-
-			// calculation from: Perceptual Effects in Real-time Tone Mapping - Krawczyk et al.
-			key = 1.03 - 2.0 / (2.0 + log10f(backEnd.hdrAverageLuminance + 1.0f));
-			glUniform1fARB(tr.toneMappingShader.u_HDRKey, key);
-		}
-		else
-		{
-			glUniform1fARB(tr.toneMappingShader.u_HDRKey, r_hdrKey->value);
-		}
-
-		glUniform1fARB(tr.toneMappingShader.u_HDRAverageLuminance, backEnd.hdrAverageLuminance);
-		glUniform1fARB(tr.toneMappingShader.u_HDRMaxLuminance, backEnd.hdrMaxLuminance);
-
-		GLSL_SetUniform_ModelViewProjectionMatrix(&tr.toneMappingShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
 	}
 	else
 	{
 		gl_screenShader->BindProgram();
 		glVertexAttrib4fvARB(ATTR_INDEX_COLOR, colorWhite);
+
+		gl_screenShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 		// bind u_ColorMap
 		GL_SelectTexture(0);
@@ -8623,8 +8640,6 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 		{
 			GL_Bind(tr.deferredRenderFBOImage);
 		}
-
-		gl_screenShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 	}
 
 	GL_CheckErrors();
@@ -8633,8 +8648,6 @@ void RB_RenderDeferredShadingResultToFrameBuffer()
 
 	GL_PopMatrix();
 }
-
-#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 
 void RB_RenderDeferredHDRResultToFrameBuffer()
@@ -9088,7 +9101,7 @@ void RB_RenderLightOcclusionQueries()
 {
 	GLimp_LogComment("--- RB_RenderLightOcclusionQueries ---\n");
 
-	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
+	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA && r_dynamicLightOcclusionCulling->integer && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
 	{
 		int				i;
 		interaction_t  *ia;
@@ -9104,7 +9117,7 @@ void RB_RenderLightOcclusionQueries()
 
 		glVertexAttrib4fARB(ATTR_INDEX_COLOR, 1.0f, 0.0f, 0.0f, 0.05f);
 
-		if(r_speeds->integer == 7)
+		if(r_speeds->integer == RSPEEDS_OCCLUSION_QUERIES)
 		{
 			glFinish();
 			startTime = ri.Milliseconds();
@@ -9267,7 +9280,7 @@ void RB_RenderLightOcclusionQueries()
 			}
 		}
 
-		if(r_speeds->integer == 7)
+		if(r_speeds->integer == RSPEEDS_OCCLUSION_QUERIES)
 		{
 			glFinish();
 			endTime = ri.Milliseconds();
@@ -9351,7 +9364,7 @@ void RB_RenderLightOcclusionQueries()
 			oldLight = light;
 		}
 
-		if(r_speeds->integer == 7)
+		if(r_speeds->integer == RSPEEDS_OCCLUSION_QUERIES)
 		{
 			glFinish();
 			endTime = ri.Milliseconds();
@@ -9686,7 +9699,7 @@ void RB_RenderEntityOcclusionQueries()
 
 		glVertexAttrib4fARB(ATTR_INDEX_COLOR, 1.0f, 0.0f, 0.0f, 0.05f);
 
-		if(r_speeds->integer == 7)
+		if(r_speeds->integer == RSPEEDS_OCCLUSION_QUERIES)
 		{
 			glFinish();
 			startTime = ri.Milliseconds();
@@ -9840,7 +9853,7 @@ void RB_RenderEntityOcclusionQueries()
 			}
 		}
 
-		if(r_speeds->integer == 7)
+		if(r_speeds->integer == RSPEEDS_OCCLUSION_QUERIES)
 		{
 			glFinish();
 			endTime = ri.Milliseconds();
@@ -11542,18 +11555,24 @@ static void RB_RenderView(void)
 
 		GL_CheckErrors();
 
-		RB_RenderDrawSurfacesIntoGeometricBuffer();
 
-
-		// try to cull bsp nodes for the next frame using hardware occlusion queries
-		/*
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
 		R_BindFBO(tr.deferredRenderFBO);
 #else
 		R_BindNullFBO();
 #endif
-		RB_RenderBspOcclusionQueries();
-		*/
+
+		RB_RenderDrawSurfacesIntoGeometricBuffer();
+
+		// update normal render image
+#if !defined(OFFSCREEN_PREPASS_LIGHTING)
+		GL_SelectTexture(0);
+		GL_Bind(tr.deferredRenderFBOImage);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.deferredRenderFBOImage->uploadWidth, tr.deferredRenderFBOImage->uploadHeight);
+#endif
+
+
+
 
 		// try to cull lights using hardware occlusion queries
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
@@ -11600,9 +11619,9 @@ static void RB_RenderView(void)
 			GL_Cull(CT_TWO_SIDED);
 
 			// enable shader, set arrays
-			GL_BindProgram(&tr.screenShader);
+			gl_screenShader->BindProgram();
 
-			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.screenShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+			gl_screenShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 
 			GL_SelectTexture(0);
 			GL_Bind(tr.currentRenderImage);
@@ -11619,12 +11638,13 @@ static void RB_RenderView(void)
 #endif
 #endif
 
-		if(r_speeds->integer == 9)
+		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 		{
 			glFinish();
 			startTime = ri.Milliseconds();
 		}
 
+		
 		// render opaque surfaces using the light buffer results
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
 		R_BindFBO(tr.deferredRenderFBO);
@@ -11633,7 +11653,7 @@ static void RB_RenderView(void)
 #endif
 		RB_RenderDrawSurfaces(true, false, DRAWSURFACES_ALL);
 
-		if(r_speeds->integer == 9)
+		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 		{
 			glFinish();
 			endTime = ri.Milliseconds();
@@ -11648,22 +11668,12 @@ static void RB_RenderView(void)
 #endif
 		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
 
-		if(r_speeds->integer == 9)
+		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 		{
 			glFinish();
 			endTime = ri.Milliseconds();
 			backEnd.pc.c_forwardTranslucentTime = endTime - startTime;
 		}
-
-		// wait until all bsp node occlusion queries are back
-		/*
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-		R_BindFBO(tr.deferredRenderFBO);
-#else
-		R_BindNullFBO();
-#endif
-		RB_CollectBspOcclusionQueries();
-		*/
 
 		// render debug information
 #if defined(OFFSCREEN_PREPASS_LIGHTING)
@@ -11739,7 +11749,7 @@ static void RB_RenderView(void)
 
 		GL_CheckErrors();
 
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
+#if 1 // defined(OFFSCREEN_PREPASS_LIGHTING)
 		// render bloom post process effect
 		RB_RenderBloom();
 
@@ -11822,7 +11832,8 @@ static void RB_RenderView(void)
 		GL_State(GLS_DEFAULT);
 
 		// clear frame buffer objects
-		R_BindFBO(tr.deferredRenderFBO);
+		R_BindNullFBO();
+		//R_BindFBO(tr.deferredRenderFBO);
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		clearBits = GL_DEPTH_BUFFER_BIT;
@@ -11843,21 +11854,27 @@ static void RB_RenderView(void)
 		R_BindFBO(tr.geometricRenderFBO);
 		if(!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL))
 		{
-			clearBits = GL_COLOR_BUFFER_BIT;
+			//clearBits = GL_COLOR_BUFFER_BIT;
 			GL_ClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// FIXME: get color of sky
 		}
 		else
 		{
+			/*
 			if(glConfig2.framebufferBlitAvailable)
 			{
-				// copy color of the main context to deferredRenderFBO
+				glDrawBuffers(1, geometricRenderTargets);
+
+				// copy color of the main context to geometricRenderFBO
+				
 				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, 0);
 				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
 				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   GL_COLOR_BUFFER_BIT,
 									   GL_NEAREST);
+			  
 			}
+			 */
 		}
 		glClear(clearBits);
 
@@ -11878,21 +11895,18 @@ static void RB_RenderView(void)
 
 		GL_CheckErrors();
 
-#if defined(DEFERRED_SHADING_Z_PREPASS)
+		//RB_RenderDrawSurfacesIntoGeometricBuffer();
+
+		
+//#if defined(DEFERRED_SHADING_Z_PREPASS)
 		// draw everything that is opaque
-		R_BindFBO(tr.deferredRenderFBO);
-		RB_RenderDrawSurfaces(qtrue, qfalse);
-#endif
-
-		RB_RenderDrawSurfacesIntoGeometricBuffer();
-
-		// try to cull bsp nodes for the next frame using hardware occlusion queries
-		/*
-		R_BindFBO(tr.deferredRenderFBO);
-		RB_RenderBspOcclusionQueries();
-		*/
+		R_BindFBO(tr.geometricRenderFBO);
+		RB_RenderDrawSurfaces(true, true, DRAWSURFACES_ALL);
+//#endif
+//		*/
 
 		// try to cull lights using hardware occlusion queries
+		/*
 		R_BindFBO(tr.deferredRenderFBO);
 		RB_RenderLightOcclusionQueries();
 
@@ -11910,19 +11924,13 @@ static void RB_RenderView(void)
 			}
 		}
 
+		// render global fog
+		R_BindFBO(tr.deferredRenderFBO);
+		RB_RenderGlobalFog();
+
 		// draw everything that is translucent
 		R_BindFBO(tr.deferredRenderFBO);
 		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
-
-		// render global fog
-		R_BindFBO(tr.deferredRenderFBO);
-		RB_RenderUniformFog();
-
-		// wait until all bsp node occlusion queries are back
-		/*
-		R_BindFBO(tr.deferredRenderFBO);
-		RB_CollectBspOcclusionQueries();
-		*/
 
 		// render debug information
 		R_BindFBO(tr.deferredRenderFBO);
@@ -11976,6 +11984,8 @@ static void RB_RenderView(void)
 
 		// render bloom post process effect
 		RB_RenderBloom();
+
+		*/
 
 		// copy offscreen rendered scene to the current OpenGL context
 		RB_RenderDeferredShadingResultToFrameBuffer();
@@ -12214,7 +12224,7 @@ static void RB_RenderView(void)
 
 		GL_CheckErrors();
 
-		if(r_speeds->integer == 9)
+		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 		{
 			glFinish();
 			startTime = ri.Milliseconds();
@@ -12244,7 +12254,7 @@ static void RB_RenderView(void)
 		// try to cull bsp nodes for the next frame using hardware occlusion queries
 		//RB_RenderBspOcclusionQueries();
 
-		if(r_speeds->integer == 9)
+		if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 		{
 			glFinish();
 			endTime = ri.Milliseconds();
@@ -12278,7 +12288,7 @@ static void RB_RenderView(void)
 		// render ambient occlusion process effect
 		// Tr3B: needs way more work RB_RenderScreenSpaceAmbientOcclusion(qfalse);
 
-		if(r_hdrRendering->integer && glConfig2.framebufferObjectAvailable && glConfig2.textureFloatAvailable)
+		if(HDR_ENABLED())
 			R_BindFBO(tr.deferredRenderFBO);
 
 		// render global fog post process effect
@@ -12288,7 +12298,7 @@ static void RB_RenderView(void)
 		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
 
 		// scale down rendered HDR scene to 1 / 4th
-		if(r_hdrRendering->integer && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
+		if(HDR_ENABLED())
 		{
 			if(glConfig2.framebufferBlitAvailable)
 			{

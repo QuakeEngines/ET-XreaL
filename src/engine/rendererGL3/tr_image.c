@@ -2878,6 +2878,7 @@ static void R_CreateDepthRenderImage(void)
 
 	data = ri.Hunk_AllocateTempMemory(width * height * 4);
 
+#if 0
 	if(glConfig2.framebufferPackedDepthStencilAvailable)
 	{
 		tr.depthRenderImage = R_CreateImage("_depthRender", data, width, height, IF_NOPICMIP | IF_PACKED_DEPTH24_STENCIL8, FT_NEAREST, WT_CLAMP);
@@ -2887,8 +2888,9 @@ static void R_CreateDepthRenderImage(void)
 		tr.depthRenderImage = R_CreateImage("_depthRender", data, width, height, IF_NOPICMIP | IF_DEPTH16, FT_NEAREST, WT_CLAMP);
 	}
 	else
+#endif
 	{
-		tr.depthRenderImage = R_CreateImage("_depthRender", data, width, height, IF_NOPICMIP | IF_DEPTH24, FT_NEAREST, WT_CLAMP);
+		tr.depthRenderImage = R_CreateImage("_depthRender", data, width, height, IF_NOPICMIP | IF_DEPTH32, FT_NEAREST, WT_CLAMP);
 	}
 	ri.Hunk_FreeTempMemory(data);
 }

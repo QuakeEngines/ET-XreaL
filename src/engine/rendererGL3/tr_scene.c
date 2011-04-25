@@ -291,6 +291,9 @@ void RE_AddPolyBufferToScene(polyBuffer_t * pPolyBuffer)
 	vec3_t          bounds[2];
 	int             i;
 
+	if(!r_drawpolies->integer)
+		return;
+
 	if(r_numPolybuffers >= r_maxPolyVerts->integer)
 	{
 		return;
@@ -400,7 +403,7 @@ void RE_AddRefLightToScene(const refLight_t * l)
 		light->l.scale = r_lightScale->value;
 	}
 
-	if(!r_hdrRendering->integer || !glConfig2.textureFloatAvailable || !glConfig2.framebufferObjectAvailable || !glConfig2.framebufferBlitAvailable)
+	if(!HDR_ENABLED())
 	{
 		if(light->l.scale >= r_lightScale->value)
 		{

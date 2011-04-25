@@ -58,6 +58,12 @@ const matrix_t flipZMatrix = {
 		0, 0, 0, 1
 };
 
+const GLenum geometricRenderTargets[] = {
+	GL_COLOR_ATTACHMENT0_EXT,
+	GL_COLOR_ATTACHMENT1_EXT,
+	GL_COLOR_ATTACHMENT2_EXT,
+	GL_COLOR_ATTACHMENT3_EXT
+};
 
 int             shadowMapResolutions[5] = { 2048, 1024, 512, 256, 128 };
 

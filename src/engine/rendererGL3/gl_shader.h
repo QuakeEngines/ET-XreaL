@@ -215,7 +215,8 @@ protected:
 		TWOSIDED,
 		EYE_OUTSIDE,
 		BRIGHTPASS_FILTER,
-		LIGHT_DIRECTIONAL
+		LIGHT_DIRECTIONAL,
+		USE_GBUFFER
 	};
 
 public:
@@ -655,6 +656,30 @@ public:
 	}
 };
 
+
+class GLCompileMacro_USE_GBUFFER:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_GBUFFER(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_GBUFFER"; }
+	EGLCompileMacro GetType() const { return USE_GBUFFER; }
+
+	void EnableMacro_USE_GBUFFER()		{ EnableMacro(); }
+	void DisableMacro_USE_GBUFFER()	{ DisableMacro(); }
+
+	void SetMacro_USE_GBUFFER(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
+};
 
 
 class u_ColorMap:
@@ -1881,6 +1906,7 @@ public GLCompileMacro_USE_DEFORM_VERTEXES,
 public GLCompileMacro_USE_NORMAL_MAPPING,
 public GLCompileMacro_USE_PARALLAX_MAPPING//,
 //public GLCompileMacro_TWOSIDED
+//public GLCompileMacro_USE_GBUFFER
 {
 public:
 	GLShader_vertexLighting_DBS_world();
@@ -2006,6 +2032,36 @@ public GLCompileMacro_USE_SHADOWING//,
 {
 public:
 	GLShader_forwardLighting_directionalSun();
+};
+
+
+class GLShader_geometricFill:
+public GLShader,
+public u_DiffuseTextureMatrix,
+public u_NormalTextureMatrix,
+public u_SpecularTextureMatrix,
+public u_AlphaTest,
+public u_ColorModulate,
+public u_Color,
+public u_ViewOrigin,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix,
+public u_BoneMatrix,
+public u_VertexInterpolation,
+public u_PortalPlane,
+public u_DepthScale,
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_ALPHA_TESTING,
+public GLCompileMacro_USE_VERTEX_SKINNING,
+public GLCompileMacro_USE_VERTEX_ANIMATION,
+public GLCompileMacro_USE_DEFORM_VERTEXES,
+public GLCompileMacro_USE_NORMAL_MAPPING,
+public GLCompileMacro_USE_PARALLAX_MAPPING,
+public GLCompileMacro_USE_REFLECTIVE_SPECULAR
+{
+public:
+	GLShader_geometricFill();
 };
 
 
@@ -2217,6 +2273,7 @@ extern GLShader_vertexLighting_DBS_world* gl_vertexLightingShader_DBS_world;
 extern GLShader_forwardLighting_omniXYZ* gl_forwardLightingShader_omniXYZ;
 extern GLShader_forwardLighting_projXYZ* gl_forwardLightingShader_projXYZ;
 extern GLShader_forwardLighting_directionalSun* gl_forwardLightingShader_directionalSun;
+extern GLShader_geometricFill* gl_geometricFillShader;
 extern GLShader_shadowFill* gl_shadowFillShader;
 extern GLShader_reflection* gl_reflectionShader;
 extern GLShader_skybox* gl_skyboxShader;

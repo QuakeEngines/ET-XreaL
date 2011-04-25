@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_sky.c
 #include "tr_local.h"
+#include "gl_shader.h"
 
 #define SKY_SUBDIVISIONS		8
 #define HALF_SKY_SUBDIVISIONS	(SKY_SUBDIVISIONS/2)
@@ -929,26 +930,40 @@ void Tess_StageIteratorSky(void)
 		// draw the outer skybox
 		if(tess.surfaceShader->sky.outerbox && tess.surfaceShader->sky.outerbox != tr.blackCubeImage)
 		{
-#if !defined(GLSL_COMPILE_STARTUP_ONLY)
+#if 0 
 			R_BindVBO(tess.vbo);
 			R_BindIBO(tess.ibo);
 
-			// enable shader, set arrays
-			GL_BindProgram(&tr.skyBoxShader);
-			GL_VertexAttribsState(tr.skyBoxShader.attribs);
+			gl_skyboxShader->SetPortalClipping(backEnd.viewParms.isPortal);
+			gl_skyboxShader->BindProgram();
+			
+			gl_skyboxShader->SetUniform_ViewOrigin(backEnd.viewParms.orientation.origin);	// in world space
 
-			// set uniforms
-			GLSL_SetUniform_ViewOrigin(&tr.skyBoxShader, backEnd.viewParms.orientation.origin);
+			gl_skyboxShader->SetUniform_ModelMatrix(backEnd.orientation.transformMatrix);
+			gl_skyboxShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 
-			GLSL_SetUniform_ModelMatrix(&tr.skyBoxShader, backEnd.orientation.transformMatrix);
-			GLSL_SetUniform_ModelViewProjectionMatrix(&tr.skyBoxShader, glState.modelViewProjectionMatrix[glState.stackIndex]);
+			// u_PortalPlane
+			if(backEnd.viewParms.isPortal)
+			{
+				float           plane[4];
+
+				// clipping plane in world space
+				plane[0] = backEnd.viewParms.portalPlane.normal[0];
+				plane[1] = backEnd.viewParms.portalPlane.normal[1];
+				plane[2] = backEnd.viewParms.portalPlane.normal[2];
+				plane[3] = backEnd.viewParms.portalPlane.dist;
+
+				gl_skyboxShader->SetUniform_PortalPlane(plane);
+			}
+
+			//gl_skyboxShader->SetVertexAttribs();
 
 			// bind u_ColorMap
 			GL_SelectTexture(0);
 			GL_Bind(tess.surfaceShader->sky.outerbox);
 
 			DrawSkyBox(tess.surfaceShader);
-#endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
+#endif
 		}
 		
 

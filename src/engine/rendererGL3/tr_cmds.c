@@ -42,7 +42,7 @@ void R_PerformanceCounters(void)
 		return;
 	}
 
-	if(r_speeds->integer == 1)
+	if(r_speeds->integer == RSPEEDS_GENERAL)
 	{
 		ri.Printf(PRINT_ALL, "%i views %i portals %i batches %i surfs %i leafs %i verts %i tris\n",
 				  backEnd.pc.c_views, backEnd.pc.c_portals, backEnd.pc.c_batches, backEnd.pc.c_surfaces, tr.pc.c_leafs,
@@ -67,7 +67,7 @@ void R_PerformanceCounters(void)
 				  backEnd.pc.c_multiDrawPrimitives,
 				  backEnd.pc.c_multiVboIndexes / 3);
 	}
-	else if(r_speeds->integer == 2)
+	else if(r_speeds->integer == RSPEEDS_CULLING)
 	{
 		ri.Printf(PRINT_ALL, "(gen) %i sin %i sout %i pin %i pout\n",
 				  tr.pc.c_sphere_cull_in, tr.pc.c_sphere_cull_out, tr.pc.c_plane_cull_in, tr.pc.c_plane_cull_out);
@@ -84,11 +84,11 @@ void R_PerformanceCounters(void)
 		ri.Printf(PRINT_ALL, "(md5) %i bin %i bclip %i bout\n",
 				  tr.pc.c_box_cull_md5_in, tr.pc.c_box_cull_md5_clip, tr.pc.c_box_cull_md5_out);
 	}
-	else if(r_speeds->integer == 3)
+	else if(r_speeds->integer == RSPEEDS_VIEWCLUSTER)
 	{
 		ri.Printf(PRINT_ALL, "viewcluster: %i\n", tr.visClusters[tr.visIndex]);
 	}
-	else if(r_speeds->integer == 4)
+	else if(r_speeds->integer == RSPEEDS_LIGHTS)
 	{
 		ri.Printf(PRINT_ALL, "dlight srf:%i culled:%i\n", tr.pc.c_dlightSurfaces, tr.pc.c_dlightSurfacesCulled);
 
@@ -96,21 +96,21 @@ void R_PerformanceCounters(void)
 
 		ri.Printf(PRINT_ALL, "slights:%i interactions:%i\n", tr.pc.c_slights, tr.pc.c_slightInteractions);
 	}
-	else if(r_speeds->integer == 5)
+	else if(r_speeds->integer == RSPEEDS_SHADOWCUBE_CULLING)
 	{
 		ri.Printf(PRINT_ALL, "omni pyramid tests:%i bin:%i bclip:%i bout:%i\n",
 				  tr.pc.c_pyramidTests, tr.pc.c_pyramid_cull_ent_in, tr.pc.c_pyramid_cull_ent_clip, tr.pc.c_pyramid_cull_ent_out);
 	}
-	else if(r_speeds->integer == 6)
+	else if(r_speeds->integer == RSPEEDS_FOG)
 	{
 		ri.Printf(PRINT_ALL, "fog srf:%i batches:%i\n", backEnd.pc.c_fogSurfaces, backEnd.pc.c_fogBatches);
 	}
-	else if(r_speeds->integer == 7)
+	else if(r_speeds->integer == RSPEEDS_FLARES)
 	{
 		ri.Printf(PRINT_ALL, "flare adds:%i tests:%i renders:%i\n",
 				  backEnd.pc.c_flareAdds, backEnd.pc.c_flareTests, backEnd.pc.c_flareRenders);
 	}
-	else if(r_speeds->integer == 8)
+	else if(r_speeds->integer == RSPEEDS_OCCLUSION_QUERIES)
 	{
 		ri.Printf(PRINT_ALL, "occlusion queries:%i multi:%i saved:%i culled lights:%i culled entities:%i culled leafs:%i response time:%i fetch time:%i\n",
 				  backEnd.pc.c_occlusionQueries,
@@ -122,11 +122,11 @@ void R_PerformanceCounters(void)
 				  backEnd.pc.c_occlusionQueriesResponseTime,
 				  backEnd.pc.c_occlusionQueriesFetchTime);
 	}
-	else if(r_speeds->integer == 9)
+	else if(r_speeds->integer == RSPEEDS_DEPTH_BOUNDS_TESTS)
 	{
 		ri.Printf(PRINT_ALL, "depth bounds tests:%i rejected:%i\n", tr.pc.c_depthBoundsTests, tr.pc.c_depthBoundsTestsRejected);
 	}
-	else if(r_speeds->integer == 10)
+	else if(r_speeds->integer == RSPEEDS_SHADING_TIMES)
 	{
 		if(DS_STANDARD_ENABLED())
 			ri.Printf(PRINT_ALL, "deferred shading times: g-buffer:%i lighting:%i\n", backEnd.pc.c_deferredGBufferTime,
@@ -139,7 +139,7 @@ void R_PerformanceCounters(void)
 			ri.Printf(PRINT_ALL, "forward shading times: ambient:%i lighting:%i\n", backEnd.pc.c_forwardAmbientTime,
 					  backEnd.pc.c_forwardLightingTime);
 	}
-	else if(r_speeds->integer == 11)
+	else if(r_speeds->integer == RSPEEDS_CHC)
 	{
 		ri.Printf(PRINT_ALL, "%i CHC++ ms %i queries %i multi queries %i saved\n",
 						  tr.pc.c_CHCTime,
@@ -147,11 +147,11 @@ void R_PerformanceCounters(void)
 						  tr.pc.c_occlusionQueriesMulti,
 						  tr.pc.c_occlusionQueriesSaved);
 	}
-	else if(r_speeds->integer == 12)
+	else if(r_speeds->integer == RSPEEDS_NEAR_FAR)
 	{
 		ri.Printf(PRINT_ALL, "zNear: %.0f zFar: %.0f\n", tr.viewParms.zNear, tr.viewParms.zFar);
 	}
-	else if(r_speeds->integer == 13)
+	else if(r_speeds->integer == RSPEEDS_DECALS)
 	{
 		ri.Printf(PRINT_ALL, "decal projectors: %d test surfs: %d clip surfs: %d decal surfs: %d created: %d\n",
 				  tr.pc.c_decalProjectors, tr.pc.c_decalTestSurfaces, tr.pc.c_decalClipSurfaces, tr.pc.c_decalSurfaces,

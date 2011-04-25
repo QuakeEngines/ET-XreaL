@@ -36,6 +36,7 @@ GLShader_vertexLighting_DBS_world* gl_vertexLightingShader_DBS_world = NULL;
 GLShader_forwardLighting_omniXYZ* gl_forwardLightingShader_omniXYZ = NULL;
 GLShader_forwardLighting_projXYZ* gl_forwardLightingShader_projXYZ = NULL;
 GLShader_forwardLighting_directionalSun* gl_forwardLightingShader_directionalSun = NULL;
+GLShader_geometricFill* gl_geometricFillShader = NULL;
 GLShader_shadowFill* gl_shadowFillShader = NULL;
 GLShader_reflection* gl_reflectionShader = NULL;
 GLShader_skybox* gl_skyboxShader = NULL;
@@ -2026,6 +2027,120 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 	ri.Printf(PRINT_ALL, "...compiled %i forwardLighting_directionalSun shader permutations in %5.2f seconds\n", numCompiled, (endTime - startTime) / 1000.0);
 }
 
+
+
+GLShader_geometricFill::GLShader_geometricFill():
+		GLShader(	"geometricFill",
+					ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_TANGENT | ATTR_BINORMAL,
+					ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2,
+					0),
+		u_DiffuseTextureMatrix(this),
+		u_NormalTextureMatrix(this),
+		u_SpecularTextureMatrix(this),
+		u_AlphaTest(this),
+		u_ColorModulate(this),
+		u_Color(this),
+		u_ViewOrigin(this),
+		u_ModelMatrix(this),
+		u_ModelViewProjectionMatrix(this),
+		u_BoneMatrix(this),
+		u_VertexInterpolation(this),
+		u_PortalPlane(this),
+		u_DepthScale(this),
+		GLDeformStage(this),
+		GLCompileMacro_USE_PORTAL_CLIPPING(this),
+		GLCompileMacro_USE_ALPHA_TESTING(this),
+		GLCompileMacro_USE_VERTEX_SKINNING(this),
+		GLCompileMacro_USE_VERTEX_ANIMATION(this),
+		GLCompileMacro_USE_DEFORM_VERTEXES(this),
+		GLCompileMacro_USE_NORMAL_MAPPING(this),
+		GLCompileMacro_USE_PARALLAX_MAPPING(this),
+		GLCompileMacro_USE_REFLECTIVE_SPECULAR(this)
+{
+	ri.Printf(PRINT_ALL, "/// -------------------------------------------------\n");
+	ri.Printf(PRINT_ALL, "/// creating geometricFill shaders ---------------------\n");
+
+	int startTime = ri.Milliseconds();
+
+	_shaderPrograms = std::vector<shaderProgram_t>(1 << _compileMacros.size());
+	
+	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
+
+	std::string vertexInlines = "vertexAnimation ";
+	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
+	{
+		vertexInlines += "deformVertexes ";
+	}
+
+	std::string vertexShaderText = BuildGPUShaderText("geometricFill", vertexInlines.c_str(), GL_VERTEX_SHADER_ARB);
+	std::string fragmentShaderText = BuildGPUShaderText("geometricFill", "reliefMapping", GL_FRAGMENT_SHADER_ARB);
+
+	size_t numPermutations = (1 << _compileMacros.size());	// same as 2^n, n = no. compile macros
+	size_t numCompiled = 0;
+	ri.Printf(PRINT_ALL, "...compiling geometricFill shaders\n");
+	ri.Printf(PRINT_ALL, "0%%  10   20   30   40   50   60   70   80   90   100%%\n");
+	ri.Printf(PRINT_ALL, "|----|----|----|----|----|----|----|----|----|----|\n");
+	size_t tics = 0;
+	size_t nextTicCount = 0;
+	for(size_t i = 0; i < numPermutations; i++)
+	{
+		if((i + 1) >= nextTicCount)
+		{
+			size_t ticsNeeded = (size_t)(((double)(i + 1) / numPermutations) * 50.0);
+
+			do { ri.Printf(PRINT_ALL, "*"); } while ( ++tics < ticsNeeded );
+
+			nextTicCount = (size_t)((tics / 50.0) * numPermutations);
+			if(i == (numPermutations - 1))
+			{
+				if(tics < 51)
+					ri.Printf(PRINT_ALL, "*");
+				ri.Printf(PRINT_ALL, "\n");
+			}
+		}
+
+		std::string compileMacros;
+		if(GetCompileMacrosString(i, compileMacros))
+		{
+			ri.Printf(PRINT_ALL, "Compile macros: '%s'\n", compileMacros.c_str());
+
+			shaderProgram_t *shaderProgram = &_shaderPrograms[i];
+
+			CompileAndLinkGPUShaderProgram(	shaderProgram,
+											"geometricFill",
+											vertexShaderText,
+											fragmentShaderText,
+											compileMacros);
+
+			UpdateShaderProgramUniformLocations(shaderProgram);
+
+			shaderProgram->u_DiffuseMap	= glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
+			shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
+			shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
+			shaderProgram->u_EnvironmentMap0 = glGetUniformLocationARB(shaderProgram->program, "u_EnvironmentMap0");
+			shaderProgram->u_EnvironmentMap1 = glGetUniformLocationARB(shaderProgram->program, "u_EnvironmentMap1");
+
+			glUseProgramObjectARB(shaderProgram->program);
+			glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
+			glUniform1iARB(shaderProgram->u_NormalMap, 1);
+			glUniform1iARB(shaderProgram->u_SpecularMap, 2);
+			glUniform1iARB(shaderProgram->u_EnvironmentMap0, 3);
+			glUniform1iARB(shaderProgram->u_EnvironmentMap1, 4);
+			glUseProgramObjectARB(0);
+
+			ValidateProgram(shaderProgram->program);
+			//ShowProgramUniforms(shaderProgram->program);
+			GL_CheckErrors();
+
+			numCompiled++;
+		}
+	}
+
+	SelectProgram();
+
+	int endTime = ri.Milliseconds();
+	ri.Printf(PRINT_ALL, "...compiled %i geometricFill shader permutations in %5.2f seconds\n", numCompiled, (endTime - startTime) / 1000.0);
+}
 
 
 
