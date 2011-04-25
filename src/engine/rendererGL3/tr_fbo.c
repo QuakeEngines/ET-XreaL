@@ -525,46 +525,10 @@ void R_InitFBOs(void)
 			height = NearestPowerOfTwo(glConfig.vidHeight);
 		}
 
-		// deferredRender FBO for the lighting pass
-		/*
-		tr.deferredRenderFBO = R_CreateFBO("_deferredRender", width, height);
-		R_BindFBO(tr.deferredRenderFBO);
-
-		if(HDR_ENABLED())
-		{
-			R_CreateFBOColorBuffer(tr.deferredRenderFBO, GL_RGBA16F_ARB, 0);
-		}
-		else
-		{
-			R_CreateFBOColorBuffer(tr.deferredRenderFBO, GL_RGBA, 0);
-		}
-		R_AttachFBOTexture2D(GL_TEXTURE_2D, tr.deferredRenderFBOImage->texnum, 0);
-
-		//if(glConfig2.framebufferPackedDepthStencilAvailable)
-		{
-			R_CreateFBOPackedDepthStencilBuffer(tr.deferredRenderFBO, GL_DEPTH24_STENCIL8_EXT);
-			R_AttachFBOTexturePackedDepthStencil(tr.depthRenderImage->texnum);
-		}
-		#if 0
-		else if(glConfig.hardwareType == GLHW_ATI || glConfig.hardwareType == GLHW_ATI_DX10)// || glConfig.hardwareType == GLHW_NV_DX10)
-		{
-			R_CreateFBODepthBuffer(tr.deferredRenderFBO, GL_DEPTH_COMPONENT16_ARB);
-			R_AttachFBOTextureDepth(tr.depthRenderImage->texnum);
-		}
-		else
-		{
-			R_CreateFBODepthBuffer(tr.deferredRenderFBO, GL_DEPTH_COMPONENT24_ARB);
-			R_AttachFBOTextureDepth(tr.depthRenderImage->texnum);
-		}
-		#endif
-
-		R_CheckFBO(tr.deferredRenderFBO);
-		*/
 
 		tr.geometricRenderFBO = R_CreateFBO("_geometricRender", width, height);
 		R_BindFBO(tr.geometricRenderFBO);
 
-#if 1
 		#if 0
 		if(glConfig2.framebufferPackedDepthStencilAvailable)
 		{
@@ -580,12 +544,10 @@ void R_InitFBOs(void)
 		else
 		#endif
 		{
-			R_CreateFBODepthBuffer(tr.geometricRenderFBO, GL_DEPTH_COMPONENT32_ARB);
+			R_CreateFBODepthBuffer(tr.geometricRenderFBO, GL_DEPTH_COMPONENT24_ARB);
 			R_AttachFBOTextureDepth(tr.depthRenderImage->texnum);
 		}
-#endif
 		
-#if 1
 		// enable all attachments as draw buffers
 		//glDrawBuffersARB(4, geometricRenderTargets);
 
@@ -600,7 +562,6 @@ void R_InitFBOs(void)
 
 		R_CreateFBOColorBuffer(tr.geometricRenderFBO, GL_RGBA, 3);
 		R_AttachFBOTexture2D(GL_TEXTURE_2D, tr.deferredSpecularFBOImage->texnum, 3);
-#endif
 
 		R_CheckFBO(tr.geometricRenderFBO);
 	}

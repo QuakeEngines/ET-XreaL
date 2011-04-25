@@ -4084,7 +4084,8 @@ void RB_RenderInteractionsDeferred()
 	}
 	else
 	{
-		R_BindFBO(tr.deferredRenderFBO);
+		R_BindFBO(tr.geometricRenderFBO);
+		glDrawBuffers(1, geometricRenderTargets);
 	}
 
 	// update uniforms
@@ -4381,7 +4382,6 @@ void RB_RenderInteractionsDeferred()
 
 				glStencilFunc(GL_NOTEQUAL, 128, 255);
 
-
 				if(glActiveStencilFaceEXT)
 				{
 					glActiveStencilFaceEXT(GL_BACK);
@@ -4403,7 +4403,7 @@ void RB_RenderInteractionsDeferred()
 					{
 						// build the attenuation matrix
 						MatrixSetupTranslation(light->attenuationMatrix, 0.5, 0.5, 0.5);	// bias
-						MatrixMultiplyScale(light->attenuationMatrix, 0.5, 0.5, 0.5);	// scale
+						MatrixMultiplyScale(light->attenuationMatrix, 0.5, 0.5, 0.5);		// scale
 						MatrixMultiply2(light->attenuationMatrix, light->projectionMatrix);	// light projection (frustum)
 						MatrixMultiply2(light->attenuationMatrix, light->viewMatrix);
 						break;
@@ -11897,17 +11897,12 @@ static void RB_RenderView(void)
 
 		//RB_RenderDrawSurfacesIntoGeometricBuffer();
 
-		
-//#if defined(DEFERRED_SHADING_Z_PREPASS)
 		// draw everything that is opaque
 		R_BindFBO(tr.geometricRenderFBO);
 		RB_RenderDrawSurfaces(true, true, DRAWSURFACES_ALL);
-//#endif
-//		*/
 
 		// try to cull lights using hardware occlusion queries
-		/*
-		R_BindFBO(tr.deferredRenderFBO);
+		R_BindFBO(tr.geometricRenderFBO);
 		RB_RenderLightOcclusionQueries();
 
 		if(!r_showDeferredRender->integer)
@@ -11925,30 +11920,33 @@ static void RB_RenderView(void)
 		}
 
 		// render global fog
-		R_BindFBO(tr.deferredRenderFBO);
+		R_BindFBO(tr.geometricRenderFBO);
 		RB_RenderGlobalFog();
 
 		// draw everything that is translucent
-		R_BindFBO(tr.deferredRenderFBO);
+		R_BindFBO(tr.geometricRenderFBO);
 		RB_RenderDrawSurfaces(false, false, DRAWSURFACES_ALL);
 
 		// render debug information
-		R_BindFBO(tr.deferredRenderFBO);
+		R_BindFBO(tr.geometricRenderFBO);
 		RB_RenderDebugUtils();
 
 		// scale down rendered HDR scene to 1 / 4th
 		if(r_hdrRendering->integer)
 		{
+			// FIXME
+
+			/*
 			if(glConfig2.framebufferBlitAvailable)
 			{
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.geometricRenderFBO->frameBuffer);
 				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_quarter->frameBuffer);
 				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 										0, 0, glConfig.vidWidth * 0.25f, glConfig.vidHeight * 0.25f,
 										GL_COLOR_BUFFER_BIT,
 										GL_LINEAR);
 
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.deferredRenderFBO->frameBuffer);
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, tr.geometricRenderFBO->frameBuffer);
 				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, tr.downScaleFBO_64x64->frameBuffer);
 				glBlitFramebufferEXT(0, 0, glConfig.vidWidth, glConfig.vidHeight,
 									   0, 0, 64, 64,
@@ -11959,11 +11957,13 @@ static void RB_RenderView(void)
 			{
 				// FIXME add non EXT_framebuffer_blit code
 			}
+			*/
 
 			RB_CalculateAdaptation();
 		}
 		else
 		{
+			/*
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to downScaleFBO_quarter
@@ -11978,20 +11978,20 @@ static void RB_RenderView(void)
 			{
 				// FIXME add non EXT_framebuffer_blit code
 			}
+			*/
 		}
 
 		GL_CheckErrors();
 
 		// render bloom post process effect
-		RB_RenderBloom();
-
-		*/
+		//RB_RenderBloom();
 
 		// copy offscreen rendered scene to the current OpenGL context
 		RB_RenderDeferredShadingResultToFrameBuffer();
 
 		if(backEnd.viewParms.isPortal)
 		{
+			/*
 			if(glConfig2.framebufferBlitAvailable)
 			{
 				// copy deferredRenderFBO to portalRenderFBO
@@ -12009,6 +12009,7 @@ static void RB_RenderView(void)
 				GL_Bind(tr.portalRenderImage);
 				glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, tr.portalRenderImage->uploadWidth, tr.portalRenderImage->uploadHeight);
 			}
+			*/
 			backEnd.pc.c_portals++;
 		}
 	}

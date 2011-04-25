@@ -526,6 +526,11 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 		   glConfig2.drawBuffersAvailable && glConfig2.maxDrawBuffers >= 4)
 		{
 
+			if(r_deferredShading->integer == DS_STANDARD)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_DeferredShading\n#define r_DeferredShading 1\n#endif\n");
+			}
+
 			if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_DeferredLighting\n#define r_DeferredLighting 1\n#endif\n");
@@ -581,6 +586,7 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 		{
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_showDeluxeMaps\n#define r_showDeluxeMaps 1\n#endif\n");
 		}
+
 #ifdef EXPERIMENTAL
 		if(r_screenSpaceAmbientOcclusion->integer)
 		{
@@ -1273,11 +1279,13 @@ GLShader_generic::GLShader_generic():
 GLShader_lightMapping::GLShader_lightMapping():
 		GLShader(	"lightMapping",
 					ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_NORMAL | ATTR_TANGENT | ATTR_BINORMAL,
-					0,
+					ATTR_COLOR,
 					ATTR_TANGENT2 | ATTR_BINORMAL2),
 		u_DiffuseTextureMatrix(this),
 		u_NormalTextureMatrix(this),
 		u_SpecularTextureMatrix(this),
+		u_ColorModulate(this),
+		u_Color(this),
 		u_AlphaTest(this),
 		u_ViewOrigin(this),
 		u_ModelMatrix(this),

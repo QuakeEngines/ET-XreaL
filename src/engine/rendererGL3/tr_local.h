@@ -89,8 +89,6 @@ typedef unsigned short glIndex_t;
 
 //#define OFFSCREEN_PREPASS_LIGHTING 1
 
-#define DEFERRED_SHADING_Z_PREPASS 1
-
 //#define GLSL_COMPILE_STARTUP_ONLY 1
 
 typedef enum
@@ -3836,6 +3834,9 @@ typedef struct
 	image_t        *quadraticImage;
 	image_t        *whiteImage;	// full of 0xff
 	image_t        *blackImage;	// full of 0x0
+	image_t        *redImage;
+	image_t        *greenImage;
+	image_t        *blueImage;
 	image_t        *flatImage;	// use this as default normalmap
 	image_t        *noFalloffImage;
 	image_t        *attenuationXYImage;

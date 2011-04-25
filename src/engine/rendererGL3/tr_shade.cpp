@@ -2463,8 +2463,6 @@ static void Render_vertexLighting_DBS_world(int stage)
 	}
 	*/
 
-	GL_State(stateBits);
-
 	bool normalMapping = r_normalMapping->integer && (pStage->bundle[TB_NORMALMAP].image[0] != NULL);
 
 	// choose right shader program ----------------------------------
@@ -2512,8 +2510,17 @@ static void Render_vertexLighting_DBS_world(int stage)
 	switch (pStage->alphaGen)
 	{
 		case AGEN_VERTEX:
+			alphaGen = pStage->alphaGen;
+			break;
+
 		case AGEN_ONE_MINUS_VERTEX:
 			alphaGen = pStage->alphaGen;
+
+			/*
+			alphaGen = AGEN_VERTEX;
+			stateBits &= ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS);
+			stateBits |= (GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA);
+			*/
 			break;
 
 		default:
@@ -2521,10 +2528,19 @@ static void Render_vertexLighting_DBS_world(int stage)
 			break;
 	}
 
+	GL_State(stateBits);
+
 	gl_vertexLightingShader_DBS_world->SetUniform_ColorModulate(colorGen, alphaGen);
 
 	// u_Color
-	gl_vertexLightingShader_DBS_world->SetUniform_Color(tess.svars.color);
+	//if(r_showTerrainBlends->integer)
+	//{
+	//	gl_vertexLightingShader_DBS_world->SetUniform_Color(g_color_table[backEnd.pc.c_batches % 8]);
+	//}
+	//else
+	{
+		gl_vertexLightingShader_DBS_world->SetUniform_Color(tess.svars.color);
+	}
 
 	gl_vertexLightingShader_DBS_world->SetUniform_LightWrapAround(RB_EvalExpression(&pStage->wrapAroundLightingExp, 0));
 
@@ -2597,12 +2613,38 @@ static void Render_lightMapping(int stage, bool asColorMap, bool normalMapping)
 {
 	shaderStage_t  *pStage;
 	uint32_t	    stateBits;
+	colorGen_t		rgbGen;
+	alphaGen_t		alphaGen;
 
 	GLimp_LogComment("--- Render_lightMapping ---\n");
 
 	pStage = tess.surfaceStages[stage];
 
 	stateBits = pStage->stateBits;
+
+	switch (pStage->rgbGen)
+	{
+		case CGEN_VERTEX:
+		case CGEN_ONE_MINUS_VERTEX:
+			rgbGen = pStage->rgbGen;
+			break;
+
+		default:
+			rgbGen = CGEN_CONST;
+			break;
+	}
+
+	switch (pStage->alphaGen)
+	{
+		case AGEN_VERTEX:
+		case AGEN_ONE_MINUS_VERTEX:
+			alphaGen = pStage->alphaGen;
+			break;
+
+		default:
+			alphaGen = AGEN_CONST;
+			break;
+	}
 
 	/*
 	if(DS_PREPASS_LIGHTING_ENABLED())
@@ -2654,6 +2696,12 @@ static void Render_lightMapping(int stage, bool asColorMap, bool normalMapping)
 	gl_lightMappingShader->SetUniform_ModelMatrix(backEnd.orientation.transformMatrix);
 	gl_lightMappingShader->SetUniform_ModelViewProjectionMatrix(glState.modelViewProjectionMatrix[glState.stackIndex]);
 	gl_lightMappingShader->SetUniform_AlphaTest(pStage->stateBits);
+
+	// u_ColorModulate
+	gl_lightMappingShader->SetUniform_ColorModulate(rgbGen, alphaGen);
+
+	// u_Color
+	gl_lightMappingShader->SetUniform_Color(tess.svars.color);
 
 	if(r_parallaxMapping->integer)
 	{
@@ -5416,6 +5464,7 @@ void Tess_StageIteratorGeneric()
 void Tess_StageIteratorGBuffer()
 {
 	int             stage;
+	bool			diffuseRendered = false;
 
 	// log this call
 	if(r_logFile->integer)
@@ -5467,35 +5516,23 @@ void Tess_StageIteratorGBuffer()
 
 		switch (pStage->type)
 		{
-			/*
 			case ST_COLORMAP:
 			{
-#if !defined(DEFERRED_SHADING_Z_PREPASS)
-				R_BindFBO(tr.deferredRenderFBO);
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+				
 				Render_generic(stage);
-#endif
 
-#if 1
-				if(tess.surfaceShader->sort <= SS_OPAQUE && !(pStage->stateBits & (GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS)))
+				if(	tess.surfaceShader->sort <= SS_OPAQUE &&
+					!(pStage->stateBits & (GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS)) &&
+					!diffuseRendered)
 				{
-					if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
-					{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-						R_BindFBO(tr.geometricRenderFBO);
-#else
-						R_BindNullFBO();
-#endif
-					}
-					else
-					{
-						R_BindFBO(tr.geometricRenderFBO);
-					}
-					Render_geometricFill_DBS(stage, qtrue);
+					glDrawBuffers(4, geometricRenderTargets);
+
+					Render_geometricFill(stage, true);
 				}
-#endif
 				break;
 			}
-			*/
 
 			case ST_DIFFUSEMAP:
 			case ST_COLLAPSE_lighting_DB:
@@ -5508,61 +5545,43 @@ void Tess_StageIteratorGBuffer()
 				{
 					if(!r_vertexLighting->integer && tess.lightmapNum >= 0 && tess.lightmapNum < tr.lightmaps.currentElements)
 					{
-						/*
 						if(tr.worldDeluxeMapping && r_normalMapping->integer)
 						{
 							Render_lightMapping(stage, false, true);
+							diffuseRendered = true;
 						}
 						else
 						{
 							Render_lightMapping(stage, false, false);
+							diffuseRendered = true;
 						}
-						*/
 					}
 					else if(backEnd.currentEntity != &tr.worldEntity)
 					{
 						Render_vertexLighting_DBS_entity(stage);
+						diffuseRendered = true;
 					}
 					else
 					{
-						//R_BindFBO(tr.geometricRenderFBO);
-						glDrawBuffers(1, geometricRenderTargets);
-						
 						Render_vertexLighting_DBS_world(stage);
+						diffuseRendered = true;
 					}
 				}
 				else
 				{
-					//Render_depthFill(stage);
+					Render_geometricFill(stage, false);
+					diffuseRendered = true;
 				}
-
-				/*
-				if(r_deferredShading->integer == DS_PREPASS_LIGHTING)
-				{
-#if defined(OFFSCREEN_PREPASS_LIGHTING)
-					R_BindFBO(tr.geometricRenderFBO);
-#else
-					R_BindNullFBO();
-#endif
-				}
-				else
-				{
-					R_BindFBO(tr.geometricRenderFBO);
-				}
-				Render_geometricFill(stage, false);
-				*/
 				break;
 			}
 
-#if !defined(DEFERRED_SHADING_Z_PREPASS)
 			case ST_COLLAPSE_reflection_CB:
 			case ST_REFLECTIONMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_reflection_CB(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+				
+				Render_reflection_CB(stage);
 				break;
 			}
 
@@ -5581,64 +5600,57 @@ void Tess_StageIteratorGBuffer()
 
 			case ST_DISPERSIONMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_dispersion_C(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+					
+				Render_dispersion_C(stage);
 				break;
 			}
 
 			case ST_SKYBOXMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_skybox(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+					
+				Render_skybox(stage);
 				break;
 			}
 
 			case ST_SCREENMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_screen(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+					
+				Render_screen(stage);
 				break;
 			}
 
 			case ST_PORTALMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_portal(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+
+				Render_portal(stage);
 				break;
 			}
 
 			case ST_HEATHAZEMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_heatHaze(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+
+				Render_heatHaze(stage);
 				break;
 			}
 
 			case ST_LIQUIDMAP:
 			{
-				if(r_deferredShading->integer == DS_STANDARD)
-				{
-					R_BindFBO(tr.deferredRenderFBO);
-					Render_liquid(stage);
-				}
+				R_BindFBO(tr.geometricRenderFBO);
+				glDrawBuffers(1, geometricRenderTargets);
+
+				Render_liquid(stage);
 				break;
 			}
-#endif
 
 			default:
 				break;

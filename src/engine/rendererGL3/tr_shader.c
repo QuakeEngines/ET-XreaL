@@ -4350,7 +4350,7 @@ static void CollapseStages()
 		}
 
 
-#if 0 // defined(COMPAT_Q3A) || defined(COMPAT_ET)
+#if 0 //defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		for(i = 0; i < 2; i++)
 		{
 			if((j + i) >= MAX_SHADER_STAGES)
