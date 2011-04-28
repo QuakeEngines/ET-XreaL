@@ -436,69 +436,26 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 		srfVBOMDVMesh_t *vboSurface;
 		shader_t       *shader;
 
-		if(r_shadows->integer == SHADOWING_STENCIL)
+		
+		// static VBOs are fine for lighting and shadow mapping
+		for(i = 0; i < model->numVBOSurfaces; i++)
 		{
-			// add shadow interactions because we cannot use shadow volumes with static VBOs ..
-			for(i = 0, mdvSurface = model->surfaces; i < model->numSurfaces; i++, mdvSurface++)
+			vboSurface = model->vboSurfaces[i];
+			mdvSurface = vboSurface->mdvSurface;
+			
+			shader = GetMDVSurfaceShader(ent, mdvSurface);
+
+			// skip all surfaces that don't matter for lighting only pass
+			if(shader->isSky || (!shader->interactLight && shader->noShadows))
+				continue;
+
+			// we will add shadows even if the main object isn't visible in the view
+
+			// don't add third_person objects if not viewing through a portal
+			if(!personalModel)
 			{
-				shader = GetMDVSurfaceShader(ent, mdvSurface);
-
-				// skip all surfaces that don't matter for lighting only pass
-				if(shader->isSky || !shader->interactLight || shader->noShadows)
-					continue;
-
-				// we will add shadows even if the main object isn't visible in the view
-
-				// don't add third_person objects if not viewing through a portal
-				if(!personalModel)
-				{
-					R_AddLightInteraction(light, (void *)mdvSurface, shader, cubeSideBits, IA_SHADOWONLY);
-					tr.pc.c_dlightSurfaces++;
-				}
-			}
-
-			// use static VBOs for lighting only
-			for(i = 0; i < model->numVBOSurfaces; i++)
-			{
-				vboSurface = model->vboSurfaces[i];
-				mdvSurface = vboSurface->mdvSurface;
-
-				shader = GetMDVSurfaceShader(ent, mdvSurface);
-
-				// skip all surfaces that don't matter for lighting only pass
-				if(shader->isSky || (!shader->interactLight && shader->noShadows))
-					continue;
-
-				// don't add third_person objects if not viewing through a portal
-				if(!personalModel)
-				{
-					R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, IA_LIGHTONLY);
-					tr.pc.c_dlightSurfaces++;
-				}
-			}
-		}
-		else
-		{
-			// static VBOs are fine for lighting and shadow mapping
-			for(i = 0; i < model->numVBOSurfaces; i++)
-			{
-				vboSurface = model->vboSurfaces[i];
-				mdvSurface = vboSurface->mdvSurface;
-				
-				shader = GetMDVSurfaceShader(ent, mdvSurface);
-
-				// skip all surfaces that don't matter for lighting only pass
-				if(shader->isSky || (!shader->interactLight && shader->noShadows))
-					continue;
-
-				// we will add shadows even if the main object isn't visible in the view
-
-				// don't add third_person objects if not viewing through a portal
-				if(!personalModel)
-				{
-					R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, iaType);
-					tr.pc.c_dlightSurfaces++;
-				}
+				R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, iaType);
+				tr.pc.c_dlightSurfaces++;
 			}
 		}
 	}

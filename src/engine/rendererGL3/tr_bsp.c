@@ -1333,10 +1333,12 @@ static void ParseFace(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf, 
 		surf->lightmapNum /= 2;
 	}
 
+	/*
 	if(surf->lightmapNum >= tr.lightmaps.currentElements)
 	{
 		ri.Error(ERR_DROP, "Bad lightmap number %i in face surface", surf->lightmapNum);
 	}
+	*/
 
 	// get fog volume
 	surf->fogIndex = LittleLong(ds->fogNum) + 1;
@@ -1606,7 +1608,7 @@ static void ParseMesh(dsurface_t * ds, drawVert_t * verts, bspSurface_t * surf)
 		}
 		R_ColorShiftLightingFloats(points[i].lightColor, points[i].lightColor);
 
-#elif defined(COMPAT_ET)
+#elif defined(COMPAT_Q3A) || defined(COMPAT_ET)
 		for(j = 0; j < 4; j++)
 		{
 			points[i].lightColor[j] = verts[i].color[j] * (1.0f / 255.0f);
@@ -4480,7 +4482,11 @@ static void R_CreateWorldVBO()
 #else
 	s_worldData.vbo = R_CreateVBO2(va("staticBspModel0_VBO %i", 0), numVerts, verts,
 								   ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_TANGENT | ATTR_BINORMAL |
-								   ATTR_NORMAL | ATTR_COLOR | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION, VBO_USAGE_STATIC);
+								   ATTR_NORMAL | ATTR_COLOR 
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
+								   | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION
+#endif
+								   , VBO_USAGE_STATIC);
 #endif
 
 	s_worldData.ibo = R_CreateIBO2(va("staticBspModel0_IBO %i", 0), numTriangles, triangles, VBO_USAGE_STATIC);
@@ -4884,7 +4890,11 @@ static void R_CreateSubModelVBOs()
 				vboSurf->vbo =
 					R_CreateVBO2(va("staticBspModel%i_VBO %i", m, vboSurfaces.currentElements), numVerts, verts,
 								 ATTR_POSITION | ATTR_TEXCOORD | ATTR_LIGHTCOORD | ATTR_TANGENT | ATTR_BINORMAL | ATTR_NORMAL
-								 | ATTR_COLOR | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION, VBO_USAGE_STATIC);
+								 | ATTR_COLOR 
+ #if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
+								 | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION
+#endif
+								 , VBO_USAGE_STATIC);
 #endif
 
 				vboSurf->ibo =
@@ -7066,7 +7076,7 @@ static void R_CreateVBOLightMeshes(trRefLight_t * light)
 	if(!r_vboLighting->integer)
 		return;
 
-	if(r_deferredShading->integer && r_shadows->integer <= SHADOWING_STENCIL)
+	if(r_deferredShading->integer && r_shadows->integer < SHADOWING_VSM16)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -8045,390 +8055,6 @@ static void R_CreateVBOShadowCubeMeshes(trRefLight_t * light)
 	ri.Hunk_FreeTempMemory(iaCachesSorted);
 }
 
-/*
-===============
-R_CreateVBOShadowVolume
-
-Go through all static interactions of this light and create a new VBO shadow volume surface,
-so we can render all static shadows of this light using a single glDrawElements call
-without any renderer backend batching
-===============
-*/
-static void R_CreateVBOShadowVolume(trRefLight_t * light)
-{
-	int             i, j;
-
-	int             numLightVerts;
-	srfVert_t      *lightVerts;
-	srfVert_t      *optimizedLightVerts;
-
-	int             numLightTriangles;
-	srfTriangle_t  *lightTriangles;
-
-	int             numShadowIndexes;
-	int            *shadowIndexes;
-
-	byte           *data;
-	int             dataSize;
-	int             dataOfs;
-
-	byte           *indexes;
-	int             indexesSize;
-	int             indexesOfs;
-
-	interactionVBO_t *iaVBO;
-	interactionCache_t *iaCache;
-
-	bspSurface_t   *surface;
-	srfTriangle_t  *tri;
-	vec4_t          tmp;
-	int             index;
-
-	srfVBOShadowVolume_t *shadowSurf;
-
-	if(r_shadows->integer != SHADOWING_STENCIL)
-		return;
-
-	if(!r_vboShadows->integer)
-		return;
-
-	if(r_deferredShading->integer)
-		return;
-
-	if(!light->firstInteractionCache)
-	{
-		// this light has no interactions precached
-		return;
-	}
-
-	if(light->l.noShadows)
-	{
-		// actually noShadows lights are quite bad concerning this optimization
-		return;
-	}
-
-	// count vertices and indices
-	numLightVerts = 0;
-	numLightTriangles = 0;
-
-	for(iaCache = light->firstInteractionCache; iaCache; iaCache = iaCache->next)
-	{
-		if(iaCache->redundant)
-			continue;
-
-		surface = iaCache->surface;
-
-		if(surface->shader->sort > SS_OPAQUE)
-			continue;
-
-		if(surface->shader->noShadows)
-			continue;
-
-		if(*surface->data == SF_FACE)
-		{
-			srfSurfaceFace_t *srf = (srfSurfaceFace_t *) surface->data;
-
-			if(srf->numTriangles)
-				numLightTriangles += UpdateLightTriangles(srf->verts, srf->numTriangles, srf->triangles, surface->shader, light);
-
-			if(srf->numVerts)
-				numLightVerts += srf->numVerts;
-		}
-		else if(*surface->data == SF_GRID)
-		{
-			srfGridMesh_t  *srf = (srfGridMesh_t *) surface->data;
-
-			if(srf->numTriangles)
-				numLightTriangles += UpdateLightTriangles(srf->verts, srf->numTriangles, srf->triangles, surface->shader, light);
-
-			if(srf->numVerts)
-				numLightVerts += srf->numVerts;
-		}
-		else if(*surface->data == SF_TRIANGLES)
-		{
-			srfTriangles_t *srf = (srfTriangles_t *) surface->data;
-
-			if(srf->numTriangles)
-				numLightTriangles += UpdateLightTriangles(srf->verts, srf->numTriangles, srf->triangles, surface->shader, light);
-
-			if(srf->numVerts)
-				numLightVerts += srf->numVerts;
-		}
-	}
-
-	if(!numLightVerts || !numLightTriangles)
-		return;
-
-	// create light arrays
-	lightVerts = ri.Hunk_AllocateTempMemory(numLightVerts * sizeof(srfVert_t));
-	optimizedLightVerts = ri.Hunk_AllocateTempMemory(numLightVerts * sizeof(srfVert_t));
-	numLightVerts = 0;
-
-	lightTriangles = ri.Hunk_AllocateTempMemory(numLightTriangles * sizeof(srfTriangle_t));
-	shadowIndexes = ri.Hunk_AllocateTempMemory(numLightTriangles * (6 + 2) * 3 * sizeof(int));
-
-	numLightTriangles = 0;
-	numShadowIndexes = 0;
-
-	for(iaCache = light->firstInteractionCache; iaCache; iaCache = iaCache->next)
-	{
-		if(iaCache->redundant)
-			continue;
-
-		surface = iaCache->surface;
-
-		if(surface->shader->sort > SS_OPAQUE)
-			continue;
-
-		if(surface->shader->noShadows)
-			continue;
-
-		// set the interaction to lightonly because we will render the shadows
-		// using the new srfVBOShadowVolume
-		iaCache->type = IA_LIGHTONLY;
-
-		// set up triangle indices
-		//if(iaCache->numLightIndexes)
-		/*
-		   {
-		   for(i = 0; i < iaCache->numLightIndexes / 3; i++)
-		   {
-		   for(j = 0; j < 3; j++)
-		   {
-		   lightTriangles[numLightTriangles + i].indexes[j] = numLightVerts + iaCache->lightIndexes[i * 3 + j];
-		   }
-		   }
-
-		   numLightTriangles += iaCache->numLightIndexes / 3;
-		   }
-		 */
-
-		if(*surface->data == SF_FACE)
-		{
-			srfSurfaceFace_t *srf = (srfSurfaceFace_t *) surface->data;
-
-			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
-			{
-				if(tri->facingLight)
-				{
-					for(j = 0; j < 3; j++)
-					{
-						lightTriangles[numLightTriangles].indexes[j] = numLightVerts + tri->indexes[j];
-					}
-
-					numLightTriangles++;
-				}
-			}
-
-			if(srf->numVerts)
-			{
-				for(i = 0; i < srf->numVerts; i++)
-				{
-					CopyVert(&srf->verts[i], &lightVerts[numLightVerts + i]);
-				}
-
-				numLightVerts += srf->numVerts;
-			}
-		}
-		else if(*surface->data == SF_GRID)
-		{
-			srfGridMesh_t  *srf = (srfGridMesh_t *) surface->data;
-
-			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
-			{
-				if(tri->facingLight)
-				{
-					for(j = 0; j < 3; j++)
-					{
-						lightTriangles[numLightTriangles].indexes[j] = numLightVerts + tri->indexes[j];
-					}
-
-					numLightTriangles++;
-				}
-			}
-
-			if(srf->numVerts)
-			{
-				for(i = 0; i < srf->numVerts; i++)
-				{
-					CopyVert(&srf->verts[i], &lightVerts[numLightVerts + i]);
-				}
-
-				numLightVerts += srf->numVerts;
-			}
-		}
-		else if(*surface->data == SF_TRIANGLES)
-		{
-			srfTriangles_t *srf = (srfTriangles_t *) surface->data;
-
-			for(i = 0, tri = srf->triangles; i < srf->numTriangles; i++, tri++)
-			{
-				if(tri->facingLight)
-				{
-					for(j = 0; j < 3; j++)
-					{
-						lightTriangles[numLightTriangles].indexes[j] = numLightVerts + tri->indexes[j];
-					}
-
-					numLightTriangles++;
-				}
-			}
-
-			if(srf->numVerts)
-			{
-				for(i = 0; i < srf->numVerts; i++)
-				{
-					CopyVert(&srf->verts[i], &lightVerts[numLightVerts + i]);
-				}
-
-				numLightVerts += srf->numVerts;
-			}
-		}
-	}
-
-	// remove duplicated vertices that don't matter
-	numLightVerts =
-		OptimizeVertices(numLightVerts, lightVerts, numLightTriangles, lightTriangles, optimizedLightVerts,
-						 CompareShadowVolumeVert);
-	if(c_redundantVertexes)
-	{
-		ri.Printf(PRINT_DEVELOPER, "...removed %i redundant vertices from staticShadowVolume %i ( %i verts %i tris )\n",
-				  c_redundantVertexes, c_vboShadowSurfaces, numLightVerts, numLightTriangles);
-	}
-
-	// use optimized light triangles to create new neighbor information for them
-	R_CalcSurfaceTriangleNeighbors(numLightTriangles, lightTriangles);
-
-
-	// calculate zfail shadow volume using the triangles' neighbor information
-
-	// set up indices for silhouette edges
-	for(i = 0, tri = lightTriangles; i < numLightTriangles; i++, tri++)
-	{
-		if(tri->neighbors[0] < 0)
-		{
-			shadowIndexes[numShadowIndexes + 0] = tri->indexes[1];
-			shadowIndexes[numShadowIndexes + 1] = tri->indexes[0];
-			shadowIndexes[numShadowIndexes + 2] = tri->indexes[0] + numLightVerts;
-
-			shadowIndexes[numShadowIndexes + 3] = tri->indexes[1];
-			shadowIndexes[numShadowIndexes + 4] = tri->indexes[0] + numLightVerts;
-			shadowIndexes[numShadowIndexes + 5] = tri->indexes[1] + numLightVerts;
-
-			numShadowIndexes += 6;
-		}
-
-		if(tri->neighbors[1] < 0)
-		{
-			shadowIndexes[numShadowIndexes + 0] = tri->indexes[2];
-			shadowIndexes[numShadowIndexes + 1] = tri->indexes[1];
-			shadowIndexes[numShadowIndexes + 2] = tri->indexes[1] + numLightVerts;
-
-			shadowIndexes[numShadowIndexes + 3] = tri->indexes[2];
-			shadowIndexes[numShadowIndexes + 4] = tri->indexes[1] + numLightVerts;
-			shadowIndexes[numShadowIndexes + 5] = tri->indexes[2] + numLightVerts;
-
-			numShadowIndexes += 6;
-		}
-
-		if(tri->neighbors[2] < 0)
-		{
-			shadowIndexes[numShadowIndexes + 0] = tri->indexes[0];
-			shadowIndexes[numShadowIndexes + 1] = tri->indexes[2];
-			shadowIndexes[numShadowIndexes + 2] = tri->indexes[2] + numLightVerts;
-
-			shadowIndexes[numShadowIndexes + 3] = tri->indexes[0];
-			shadowIndexes[numShadowIndexes + 4] = tri->indexes[2] + numLightVerts;
-			shadowIndexes[numShadowIndexes + 5] = tri->indexes[0] + numLightVerts;
-
-			numShadowIndexes += 6;
-		}
-	}
-
-	// set up indices for light and dark caps
-	for(i = 0, tri = lightTriangles; i < numLightTriangles; i++, tri++)
-	{
-		// light cap
-		shadowIndexes[numShadowIndexes + 0] = tri->indexes[0];
-		shadowIndexes[numShadowIndexes + 1] = tri->indexes[1];
-		shadowIndexes[numShadowIndexes + 2] = tri->indexes[2];
-
-		// dark cap
-		shadowIndexes[numShadowIndexes + 3] = tri->indexes[2] + numLightVerts;
-		shadowIndexes[numShadowIndexes + 4] = tri->indexes[1] + numLightVerts;
-		shadowIndexes[numShadowIndexes + 5] = tri->indexes[0] + numLightVerts;
-
-		numShadowIndexes += 6;
-	}
-
-	//ri.Printf(PRINT_ALL, "...calculating shadow volume VBOs %i verts %i tris\n", numLightVerts * 2, numShadowIndexes / 3);
-
-	// create surface
-	shadowSurf = ri.Hunk_Alloc(sizeof(*shadowSurf), h_low);
-	shadowSurf->surfaceType = SF_VBO_SHADOW_VOLUME;
-	shadowSurf->numIndexes = numShadowIndexes;
-	shadowSurf->numVerts = numLightVerts * 2;
-
-	// create VBOs
-	dataSize = numLightVerts * (sizeof(vec4_t) * 2);
-	data = ri.Hunk_AllocateTempMemory(dataSize);
-	dataOfs = 0;
-
-	indexesSize = numShadowIndexes * sizeof(int);
-	indexes = ri.Hunk_AllocateTempMemory(indexesSize);
-	indexesOfs = 0;
-
-	// set up triangle indices
-	for(i = 0; i < numShadowIndexes; i++)
-	{
-		index = shadowIndexes[i];
-
-		memcpy(indexes + indexesOfs, &index, sizeof(int));
-		indexesOfs += sizeof(int);
-	}
-
-	// set up xyz array
-	for(i = 0; i < numLightVerts; i++)
-	{
-		for(j = 0; j < 3; j++)
-		{
-			tmp[j] = optimizedLightVerts[i].xyz[j];
-		}
-		tmp[3] = 1;
-
-		memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
-		dataOfs += sizeof(vec4_t);
-	}
-
-	for(i = 0; i < numLightVerts; i++)
-	{
-		for(j = 0; j < 3; j++)
-		{
-			tmp[j] = optimizedLightVerts[i].xyz[j];
-		}
-		tmp[3] = 0;
-
-		memcpy(data + dataOfs, (vec_t *) tmp, sizeof(vec4_t));
-		dataOfs += sizeof(vec4_t);
-	}
-
-	shadowSurf->vbo = R_CreateVBO(va("staticShadowVolume_VBO %i", c_vboShadowSurfaces), data, dataSize, VBO_USAGE_STATIC);
-	shadowSurf->ibo = R_CreateIBO(va("staticShadowVolume_IBO %i", c_vboShadowSurfaces), indexes, indexesSize, VBO_USAGE_STATIC);
-
-	ri.Hunk_FreeTempMemory(indexes);
-	ri.Hunk_FreeTempMemory(data);
-	ri.Hunk_FreeTempMemory(shadowIndexes);
-	ri.Hunk_FreeTempMemory(lightTriangles);
-	ri.Hunk_FreeTempMemory(optimizedLightVerts);
-	ri.Hunk_FreeTempMemory(lightVerts);
-
-	// add everything needed to the light
-	iaVBO = R_CreateInteractionVBO(light);
-	iaVBO->vboShadowVolume = (struct srfVBOShadowVolume_s *)shadowSurf;
-
-	c_vboShadowSurfaces++;
-}
-
 static void R_CalcInteractionCubeSideBits(trRefLight_t * light)
 {
 	interactionCache_t *iaCache;
@@ -8608,9 +8234,6 @@ void R_PrecacheInteractions()
 
 		// create a static VBO surface for each light geometry batch inside a cubemap pyramid
 		R_CreateVBOShadowCubeMeshes(light);
-
-		// create a static VBO surface of all shadow volumes
-		R_CreateVBOShadowVolume(light);
 	}
 
 	// move interactions grow list to hunk
@@ -9089,8 +8712,11 @@ void R_BuildCubeMaps(void)
 
 			do
 			{
-				ri.Printf(PRINT_ALL, "*"); 
+				ri.Printf(PRINT_ALL, "*");
+			
+				#if defined(COMPAT_ET) 
 				ri.Cmd_ExecuteText(EXEC_NOW, "updatescreen\n");
+				#endif
 
 			} while ( ++tics < ticsNeeded );
 
@@ -9472,6 +9098,8 @@ void RE_LoadWorldMap(const char *name)
 	// TODO:(SA)this is sort of silly.  I'm going to do a general cleanup on fog stuff
 	//          now that I can see how it's been used.  (functionality can narrow since
 	//          it's not used as much as it's designed for.)
+
+#if defined(COMPAT_ET)
 	RE_SetFog(FOG_SKY, 0, 0, 0, 0, 0, 0);
 	RE_SetFog(FOG_PORTALVIEW, 0, 0, 0, 0, 0, 0);
 	RE_SetFog(FOG_HUD, 0, 0, 0, 0, 0, 0);
@@ -9482,6 +9110,7 @@ void RE_LoadWorldMap(const char *name)
 	RE_SetFog(FOG_SERVER, 0, 0, 0, 0, 0, 0);
 
 	tr.glfogNum = 0;
+#endif
 
 	VectorCopy(colorMdGrey, tr.fogColor);
 	tr.fogDensity = 0;
@@ -9579,8 +9208,10 @@ void RE_LoadWorldMap(const char *name)
 	// only set tr.world now that we know the entire level has loaded properly
 	tr.world = &s_worldData;
 
+#if defined(COMPAT_ET)
 	// reset fog to world fog (if present)
 	RE_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP, 20, 0, 0, 0, 0);
+#endif
 
 	// make sure the VBO glState entries are save
 	R_BindNullVBO();

@@ -692,6 +692,41 @@ void R_InitFBOs(void)
 
 			R_CheckFBO(tr.shadowMapFBO[i]);
 		}
+
+
+		// sun requires different resolutions
+		for(i = 0; i < MAX_SHADOWMAPS; i++)
+		{
+			width = height = sunShadowMapResolutions[i];
+
+			tr.sunShadowMapFBO[i] = R_CreateFBO(va("_sunShadowMap%d", i), width, height);
+			R_BindFBO(tr.sunShadowMapFBO[i]);
+
+			if(glConfig.hardwareType == GLHW_ATI)
+			{
+				R_CreateFBOColorBuffer(tr.sunShadowMapFBO[i], GL_RGBA16, 0);
+			}
+			else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM16)
+			{
+				R_CreateFBOColorBuffer(tr.sunShadowMapFBO[i], GL_LUMINANCE_ALPHA16F_ARB, 0);
+			}
+			else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
+			{
+				R_CreateFBOColorBuffer(tr.sunShadowMapFBO[i], GL_LUMINANCE_ALPHA32F_ARB, 0);
+			}
+			else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_ESM)
+			{
+				R_CreateFBOColorBuffer(tr.sunShadowMapFBO[i], GL_ALPHA32F_ARB, 0);
+			}
+			else
+			{
+				R_CreateFBOColorBuffer(tr.sunShadowMapFBO[i], GL_RGBA16F_ARB, 0);
+			}
+
+			R_CreateFBODepthBuffer(tr.sunShadowMapFBO[i], GL_DEPTH_COMPONENT24_ARB);
+
+			R_CheckFBO(tr.sunShadowMapFBO[i]);
+		}
 	}
 
 	{

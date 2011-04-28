@@ -287,6 +287,7 @@ VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * vert
 		}
 	}
 
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 	// feed vertex paint colors
 	if(stateBits & ATTR_PAINTCOLOR)
 	{
@@ -319,6 +320,7 @@ VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * vert
 			dataOfs += sizeof(vec4_t);
 		}
 	}
+#endif
 
 	vbo->vertexesSize = dataSize;
 	vbo->vertexesNum = numVertexes;

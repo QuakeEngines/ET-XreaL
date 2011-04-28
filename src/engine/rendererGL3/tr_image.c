@@ -3178,6 +3178,38 @@ static void R_CreateShadowMapFBOImage(void)
 
 		ri.Hunk_FreeTempMemory(data);
 	}
+
+
+	// sun shadow maps
+	for(i = 0; i < MAX_SHADOWMAPS; i++)
+	{
+		width = height = sunShadowMapResolutions[i];
+
+		data = ri.Hunk_AllocateTempMemory(width * height * 4);
+
+		if(glConfig.hardwareType == GLHW_ATI)
+		{
+			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+		}
+		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM16)
+		{
+			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+		}
+		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
+		{
+			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+		}
+		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_ESM)
+		{
+			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+		}
+		else
+		{
+			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+		}
+
+		ri.Hunk_FreeTempMemory(data);
+	}
 }
 // *INDENT-ON*
 
@@ -3188,7 +3220,7 @@ static void R_CreateShadowCubeFBOImage(void)
 	int             width, height;
 	byte           *data[6];
 
-	if(!glConfig2.textureFloatAvailable || r_shadows->integer <= SHADOWING_STENCIL)
+	if(!glConfig2.textureFloatAvailable || r_shadows->integer < SHADOWING_VSM16)
 		return;
 
 	for(j = 0; j < 5; j++)

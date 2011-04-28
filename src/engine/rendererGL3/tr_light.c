@@ -845,25 +845,25 @@ void R_SetupLightFrustum(trRefLight_t * light)
 					// draw outer surfaces
 					for(j = 0; j < 4; j++)
 					{
-						Vector4Set(quadVerts[0], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
-						Vector4Set(quadVerts[1], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
-						Vector4Set(quadVerts[2], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
-						Vector4Set(quadVerts[3], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
+						Vector4Set(quadVerts[3], nearCorners[j][0], nearCorners[j][1], nearCorners[j][2], 1);
+						Vector4Set(quadVerts[2], farCorners[j][0], farCorners[j][1], farCorners[j][2], 1);
+						Vector4Set(quadVerts[1], farCorners[(j + 1) % 4][0], farCorners[(j + 1) % 4][1], farCorners[(j + 1) % 4][2], 1);
+						Vector4Set(quadVerts[0], nearCorners[(j + 1) % 4][0], nearCorners[(j + 1) % 4][1], nearCorners[(j + 1) % 4][2], 1);
 						Tess_AddQuadStamp2(quadVerts, colorCyan);
 					}
 
 					// draw far cap
-					Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-					Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-					Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-					Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[0], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[1], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+					Vector4Set(quadVerts[2], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+					Vector4Set(quadVerts[3], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorRed);
 
 					// draw near cap
-					Vector4Set(quadVerts[0], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
-					Vector4Set(quadVerts[1], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
-					Vector4Set(quadVerts[2], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
-					Vector4Set(quadVerts[3], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
+					Vector4Set(quadVerts[3], nearCorners[0][0], nearCorners[0][1], nearCorners[0][2], 1);
+					Vector4Set(quadVerts[2], nearCorners[1][0], nearCorners[1][1], nearCorners[1][2], 1);
+					Vector4Set(quadVerts[1], nearCorners[2][0], nearCorners[2][1], nearCorners[2][2], 1);
+					Vector4Set(quadVerts[0], nearCorners[3][0], nearCorners[3][1], nearCorners[3][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorGreen);
 
 				}
@@ -877,7 +877,7 @@ void R_SetupLightFrustum(trRefLight_t * light)
 					// draw pyramid
 					for(j = 0; j < 4; j++)
 					{
-						VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
+						VectorCopy(top, tess.xyz[tess.numVertexes]);
 						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
@@ -887,16 +887,16 @@ void R_SetupLightFrustum(trRefLight_t * light)
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 
-						VectorCopy(top, tess.xyz[tess.numVertexes]);
+						VectorCopy(farCorners[j], tess.xyz[tess.numVertexes]);
 						Vector4Copy(colorCyan, tess.colors[tess.numVertexes]);
 						tess.indexes[tess.numIndexes++] = tess.numVertexes;
 						tess.numVertexes++;
 					}
 
-					Vector4Set(quadVerts[0], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
-					Vector4Set(quadVerts[1], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
-					Vector4Set(quadVerts[2], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
-					Vector4Set(quadVerts[3], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[0], farCorners[0][0], farCorners[0][1], farCorners[0][2], 1);
+					Vector4Set(quadVerts[1], farCorners[1][0], farCorners[1][1], farCorners[1][2], 1);
+					Vector4Set(quadVerts[2], farCorners[2][0], farCorners[2][1], farCorners[2][2], 1);
+					Vector4Set(quadVerts[3], farCorners[3][0], farCorners[3][1], farCorners[3][2], 1);
 					Tess_AddQuadStamp2(quadVerts, colorRed);
 				}
 
@@ -1401,13 +1401,15 @@ void R_SetupLightScissor(trRefLight_t * light)
 	light->scissor.coords[2] = tr.viewParms.viewportX + tr.viewParms.viewportWidth;
 	light->scissor.coords[3] = tr.viewParms.viewportY + tr.viewParms.viewportHeight;
 
+	light->clipsNearPlane = (BoxOnPlaneSide(light->worldBounds[0], light->worldBounds[1], &tr.viewParms.frustums[0][FRUSTUM_NEAR]) == 3);
+
 	if(glConfig2.occlusionQueryAvailable)
 	{
 		light->noOcclusionQueries = qfalse;
 	}
 
 	// check if the light volume clips agains the near plane
-	if(r_noLightScissors->integer || BoxOnPlaneSide(light->worldBounds[0], light->worldBounds[1], &tr.viewParms.frustums[0][FRUSTUM_NEAR]) == 3)
+	if(r_noLightScissors->integer || light->clipsNearPlane)
 	{
 		if(glConfig2.occlusionQueryAvailable)
 		{
@@ -1422,14 +1424,6 @@ void R_SetupLightScissor(trRefLight_t * light)
 		// that were not killed by the PVS
 		return;
 	}
-
-#if 0
-	if(r_shadows->integer != SHADOWING_STENCIL)
-	{
-		// we don't need it for any other mode ...
-		return;
-	}
-#endif
 
 	// transform local light corners to world space -> eye space -> clip space -> window space
 	// and extend the light scissor's mins maxs by resulting window coords

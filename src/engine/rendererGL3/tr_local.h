@@ -378,6 +378,8 @@ typedef struct trRefLight_s
 	float           depthFar;
 	qboolean        noDepthBoundsTest;
 
+	qboolean		clipsNearPlane;
+
 	qboolean        noOcclusionQueries;
 	uint32_t        occlusionQueryObject;
 	uint32_t        occlusionQuerySamples;
@@ -429,7 +431,6 @@ typedef struct
 	vec3_t          lightDir;	// normalized direction towards light
 	vec3_t          ambientLight;	// color normalized to 0-1
 	vec3_t          directedLight;
-	qboolean        needZFail;
 
 	cullResult_t    cull;
 	vec3_t          localBounds[2];
@@ -1185,8 +1186,11 @@ enum
 	ATTR_INDEX_BINORMAL,
 	ATTR_INDEX_NORMAL,
 	ATTR_INDEX_COLOR,
+
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 	ATTR_INDEX_PAINTCOLOR,
 	ATTR_INDEX_LIGHTDIRECTION,
+#endif
 
 	// GPU vertex skinning
 	ATTR_INDEX_BONE_INDEXES,
@@ -1288,8 +1292,11 @@ enum
 	ATTR_BINORMAL = BIT(4),
 	ATTR_NORMAL = BIT(5),
 	ATTR_COLOR = BIT(6),
+
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 	ATTR_PAINTCOLOR = BIT(7),
 	ATTR_LIGHTDIRECTION = BIT(8),
+#endif
 	
 	ATTR_BONE_INDEXES = BIT(9),
 	ATTR_BONE_WEIGHTS = BIT(10),
@@ -1310,8 +1317,12 @@ enum
 				ATTR_BINORMAL |
 				ATTR_NORMAL |
 				ATTR_COLOR |
+
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 				ATTR_PAINTCOLOR |
 				ATTR_LIGHTDIRECTION |
+#endif
+
 				ATTR_BONE_INDEXES |
 				ATTR_BONE_WEIGHTS
 };
@@ -1323,7 +1334,7 @@ enum
 typedef struct shaderProgram_s
 {
 	char            name[MAX_QPATH];
-	uint32_t        compileMacroBits;
+	char           *compileMacros;
 
 	GLhandleARB     program;
 	uint32_t        attribs;	// vertex array attributes
@@ -1415,7 +1426,6 @@ typedef struct shaderProgram_s
 	matrix_t		t_LightAttenuationMatrix;
 
 	int16_t         u_LightFrustum;
-	vec4_t			t_LightFrustum;
 
 	int16_t         u_ShadowMatrix;
 	matrix_t		t_ShadowMatrix;
@@ -1959,19 +1969,6 @@ static ID_INLINE void GLSL_SetUniform_LightAttenuationMatrix(shaderProgram_t * p
 	glUniformMatrix4fvARB(program->u_LightAttenuationMatrix, 1, GL_FALSE, m);
 }
 
-/*
-static ID_INLINE void GLSL_SetUniform_LightFrustum(shaderProgram_t * program, vec4_t lightFrustum[6])
-{
-	vec4_t          lightFrustum[6];
-#if 1
-	if(memcmp(program->t_LightFrustum, m))
-		return;
-#endif
-
-	glUniform4fvARB(tr.deferredLightingShader_DBS_omni.u_LightFrustum, 6, &lightFrustum[0][0]);
-}
-*/
-
 
 static ID_INLINE void GLSL_SetUniform_ShadowMatrix(shaderProgram_t * program, matrix_t m[MAX_SHADOWMAPS])
 {
@@ -2469,7 +2466,9 @@ typedef struct
 	int             pixelTargetWidth;
 	int             pixelTargetHeight;
 
+#if defined(COMPAT_ET)
 	glfog_t         glFog;				// (SA) added (needed to pass fog infos into the portal sky scene)
+#endif
 } trRefdef_t;
 
 
@@ -2626,7 +2625,6 @@ typedef enum
 	SF_VBO_MDMMESH,
 #endif
 	SF_VBO_MDVMESH,
-	SF_VBO_SHADOW_VOLUME,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -2672,7 +2670,6 @@ typedef struct interactionVBO_s
 	struct shader_s *shader;
 	struct srfVBOMesh_s *vboLightMesh;
 	struct srfVBOMesh_s *vboShadowMesh;
-	struct srfVBOShadowVolume_s *vboShadowVolume;	// only if cg_shadows 3
 
 	struct interactionVBO_s *next;
 } interactionVBO_t;
@@ -2979,19 +2976,6 @@ typedef struct srfVBOMDVMesh_s
 	VBO_t          *vbo;
 	IBO_t          *ibo;
 } srfVBOMDVMesh_t;
-
-typedef struct srfVBOShadowVolume_s
-{
-	surfaceType_t   surfaceType;
-
-	// backEnd stats
-	int             numIndexes;
-	int             numVerts;
-
-	// static render data
-	VBO_t          *vbo;
-	IBO_t          *ibo;
-} srfVBOShadowVolume_t;
 
 
 extern void     (*rb_surfaceTable[SF_NUM_SURFACE_TYPES]) (void *);
@@ -3840,6 +3824,7 @@ typedef struct
 //	image_t        *downScaleFBOImage_1x1;
 	image_t        *shadowMapFBOImage[MAX_SHADOWMAPS];
 	image_t        *shadowCubeFBOImage[MAX_SHADOWMAPS];
+	image_t        *sunShadowMapFBOImage[MAX_SHADOWMAPS];
 
 	// external images
 	image_t        *charsetImage;
@@ -3860,6 +3845,7 @@ typedef struct
 	FBO_t          *contrastRenderFBO;
 	FBO_t          *bloomRenderFBO[2];
 	FBO_t          *shadowMapFBO[MAX_SHADOWMAPS];
+	FBO_t          *sunShadowMapFBO[MAX_SHADOWMAPS];
 
 	// vertex buffer objects
 	VBO_t          *unitCubeVBO;
@@ -3895,21 +3881,10 @@ typedef struct
 	//
 	// GPU shader programs
 	//
-#if !defined(USE_D3D10)
 
 #if !defined(GLSL_COMPILE_STARTUP_ONLY)
-	// deferred lighting
-	shaderProgram_t deferredLightingShader_DBS_proj;
-	shaderProgram_t deferredLightingShader_DBS_directional;
-
 	// depth to color encoding
 	shaderProgram_t depthToColorShader;
-
-	// stencil shadow volume extrusion
-	shaderProgram_t shadowExtrudeShader;
-
-	// forward shading using the pre pass light buffer
-	shaderProgram_t forwardLightingShader_DBS_post;
 
 #ifdef VOLUMETRIC_LIGHTING
 	// volumetric lighting
@@ -3929,11 +3904,9 @@ typedef struct
 #ifdef EXPERIMENTAL
 	shaderProgram_t depthOfFieldShader;
 #endif
-	shaderProgram_t debugShadowMapShader;
 
 #endif // GLSL_COMPILE_STARTUP_ONLY
 
-#endif // !defined(USE_D3D10)
 
 	// -----------------------------------------
 
@@ -3958,8 +3931,10 @@ typedef struct
 	vec3_t          fogColor;
 	float           fogDensity;
 	
+#if defined(COMPAT_ET)
 	glfog_t         glfogsettings[NUM_FOGS];
 	glfogType_t     glfogNum;
+#endif
 
 	frontEndCounters_t pc;
 	int             frontEndMsec;	// not in pc due to clearing issue
@@ -4018,6 +3993,7 @@ extern const matrix_t quakeToD3DMatrix;
 extern const matrix_t flipZMatrix;
 extern const GLenum	geometricRenderTargets[];
 extern int      shadowMapResolutions[5];
+extern int      sunShadowMapResolutions[5];
 
 extern backEndState_t backEnd;
 extern trGlobals_t tr;
@@ -4161,12 +4137,20 @@ extern cvar_t  *r_shadows;		// controls shadows: 0 = none, 1 = blur, 2 = black p
 								// 4 = shadow mapping
 extern cvar_t  *r_softShadows;
 extern cvar_t  *r_shadowBlur;
+
 extern cvar_t  *r_shadowMapQuality;
 extern cvar_t  *r_shadowMapSizeUltra;
-extern cvar_t  *r_shadowMapSizeVery;
+extern cvar_t  *r_shadowMapSizeVeryHigh;
 extern cvar_t  *r_shadowMapSizeHigh;
 extern cvar_t  *r_shadowMapSizeMedium;
 extern cvar_t  *r_shadowMapSizeLow;
+
+extern cvar_t  *r_shadowMapSizeSunUltra;
+extern cvar_t  *r_shadowMapSizeSunVeryHigh;
+extern cvar_t  *r_shadowMapSizeSunHigh;
+extern cvar_t  *r_shadowMapSizeSunMedium;
+extern cvar_t  *r_shadowMapSizeSunLow;
+
 extern cvar_t  *r_shadowOffsetFactor;
 extern cvar_t  *r_shadowOffsetUnits;
 extern cvar_t  *r_shadowLodBias;
@@ -4620,7 +4604,6 @@ typedef struct shaderCommands_s
 
 	qboolean        skipTangentSpaces;
 	qboolean		skipVBO;
-	qboolean        shadowVolume;
 	int16_t         lightmapNum;
 	int16_t			fogNum;
 
@@ -4655,7 +4638,6 @@ void            Tess_Begin(	void (*stageIteratorFunc)(),
 							shader_t * surfaceShader, shader_t * lightShader,
 							qboolean skipTangentSpaces,
 							qboolean skipVBO,
-							qboolean shadowVolume,
 							int lightmapNum,
 							int	fogNum);
 // *INDENT-ON*
@@ -4672,8 +4654,6 @@ void            Tess_StageIteratorGBuffer();
 void            Tess_StageIteratorGBufferNormalsOnly();
 void            Tess_StageIteratorDepthFill();
 void            Tess_StageIteratorShadowFill();
-void            Tess_StageIteratorStencilShadowVolume();
-void            Tess_StageIteratorStencilLighting();
 void            Tess_StageIteratorLighting();
 void            Tess_StageIteratorSky();
 
@@ -4776,13 +4756,14 @@ FOG, tr_fog.c
 ============================================================
 */
 
+#if defined(COMPAT_ET)
 void			R_SetFrameFog();
 void			RB_Fog(glfog_t * curfog);
 void			RB_FogOff();
 void			RB_FogOn();
 void			RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density);
 void			RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque);
-
+#endif
 
 
 

@@ -906,7 +906,7 @@ void Tess_StageIteratorSky(void)
 
 		if(tess.stageIteratorFunc2 == &Tess_StageIteratorGBuffer)
 		{
-			R_BindFBO(tr.deferredRenderFBO);
+			R_BindFBO(tr.geometricRenderFBO);
 		}
 
 		// go through all the polygons and project them onto

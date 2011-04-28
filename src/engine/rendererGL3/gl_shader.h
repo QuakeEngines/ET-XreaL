@@ -204,6 +204,7 @@ protected:
 	{
 		USE_ALPHA_TESTING,
 		USE_PORTAL_CLIPPING,
+		USE_FRUSTUM_CLIPPING,
 		USE_VERTEX_SKINNING,
 		USE_VERTEX_ANIMATION,
 		USE_DEFORM_VERTEXES,
@@ -292,6 +293,30 @@ public:
 	void DisablePortalClipping()	{ DisableMacro(); }
 
 	void SetPortalClipping(bool enable)
+	{
+		if(enable)
+			EnableMacro();
+		else
+			DisableMacro();
+	}
+};
+
+class GLCompileMacro_USE_FRUSTUM_CLIPPING:
+GLCompileMacro
+{
+public:
+	GLCompileMacro_USE_FRUSTUM_CLIPPING(GLShader* shader):
+	  GLCompileMacro(shader)
+	{
+	}
+
+	const char* GetName() const { return "USE_FRUSTUM_CLIPPING"; }
+	EGLCompileMacro GetType() const { return USE_FRUSTUM_CLIPPING; }
+
+	void EnableFrustumClipping()		{ EnableMacro(); }
+	void DisableFrustumClipping()		{ DisableMacro(); }
+
+	void SetFrustumClipping(bool enable)
 	{
 		if(enable)
 			EnableMacro();
@@ -995,6 +1020,52 @@ public:
 	}
 };
 
+
+class u_LightFrustum:
+GLUniform
+{
+public:
+	u_LightFrustum(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_LightFrustum"; }
+	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightFrustum); }
+
+	void SetUniform_LightFrustum(vec4_t lightFrustum[6])
+	{
+		shaderProgram_t* program = _shader->GetProgram();
+
+#if 0
+		if(memcmp(program->t_LightFrustum, m))
+			return;
+#endif
+
+#if defined(LOG_GLSL_UNIFORMS)
+		if(r_logFile->integer)
+		{
+			GLimp_LogComment(va("--- SetUniform_LightFrustum( program = %s, "
+								"( %5.3f, %5.3f, %5.3f, %5.3f )\n"
+								"( %5.3f, %5.3f, %5.3f, %5.3f )\n"
+								"( %5.3f, %5.3f, %5.3f, %5.3f )\n"
+								"( %5.3f, %5.3f, %5.3f, %5.3f )\n"
+								"( %5.3f, %5.3f, %5.3f, %5.3f )\n"
+								"( %5.3f, %5.3f, %5.3f, %5.3f ) ) ---\n",
+								program->name,
+								lightFrustum[0][0], lightFrustum[0][1], lightFrustum[0][2], lightFrustum[0][3],
+								lightFrustum[1][0], lightFrustum[1][1], lightFrustum[1][2], lightFrustum[1][3],
+								lightFrustum[2][0], lightFrustum[2][1], lightFrustum[2][2], lightFrustum[2][3],
+								lightFrustum[3][0], lightFrustum[3][1], lightFrustum[3][2], lightFrustum[3][3],
+								lightFrustum[4][0], lightFrustum[4][1], lightFrustum[4][2], lightFrustum[4][3],
+								lightFrustum[5][0], lightFrustum[5][1], lightFrustum[5][2], lightFrustum[5][3]
+								));
+		}
+#endif
+
+		glUniform4fvARB(program->u_LightFrustum, 6, &lightFrustum[0][0]);
+	}
+};
 
 
 class u_ShadowTexelSize:
@@ -2047,6 +2118,7 @@ public u_LightRadius,
 public u_LightScale,
 public u_LightWrapAround,
 public u_LightAttenuationMatrix,
+public u_LightFrustum,
 public u_ShadowTexelSize,
 public u_ShadowBlur,
 public u_ModelMatrix,
@@ -2055,12 +2127,73 @@ public u_UnprojectMatrix,
 public u_PortalPlane,
 public GLDeformStage,
 public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_FRUSTUM_CLIPPING,
 public GLCompileMacro_USE_NORMAL_MAPPING,
 public GLCompileMacro_USE_SHADOWING//,
 //public GLCompileMacro_TWOSIDED
 {
 public:
 	GLShader_deferredLighting_omniXYZ();
+};
+
+
+class GLShader_deferredLighting_projXYZ:
+public GLShader,
+public u_ViewOrigin,
+public u_LightOrigin,
+public u_LightColor,
+public u_LightRadius,
+public u_LightScale,
+public u_LightWrapAround,
+public u_LightAttenuationMatrix,
+public u_LightFrustum,
+public u_ShadowTexelSize,
+public u_ShadowBlur,
+public u_ShadowMatrix,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix,
+public u_UnprojectMatrix,
+public u_PortalPlane,
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_FRUSTUM_CLIPPING,
+public GLCompileMacro_USE_NORMAL_MAPPING,
+public GLCompileMacro_USE_SHADOWING//,
+//public GLCompileMacro_TWOSIDED
+{
+public:
+	GLShader_deferredLighting_projXYZ();
+};
+
+
+class GLShader_deferredLighting_directionalSun:
+public GLShader,
+public u_ViewOrigin,
+public u_LightDir,
+public u_LightColor,
+public u_LightRadius,
+public u_LightScale,
+public u_LightWrapAround,
+public u_LightAttenuationMatrix,
+public u_LightFrustum,
+public u_ShadowTexelSize,
+public u_ShadowBlur,
+public u_ShadowMatrix,
+public u_ShadowParallelSplitDistances,
+public u_ModelMatrix,
+public u_ModelViewProjectionMatrix,
+public u_ViewMatrix,
+public u_UnprojectMatrix,
+public u_PortalPlane,
+public GLDeformStage,
+public GLCompileMacro_USE_PORTAL_CLIPPING,
+public GLCompileMacro_USE_FRUSTUM_CLIPPING,
+public GLCompileMacro_USE_NORMAL_MAPPING,
+public GLCompileMacro_USE_SHADOWING//,
+//public GLCompileMacro_TWOSIDED
+{
+public:
+	GLShader_deferredLighting_directionalSun();
 };
 
 
@@ -2295,6 +2428,14 @@ public:
 	GLShader_blurY();
 };
 
+class GLShader_debugShadowMap:
+public GLShader,
+public u_ModelViewProjectionMatrix
+{
+public:
+	GLShader_debugShadowMap();
+};
+
 
 extern GLShader_generic* gl_genericShader;
 extern GLShader_lightMapping* gl_lightMappingShader;
@@ -2304,6 +2445,8 @@ extern GLShader_forwardLighting_omniXYZ* gl_forwardLightingShader_omniXYZ;
 extern GLShader_forwardLighting_projXYZ* gl_forwardLightingShader_projXYZ;
 extern GLShader_forwardLighting_directionalSun* gl_forwardLightingShader_directionalSun;
 extern GLShader_deferredLighting_omniXYZ* gl_deferredLightingShader_omniXYZ;
+extern GLShader_deferredLighting_projXYZ* gl_deferredLightingShader_projXYZ;
+extern GLShader_deferredLighting_directionalSun* gl_deferredLightingShader_directionalSun;
 extern GLShader_geometricFill* gl_geometricFillShader;
 extern GLShader_shadowFill* gl_shadowFillShader;
 extern GLShader_reflection* gl_reflectionShader;
@@ -2318,5 +2461,6 @@ extern GLShader_contrast* gl_contrastShader;
 extern GLShader_cameraEffects* gl_cameraEffectsShader;
 extern GLShader_blurX* gl_blurXShader;
 extern GLShader_blurY* gl_blurYShader;
+extern GLShader_debugShadowMap* gl_debugShadowMapShader;
 
 #endif	// GL_SHADER_H

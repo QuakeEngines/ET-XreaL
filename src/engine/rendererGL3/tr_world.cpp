@@ -2578,74 +2578,48 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 		interactionCache_t *iaCache;
 		interactionVBO_t *iaVBO;
 		srfVBOMesh_t   *srf;
-		srfVBOShadowVolume_t *shadowSrf;
 		shader_t       *shader;
 		bspSurface_t   *surface;
 
-		if(r_shadows->integer == SHADOWING_STENCIL)
+		// this can be shadow mapping or shadowless lighting
+		for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
 		{
-			for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
+			if(!iaVBO->vboLightMesh)
+				continue;
+
+			srf = iaVBO->vboLightMesh;
+			shader = iaVBO->shader;
+
+			switch (light->l.rlType)
 			{
-				if(!iaVBO->vboShadowVolume)
-					continue;
+				case RL_OMNI:
+					R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
+					break;
 
-				shadowSrf = iaVBO->vboShadowVolume;
+				case RL_DIRECTIONAL:
+				case RL_PROJ:
+					R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
+					break;
 
-				R_AddLightInteraction(light, (surfaceType_t *)shadowSrf, tr.defaultShader, CUBESIDE_CLIPALL, IA_SHADOWONLY);
-			}
-
-			for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
-			{
-				if(!iaVBO->vboLightMesh)
-					continue;
-
-				srf = iaVBO->vboLightMesh;
-				shader = iaVBO->shader;
-
-				R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
-			}
-		}
-		else
-		{
-			// this can be shadow mapping or shadowless lighting
-			for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
-			{
-				if(!iaVBO->vboLightMesh)
-					continue;
-
-				srf = iaVBO->vboLightMesh;
-				shader = iaVBO->shader;
-
-				switch (light->l.rlType)
-				{
-					case RL_OMNI:
-						R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
-						break;
-
-					case RL_DIRECTIONAL:
-					case RL_PROJ:
-						R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_LIGHTONLY);
-						break;
-
-					default:
-						R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_DEFAULT);
-						break;
-				}
-			}
-
-			// add meshes for shadowmap generation if any
-			for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
-			{
-				if(!iaVBO->vboShadowMesh)
-					continue;
-
-				srf = iaVBO->vboShadowMesh;
-				shader = iaVBO->shader;
-
-				R_AddLightInteraction(light, (surfaceType_t *)srf, shader, iaVBO->cubeSideBits, IA_SHADOWONLY);
+				default:
+					R_AddLightInteraction(light, (surfaceType_t *)srf, shader, CUBESIDE_CLIPALL, IA_DEFAULT);
+					break;
 			}
 		}
 
+		// add meshes for shadowmap generation if any
+		for(iaVBO = light->firstInteractionVBO; iaVBO; iaVBO = iaVBO->next)
+		{
+			if(!iaVBO->vboShadowMesh)
+				continue;
+
+			srf = iaVBO->vboShadowMesh;
+			shader = iaVBO->shader;
+
+			R_AddLightInteraction(light, (surfaceType_t *)srf, shader, iaVBO->cubeSideBits, IA_SHADOWONLY);
+		}
+
+		// add interactions that couldn't be merged into VBOs
 		for(iaCache = light->firstInteractionCache; iaCache; iaCache = iaCache->next)
 		{
 			if(iaCache->redundant)
@@ -2660,7 +2634,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 			// into this view
 			if(surface->viewCount != tr.viewCountNoReset)
 			{
-				if(r_shadows->integer <= SHADOWING_STENCIL || light->l.noShadows)
+				if(r_shadows->integer < SHADOWING_VSM16 || light->l.noShadows)
 					continue;
 				else
 					iaType = IA_SHADOWONLY;
@@ -2689,7 +2663,7 @@ void R_AddPrecachedWorldInteractions(trRefLight_t * light)
 			// into this view
 			if(surface->viewCount != tr.viewCountNoReset)
 			{
-				if(r_shadows->integer <= SHADOWING_STENCIL || light->l.noShadows)
+				if(r_shadows->integer < SHADOWING_VSM16 || light->l.noShadows)
 					continue;
 				else
 					iaType = IA_SHADOWONLY;

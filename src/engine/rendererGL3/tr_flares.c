@@ -378,7 +378,7 @@ void RB_RenderFlare(flare_t * f)
 	iColor[2] = color[2] * 255;
 #endif
 
-	Tess_Begin(Tess_StageIteratorGeneric, NULL, tr.flareShader, NULL, qfalse, qfalse, qfalse, -1, f->fogNum);
+	Tess_Begin(Tess_StageIteratorGeneric, NULL, tr.flareShader, NULL, qfalse, qfalse, -1, f->fogNum);
 
 	// FIXME: use quadstamp?
 	tess.xyz[tess.numVertexes][0] = f->windowX - size;

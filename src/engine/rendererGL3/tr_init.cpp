@@ -131,12 +131,20 @@ cvar_t         *r_uiFullScreen;
 cvar_t         *r_shadows;
 cvar_t         *r_softShadows;
 cvar_t         *r_shadowBlur;
+
 cvar_t         *r_shadowMapQuality;
 cvar_t         *r_shadowMapSizeUltra;
 cvar_t         *r_shadowMapSizeVeryHigh;
 cvar_t         *r_shadowMapSizeHigh;
 cvar_t         *r_shadowMapSizeMedium;
 cvar_t         *r_shadowMapSizeLow;
+
+cvar_t         *r_shadowMapSizeSunUltra;
+cvar_t         *r_shadowMapSizeSunVeryHigh;
+cvar_t         *r_shadowMapSizeSunHigh;
+cvar_t         *r_shadowMapSizeSunMedium;
+cvar_t         *r_shadowMapSizeSunLow;
+
 cvar_t         *r_shadowOffsetFactor;
 cvar_t         *r_shadowOffsetUnits;
 cvar_t         *r_shadowLodBias;
@@ -182,7 +190,6 @@ cvar_t         *r_rimLighting;
 cvar_t         *r_rimExponent;
 cvar_t         *r_gamma;
 cvar_t         *r_intensity;
-
 cvar_t         *r_lockpvs;
 cvar_t         *r_noportals;
 cvar_t         *r_portalOnly;
@@ -1446,8 +1453,8 @@ void R_Register(void)
 	r_overDarkeningFactor = ri.Cvar_Get("r_overDarkeningFactor", "40.0", CVAR_CHEAT);
 	r_shadowMapDepthScale = ri.Cvar_Get("r_shadowMapDepthScale", "1.41", CVAR_CHEAT);
 
-	r_parallelShadowSplitWeight = ri.Cvar_Get("r_parallelShadowSplitWeight", "0.75", CVAR_CHEAT);
-	r_parallelShadowSplits = ri.Cvar_Get("r_parallelShadowSplits", "2", CVAR_CHEAT);
+	r_parallelShadowSplitWeight = ri.Cvar_Get("r_parallelShadowSplitWeight", "0.9", CVAR_CHEAT);
+	r_parallelShadowSplits = ri.Cvar_Get("r_parallelShadowSplits", "3", CVAR_CHEAT);
 	AssertCvarRange(r_parallelShadowSplits, 0, MAX_SHADOWMAPS -1, qtrue);
 
 	r_lightSpacePerspectiveWarping = ri.Cvar_Get("r_lightSpacePerspectiveWarping", "1", CVAR_CHEAT);
@@ -1491,9 +1498,9 @@ void R_Register(void)
 	r_mergeClusterCurves = ri.Cvar_Get("r_mergeClusterCurves", "1", CVAR_CHEAT);
 	r_mergeClusterTriangles = ri.Cvar_Get("r_mergeClusterTriangles", "1", CVAR_CHEAT);
 
-	r_dynamicBspOcclusionCulling = ri.Cvar_Get("r_dynamicBspOcclusionCulling", "0", CVAR_ARCHIVE);
-	r_dynamicEntityOcclusionCulling = ri.Cvar_Get("r_dynamicEntityOcclusionCulling", "0", CVAR_ARCHIVE);
-	r_dynamicLightOcclusionCulling = ri.Cvar_Get("r_dynamicLightOcclusionCulling", "1", CVAR_ARCHIVE);
+	r_dynamicBspOcclusionCulling = ri.Cvar_Get("r_dynamicBspOcclusionCulling", "0", CVAR_CHEAT);
+	r_dynamicEntityOcclusionCulling = ri.Cvar_Get("r_dynamicEntityOcclusionCulling", "0", CVAR_CHEAT);
+	r_dynamicLightOcclusionCulling = ri.Cvar_Get("r_dynamicLightOcclusionCulling", "0", CVAR_CHEAT);
 	r_chcMaxPrevInvisNodesBatchSize = ri.Cvar_Get("r_chcMaxPrevInvisNodesBatchSize", "50", CVAR_CHEAT);
 	r_chcMaxVisibleFrames = ri.Cvar_Get("r_chcMaxVisibleFrames", "10", CVAR_CHEAT);
 	r_chcVisibilityThreshold = ri.Cvar_Get("r_chcVisibilityThreshold", "20", CVAR_CHEAT);
@@ -1621,6 +1628,31 @@ void R_Register(void)
 	shadowMapResolutions[2] = r_shadowMapSizeHigh->integer;
 	shadowMapResolutions[3] = r_shadowMapSizeMedium->integer;
 	shadowMapResolutions[4] = r_shadowMapSizeLow->integer;
+
+
+
+	r_shadowMapSizeSunUltra = ri.Cvar_Get("r_shadowMapSizeSunUltra", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+	AssertCvarRange(r_shadowMapSizeSunUltra, 32, 2048, qtrue);
+
+	r_shadowMapSizeSunVeryHigh = ri.Cvar_Get("r_shadowMapSizeSunVeryHigh", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+	AssertCvarRange(r_shadowMapSizeSunVeryHigh, 512, 2048, qtrue);
+
+	r_shadowMapSizeSunHigh = ri.Cvar_Get("r_shadowMapSizeSunHigh", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+	AssertCvarRange(r_shadowMapSizeSunHigh, 512, 2048, qtrue);
+
+	r_shadowMapSizeSunMedium = ri.Cvar_Get("r_shadowMapSizeSunMedium", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+	AssertCvarRange(r_shadowMapSizeSunMedium, 512, 2048, qtrue);
+
+	r_shadowMapSizeSunLow = ri.Cvar_Get("r_shadowMapSizeSunLow", "1024", CVAR_ARCHIVE | CVAR_LATCH);
+	AssertCvarRange(r_shadowMapSizeSunLow, 512, 2048, qtrue);
+
+
+	sunShadowMapResolutions[0] = r_shadowMapSizeSunUltra->integer;
+	sunShadowMapResolutions[1] = r_shadowMapSizeSunVeryHigh->integer;
+	sunShadowMapResolutions[2] = r_shadowMapSizeSunHigh->integer;
+	sunShadowMapResolutions[3] = r_shadowMapSizeSunMedium->integer;
+	sunShadowMapResolutions[4] = r_shadowMapSizeSunLow->integer;
+
 
 	r_shadowOffsetFactor = ri.Cvar_Get("r_shadowOffsetFactor", "0", CVAR_CHEAT);
 	r_shadowOffsetUnits = ri.Cvar_Get("r_shadowOffsetUnits", "0", CVAR_CHEAT);
