@@ -51,16 +51,16 @@ protected:
 	std::vector<GLCompileMacro*>		_compileMacros;
 
 	const uint32_t						_vertexAttribsRequired;
-	const uint32_t						_vertexAttribsOptional;
-	const uint32_t						_vertexAttribsUnsupported;
-	uint32_t							_vertexAttribs;
+//	const uint32_t						_vertexAttribsOptional;
+//	const uint32_t						_vertexAttribsUnsupported;
+	uint32_t							_vertexAttribs;	// can be set by uniforms
 
 
-	GLShader(const std::string& name, uint32_t vertexAttribsRequired, uint32_t vertexAttribsOptional, uint32_t vertexAttribsUnsupported):
+	GLShader(const std::string& name, uint32_t vertexAttribsRequired/*, uint32_t vertexAttribsOptional, uint32_t vertexAttribsUnsupported*/):
 	  _name(name),
-	  _vertexAttribsRequired(vertexAttribsRequired),
-	  _vertexAttribsOptional(vertexAttribsOptional),
-	  _vertexAttribsUnsupported(vertexAttribsUnsupported)
+	  _vertexAttribsRequired(vertexAttribsRequired)
+	  //_vertexAttribsOptional(vertexAttribsOptional),
+	  //_vertexAttribsUnsupported(vertexAttribsUnsupported)
 	{
 		_activeMacros = 0;
 		_currentProgram = NULL;
@@ -119,7 +119,7 @@ private:
 	void				PrintInfoLog(GLhandleARB object, bool developerOnly) const;
 
 	void				LinkProgram(GLhandleARB program) const;
-	void				BindAttribLocations(GLhandleARB program, uint32_t attribs) const;
+	void				BindAttribLocations(GLhandleARB program) const;
 
 protected:
 	void				ValidateProgram(GLhandleARB program) const;
@@ -129,6 +129,7 @@ protected:
 public:
 	void				SelectProgram();
 	void				BindProgram();
+	void				SetRequiredVertexPointers();
 
 	bool IsMacroSet(int bit)
 	{
@@ -158,11 +159,6 @@ public:
 	void DelVertexAttribBit(int bit)
 	{
 		_vertexAttribs &= ~bit;
-	}
-
-	void SetVertexAttribs()
-	{
-		GL_VertexAttribsState((_vertexAttribsRequired | _vertexAttribs) & ~_vertexAttribsUnsupported);
 	}
 };
 
@@ -225,6 +221,7 @@ public:
 	virtual EGLCompileMacro GetType() const = 0;
 	virtual bool		HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const { return false; }
 	virtual bool		MissesRequiredMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const { return false; }
+	virtual uint32_t	GetRequiredVertexAttributes() const { return 0; }
 
 	void EnableMacro()
 	{
@@ -338,19 +335,16 @@ public:
 	EGLCompileMacro GetType() const { return USE_VERTEX_SKINNING; }
 	bool		HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
 	bool		MissesRequiredMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
+	uint32_t	GetRequiredVertexAttributes() const { return ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS; }
 	
 
 	void EnableVertexSkinning()
 	{
 		EnableMacro();
-
-		_shader->AddVertexAttribBit(ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 	}
 	void DisableVertexSkinning()
 	{
 		DisableMacro();
-
-		_shader->DelVertexAttribBit(ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 	}
 
 	void SetVertexSkinning(bool enable)
@@ -374,29 +368,17 @@ public:
 	const char* GetName() const { return "USE_VERTEX_ANIMATION"; }
 	EGLCompileMacro GetType() const { return USE_VERTEX_ANIMATION; }
 	bool		HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
+	uint32_t	GetRequiredVertexAttributes() const;
+
 
 	void EnableVertexAnimation()
 	{
 		EnableMacro();
-
-		_shader->AddVertexAttribBit(ATTR_POSITION2 | ATTR_NORMAL2);
-
-		if(r_normalMapping->integer)
-		{
-			_shader->AddVertexAttribBit(ATTR_TANGENT2 | ATTR_BINORMAL2);
-		}
 	}
 
 	void DisableVertexAnimation()
 	{
 		DisableMacro();
-
-		_shader->DelVertexAttribBit(ATTR_POSITION2 | ATTR_NORMAL2);
-
-		if(r_normalMapping->integer)
-		{
-			_shader->DelVertexAttribBit(ATTR_TANGENT2 | ATTR_BINORMAL2);
-		}
 	}
 
 	void SetVertexAnimation(bool enable)
@@ -420,13 +402,13 @@ public:
 	const char* GetName() const { return "USE_DEFORM_VERTEXES"; }
 	EGLCompileMacro GetType() const { return USE_DEFORM_VERTEXES; }
 	bool		HasConflictingMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
+	uint32_t	GetRequiredVertexAttributes() const { return ATTR_NORMAL; }
 
 	void EnableDeformVertexes()
 	{
 		if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 		{
 			EnableMacro();
-			_shader->AddVertexAttribBit(ATTR_NORMAL);
 		}
 		else
 		{
@@ -459,12 +441,11 @@ public:
 
 	const char* GetName() const { return "USE_TCGEN_ENVIRONMENT"; }
 	EGLCompileMacro GetType() const { return USE_TCGEN_ENVIRONMENT; }
+	uint32_t	GetRequiredVertexAttributes() const { return ATTR_NORMAL; }
 
 	void EnableTCGenEnvironment()
 	{
 		EnableMacro();
-
-		_shader->AddVertexAttribBit(ATTR_NORMAL);
 	}
 	
 	void DisableTCGenEnvironment()
@@ -493,6 +474,7 @@ public:
 
 	const char* GetName() const { return "USE_NORMAL_MAPPING"; }
 	EGLCompileMacro GetType() const { return USE_NORMAL_MAPPING; }
+	uint32_t	GetRequiredVertexAttributes() const { return ATTR_NORMAL | ATTR_TANGENT | ATTR_BINORMAL; }
 
 	void EnableNormalMapping()	{ EnableMacro(); }
 	void DisableNormalMapping()	{ DisableMacro(); }
@@ -571,6 +553,7 @@ public:
 	const char* GetName() const { return "TWOSIDED"; }
 	EGLCompileMacro GetType() const { return TWOSIDED; }
 	//bool		MissesRequiredMacros(int permutation, const std::vector<GLCompileMacro*>& macros) const;
+	uint32_t	GetRequiredVertexAttributes() const { return ATTR_NORMAL; }
 
 	void EnableMacro_TWOSIDED()		{ EnableMacro(); }
 	void DisableMacro_TWOSIDED()	{ DisableMacro(); }
@@ -1515,7 +1498,7 @@ public:
 };
 
 
-
+/*
 class u_ColorGen:
 GLUniform
 {
@@ -1545,6 +1528,25 @@ public:
 		}
 	}
 };
+
+class u_AlphaGen:
+GLUniform
+{
+public:
+	u_AlphaGen(GLShader* shader):
+	  GLUniform(shader)
+	{
+	}
+
+	const char* GetName() const { return "u_AlphaGen"; }
+	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_AlphaGen); }
+
+	void SetUniform_AlphaGen(alphaGen_t value)
+	{
+		GLSL_SetUniform_AlphaGen(_shader->GetProgram(), value);
+	}
+};
+*/
 
 class u_ColorModulate:
 GLUniform
@@ -1606,27 +1608,6 @@ public:
 	}
 };
 
-
-
-
-
-class u_AlphaGen:
-GLUniform
-{
-public:
-	u_AlphaGen(GLShader* shader):
-	  GLUniform(shader)
-	{
-	}
-
-	const char* GetName() const { return "u_AlphaGen"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_AlphaGen); }
-
-	void SetUniform_AlphaGen(alphaGen_t value)
-	{
-		GLSL_SetUniform_AlphaGen(_shader->GetProgram(), value);
-	}
-};
 
 
 class u_FogDistanceVector:

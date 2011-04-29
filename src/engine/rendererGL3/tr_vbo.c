@@ -29,11 +29,6 @@ R_CreateVBO
 */
 VBO_t          *R_CreateVBO(const char *name, byte * vertexes, int vertexesSize, vboUsage_t usage)
 {
-#if defined(USE_D3D10)
-	// TODO
-	return NULL;
-#else
-
 	VBO_t          *vbo;
 	int				glUsage;
 
@@ -93,7 +88,6 @@ VBO_t          *R_CreateVBO(const char *name, byte * vertexes, int vertexesSize,
 	GL_CheckErrors();
 
 	return vbo;
-#endif // defined(USE_D3D10)
 }
 
 /*
@@ -105,10 +99,6 @@ RB: OPTIMIZE rewrite to not use memcpy
 */
 VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * verts, unsigned int stateBits, vboUsage_t usage)
 {
-#if defined(USE_D3D10)
-	// TODO
-	return NULL;
-#else
 	VBO_t          *vbo;
 	int             i, j;
 
@@ -337,7 +327,6 @@ VBO_t          *R_CreateVBO2(const char *name, int numVertexes, srfVert_t * vert
 	ri.Hunk_FreeTempMemory(data);
 
 	return vbo;
-#endif // defined(USE_D3D10)
 }
 
 
@@ -348,10 +337,6 @@ R_CreateIBO
 */
 IBO_t          *R_CreateIBO(const char *name, byte * indexes, int indexesSize, vboUsage_t usage)
 {
-#if defined(USE_D3D10)
-	// TODO
-	return NULL;
-#else
 	IBO_t          *ibo;
 	int				glUsage;
 
@@ -394,7 +379,6 @@ IBO_t          *R_CreateIBO(const char *name, byte * indexes, int indexesSize, v
 	GL_CheckErrors();
 
 	return ibo;
-#endif // defined(USE_D3D10
 }
 
 /*
@@ -404,10 +388,6 @@ R_CreateIBO2
 */
 IBO_t          *R_CreateIBO2(const char *name, int numTriangles, srfTriangle_t * triangles, vboUsage_t usage)
 {
-#if defined(USE_D3D10)
-	// TODO
-	return NULL;
-#else
 	IBO_t          *ibo;
 	int             i, j;
 
@@ -480,7 +460,6 @@ IBO_t          *R_CreateIBO2(const char *name, int numTriangles, srfTriangle_t *
 	ri.Hunk_FreeTempMemory(indexes);
 
 	return ibo;
-#endif // defined(USE_D3D10)
 }
 
 /*
@@ -503,9 +482,6 @@ void R_BindVBO(VBO_t * vbo)
 		GLimp_LogComment(va("--- R_BindVBO( %s ) ---\n", vbo->name));
 	}
 
-#if defined(USE_D3D10)
-	// TODO
-#else
 	if(glState.currentVBO != vbo)
 	{
 		glState.currentVBO = vbo;
@@ -518,8 +494,9 @@ void R_BindVBO(VBO_t * vbo)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->vertexesVBO);
 
 		backEnd.pc.c_vboVertexBuffers++;
+
+		//GL_VertexAttribPointers(ATTR_BITS);
 	}
-#endif
 }
 
 /*
@@ -531,9 +508,6 @@ void R_BindNullVBO(void)
 {
 	GLimp_LogComment("--- R_BindNullVBO ---\n");
 
-#if defined(USE_D3D10)
-	// TODO
-#else
 	if(glState.currentVBO)
 	{
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
@@ -541,7 +515,6 @@ void R_BindNullVBO(void)
 	}
 
 	GL_CheckErrors();
-#endif
 }
 
 /*
@@ -564,9 +537,6 @@ void R_BindIBO(IBO_t * ibo)
 		GLimp_LogComment(va("--- R_BindIBO( %s ) ---\n", ibo->name));
 	}
 
-#if defined(USE_D3D10)
-	// TODO
-#else
 	if(glState.currentIBO != ibo)
 	{
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ibo->indexesVBO);
@@ -575,7 +545,6 @@ void R_BindIBO(IBO_t * ibo)
 
 		backEnd.pc.c_vboIndexBuffers++;
 	}
-#endif
 }
 
 /*
@@ -587,16 +556,12 @@ void R_BindNullIBO(void)
 {
 	GLimp_LogComment("--- R_BindNullIBO ---\n");
 
-#if defined(USE_D3D10)
-	// TODO
-#else
 	if(glState.currentIBO)
 	{
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		glState.currentIBO = NULL;
 		glState.vertexAttribPointersSet = 0;
 	}
-#endif
 }
 
 static void R_InitUnitCubeVBO()
@@ -671,10 +636,11 @@ void R_InitVBOs(void)
 	tess.vbo->ofsBinormals = tess.vbo->ofsTangents + sizeof(tess.tangents);
 	tess.vbo->ofsNormals = tess.vbo->ofsBinormals + sizeof(tess.binormals);
 	tess.vbo->ofsColors = tess.vbo->ofsNormals + sizeof(tess.normals);
+
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 	tess.vbo->ofsPaintColors = tess.vbo->ofsColors + sizeof(tess.colors);
 	tess.vbo->ofsLightDirections = tess.vbo->ofsPaintColors + sizeof(tess.paintColors);
-	tess.vbo->ofsBoneIndexes = tess.vbo->ofsLightDirections + sizeof(tess.lightDirections);
-	tess.vbo->ofsBoneWeights = tess.vbo->ofsBoneIndexes + sizeof(tess.boneIndexes);
+#endif
 
 	tess.vbo->sizeXYZ = sizeof(tess.xyz);
 	tess.vbo->sizeTangents = sizeof(tess.tangents);
@@ -720,28 +686,20 @@ void R_ShutdownVBOs(void)
 	{
 		vbo = (VBO_t *) Com_GrowListElement(&tr.vbos, i);
 
-#if defined(USE_D3D10)
-		// TODO
-#else
 		if(vbo->vertexesVBO)
 		{
 			glDeleteBuffersARB(1, &vbo->vertexesVBO);
 		}
-#endif
 	}
 
 	for(i = 0; i < tr.ibos.currentElements; i++)
 	{
 		ibo = (IBO_t *) Com_GrowListElement(&tr.ibos, i);
 
-#if defined(USE_D3D10)
-		// TODO
-#else
 		if(ibo->indexesVBO)
 		{
 			glDeleteBuffersARB(1, &ibo->indexesVBO);
 		}
-#endif
 	}
 
 	if(tr.world)
@@ -756,14 +714,10 @@ void R_ShutdownVBOs(void)
 				vboSurf = (srfVBOMesh_t *) Com_GrowListElement(&tr.world->clusterVBOSurfaces[j], i);
 				ibo = vboSurf->ibo;
 
-#if defined(USE_D3D10)
-				// TODO
-#else
 				if(ibo->indexesVBO)
 				{
 					glDeleteBuffersARB(1, &ibo->indexesVBO);
 				}
-#endif
 			}
 
 			Com_DestroyGrowList(&tr.world->clusterVBOSurfaces[j]);

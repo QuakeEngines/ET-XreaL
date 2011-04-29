@@ -425,12 +425,8 @@ Tess_UpdateVBOs
 Tr3B: update the default VBO to replace the client side vertex arrays
 ==============
 */
-void Tess_UpdateVBOs(unsigned int attribBits)
+void Tess_UpdateVBOs(uint32_t attribBits)
 {
-#if defined(USE_D3D10)
-	// TODO
-#else
-
 	if(r_logFile->integer)
 	{
 		GLimp_LogComment(va("--- Tess_UpdateVBOs( attribBits = %i ) ---\n", attribBits));
@@ -447,11 +443,16 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 
 		if(!(attribBits & ATTR_BITS))
 		{
-			attribBits |= ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL | ATTR_COLOR;
+			attribBits |= ATTR_POSITION | ATTR_TEXCOORD | ATTR_COLOR;
 
 			if(backEnd.currentEntity != &backEnd.entity2D)
 			{
-				attribBits |= ATTR_TANGENT | ATTR_BINORMAL;
+				attribBits |= ATTR_NORMAL;
+
+				if(r_normalMapping->integer)
+				{
+					attribBits |= ATTR_TANGENT | ATTR_BINORMAL;
+				}
 			}
 
 			if(backEnd.currentEntity == &tr.worldEntity)
@@ -462,16 +463,8 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 				attribBits |= ATTR_LIGHTCOORD | ATTR_PAINTCOLOR | ATTR_LIGHTDIRECTION;
 #endif
 			}
-
-#if 0 //defined(USE_REFENTITY_ANIMATIONSYSTEM)
-			if((backEnd.currentEntity->e.skeleton.type == SK_ABSOLUTE) && !tess.vboVertexSkinning)
-			{
-				attribBits |= ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS;
-			}
-#endif
 		}
 
-		//GL_VertexAttribPointers(attribBits);
 		GL_VertexAttribsState(attribBits);
 
 		if(attribBits & ATTR_POSITION)
@@ -556,23 +549,6 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsLightDirections, tess.numVertexes * sizeof(vec4_t), tess.lightDirections);
 		}
 #endif
-		if(attribBits & ATTR_BONE_INDEXES)
-		{
-			if(r_logFile->integer)
-			{
-				GLimp_LogComment(va("glBufferSubDataARB( ATTR_BONE_INDEXES, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
-			}
-			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneIndexes, tess.numVertexes * sizeof(vec4_t), tess.boneIndexes);
-		}
-
-		if(attribBits & ATTR_BONE_WEIGHTS)
-		{
-			if(r_logFile->integer)
-			{
-				GLimp_LogComment(va("glBufferSubDataARB( ATTR_BONE_WEIGHTS, vbo = '%s', numVertexes = %i )\n", tess.vbo->name, tess.numVertexes));
-			}
-			glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, tess.vbo->ofsBoneWeights, tess.numVertexes * sizeof(vec4_t), tess.boneWeights);
-		}
 	}
 
 	GL_CheckErrors();
@@ -586,7 +562,6 @@ void Tess_UpdateVBOs(unsigned int attribBits)
 	}
 
 	GL_CheckErrors();
-#endif
 }
 
 
@@ -1041,6 +1016,49 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 	texCoords = tess.texCoords[tess.numVertexes];
 	lightCoords = tess.lightCoords[tess.numVertexes];
 	color = tess.colors[tess.numVertexes];
+
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
+
+	for(i = 0; i < srf->numVerts;
+		i++, dv++, xyz += 4, tangent += 4, binormal += 4, normal += 4, texCoords += 4, lightCoords += 4, color += 4)
+	{
+		xyz[0] = dv->xyz[0];
+		xyz[1] = dv->xyz[1];
+		xyz[2] = dv->xyz[2];
+		xyz[3] = 1;
+
+		//if(!tess.skipTangentSpaces)
+		{
+			tangent[0] = dv->tangent[0];
+			tangent[1] = dv->tangent[1];
+			tangent[2] = dv->tangent[2];
+
+			binormal[0] = dv->binormal[0];
+			binormal[1] = dv->binormal[1];
+			binormal[2] = dv->binormal[2];
+
+			normal[0] = dv->normal[0];
+			normal[1] = dv->normal[1];
+			normal[2] = dv->normal[2];
+		}
+
+		texCoords[0] = dv->st[0];
+		texCoords[1] = dv->st[1];
+		texCoords[2] = 0;
+		texCoords[3] = 1;
+
+		lightCoords[0] = dv->lightmap[0];
+		lightCoords[1] = dv->lightmap[1];
+		lightCoords[2] = 0;
+		lightCoords[3] = 1;
+
+		color[0] = dv->lightColor[0];
+		color[1] = dv->lightColor[1];
+		color[2] = dv->lightColor[2];
+		color[3] = dv->lightColor[3];
+	}
+#else
+	
 	paintColor = tess.paintColors[tess.numVertexes];
 	lightDirection = tess.lightDirections[tess.numVertexes];
 
@@ -1082,7 +1100,6 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 		color[2] = dv->lightColor[2];
 		color[3] = dv->lightColor[3];
 
-#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 		paintColor[0] = dv->paintColor[0];
 		paintColor[1] = dv->paintColor[1];
 		paintColor[2] = dv->paintColor[2];
@@ -1092,8 +1109,8 @@ static void Tess_SurfaceFace(srfSurfaceFace_t * srf)
 		lightDirection[1] = dv->lightDirection[1];
 		lightDirection[2] = dv->lightDirection[2];
 		lightDirection[3] = 1;
-#endif
 	}
+#endif
 
 	tess.numVertexes += srf->numVerts;
 }
@@ -1148,6 +1165,50 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 	texCoords = tess.texCoords[tess.numVertexes];
 	lightCoords = tess.lightCoords[tess.numVertexes];
 	color = tess.colors[tess.numVertexes];
+	
+
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
+
+	for(i = 0; i < srf->numVerts;
+		i++, dv++, xyz += 4, tangent += 4, binormal += 4, normal += 4, texCoords += 4, lightCoords += 4, color += 4)
+	{
+		xyz[0] = dv->xyz[0];
+		xyz[1] = dv->xyz[1];
+		xyz[2] = dv->xyz[2];
+		xyz[3] = 1;
+
+		//if(!tess.skipTangentSpaces)
+		{
+			tangent[0] = dv->tangent[0];
+			tangent[1] = dv->tangent[1];
+			tangent[2] = dv->tangent[2];
+
+			binormal[0] = dv->binormal[0];
+			binormal[1] = dv->binormal[1];
+			binormal[2] = dv->binormal[2];
+
+			normal[0] = dv->normal[0];
+			normal[1] = dv->normal[1];
+			normal[2] = dv->normal[2];
+		}
+
+		texCoords[0] = dv->st[0];
+		texCoords[1] = dv->st[1];
+		texCoords[2] = 0;
+		texCoords[3] = 1;
+
+		lightCoords[0] = dv->lightmap[0];
+		lightCoords[1] = dv->lightmap[1];
+		lightCoords[2] = 0;
+		lightCoords[3] = 1;
+
+		color[0] = dv->lightColor[0];
+		color[1] = dv->lightColor[1];
+		color[2] = dv->lightColor[2];
+		color[3] = dv->lightColor[3];
+	}
+#else
+	
 	paintColor = tess.paintColors[tess.numVertexes];
 	lightDirection = tess.lightDirections[tess.numVertexes];
 
@@ -1189,7 +1250,6 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 		color[2] = dv->lightColor[2];
 		color[3] = dv->lightColor[3];
 
-#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 		paintColor[0] = dv->paintColor[0];
 		paintColor[1] = dv->paintColor[1];
 		paintColor[2] = dv->paintColor[2];
@@ -1199,8 +1259,8 @@ static void Tess_SurfaceGrid(srfGridMesh_t * srf)
 		lightDirection[1] = dv->lightDirection[1];
 		lightDirection[2] = dv->lightDirection[2];
 		lightDirection[3] = 1;
-#endif
 	}
+#endif
 
 	tess.numVertexes += srf->numVerts;
 }
@@ -1215,7 +1275,7 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 	int             i;
 	srfTriangle_t  *tri;
 	srfVert_t      *dv;
-	float          *xyz, *tangent, *binormal, *normal, *texCoords, *color, *paintColor, *lightDirection;
+	float          *xyz, *tangent, *binormal, *normal, *texCoords,  *lightCoords, *color, *paintColor, *lightDirection;
 
 	GLimp_LogComment("--- Tess_SurfaceTriangles ---\n");
 	
@@ -1253,12 +1313,13 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 	binormal = tess.binormals[tess.numVertexes];
 	normal = tess.normals[tess.numVertexes];
 	texCoords = tess.texCoords[tess.numVertexes];
+	lightCoords = tess.lightCoords[tess.numVertexes];
 	color = tess.colors[tess.numVertexes];
-	paintColor = tess.paintColors[tess.numVertexes];
-	lightDirection = tess.lightDirections[tess.numVertexes];
+
+#if defined(COMPAT_Q3A) || defined(COMPAT_ET)
 
 	for(i = 0; i < srf->numVerts;
-		i++, dv++, xyz += 4, tangent += 4, binormal += 4, normal += 4, texCoords += 4, color += 4, paintColor += 4, lightDirection += 4)
+		i++, dv++, xyz += 4, tangent += 4, binormal += 4, normal += 4, texCoords += 4, lightCoords += 4, color += 4)
 	{
 		xyz[0] = dv->xyz[0];
 		xyz[1] = dv->xyz[1];
@@ -1285,12 +1346,59 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 		texCoords[2] = 0;
 		texCoords[3] = 1;
 
+		lightCoords[0] = dv->lightmap[0];
+		lightCoords[1] = dv->lightmap[1];
+		lightCoords[2] = 0;
+		lightCoords[3] = 1;
+
+		color[0] = dv->lightColor[0];
+		color[1] = dv->lightColor[1];
+		color[2] = dv->lightColor[2];
+		color[3] = dv->lightColor[3];
+	}
+#else
+	
+	paintColor = tess.paintColors[tess.numVertexes];
+	lightDirection = tess.lightDirections[tess.numVertexes];
+
+	for(i = 0; i < srf->numVerts;
+		i++, dv++, xyz += 4, tangent += 4, binormal += 4, normal += 4, texCoords += 4, lightCoords += 4, color += 4, paintColor += 4, lightDirection += 4)
+	{
+		xyz[0] = dv->xyz[0];
+		xyz[1] = dv->xyz[1];
+		xyz[2] = dv->xyz[2];
+		xyz[3] = 1;
+
+		//if(!tess.skipTangentSpaces)
+		{
+			tangent[0] = dv->tangent[0];
+			tangent[1] = dv->tangent[1];
+			tangent[2] = dv->tangent[2];
+
+			binormal[0] = dv->binormal[0];
+			binormal[1] = dv->binormal[1];
+			binormal[2] = dv->binormal[2];
+
+			normal[0] = dv->normal[0];
+			normal[1] = dv->normal[1];
+			normal[2] = dv->normal[2];
+		}
+
+		texCoords[0] = dv->st[0];
+		texCoords[1] = dv->st[1];
+		texCoords[2] = 0;
+		texCoords[3] = 1;
+
+		lightCoords[0] = dv->lightmap[0];
+		lightCoords[1] = dv->lightmap[1];
+		lightCoords[2] = 0;
+		lightCoords[3] = 1;
+
 		color[0] = dv->lightColor[0];
 		color[1] = dv->lightColor[1];
 		color[2] = dv->lightColor[2];
 		color[3] = dv->lightColor[3];
 
-#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 		paintColor[0] = dv->paintColor[0];
 		paintColor[1] = dv->paintColor[1];
 		paintColor[2] = dv->paintColor[2];
@@ -1300,8 +1408,8 @@ static void Tess_SurfaceTriangles(srfTriangles_t * srf)
 		lightDirection[1] = dv->lightDirection[1];
 		lightDirection[2] = dv->lightDirection[2];
 		lightDirection[3] = 1;
-#endif
 	}
+#endif
 
 	tess.numVertexes += srf->numVerts;
 }
@@ -2204,6 +2312,9 @@ void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
 	glState.vertexAttribsOldFrame = refEnt->oldframe;
 	glState.vertexAttribsNewFrame = refEnt->frame;
 
+	//glState.vertexAttribPointersSet = 0;
+	//GL_VertexAttribPointers(ATTR_BITS | ATTR_POSITION2 | ATTR_TANGENT2 | ATTR_BINORMAL2 | ATTR_NORMAL2);
+
 	Tess_End();
 }
 
@@ -2274,6 +2385,8 @@ static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 	{
 		tess.vboVertexSkinning = qfalse;
 	}
+
+	//GL_VertexAttribPointers(ATTR_BITS | ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 
 	Tess_End();
 }

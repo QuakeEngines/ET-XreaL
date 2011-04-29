@@ -1595,7 +1595,7 @@ static void DrawTris()
 	gl_genericShader->DisableTCGenEnvironment();
 
 	gl_genericShader->BindProgram();
-	gl_genericShader->SetVertexAttribs();
+	gl_genericShader->SetRequiredVertexPointers();
 
 	GL_State(GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE);
 
@@ -1852,7 +1852,7 @@ static void Render_generic(int stage)
 	BindAnimatedImage(&pStage->bundle[TB_COLORMAP]);
 	gl_genericShader->SetUniform_ColorTextureMatrix(tess.svars.texMatrices[TB_COLORMAP]);
 
-	gl_genericShader->SetVertexAttribs();
+	gl_genericShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -2083,7 +2083,7 @@ static void Render_vertexLighting_DBS_entity(int stage)
 		}
 	}
 
-	gl_vertexLightingShader_DBS_entity->SetVertexAttribs();
+	gl_vertexLightingShader_DBS_entity->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -2241,7 +2241,7 @@ static void Render_vertexLighting_DBS_world(int stage)
 		gl_vertexLightingShader_DBS_world->SetUniform_SpecularTextureMatrix(tess.svars.texMatrices[TB_SPECULARMAP]);
 	}
 
-	gl_vertexLightingShader_DBS_world->SetVertexAttribs();
+	gl_vertexLightingShader_DBS_world->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -2402,7 +2402,7 @@ static void Render_lightMapping(int stage, bool asColorMap, bool normalMapping)
 	GL_SelectTexture(3);
 	BindLightMap();
 
-	gl_lightMappingShader->SetVertexAttribs();
+	gl_lightMappingShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -2566,7 +2566,7 @@ static void Render_geometricFill(int stage, bool cmap2black)
 		}
 	}
 
-	gl_geometricFillShader->SetVertexAttribs();
+	gl_geometricFillShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -2680,7 +2680,7 @@ static void Render_depthFill(int stage)
 		gl_genericShader->SetUniform_ColorTextureMatrix(matrixIdentity);
 	}
 
-	gl_genericShader->SetVertexAttribs();
+	gl_genericShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -2715,7 +2715,7 @@ static void Render_shadowFill(int stage)
 
 	gl_shadowFillShader->BindProgram();
 
-	gl_shadowFillShader->SetVertexAttribs();
+	gl_shadowFillShader->SetRequiredVertexPointers();
 
 	
 	
@@ -2984,7 +2984,7 @@ static void Render_forwardLighting_DBS_omni(shaderStage_t * diffuseStage,
 		GL_Bind(tr.shadowCubeFBOImage[light->shadowLOD]);
 	}
 
-	gl_forwardLightingShader_omniXYZ->SetVertexAttribs();
+	gl_forwardLightingShader_omniXYZ->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -3186,7 +3186,7 @@ static void Render_forwardLighting_DBS_proj(shaderStage_t * diffuseStage,
 		GL_Bind(tr.shadowMapFBOImage[light->shadowLOD]);
 	}
 
-	gl_forwardLightingShader_projXYZ->SetVertexAttribs();
+	gl_forwardLightingShader_projXYZ->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -3413,7 +3413,7 @@ static void Render_forwardLighting_DBS_directional(shaderStage_t * diffuseStage,
 		}
 	}
 
-	gl_forwardLightingShader_directionalSun->SetVertexAttribs();
+	gl_forwardLightingShader_directionalSun->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -3489,7 +3489,7 @@ static void Render_reflection_CB(int stage)
 		gl_reflectionShader->SetUniform_NormalTextureMatrix(tess.svars.texMatrices[TB_NORMALMAP]);
 	}
 
-	gl_reflectionShader->SetVertexAttribs();
+	gl_reflectionShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -3578,7 +3578,7 @@ static void Render_skybox(int stage)
 	GL_SelectTexture(0);
 	GL_Bind(pStage->bundle[TB_COLORMAP].image[0]);
 
-	gl_skyboxShader->SetVertexAttribs();
+	gl_skyboxShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -3797,7 +3797,7 @@ static void Render_heatHaze(int stage)
 		GL_Bind(tr.whiteImage);
 		//gl_genericShader->SetUniform_ColorTextureMatrix(tess.svars.texMatrices[TB_COLORMAP]);
 
-		gl_genericShader->SetVertexAttribs();
+		gl_genericShader->SetRequiredVertexPointers();
 
 		Tess_DrawElements();
 
@@ -3885,7 +3885,7 @@ static void Render_heatHaze(int stage)
 		GL_Bind(tr.occlusionRenderFBOImage);
 	}
 
-	gl_heatHazeShader->SetVertexAttribs();
+	gl_heatHazeShader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -4131,7 +4131,7 @@ static void Render_fog()
 	GL_Bind(tr.fogImage);
 	//gl_fogQuake3Shader->SetUniform_ColorTextureMatrix(tess.svars.texMatrices[TB_COLORMAP]);
 
-	gl_fogQuake3Shader->SetVertexAttribs();
+	gl_fogQuake3Shader->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
 
@@ -4695,7 +4695,7 @@ void Tess_StageIteratorGeneric()
 	if(tess.surfaceShader->polygonOffset)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 	}
 
 	// call shader function
@@ -4890,7 +4890,7 @@ void Tess_StageIteratorGBuffer()
 	if(tess.surfaceShader->polygonOffset)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 	}
 
 	// call shader function
@@ -5057,6 +5057,11 @@ void Tess_StageIteratorGBuffer()
 		}
 	}
 
+	if(!r_noFog->integer && tess.fogNum >= 1 && tess.surfaceShader->fogPass)
+	{
+		Render_fog();
+	}
+
 	// reset polygon offset
 	if(tess.surfaceShader->polygonOffset)
 	{
@@ -5096,7 +5101,7 @@ void Tess_StageIteratorGBufferNormalsOnly()
 	if(tess.surfaceShader->polygonOffset)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 	}
 
 	// call shader function
@@ -5195,7 +5200,7 @@ void Tess_StageIteratorDepthFill()
 	if(tess.surfaceShader->polygonOffset)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 	}
 
 	// call shader function
@@ -5280,7 +5285,7 @@ void Tess_StageIteratorShadowFill()
 	if(tess.surfaceShader->polygonOffset)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 	}
 
 	// call shader function
@@ -5384,7 +5389,7 @@ void Tess_StageIteratorLighting()
 	if(tess.surfaceShader->polygonOffset)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 	}
 
 	// call shader function

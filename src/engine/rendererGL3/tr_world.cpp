@@ -396,6 +396,7 @@ R_AddBSPModelSurfaces
 */
 void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 {
+#if 1
 	bspModel_t     *bspModel;
 	model_t        *pModel;
 	int             i;
@@ -468,6 +469,7 @@ void R_AddBSPModelSurfaces(trRefEntity_t * ent)
 			R_AddBrushModelSurface(bspModel->firstSurface + i, fogNum);
 		}
 	}
+#endif
 }
 
 

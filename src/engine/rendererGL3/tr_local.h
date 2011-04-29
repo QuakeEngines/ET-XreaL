@@ -1316,15 +1316,15 @@ enum
 				ATTR_TANGENT |
 				ATTR_BINORMAL |
 				ATTR_NORMAL |
-				ATTR_COLOR |
+				ATTR_COLOR// |
 
 #if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 				ATTR_PAINTCOLOR |
 				ATTR_LIGHTDIRECTION |
 #endif
 
-				ATTR_BONE_INDEXES |
-				ATTR_BONE_WEIGHTS
+				//ATTR_BONE_INDEXES |
+				//ATTR_BONE_WEIGHTS
 };
 
 // Tr3B - shaderProgram_t represents a pair of one
@@ -1386,11 +1386,13 @@ typedef struct shaderProgram_s
 
 	GLint			u_DeformParms;
 
+	/*
 	int16_t         u_ColorGen;
 	colorGen_t		t_ColorGen;
 
 	int16_t         u_AlphaGen;
 	alphaGen_t		t_AlphaGen;
+	*/
 
 	int16_t         u_Color;
 	vec4_t			t_Color;
@@ -1663,7 +1665,7 @@ static ID_INLINE void GLSL_SetUniform_ViewOrigin(shaderProgram_t * program, cons
 }
 
 
-
+/*
 static ID_INLINE void GLSL_SetUniform_ColorGen(shaderProgram_t * program, colorGen_t value)
 {
 #if 0
@@ -1710,7 +1712,9 @@ static ID_INLINE void GLSL_SetUniform_ColorGen(shaderProgram_t * program, colorG
 	glUniform1iARB(program->u_ColorGen, value);
 #endif
 }
+*/
 
+/*
 static ID_INLINE void GLSL_SetUniform_AlphaGen(shaderProgram_t * program, alphaGen_t value)
 {
 #if 0
@@ -1758,6 +1762,7 @@ static ID_INLINE void GLSL_SetUniform_AlphaGen(shaderProgram_t * program, alphaG
 	glUniform1iARB(program->u_AlphaGen, value);
 #endif
 }
+*/
 
 static ID_INLINE void GLSL_SetUniform_Color(shaderProgram_t * program, const vec4_t v)
 {
@@ -3637,6 +3642,7 @@ typedef struct
 	int				polygonFace, polygonMode;
 	int             scissorX, scissorY, scissorWidth, scissorHeight;
 	int             viewportX, viewportY, viewportWidth, viewportHeight;
+	float			polygonOffsetFactor, polygonOffsetUnits;
 
 	int             currenttextures[32];
 	int             currenttmu;
@@ -4414,6 +4420,7 @@ void            GL_PopMatrix();
 void			GL_PolygonMode(GLenum face, GLenum mode);
 void			GL_Scissor(GLint x, GLint y, GLsizei width, GLsizei height);
 void			GL_Viewport(GLint x, GLint y, GLsizei width, GLsizei height);
+void			GL_PolygonOffset(float factor, float units);
 
 void            GL_CheckErrors_(const char *filename, int line);
 
@@ -4587,10 +4594,10 @@ typedef struct shaderCommands_s
 	vec4_t          binormals[SHADER_MAX_VERTEXES];
 	vec4_t          normals[SHADER_MAX_VERTEXES];
 	vec4_t          colors[SHADER_MAX_VERTEXES];
+#if !defined(COMPAT_Q3A) && !defined(COMPAT_ET)
 	vec4_t          paintColors[SHADER_MAX_VERTEXES];		// for advanced terrain blending
 	vec4_t          lightDirections[SHADER_MAX_VERTEXES];
-	vec4_t          boneIndexes[SHADER_MAX_VERTEXES];
-	vec4_t          boneWeights[SHADER_MAX_VERTEXES];
+#endif
 
 	glIndex_t       indexes[SHADER_MAX_INDEXES];
 

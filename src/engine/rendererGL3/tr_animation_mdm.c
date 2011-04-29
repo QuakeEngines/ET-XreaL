@@ -2428,6 +2428,8 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 #endif
 	}
 
+	//GL_VertexAttribPointers(ATTR_BITS | ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
+
 	Tess_End();
 }
 

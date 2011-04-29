@@ -2067,11 +2067,10 @@ void R_Init(void)
 		AssertCvarRange(r_ext_texture_filter_anisotropic, 0, glConfig2.maxTextureAnisotropy, qfalse);
 	}
 
-#if !defined(USE_D3D10)
 	if(glConfig2.occlusionQueryBits && glConfig.driverType != GLDRV_MESA)
-	 {
+	{
 		glGenQueriesARB(MAX_OCCLUSION_QUERIES, tr.occlusionQueryObjects);
-	 }
+	}
 
 	err = glGetError();
 	if(err != GL_NO_ERROR)
@@ -2079,7 +2078,6 @@ void R_Init(void)
 		ri.Error(ERR_FATAL, "R_Init() - glGetError() failed = 0x%x\n", err);
 		//ri.Printf(PRINT_ALL, "glGetError() = 0x%x\n", err);
 	}
-#endif
 
 	ri.Printf(PRINT_ALL, "----- finished R_Init -----\n");
 }

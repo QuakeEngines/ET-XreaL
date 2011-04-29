@@ -402,6 +402,17 @@ void GL_Viewport(GLint x, GLint y, GLsizei width, GLsizei height)
 	}
 }
 
+void GL_PolygonOffset(float factor, float units)
+{
+	if(glState.polygonOffsetFactor != factor || glState.polygonOffsetUnits != units)
+	{
+		glState.polygonOffsetFactor = factor;
+		glState.polygonOffsetUnits = units;
+		
+		glPolygonOffset(factor, units);
+	}
+}
+
 void GL_Cull(int cullType)
 {
 	if(glState.faceCulling == cullType)
@@ -1154,7 +1165,7 @@ void GL_VertexAttribPointers(uint32_t attribBits)
 		glState.vertexAttribPointersSet |= ATTR_BONE_WEIGHTS;
 	}
 
-	//if(glState.vertexAttribsInterpolation > 0)
+	if(glState.vertexAttribsInterpolation > 0)
 	{
 		if((attribBits & ATTR_POSITION2) && !(glState.vertexAttribPointersSet & ATTR_POSITION2))
 		{
@@ -1274,7 +1285,6 @@ static void RB_SetGL2D(void)
 	GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA);
 
 	GL_Cull(CT_TWO_SIDED);
-	glDisable(GL_CLIP_PLANE0);
 
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds();
@@ -7618,7 +7628,7 @@ void RB_RenderLightOcclusionQueries()
 		gl_genericShader->DisableTCGenEnvironment();
 
 		gl_genericShader->BindProgram();
-		gl_genericShader->SetVertexAttribs();
+		gl_genericShader->SetRequiredVertexPointers();
 
 		
 		GL_Cull(CT_TWO_SIDED);
@@ -8200,7 +8210,7 @@ void RB_RenderEntityOcclusionQueries()
 		gl_genericShader->DisableTCGenEnvironment();
 
 		gl_genericShader->BindProgram();
-		gl_genericShader->SetVertexAttribs();
+		gl_genericShader->SetRequiredVertexPointers();
 
 		
 		GL_Cull(CT_TWO_SIDED);
@@ -9595,7 +9605,7 @@ static void RB_RenderDebugUtils()
 			gl_genericShader->SetUniform_ColorModulate(CGEN_VERTEX, AGEN_VERTEX);
 			gl_genericShader->SetUniform_Color(colorBlack);
 
-			gl_genericShader->SetVertexAttribs();
+			gl_genericShader->SetRequiredVertexPointers();
 
 			GL_State(GLS_DEFAULT);
 			GL_Cull(CT_TWO_SIDED);
@@ -9674,7 +9684,7 @@ static void RB_RenderDebugUtils()
 		gl_genericShader->SetUniform_ColorModulate(CGEN_VERTEX, AGEN_VERTEX);
 		gl_genericShader->SetUniform_Color(colorBlack);
 
-		gl_genericShader->SetVertexAttribs();
+		gl_genericShader->SetRequiredVertexPointers();
 
 		GL_State(GLS_DEFAULT);
 		GL_Cull(CT_TWO_SIDED);
@@ -9853,7 +9863,7 @@ static void RB_RenderDebugUtils()
 			if(node->contents != -1)
 			{
 				glEnable(GL_POLYGON_OFFSET_FILL);
-				glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+				GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 			}
 
 			R_BindVBO(node->volumeVBO);
@@ -9934,7 +9944,7 @@ static void RB_RenderDebugUtils()
 		}
 
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
+		GL_PolygonOffset(r_offsetFactor->value, r_offsetUnits->value);
 
 		for(i = 0, srfDecal = backEnd.refdef.decals; i < backEnd.refdef.numDecals; i++, srfDecal++)
 		{
