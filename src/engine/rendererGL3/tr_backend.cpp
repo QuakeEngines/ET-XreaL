@@ -10294,7 +10294,7 @@ static void RB_RenderView(void)
 			{
 				clearBits |= GL_COLOR_BUFFER_BIT;
 			
-				glClearColor(tr.world->fogs[tr.world->globalFog].color[0],
+				GL_ClearColor(tr.world->fogs[tr.world->globalFog].color[0],
 							tr.world->fogs[tr.world->globalFog].color[1],
 							tr.world->fogs[tr.world->globalFog].color[2], 1.0);
 			}
@@ -10314,18 +10314,18 @@ static void RB_RenderView(void)
 					clearBits |= GL_COLOR_BUFFER_BIT;
 					if(tr.glfogsettings[FOG_PORTALVIEW].registered)
 					{
-						glClearColor(tr.glfogsettings[FOG_PORTALVIEW].color[0], tr.glfogsettings[FOG_PORTALVIEW].color[1],
+						GL_ClearColor(tr.glfogsettings[FOG_PORTALVIEW].color[0], tr.glfogsettings[FOG_PORTALVIEW].color[1],
 									  tr.glfogsettings[FOG_PORTALVIEW].color[2], tr.glfogsettings[FOG_PORTALVIEW].color[3]);
 					}
 					else if(tr.glfogNum > FOG_NONE && tr.glfogsettings[FOG_CURRENT].registered)
 					{
-						glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+						GL_ClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
 									  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
 					}
 					else
 					{
-	//                  glClearColor ( 1.0, 0.0, 0.0, 1.0 );   // red clear for testing portal sky clear
-						glClearColor(0.5, 0.5, 0.5, 1.0);
+	//                  GL_ClearColor ( 1.0, 0.0, 0.0, 1.0 );   // red clear for testing portal sky clear
+						GL_ClearColor(0.5, 0.5, 0.5, 1.0);
 					}
 				}
 				else
@@ -10333,7 +10333,7 @@ static void RB_RenderView(void)
 					// rendered sky (either clear color or draw quake sky)
 					if(tr.glfogsettings[FOG_PORTALVIEW].registered)
 					{
-						glClearColor(tr.glfogsettings[FOG_PORTALVIEW].color[0], tr.glfogsettings[FOG_PORTALVIEW].color[1],
+						GL_ClearColor(tr.glfogsettings[FOG_PORTALVIEW].color[0], tr.glfogsettings[FOG_PORTALVIEW].color[1],
 									  tr.glfogsettings[FOG_PORTALVIEW].color[2], tr.glfogsettings[FOG_PORTALVIEW].color[3]);
 
 						if(tr.glfogsettings[FOG_PORTALVIEW].clearscreen)
@@ -10364,14 +10364,14 @@ static void RB_RenderView(void)
 						clearBits |= GL_COLOR_BUFFER_BIT;
 					}
 
-					glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+					GL_ClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
 								  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
 				}
 				else if(!r_portalSky->integer)
 				{					
 					// ydnar: portal skies have been manually turned off, clear bg color
 					clearBits |= GL_COLOR_BUFFER_BIT;
-					glClearColor(0.5, 0.5, 0.5, 1.0);
+					GL_ClearColor(0.5, 0.5, 0.5, 1.0);
 				}
 			}
 		}
@@ -10393,13 +10393,13 @@ static void RB_RenderView(void)
 				if(tr.glfogsettings[FOG_CURRENT].registered)
 				{					
 					// try to clear fastsky with current fog color
-					glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+					GL_ClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
 								  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
 				}
 				else
 				{
-	//              glClearColor ( 0.0, 0.0, 1.0, 1.0 );   // blue clear for testing world sky clear
-					glClearColor(0.05, 0.05, 0.05, 1.0);	// JPW NERVE changed per id req was 0.5s
+	//              GL_ClearColor ( 0.0, 0.0, 1.0, 1.0 );   // blue clear for testing world sky clear
+					GL_ClearColor(0.05, 0.05, 0.05, 1.0);	// JPW NERVE changed per id req was 0.5s
 				}
 			}
 			else
@@ -10408,7 +10408,7 @@ static void RB_RenderView(void)
 				if(tr.glfogsettings[FOG_CURRENT].registered)
 				{					
 					// try to clear fastsky with current fog color
-					glClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
+					GL_ClearColor(tr.glfogsettings[FOG_CURRENT].color[0], tr.glfogsettings[FOG_CURRENT].color[1],
 							  tr.glfogsettings[FOG_CURRENT].color[2], tr.glfogsettings[FOG_CURRENT].color[3]);
 
 					if(tr.glfogsettings[FOG_CURRENT].clearscreen)

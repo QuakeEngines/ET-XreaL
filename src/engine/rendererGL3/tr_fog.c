@@ -123,7 +123,7 @@ void RB_Fog(glfog_t * curfog)
 
 	setfog.registered = qtrue;
 
-	glClearColor(curfog->color[0], curfog->color[1], curfog->color[2], curfog->color[3]);
+	GL_ClearColor(curfog->color[0], curfog->color[1], curfog->color[2], curfog->color[3]);
 #endif
 }
 
