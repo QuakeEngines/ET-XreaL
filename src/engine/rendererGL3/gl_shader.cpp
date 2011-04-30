@@ -1213,7 +1213,7 @@ GLShader_generic::GLShader_generic():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -1442,7 +1442,7 @@ GLShader_vertexLighting_DBS_entity::GLShader_vertexLighting_DBS_entity():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -1679,7 +1679,7 @@ GLShader_forwardLighting_omniXYZ::GLShader_forwardLighting_omniXYZ():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -1811,7 +1811,7 @@ GLShader_forwardLighting_projXYZ::GLShader_forwardLighting_projXYZ():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -1947,7 +1947,7 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -2433,7 +2433,7 @@ GLShader_geometricFill::GLShader_geometricFill():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -2543,7 +2543,7 @@ GLShader_shadowFill::GLShader_shadowFill():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -2641,7 +2641,7 @@ GLShader_reflection::GLShader_reflection():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -2825,7 +2825,7 @@ GLShader_fogQuake3::GLShader_fogQuake3():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";
@@ -3011,7 +3011,7 @@ GLShader_heatHaze::GLShader_heatHaze():
 	
 	//Com_Memset(_shaderPrograms, 0, sizeof(_shaderPrograms));
 
-	std::string vertexInlines = "vertexAnimation ";
+	std::string vertexInlines = "vertexSkinning vertexAnimation ";
 	if(glConfig.driverType == GLDRV_OPENGL3 && r_vboDeformVertexes->integer)
 	{
 		vertexInlines += "deformVertexes ";

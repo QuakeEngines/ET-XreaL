@@ -2006,7 +2006,8 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	DBG_SHOWTIME
 
 	// calc tangent spaces
-	if(!tess.skipTangentSpaces)
+#if 1
+	if(!tess.skipTangentSpaces && r_normalMapping->integer)
 	{
 		int             i;
 		float          *v;
@@ -2067,7 +2068,10 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 		}
 		*/
 	}
+#endif
 	
+	DBG_SHOWTIME
+
 #if 0
 	if (r_showSkeleton->integer)
 	{
@@ -2373,6 +2377,7 @@ Tess_SurfaceVBOMDMMesh
 */
 void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 {
+#if 1
 	int             i;
 	mdmModel_t     *mdmModel;
 	mdmSurfaceIntern_t *mdmSurface;
@@ -2431,6 +2436,7 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 	//GL_VertexAttribPointers(ATTR_BITS | ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 
 	Tess_End();
+#endif
 }
 
 
