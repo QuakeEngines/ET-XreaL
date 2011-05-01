@@ -2327,6 +2327,14 @@ void GLimp_Init(void)
 			}
 		}
 	}
+	
+	if(	Q_stristr(glConfig.renderer_string, "mesa") ||
+		Q_stristr(glConfig.renderer_string, "gallium") ||
+		Q_stristr(glConfig.vendor_string, "nouveau") ||
+		Q_stristr(glConfig.vendor_string, "mesa"))
+	{
+		glConfig.driverType = GLDRV_MESA;
+	}
 
 	//
 	// this is where hardware specific workarounds that should be
