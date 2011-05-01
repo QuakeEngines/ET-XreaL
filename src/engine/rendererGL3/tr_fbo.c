@@ -502,16 +502,6 @@ void R_InitFBOs(void)
 	if(DS_STANDARD_ENABLED())
 	{
 		// geometricRender FBO as G-Buffer for deferred shading
-		/*
-		GLenum          drawbuffers[] = {
-			GL_COLOR_ATTACHMENT0_EXT,
-			GL_COLOR_ATTACHMENT1_EXT,
-			GL_COLOR_ATTACHMENT2_EXT
-			GL_COLOR_ATTACHMENT3_EXT
-			//GL_DEPTH_ATTACHMENT_EXT
-		};
-		*/
-
 		ri.Printf(PRINT_ALL, "Deferred Shading enabled\n");
 
 		if(glConfig2.textureNPOTAvailable)

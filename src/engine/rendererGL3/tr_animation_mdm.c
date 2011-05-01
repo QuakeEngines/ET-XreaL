@@ -2410,7 +2410,7 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 
 	for(i = 0; i < surface->numBoneRemap; i++)
 	{
-#if 0
+#if 1
 		MatrixFromVectorsFLU(m, bones[surface->boneRemapInverse[i]].matrix[0],
 								bones[surface->boneRemapInverse[i]].matrix[1],
 								bones[surface->boneRemapInverse[i]].matrix[2]);
