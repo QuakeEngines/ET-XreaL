@@ -178,7 +178,7 @@ protected:
 
 public:
 	virtual const char* GetName() const = 0;
-	virtual const size_t Get_shaderProgram_t_Offset() const = 0;
+	virtual void UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const = 0;
 };
 
 
@@ -703,7 +703,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ColorMap"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ColorMap); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ColorMap(int texUnit)
 	{
@@ -721,7 +724,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_NormalMap"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_NormalMap); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_NormalMap(int texUnit)
 	{
@@ -739,7 +745,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_CurrentMap"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_CurrentMap); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_CurrentMap = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_CurrentMap(int texUnit)
 	{
@@ -758,7 +767,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ColorTextureMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ColorTextureMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ColorTextureMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ColorTextureMatrix(const matrix_t m)
 	{
@@ -776,7 +788,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_DiffuseTextureMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_DiffuseTextureMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_DiffuseTextureMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_DiffuseTextureMatrix(const matrix_t m)
 	{
@@ -794,7 +809,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_NormalTextureMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_NormalTextureMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_NormalTextureMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_NormalTextureMatrix(const matrix_t m)
 	{
@@ -812,7 +830,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_SpecularTextureMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_SpecularTextureMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_SpecularTextureMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_SpecularTextureMatrix(const matrix_t m)
 	{
@@ -831,7 +852,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_AlphaTest"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_AlphaTest); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_AlphaTest = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_AlphaTest(uint32_t stateBits)
 	{
@@ -850,7 +874,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_AmbientColor"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_AmbientColor); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_AmbientColor = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_AmbientColor(const vec3_t v)
 	{
@@ -869,7 +896,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ViewOrigin"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ViewOrigin); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ViewOrigin = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ViewOrigin(const vec3_t v)
 	{
@@ -888,7 +918,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightDir"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightDir); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightDir = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightDir(const vec3_t v)
 	{
@@ -906,7 +939,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightOrigin"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightOrigin); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightOrigin = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightOrigin(const vec3_t v)
 	{
@@ -924,7 +960,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightColor"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightColor); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightColor = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightColor(const vec3_t v)
 	{
@@ -942,7 +981,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightRadius"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightRadius); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightRadius = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightRadius(float value)
 	{
@@ -961,7 +1003,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightScale"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightScale); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightScale = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightScale(float value)
 	{
@@ -980,7 +1025,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightWrapAround"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightWrapAround); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightWrapAround = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightWrapAround(float value)
 	{
@@ -998,7 +1046,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightAttenuationMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightAttenuationMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightAttenuationMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightAttenuationMatrix(const matrix_t m)
 	{
@@ -1017,7 +1068,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_LightFrustum"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_LightFrustum); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_LightFrustum = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_LightFrustum(vec4_t lightFrustum[6])
 	{
@@ -1064,7 +1118,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ShadowTexelSize"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ShadowTexelSize); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ShadowTexelSize = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ShadowTexelSize(float value)
 	{
@@ -1082,7 +1139,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ShadowBlur"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ShadowBlur); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ShadowBlur = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ShadowBlur(float value)
 	{
@@ -1100,7 +1160,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ShadowMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ShadowMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ShadowMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ShadowMatrix(matrix_t m[MAX_SHADOWMAPS])
 	{
@@ -1119,7 +1182,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ShadowParallelSplitDistances"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ShadowParallelSplitDistances); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ShadowParallelSplitDistances = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ShadowParallelSplitDistances(const vec4_t v)
 	{
@@ -1137,7 +1203,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_Color"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_Color); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_Color = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_Color(const vec4_t v)
 	{
@@ -1158,7 +1227,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ModelMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ModelMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ModelMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ModelMatrix(const matrix_t m)
 	{
@@ -1177,7 +1249,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ViewMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ViewMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ViewMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ViewMatrix(const matrix_t m)
 	{
@@ -1196,7 +1271,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ModelViewMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ModelViewMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ModelViewMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ModelViewMatrix(const matrix_t m)
 	{
@@ -1215,7 +1293,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ModelViewMatrixTranspose"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ModelViewMatrixTranspose); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ModelViewMatrixTranspose = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ModelViewMatrixTranspose(const matrix_t m)
 	{
@@ -1234,7 +1315,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ProjectionMatrixTranspose"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ProjectionMatrixTranspose); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ProjectionMatrixTranspose = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ProjectionMatrixTranspose(const matrix_t m)
 	{
@@ -1253,7 +1337,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ModelViewProjectionMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ModelViewProjectionMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ModelViewProjectionMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ModelViewProjectionMatrix(const matrix_t m)
 	{
@@ -1272,7 +1359,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_UnprojectMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_UnprojectMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_UnprojectMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_UnprojectMatrix(const matrix_t m)
 	{
@@ -1291,7 +1381,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_BoneMatrix"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_BoneMatrix); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_BoneMatrix = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_BoneMatrix(int numBones, const matrix_t boneMatrices[MAX_BONES])
 	{
@@ -1310,7 +1403,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_VertexInterpolation"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_VertexInterpolation); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_VertexInterpolation = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_VertexInterpolation(float value)
 	{
@@ -1329,7 +1425,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_PortalPlane"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_PortalPlane); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_PortalPlane = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_PortalPlane(const vec4_t v)
 	{
@@ -1347,7 +1446,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_PortalRange"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_PortalRange); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_PortalRange = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_PortalRange(float value)
 	{
@@ -1366,7 +1468,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_DepthScale"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_DepthScale); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_DepthScale = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_DepthScale(float value)
 	{
@@ -1384,7 +1489,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_EnvironmentInterpolation"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_EnvironmentInterpolation); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_EnvironmentInterpolation = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_EnvironmentInterpolation(float value)
 	{
@@ -1407,7 +1515,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_DeformParms"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_DeformParms); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_DeformParms = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_DeformParms(deformStage_t deforms[MAX_SHADER_DEFORMS], int numDeforms)
 	{
@@ -1476,7 +1587,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_Time"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_Time); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_Time = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_Time(float value)
 	{
@@ -1512,7 +1626,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ColorGen"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ColorGen); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ColorGen = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ColorGen(colorGen_t value)
 	{
@@ -1542,7 +1659,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_AlphaGen"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_AlphaGen); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_AlphaGen = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_AlphaGen(alphaGen_t value)
 	{
@@ -1561,7 +1681,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_ColorModulate"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_ColorModulate); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_ColorModulate = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_ColorModulate(colorGen_t colorGen, alphaGen_t alphaGen)
 	{
@@ -1623,7 +1746,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_FogDistanceVector"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_FogDistanceVector); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_FogDistanceVector = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_FogDistanceVector(const vec4_t v)
 	{
@@ -1658,7 +1784,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_FogDepthVector"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_FogDepthVector); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_FogDepthVector = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_FogDepthVector(const vec4_t v)
 	{
@@ -1693,7 +1822,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_FogEyeT"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_FogEyeT); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_FogEyeT = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_FogEyeT(float value)
 	{
@@ -1728,7 +1860,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_DeformMagnitude"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_DeformMagnitude); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_DeformMagnitude = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_DeformMagnitude(float value)
 	{
@@ -1764,7 +1899,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_HDRKey"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_HDRKey); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_HDRKey = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_HDRKey(float value)
 	{
@@ -1798,7 +1936,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_HDRAverageLuminance"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_HDRAverageLuminance); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_HDRAverageLuminance = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_HDRAverageLuminance(float value)
 	{
@@ -1832,7 +1973,10 @@ public:
 	}
 
 	const char* GetName() const { return "u_HDRMaxLuminance"; }
-	const size_t Get_shaderProgram_t_Offset() const { return SHADER_PROGRAM_T_OFS(u_HDRMaxLuminance); }
+	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
+	{
+		shaderProgram->u_HDRMaxLuminance = glGetUniformLocationARB(shaderProgram->program, GetName());
+	}
 
 	void SetUniform_HDRMaxLuminance(float value)
 	{
@@ -1858,6 +2002,7 @@ public:
 
 class GLShader_generic:
 public GLShader,
+public u_ColorMap,
 public u_ColorTextureMatrix,
 public u_ViewOrigin,
 public u_AlphaTest,

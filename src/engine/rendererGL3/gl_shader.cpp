@@ -197,9 +197,7 @@ void GLShader::UpdateShaderProgramUniformLocations(shaderProgram_t *shaderProgra
 	{
 		GLUniform* uniform = _uniforms[j];
 
-		size_t ofs = uniform->Get_shaderProgram_t_Offset();
-
-		*(GLint *)(((byte*)shaderProgram) + ofs) = glGetUniformLocationARB(shaderProgram->program, uniform->GetName());
+		uniform->UpdateShaderProgramUniformLocation(shaderProgram);
 	}
 }
 
@@ -1071,7 +1069,7 @@ void GLShader::BindAttribLocations(GLhandleARB program) const
 		glBindAttribLocationARB(program, ATTR_INDEX_LIGHTDIRECTION, "attr_LightDirection");
 #endif
 
-	if(glConfig2.vboVertexSkinningAvailable)
+	//if(glConfig2.vboVertexSkinningAvailable)
 	{
 		glBindAttribLocationARB(program, ATTR_INDEX_BONE_INDEXES, "attr_BoneIndexes");
 		glBindAttribLocationARB(program, ATTR_INDEX_BONE_WEIGHTS, "attr_BoneWeights");
@@ -1186,6 +1184,7 @@ void GLShader::SetRequiredVertexPointers()
 
 GLShader_generic::GLShader_generic():
 		GLShader(	"generic", ATTR_POSITION | ATTR_TEXCOORD | ATTR_NORMAL),
+		u_ColorMap(this),
 		u_ColorTextureMatrix(this),
 		u_ViewOrigin(this),
 		u_AlphaTest(this),
@@ -1258,10 +1257,10 @@ GLShader_generic::GLShader_generic():
 											vertexShaderText,
 											fragmentShaderText,
 											compileMacros);
-
+			
 			UpdateShaderProgramUniformLocations(shaderProgram);
 
-			shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
+			//shaderProgram->u_ColorMap = glGetUniformLocationARB(shaderProgram->program, "u_ColorMap");
 
 			//ri.Printf(PRINT_ALL, "u_ColorMap = %i\n", shaderProgram->u_ColorMap);
 
@@ -1270,7 +1269,8 @@ GLShader_generic::GLShader_generic():
 			glUseProgramObjectARB(0);
 
 			ValidateProgram(shaderProgram->program);
-			//ShowProgramUniforms(shaderProgram->program);
+			ShowProgramUniforms(shaderProgram->program);
+			
 			GL_CheckErrors();
 
 			numCompiled++;

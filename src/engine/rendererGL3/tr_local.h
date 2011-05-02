@@ -1340,123 +1340,123 @@ typedef struct shaderProgram_s
 	uint32_t        attribs;	// vertex array attributes
 
 	// uniform parameters
-	int16_t         u_ColorMap;
-	int16_t         u_CurrentMap;
-	int16_t         u_ContrastMap;
-	int16_t         u_DiffuseMap;
-	int16_t         u_NormalMap;
-	int16_t         u_SpecularMap;
-	int16_t         u_LightMap;
-	int16_t         u_DeluxeMap;
-	int16_t         u_DepthMap;
-	int16_t         u_DepthMapBack;
-	int16_t         u_DepthMapFront;
-	int16_t         u_PortalMap;
-	int16_t         u_AttenuationMapXY;
-	int16_t         u_AttenuationMapZ;
-	int16_t         u_ShadowMap;
-	int16_t         u_ShadowMap0;
-	int16_t         u_ShadowMap1;
-	int16_t         u_ShadowMap2;
-	int16_t         u_ShadowMap3;
-	int16_t         u_ShadowMap4;
-	int16_t         u_EnvironmentMap0;
-	int16_t         u_EnvironmentMap1;
+	GLint           u_ColorMap;
+	GLint           u_CurrentMap;
+	GLint           u_ContrastMap;
+	GLint           u_DiffuseMap;
+	GLint            u_NormalMap;
+	GLint            u_SpecularMap;
+	GLint            u_LightMap;
+	GLint            u_DeluxeMap;
+	GLint            u_DepthMap;
+	GLint            u_DepthMapBack;
+	GLint            u_DepthMapFront;
+	GLint            u_PortalMap;
+	GLint            u_AttenuationMapXY;
+	GLint            u_AttenuationMapZ;
+	GLint            u_ShadowMap;
+	GLint            u_ShadowMap0;
+	GLint            u_ShadowMap1;
+	GLint            u_ShadowMap2;
+	GLint            u_ShadowMap3;
+	GLint            u_ShadowMap4;
+	GLint            u_EnvironmentMap0;
+	GLint            u_EnvironmentMap1;
 
-	int16_t         u_GrainMap;
-	int16_t         u_VignetteMap;
+	GLint            u_GrainMap;
+	GLint            u_VignetteMap;
 
-	int16_t         u_ColorTextureMatrix;
+	GLint            u_ColorTextureMatrix;
 	matrix_t		t_ColorTextureMatrix;
 
-	int16_t         u_DiffuseTextureMatrix;
+	GLint            u_DiffuseTextureMatrix;
 	matrix_t		t_DiffuseTextureMatrix;
 
-	int16_t         u_NormalTextureMatrix;
+	GLint            u_NormalTextureMatrix;
 	matrix_t		t_NormalTextureMatrix;
 
-	int16_t         u_SpecularTextureMatrix;
+	GLint            u_SpecularTextureMatrix;
 	matrix_t		t_SpecularTextureMatrix;
 
-	int16_t         u_AlphaTest;
+	GLint            u_AlphaTest;
 	alphaTest_t		t_AlphaTest;
 
-	int16_t         u_ViewOrigin;
+	GLint            u_ViewOrigin;
 	vec3_t			t_ViewOrigin;
 
 	GLint			u_DeformParms;
 
 	/*
-	int16_t         u_ColorGen;
+	GLint            u_ColorGen;
 	colorGen_t		t_ColorGen;
 
-	int16_t         u_AlphaGen;
+	GLint            u_AlphaGen;
 	alphaGen_t		t_AlphaGen;
 	*/
 
-	int16_t         u_Color;
+	GLint            u_Color;
 	vec4_t			t_Color;
 
-	int16_t         u_ColorModulate;
+	GLint            u_ColorModulate;
 	vec4_t			t_ColorModulate;
 
-	int16_t         u_AmbientColor;
+	GLint            u_AmbientColor;
 	vec3_t			t_AmbientColor;
 
-	int16_t         u_LightDir;
+	GLint            u_LightDir;
 	vec3_t			t_LightDir;
 
-	int16_t         u_LightOrigin;
+	GLint            u_LightOrigin;
 	vec3_t			t_LightOrigin;
 
-	int16_t         u_LightColor;
+	GLint            u_LightColor;
 	vec3_t			t_LightColor;
 
-	int16_t         u_LightRadius;
+	GLint            u_LightRadius;
 	float			t_LightRadius;
 
-	int16_t         u_LightParallel;
+	GLint            u_LightParallel;
 	qboolean		t_LightParallel;
 
-	int16_t         u_LightScale;
+	GLint            u_LightScale;
 	float			t_LightScale;
 
-	int16_t         u_LightWrapAround;
+	GLint            u_LightWrapAround;
 	float			t_LightWrapAround;
 
-	int16_t         u_LightAttenuationMatrix;
+	GLint            u_LightAttenuationMatrix;
 	matrix_t		t_LightAttenuationMatrix;
 
-	int16_t         u_LightFrustum;
+	GLint            u_LightFrustum;
 
-	int16_t         u_ShadowMatrix;
+	GLint            u_ShadowMatrix;
 	matrix_t		t_ShadowMatrix;
 
-	int16_t         u_ShadowCompare;
+	GLint            u_ShadowCompare;
 	qboolean		t_ShadowCompare;
 
-	int16_t         u_ShadowTexelSize;
+	GLint            u_ShadowTexelSize;
 	float			t_ShadowTexelSize;
 
-	int16_t         u_ShadowBlur;
+	GLint            u_ShadowBlur;
 	float			t_ShadowBlur;
 
 	GLint			u_ShadowParallelSplitDistances;
 	vec4_t			t_ShadowParallelSplitDistances;
 
-	int16_t         u_RefractionIndex;
+	GLint            u_RefractionIndex;
 	float			t_RefractionIndex;
 
-	int16_t         u_FresnelPower;
-	int16_t         u_FresnelScale;
-	int16_t         u_FresnelBias;
+	GLint            u_FresnelPower;
+	GLint            u_FresnelScale;
+	GLint            u_FresnelBias;
 
 	GLint			u_NormalScale;
 
-	int16_t         u_EtaRatio;
+	GLint            u_EtaRatio;
 
-	int16_t         u_FogDensity;
-	int16_t         u_FogColor;
+	GLint            u_FogDensity;
+	GLint            u_FogColor;
 
 	GLint			u_FogDistanceVector;
 	vec4_t			t_FogDistanceVector;
@@ -1467,13 +1467,13 @@ typedef struct shaderProgram_s
 	GLint			u_FogEyeT;
 	float			t_FogEyeT;
 
-	int16_t         u_SSAOJitter;
-	int16_t         u_SSAORadius;
+	GLint            u_SSAOJitter;
+	GLint            u_SSAORadius;
 
 	GLint			u_ParallaxMapping;
 	qboolean		t_ParallaxMapping;
 
-	int16_t         u_DepthScale;
+	GLint            u_DepthScale;
 	float			t_DepthScale;
 
 
@@ -1483,7 +1483,7 @@ typedef struct shaderProgram_s
 	GLint			u_PortalPlane;
 	vec4_t			t_PortalPlane;
 
-	int16_t         u_PortalRange;
+	GLint            u_PortalRange;
 	float			t_PortalRange;
 
 	GLint			u_EnvironmentInterpolation;
@@ -1498,43 +1498,43 @@ typedef struct shaderProgram_s
 	GLint			u_HDRMaxLuminance;
 	float			t_HDRMaxLuminance;
 
-	int16_t         u_DeformMagnitude;
+	GLint            u_DeformMagnitude;
 	float			t_DeformMagnitude;
 
 
-	int16_t         u_ModelMatrix;	// model -> world
+	GLint            u_ModelMatrix;	// model -> world
 	matrix_t		t_ModelMatrix;
 
-	int16_t         u_ViewMatrix;	// world -> camera
+	GLint            u_ViewMatrix;	// world -> camera
 	matrix_t		t_ViewMatrix;
 
-	int16_t         u_ModelViewMatrix;	// model -> camera
+	GLint            u_ModelViewMatrix;	// model -> camera
 	matrix_t		t_ModelViewMatrix;
 
-	int16_t         u_ModelViewMatrixTranspose;
+	GLint            u_ModelViewMatrixTranspose;
 	matrix_t		t_ModelViewMatrixTranspose;
 
-	int16_t         u_ProjectionMatrix;
+	GLint            u_ProjectionMatrix;
 	matrix_t		t_ProjectionMatrix;
 
-	int16_t         u_ProjectionMatrixTranspose;
+	GLint            u_ProjectionMatrixTranspose;
 	matrix_t		t_ProjectionMatrixTranspose;
 
-	int16_t         u_ModelViewProjectionMatrix;
+	GLint            u_ModelViewProjectionMatrix;
 	matrix_t		t_ModelViewProjectionMatrix;
 
-	int16_t         u_UnprojectMatrix;
+	GLint            u_UnprojectMatrix;
 	matrix_t		t_UnprojectMatrix;
 
-	int16_t         u_VertexSkinning;
+	GLint            u_VertexSkinning;
 	qboolean		t_VertexSkinning;
 
 	GLint			u_VertexInterpolation;
 	float			t_VertexInterpolation;
 
-	int16_t         u_BoneMatrix;
+	GLint            u_BoneMatrix;
 
-	int16_t         u_Time;
+	GLint            u_Time;
 	float			t_Time;
 } shaderProgram_t;
 
