@@ -51,9 +51,7 @@ frame.
 
 static float    frontlerp, backlerp;
 static float    torsoFrontlerp, torsoBacklerp;
-static int     *boneRefs, *pIndexes;
-static int      indexes;
-static int      baseIndex, baseVertex, oldIndexes;
+static int     *boneRefs;
 static mdxBoneFrame_t bones[MDX_MAX_BONES], rawBones[MDX_MAX_BONES], oldBones[MDX_MAX_BONES];
 static char     validBones[MDX_MAX_BONES];
 static char     newBones[MDX_MAX_BONES];
@@ -73,7 +71,7 @@ static vec3_t   vec, v2, dir;
 static float    diff;			//, a1, a2;   // rain - unused
 static int      render_count;
 static float    lodRadius, lodScale;
-static int32_t *collapse_map, *pCollapseMap;
+static int32_t *pCollapseMap;
 static int32_t  collapse[MDM_MAX_VERTS], *pCollapse;
 static int      p0, p1, p2;
 static qboolean isTorso, fullTorso;
@@ -268,7 +266,7 @@ static float R_CalcMDMLod(refEntity_t * refent, vec3_t origin, float radius, flo
 
 //      ri.Printf (PRINT_ALL, "projected radius: %f\n", projectedRadius);
 
-		lodScale = r_lodscale->value;	// fudge factor since MDS uses a much smoother method of LOD
+		lodScale = r_lodScale->value;	// fudge factor since MDS uses a much smoother method of LOD
 		flod = projectedRadius * lodScale * modelScale;
 	}
 	else
@@ -287,7 +285,7 @@ static float R_CalcMDMLod(refEntity_t * refent, vec3_t origin, float radius, flo
 		flod *= 0.8;
 	}
 
-	flod -= 0.25 * (r_lodbias->value) + modelBias;
+	flod -= 0.25 * (r_lodBias->value) + modelBias;
 
 	if(flod < 0.0)
 	{
@@ -300,6 +298,53 @@ static float R_CalcMDMLod(refEntity_t * refent, vec3_t origin, float radius, flo
 
 	return flod;
 }
+
+static int R_CalcMDMLodIndex(refEntity_t * ent, vec3_t origin, float radius, float modelBias, float modelScale, mdmSurfaceIntern_t * mdmSurface)
+{
+	float           flod;
+	int             lod;
+
+	flod = R_CalcMDMLod(ent, origin, radius, modelBias, modelScale);
+
+	//flod = r_lodTest->value;
+
+	// allow dead skeletal bodies to go below minlod (experiment)
+#if 0
+	if(ent->reFlags & REFLAG_DEAD_LOD)
+	{
+		if(flod < 0.35)
+		{						
+			// allow dead to lod down to 35% (even if below surf->minLod) (%35 is arbitrary and probably not good generally.  
+			// worked for the blackguard/infantry as a test though)
+			flod = 0.35;
+		}
+	}
+	else
+	{
+		int render_count = (int)((float)mdmSurface->numVerts * flod);
+		if(render_count < mdmSurface->minLod)
+		{
+			if(!(ent->reFlags & REFLAG_DEAD_LOD))
+			{
+				flod = (float)mdmSurface->minLod / mdmSurface->numVerts;
+			}
+		}
+	}
+#endif
+
+	//for(lod = 0; lod < MD3_MAX_LODS; lod++)
+	for(lod = MD3_MAX_LODS - 1; lod >= 0; lod--)
+	{
+		if(flod <= mdmLODResolutions[lod])
+			break;
+	}
+
+	if(lod < 0)
+		lod = 0;
+
+	return lod;
+}
+
 
 /*
 =================
@@ -587,69 +632,25 @@ void R_AddMDMInteractions(trRefEntity_t * ent, trRefLight_t * light)
 		srfVBOMDMMesh_t *vboSurface;
 		shader_t       *shader;
 
-		if(r_shadows->integer == SHADOWING_STENCIL)
+		// static VBOs are fine for lighting and shadow mapping
+		for(i = 0; i < model->numVBOSurfaces; i++)
 		{
-			// add shadow interactions because we cannot use shadow volumes with static VBOs ..
-			for(i = 0, mdmSurface = model->surfaces; i < model->numSurfaces; i++, mdmSurface++)
+			vboSurface = model->vboSurfaces[i];
+			mdmSurface = vboSurface->mdmSurface;
+			
+			shader = GetMDMSurfaceShader(ent, mdmSurface);
+
+			// skip all surfaces that don't matter for lighting only pass
+			if(shader->isSky || (!shader->interactLight && shader->noShadows))
+				continue;
+
+			// we will add shadows even if the main object isn't visible in the view
+
+			// don't add third_person objects if not viewing through a portal
+			if(!personalModel)
 			{
-				shader = GetMDMSurfaceShader(ent, mdmSurface);
-
-				// skip all surfaces that don't matter for lighting only pass
-				if(shader->isSky || !shader->interactLight || shader->noShadows)
-					continue;
-
-				// we will add shadows even if the main object isn't visible in the view
-
-				// don't add third_person objects if not viewing through a portal
-				if(!personalModel)
-				{
-					R_AddLightInteraction(light, (void *)mdmSurface, shader, cubeSideBits, IA_SHADOWONLY);
-					tr.pc.c_dlightSurfaces++;
-				}
-			}
-
-			// use static VBOs for lighting only
-			for(i = 0; i < model->numVBOSurfaces; i++)
-			{
-				vboSurface = model->vboSurfaces[i];
-				mdmSurface = vboSurface->mdmSurface;
-
-				shader = GetMDMSurfaceShader(ent, mdmSurface);
-
-				// skip all surfaces that don't matter for lighting only pass
-				if(shader->isSky || (!shader->interactLight && shader->noShadows))
-					continue;
-
-				// don't add third_person objects if not viewing through a portal
-				if(!personalModel)
-				{
-					R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, IA_LIGHTONLY);
-					tr.pc.c_dlightSurfaces++;
-				}
-			}
-		}
-		else
-		{
-			// static VBOs are fine for lighting and shadow mapping
-			for(i = 0; i < model->numVBOSurfaces; i++)
-			{
-				vboSurface = model->vboSurfaces[i];
-				mdmSurface = vboSurface->mdmSurface;
-				
-				shader = GetMDMSurfaceShader(ent, mdmSurface);
-
-				// skip all surfaces that don't matter for lighting only pass
-				if(shader->isSky || (!shader->interactLight && shader->noShadows))
-					continue;
-
-				// we will add shadows even if the main object isn't visible in the view
-
-				// don't add third_person objects if not viewing through a portal
-				if(!personalModel)
-				{
-					R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, iaType);
-					tr.pc.c_dlightSurfaces++;
-				}
+				R_AddLightInteraction(light, (void *)vboSurface, shader, cubeSideBits, iaType);
+				tr.pc.c_dlightSurfaces++;
 			}
 		}
 	}
@@ -1791,6 +1792,10 @@ static void R_CalcBones(const refEntity_t * refent, int *boneList, int numBones)
 #define DBG_SHOWTIME    ;
 #endif
 
+
+
+
+
 /*
 ==============
 Tess_MDM_SurfaceAnim
@@ -1804,7 +1809,8 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	int            *boneList;
 	mdmModel_t     *mdm;
 	md5Vertex_t    *v;
-	srfTriangle_t  *tri; //triangles,
+	srfTriangle_t  *tri;
+	int				baseIndex, baseVertex;
 
 #ifdef DBG_PROFILE_BONES
 	int             di = 0, dt, ldt;
@@ -1820,21 +1826,22 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	R_CalcBones((const refEntity_t *)refent, boneList, surface->numBoneReferences);
 
 	DBG_SHOWTIME
-		//
-		// calculate LOD
-		//
-		// TODO: lerp the radius and origin
+
+	//
+	// calculate LOD
+	//
+	// TODO: lerp the radius and origin
 	VectorAdd(refent->origin, frame->localOrigin, vec);
 	lodRadius = frame->radius;
 	lodScale = R_CalcMDMLod(refent, vec, lodRadius, mdm->lodBias, mdm->lodScale);
 
-	// ydnar: debug code
-	//% lodScale = 0.15;
+	// debug code
+	// lodScale = r_lodTest->value;
 
 //DBG_SHOWTIME
 
 //----(SA)  modification to allow dead skeletal bodies to go below minlod (experiment)
-#if 1
+#if 0
 	render_count = surface->numVerts;
 #else
 	if(refent->reFlags & REFLAG_DEAD_LOD)
@@ -1881,7 +1888,7 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 
 	// setup triangle list
 
-#if 1
+#if 0
 	for(i = 0, tri = surface->triangles; i < surface->numTriangles; i++, tri++)
 	{
 		tess.indexes[tess.numIndexes + i * 3 + 0] = tess.numVertexes + tri->indexes[0];
@@ -1894,29 +1901,8 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 
 #else
 
-	collapse_map = surface->collapseMap;
-	//triangles = surface->triangles;
-	//indexes = surface->numTriangles * 3;
-	oldIndexes = baseIndex;
-
-	pIndexes = &tess.indexes[baseIndex];
-
 	if(render_count == surface->numVerts)
 	{
-		/*
-		memcpy(pIndexes, triangles, sizeof(triangles[0]) * indexes);
-		if(baseVertex)
-		{
-			int            *indexesEnd;
-
-			for(indexesEnd = pIndexes + indexes; pIndexes < indexesEnd; pIndexes++)
-			{
-				*pIndexes += baseVertex;
-			}
-		}
-		tess.numIndexes += indexes;
-		*/
-
 		for(i = 0, tri = surface->triangles; i < surface->numTriangles; i++, tri++)
 		{
 			tess.indexes[tess.numIndexes + i * 3 + 0] = tess.numVertexes + tri->indexes[0];
@@ -1929,7 +1915,6 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	}
 	else
 	{
-		//int            *collapseEnd;
 		int				p0, p1, p2;
 
 		pCollapse = collapse;
@@ -1938,19 +1923,15 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 			*pCollapse = j;
 		}
 
-		pCollapseMap = &collapse_map[render_count];
-		//for(collapseEnd = collapse + surface->numVerts; pCollapse < collapseEnd; pCollapse++, pCollapseMap++)
-		for(j = 0; j < surface->numVerts; j++, pCollapse++, pCollapseMap++)
+		pCollapseMap = &surface->collapseMap[render_count];
+		for(j = render_count; j < surface->numVerts; j++, pCollapse++, pCollapseMap++)
 		{
-			*pCollapse = collapse[*pCollapseMap];
+			int32_t collapseValue = *pCollapseMap;
+			*pCollapse = collapse[collapseValue];
 		}
 
 		for(i = 0, tri = surface->triangles; i < surface->numTriangles; i++, tri++)
 		{
-			//p0 = collapse[*(triangles++)];
-			//p1 = collapse[*(triangles++)];
-			//p2 = collapse[*(triangles++)];
-
 			p0 = collapse[tri->indexes[0]];
 			p1 = collapse[tri->indexes[1]];
 			p2 = collapse[tri->indexes[2]];
@@ -1964,14 +1945,14 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 				continue;
 			}
 
-			tess.indexes[tess.numIndexes + 0] = tess.numVertexes + tri->indexes[0];
-			tess.indexes[tess.numIndexes + 1] = tess.numVertexes + tri->indexes[1];
-			tess.indexes[tess.numIndexes + 2] = tess.numVertexes + tri->indexes[2];
+			tess.indexes[tess.numIndexes + 0] = tess.numVertexes + p0;
+			tess.indexes[tess.numIndexes + 1] = tess.numVertexes + p1;
+			tess.indexes[tess.numIndexes + 2] = tess.numVertexes + p2;
 
 			tess.numIndexes += 3;
 		}
 
-		baseIndex = tess.numIndexes;
+		tess.numVertexes += render_count;
 	}
 #endif
 
@@ -2027,8 +2008,8 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 			VectorClear(tess.normals[baseVertex + i]);
 		}
 
-		numIndexes = tess.numIndexes - oldIndexes;
-		for(i = 0, indices = tess.indexes + oldIndexes; i < numIndexes; i += 3, indices += 3)
+		numIndexes = tess.numIndexes - baseIndex;
+		for(i = 0, indices = tess.indexes + baseIndex; i < numIndexes; i += 3, indices += 3)
 		{
 			v0 = tess.xyz[indices[0]];
 			v1 = tess.xyz[indices[1]];
@@ -2356,7 +2337,7 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	if(r_showSkeleton->integer > 1)
 	{
 		// dont draw the actual surface
-		tess.numIndexes = oldIndexes;
+		tess.numIndexes = baseIndex;
 		tess.numVertexes = baseVertex;
 		return;
 	}
@@ -2368,8 +2349,6 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 #endif // entire function block
 }
 
-
-
 /*
 ==============
 Tess_SurfaceVBOMDMMesh
@@ -2377,12 +2356,13 @@ Tess_SurfaceVBOMDMMesh
 */
 void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 {
-#if 1
 	int             i;
 	mdmModel_t     *mdmModel;
 	mdmSurfaceIntern_t *mdmSurface;
 	matrix_t        m, m2;	//, m3
 	refEntity_t    *refent;
+	int				lodIndex;
+	IBO_t          *lodIBO;
 
 	GLimp_LogComment("--- Tess_SurfaceVBOMDMMesh ---\n");
 
@@ -2392,10 +2372,8 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 	Tess_EndBegin();
 
 	R_BindVBO(surface->vbo);
-	R_BindIBO(surface->ibo);
 
-	tess.numIndexes += surface->numIndexes;
-	tess.numVertexes += surface->numVerts;
+	tess.numVertexes = surface->numVerts;
 
 	mdmModel = surface->mdmModel;
 	mdmSurface = surface->mdmSurface;
@@ -2433,10 +2411,27 @@ void Tess_SurfaceVBOMDMMesh(srfVBOMDMMesh_t * surface)
 #endif
 	}
 
+
+	// calculate LOD
+	//
+	// TODO: lerp the radius and origin
+	VectorAdd(refent->origin, frame->localOrigin, vec);
+	lodIndex = R_CalcMDMLodIndex(refent, vec, frame->radius, mdmModel->lodBias, mdmModel->lodScale, mdmSurface);
+	lodIBO = surface->ibo[lodIndex];
+
+	if(lodIBO == NULL)
+	{
+		lodIBO = surface->ibo[0];
+	}
+	//ri.Printf(PRINT_ALL, "LOD index = '%i', IBO = '%s'\n", lodIndex, lodIBO->name);
+
+	R_BindIBO(lodIBO);
+
+	tess.numIndexes = lodIBO->indexesNum;
+
 	//GL_VertexAttribPointers(ATTR_BITS | ATTR_BONE_INDEXES | ATTR_BONE_WEIGHTS);
 
 	Tess_End();
-#endif
 }
 
 

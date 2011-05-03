@@ -34,11 +34,11 @@ If you have questions concerning this license or the applicable additional terms
 #define	LL(x) x=LittleLong(x)
 #define	LF(x) x=LittleFloat(x)
 
-
+const float mdmLODResolutions[MD3_MAX_LODS] = {1.0f, 0.75f, 0.5f, 0.35f};
 
 static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t * vboTriangles, mdmModel_t * mdm, mdmSurfaceIntern_t * surf, int skinIndex, int numBoneReferences, int boneReferences[MAX_BONES])
 {
-	int				j, k;
+	int				j, k, lod;
 
 	int             vertexesNum;
 	byte           *data;
@@ -67,6 +67,9 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 
 	vec4_t          tmpColor = { 1, 1, 1, 1 };
 
+	static int32_t  collapse[MDM_MAX_VERTS];
+
+
 	vertexesNum = surf->numVerts;
 	indexesNum = vboTriangles->currentElements * 3;
 
@@ -86,9 +89,7 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 	data = ri.Hunk_AllocateTempMemory(dataSize);
 	dataOfs = 0;
 
-	indexesSize = indexesNum * sizeof(int);
-	indexes = ri.Hunk_AllocateTempMemory(indexesSize);
-	indexesOfs = 0;
+	
 
 	//ri.Printf(PRINT_ALL, "AddSurfaceToVBOSurfacesList( %i verts, %i tris )\n", surf->numVerts, vboTriangles->currentElements);
 
@@ -117,20 +118,6 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 		}
 	}
 	//ri.Printf(PRINT_ALL, "\n");
-
-	//for(j = 0, tri = surf->triangles; j < surf->numTriangles; j++, tri++)
-	for(j = 0; j < vboTriangles->currentElements; j++)
-	{
-		tri = Com_GrowListElement(vboTriangles, j);
-
-		for(k = 0; k < 3; k++)
-		{
-			index = tri->indexes[k];
-
-			Com_Memcpy(indexes + indexesOfs, &index, sizeof(int));
-			indexesOfs += sizeof(int);
-		}
-	}
 
 	// feed vertex XYZ
 	for(j = 0; j < vertexesNum; j++)
@@ -241,9 +228,131 @@ static void AddSurfaceToVBOSurfacesListMDM(growList_t * vboSurfaces, growList_t 
 	vboSurf->vbo->ofsBoneIndexes = ofsBoneIndexes;
 	vboSurf->vbo->ofsBoneWeights = ofsBoneWeights;
 
-	vboSurf->ibo = R_CreateIBO(va("staticMDMMesh_IBO %i", vboSurfaces->currentElements), indexes, indexesSize, VBO_USAGE_STATIC);
+	// calculate LOD IBOs
+	lod = 0;
+	do
+	{
+		float		flod;
+		int			renderCount;
+		
+		flod = mdmLODResolutions[lod];
 
-	ri.Hunk_FreeTempMemory(indexes);
+		renderCount = Q_min((int)((float)surf->numVerts * flod), surf->numVerts);
+
+		if(renderCount < surf->minLod)
+		{
+			renderCount = surf->minLod;
+			flod = (float)renderCount / surf->numVerts;
+		}
+
+		if(renderCount == surf->numVerts)
+		{
+			indexesNum = vboTriangles->currentElements * 3;
+			indexesSize = indexesNum * sizeof(int);
+			indexes = ri.Hunk_AllocateTempMemory(indexesSize);
+			indexesOfs = 0;
+
+			for(j = 0; j < vboTriangles->currentElements; j++)
+			{
+				tri = Com_GrowListElement(vboTriangles, j);
+
+				for(k = 0; k < 3; k++)
+				{
+					index = tri->indexes[k];
+
+					Com_Memcpy(indexes + indexesOfs, &index, sizeof(int));
+					indexesOfs += sizeof(int);
+				}
+			}
+		}
+		else
+		{
+			int				ci[3];
+			int32_t        *pCollapseMap;
+			int32_t        *pCollapse;
+
+			pCollapse = collapse;
+			for(j = 0; j < renderCount; pCollapse++, j++)
+			{
+				*pCollapse = j;
+			}
+
+			pCollapseMap = &surf->collapseMap[renderCount];
+			for(j = renderCount; j < surf->numVerts; j++, pCollapse++, pCollapseMap++)
+			{
+				int32_t collapseValue = *pCollapseMap;
+				*pCollapse = collapse[collapseValue];
+			}
+
+
+			indexesNum = 0;
+			for(j = 0; j < vboTriangles->currentElements; j++)
+			{
+				tri = Com_GrowListElement(vboTriangles, j);
+
+				ci[0] = collapse[tri->indexes[0]];
+				ci[1] = collapse[tri->indexes[1]];
+				ci[2] = collapse[tri->indexes[2]];
+
+				// FIXME
+				// note:  serious optimization opportunity here,
+				//  by sorting the triangles the following "continue"
+				//  could have been made into a "break" statement.
+				if(ci[0] == ci[1] || ci[1] == ci[2] || ci[2] == ci[0])
+				{
+					continue;
+				}
+
+				indexesNum += 3;
+			}
+
+
+			indexesSize = indexesNum * sizeof(int);
+			indexes = ri.Hunk_AllocateTempMemory(indexesSize);
+			indexesOfs = 0;
+
+			for(j = 0; j < vboTriangles->currentElements; j++)
+			{
+				tri = Com_GrowListElement(vboTriangles, j);
+
+				ci[0] = collapse[tri->indexes[0]];
+				ci[1] = collapse[tri->indexes[1]];
+				ci[2] = collapse[tri->indexes[2]];
+
+				// FIXME
+				// note:  serious optimization opportunity here,
+				//  by sorting the triangles the following "continue"
+				//  could have been made into a "break" statement.
+				if(ci[0] == ci[1] || ci[1] == ci[2] || ci[2] == ci[0])
+				{
+					continue;
+				}
+
+				for(k = 0; k < 3; k++)
+				{
+					index = ci[k];
+
+					Com_Memcpy(indexes + indexesOfs, &index, sizeof(int));
+					indexesOfs += sizeof(int);
+				}
+			}
+		}		
+
+		vboSurf->ibo[lod] = R_CreateIBO(va("staticMDMMesh_IBO_LOD_%f %i", flod, indexesNum / 3), indexes, indexesSize, VBO_USAGE_STATIC);
+		vboSurf->ibo[lod]->indexesNum = indexesNum;
+
+		ri.Hunk_FreeTempMemory(indexes);
+
+		if(vboTriangles->currentElements != surf->numTriangles)
+		{
+			ri.Printf(PRINT_WARNING, "Can't calculate LOD IBOs\n");
+			break;
+		}
+
+		lod++;
+	}
+	while(lod < MD3_MAX_LODS);
+	
 	ri.Hunk_FreeTempMemory(data);
 
 	// megs
@@ -502,11 +611,26 @@ qboolean R_LoadMDM(model_t * mod, void *buffer, const char *modName)
 		// swap the collapse map
 		surf->collapseMap = ri.Hunk_Alloc(sizeof(*collapseMapOut) * mdmSurf->numVerts, h_low);
 
-		collapseMap = (int32_t *)((byte *) surf + mdmSurf->ofsCollapseMap);
+		collapseMap = (int32_t *)((byte *) mdmSurf + mdmSurf->ofsCollapseMap);
+		//ri.Printf(PRINT_ALL, "collapse map for mdm surface '%s': ", surf->name);
 		for(j = 0, collapseMapOut = surf->collapseMap; j < mdmSurf->numVerts; j++, collapseMap++, collapseMapOut++)
 		{
-			*collapseMapOut = LittleLong(*collapseMap);
+			int32_t value = LittleLong(*collapseMap);
+			//surf->collapseMap[j] = value;
+			*collapseMapOut = value;
+
+			//ri.Printf(PRINT_ALL, "(%i -> %i) ", j, value);
 		}
+		//ri.Printf(PRINT_ALL, "\n");
+
+#if 0
+		ri.Printf(PRINT_ALL, "collapse map for mdm surface '%s': ", surf->name);
+		for(j = 0, collapseMap = surf->collapseMap; j < mdmSurf->numVerts; j++, collapseMap++)
+		{
+			ri.Printf(PRINT_ALL, "(%i -> %i) ", j, *collapseMap);
+		}
+		ri.Printf(PRINT_ALL, "\n");
+#endif
 
 		// swap the bone references
 		surf->numBoneReferences = mdmSurf->numBoneReferences;
@@ -791,7 +915,7 @@ qboolean R_LoadMDM(model_t * mod, void *buffer, const char *modName)
 
 				if(!vboTriangles.currentElements)
 				{
-					ri.Printf(PRINT_WARNING, "R_LoadMDM: could not add triangles to a remaining VBO surfaces for model '%s'\n", modName);
+					ri.Printf(PRINT_WARNING, "R_LoadMDM: could not add triangles to a remaining VBO surface for model '%s'\n", modName);
 					break;
 				}
 

@@ -55,7 +55,7 @@ static int MDXSurfaceCompare(const void *a, const void *b)
 R_LoadMD3
 =================
 */
-qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const char *modName, qboolean forceStatic)
+qboolean R_LoadMD3(model_t * mod, int lod, void *buffer, int bufferSize, const char *modName)
 {
 	int             i, j, k;//, l;
 

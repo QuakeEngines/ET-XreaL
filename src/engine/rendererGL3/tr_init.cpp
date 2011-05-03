@@ -72,8 +72,9 @@ cvar_t         *r_inGameVideo;
 cvar_t         *r_fastsky;
 cvar_t         *r_drawSun;
 
-cvar_t         *r_lodbias;
-cvar_t         *r_lodscale;
+cvar_t         *r_lodBias;
+cvar_t         *r_lodScale;
+cvar_t         *r_lodTest;
 
 cvar_t         *r_norefresh;
 cvar_t         *r_drawentities;
@@ -260,7 +261,6 @@ cvar_t         *r_vboCurves;
 cvar_t         *r_vboTriangles;
 cvar_t         *r_vboShadows;
 cvar_t         *r_vboLighting;
-cvar_t         *r_vboDynamicLighting;
 cvar_t         *r_vboModels;
 cvar_t         *r_vboOptimizeVertices;
 cvar_t         *r_vboVertexSkinning;
@@ -1460,7 +1460,7 @@ void R_Register(void)
 	r_lightSpacePerspectiveWarping = ri.Cvar_Get("r_lightSpacePerspectiveWarping", "1", CVAR_CHEAT);
 
 	// archived variables that can change at any time
-	r_lodbias = ri.Cvar_Get("r_lodbias", "0", CVAR_ARCHIVE);
+	r_lodBias = ri.Cvar_Get("r_lodBias", "0", CVAR_ARCHIVE);
 	r_flares = ri.Cvar_Get("r_flares", "0", CVAR_ARCHIVE);
 	r_znear = ri.Cvar_Get("r_znear", "4", CVAR_CHEAT);
 	r_zfar = ri.Cvar_Get("r_zfar", "1024", CVAR_CHEAT);
@@ -1486,11 +1486,10 @@ void R_Register(void)
 	r_vboTriangles = ri.Cvar_Get("r_vboTriangles", "1", CVAR_CHEAT);
 	r_vboShadows = ri.Cvar_Get("r_vboShadows", "1", CVAR_CHEAT);
 	r_vboLighting = ri.Cvar_Get("r_vboLighting", "1", CVAR_CHEAT);
-	r_vboDynamicLighting = ri.Cvar_Get("r_vboDynamicLighting", "0", CVAR_CHEAT);
 	r_vboModels = ri.Cvar_Get("r_vboModels", "1", CVAR_CHEAT);
 	r_vboOptimizeVertices = ri.Cvar_Get("r_vboOptimizeVertices", "1", CVAR_CHEAT | CVAR_LATCH);
-	r_vboVertexSkinning = ri.Cvar_Get("r_vboVertexSkinning", "1", CVAR_CHEAT | CVAR_LATCH);
-	r_vboDeformVertexes = ri.Cvar_Get("r_vboDeformVertexes", "0", CVAR_CHEAT);
+	r_vboVertexSkinning = ri.Cvar_Get("r_vboVertexSkinning", "1", CVAR_ARCHIVE | CVAR_LATCH);
+	r_vboDeformVertexes = ri.Cvar_Get("r_vboDeformVertexes", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_vboSmoothNormals = ri.Cvar_Get("r_vboSmoothNormals", "1", CVAR_ARCHIVE | CVAR_LATCH);
 
 	r_mergeClusterSurfaces = ri.Cvar_Get("r_mergeClusterSurfaces", "0", CVAR_CHEAT);
@@ -1532,8 +1531,8 @@ void R_Register(void)
 	r_bloomBlur = ri.Cvar_Get("r_bloomBlur", "5.0", CVAR_CHEAT);
 	r_bloomPasses = ri.Cvar_Get("r_bloomPasses", "2", CVAR_CHEAT);
 	r_rotoscope = ri.Cvar_Get("r_rotoscope", "0", CVAR_ARCHIVE);
-	r_cameraPostFX = ri.Cvar_Get("r_cameraPostFX", "1", CVAR_ARCHIVE);
-	r_cameraVignette = ri.Cvar_Get("r_cameraVignette", "0", CVAR_ARCHIVE);
+	r_cameraPostFX = ri.Cvar_Get("r_cameraPostFX", "0", CVAR_ARCHIVE);
+	r_cameraVignette = ri.Cvar_Get("r_cameraVignette", "1", CVAR_ARCHIVE);
 	r_cameraFilmGrain = ri.Cvar_Get("r_cameraFilmGrain", "1", CVAR_ARCHIVE);
 	r_cameraFilmGrainScale = ri.Cvar_Get("r_cameraFilmGrainScale", "3", CVAR_ARCHIVE);
 
@@ -1562,7 +1561,8 @@ void R_Register(void)
 	r_skipLightBuffer = ri.Cvar_Get("r_skipLightBuffer", "0", CVAR_CHEAT);
 
 	r_measureOverdraw = ri.Cvar_Get("r_measureOverdraw", "0", CVAR_CHEAT);
-	r_lodscale = ri.Cvar_Get("r_lodscale", "5", CVAR_CHEAT);
+	r_lodScale = ri.Cvar_Get("r_lodScale", "5", CVAR_CHEAT);
+	r_lodTest = ri.Cvar_Get("r_lodTest", "0.5", CVAR_CHEAT);
 	r_norefresh = ri.Cvar_Get("r_norefresh", "0", CVAR_CHEAT);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", CVAR_CHEAT);
 	r_drawpolies = ri.Cvar_Get("r_drawpolies", "1", CVAR_CHEAT);

@@ -2963,7 +2963,7 @@ typedef struct srfVBOMDMMesh_s
 
 	// static render data
 	VBO_t          *vbo;
-	IBO_t          *ibo;
+	IBO_t          *ibo[MD3_MAX_LODS];
 } srfVBOMDMMesh_t;
 
 typedef struct srfVBOMDVMesh_s
@@ -3418,6 +3418,8 @@ typedef struct mdmModel_s
 
 	vec3_t          bounds[2];
 } mdmModel_t;
+
+extern const float mdmLODResolutions[MD3_MAX_LODS];
 
 
 typedef enum
@@ -4043,8 +4045,10 @@ extern cvar_t  *r_stereo;		// desired pixelformat stereo flag
 
 extern cvar_t  *r_measureOverdraw;	// enables stencil buffer overdraw measurement
 
-extern cvar_t  *r_lodbias;		// push/pull LOD transitions
-extern cvar_t  *r_lodscale;
+extern cvar_t  *r_lodBias;		// push/pull LOD transitions
+extern cvar_t  *r_lodScale;
+extern cvar_t  *r_lodTest;
+
 
 extern cvar_t  *r_forceFog;
 extern cvar_t  *r_wolfFog;
@@ -4242,7 +4246,6 @@ extern cvar_t  *r_vboCurves;
 extern cvar_t  *r_vboTriangles;
 extern cvar_t  *r_vboShadows;
 extern cvar_t  *r_vboLighting;
-extern cvar_t  *r_vboDynamicLighting;
 extern cvar_t  *r_vboModels;
 extern cvar_t  *r_vboOptimizeVertices;
 extern cvar_t  *r_vboVertexSkinning;

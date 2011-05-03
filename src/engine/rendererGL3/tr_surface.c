@@ -2263,8 +2263,8 @@ static void Tess_SurfaceVBOMesh(srfVBOMesh_t * srf)
 	R_BindVBO(srf->vbo);
 	R_BindIBO(srf->ibo);
 
-	tess.numIndexes += srf->numIndexes;
-	tess.numVertexes += srf->numVerts;
+	tess.numIndexes = srf->numIndexes;
+	tess.numVertexes = srf->numVerts;
 
 	Tess_End();
 }
@@ -2292,8 +2292,8 @@ void Tess_SurfaceVBOMDVMesh(srfVBOMDVMesh_t * surface)
 	R_BindVBO(surface->vbo);
 	R_BindIBO(surface->ibo);
 
-	tess.numIndexes += surface->numIndexes;
-	tess.numVertexes += surface->numVerts;
+	tess.numIndexes = surface->numIndexes;
+	tess.numVertexes = surface->numVerts;
 
 	mdvModel = surface->mdvModel;
 	mdvSurface = surface->mdvSurface;
@@ -2339,8 +2339,8 @@ static void Tess_SurfaceVBOMD5Mesh(srfVBOMD5Mesh_t * srf)
 	R_BindVBO(srf->vbo);
 	R_BindIBO(srf->ibo);
 
-	tess.numIndexes += srf->numIndexes;
-	tess.numVertexes += srf->numVerts;
+	tess.numIndexes = srf->numIndexes;
+	tess.numVertexes = srf->numVerts;
 
 	model = srf->md5Model;
 

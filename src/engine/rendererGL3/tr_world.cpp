@@ -272,12 +272,10 @@ static void R_AddInteractionSurface(bspSurface_t * surf, trRefLight_t * light)
 
 	if(surf->lightCount == tr.lightCount)
 	{
-		return;					// already checked this surface
+		// already checked this surface
+		return;
 	}
 	surf->lightCount = tr.lightCount;
-
-	if(r_vboDynamicLighting->integer && !surf->shader->isSky && !surf->shader->isPortal && !ShaderRequiresCPUDeforms(surf->shader))
-		return;
 
 	//  skip all surfaces that don't matter for lighting only pass
 	if(surf->shader->isSky || (!surf->shader->interactLight && surf->shader->noShadows))
@@ -2490,62 +2488,6 @@ void R_AddWorldInteractions(trRefLight_t * light)
 	// perform frustum culling and add all the potentially visible surfaces
 	tr.lightCount++;
 	R_RecursiveInteractionNode(tr.world->nodes, light, FRUSTUM_CLIPALL);
-
-	if(r_vboDynamicLighting->integer)
-	{
-		int             j;
-		srfVBOMesh_t   *srf;
-		shader_t       *shader;
-		qboolean        intersects;
-		interactionType_t iaType = IA_DEFAULT;
-		byte            cubeSideBits = CUBESIDE_CLIPALL;
-
-		for(j = 0; j < tr.world->numClusterVBOSurfaces[tr.visIndex]; j++)
-		{
-			srf = (srfVBOMesh_t *) Com_GrowListElement(&tr.world->clusterVBOSurfaces[tr.visIndex], j);
-			shader = srf->shader;
-
-			//  skip all surfaces that don't matter for lighting only pass
-			if(shader->isSky || (!shader->interactLight && shader->noShadows))
-				continue;
-
-			intersects = qtrue;
-
-			// do a quick AABB cull
-			if(!BoundsIntersect(light->worldBounds[0], light->worldBounds[1], srf->bounds[0], srf->bounds[1]))
-				intersects = qfalse;
-
-			// FIXME? do a more expensive and precise light frustum cull
-			if(!r_noLightFrustums->integer)
-			{
-				if(R_CullLightWorldBounds(light, srf->bounds) == CULL_OUT)
-				{
-					intersects = qfalse;
-				}
-			}
-
-			// FIXME?
-			if(r_cullShadowPyramidFaces->integer)
-			{
-				cubeSideBits = R_CalcLightCubeSideBits(light, srf->bounds);
-			}
-
-			if(intersects)
-			{
-				R_AddLightInteraction(light, (surfaceType_t *)srf, srf->shader, cubeSideBits, iaType);
-
-				if(light->isStatic)
-					tr.pc.c_slightSurfaces++;
-				else
-					tr.pc.c_dlightSurfaces++;
-			}
-			else
-			{
-				if(!light->isStatic)
-					tr.pc.c_dlightSurfacesCulled++;
-			}
-		}
-	}
 }
 
 /*
