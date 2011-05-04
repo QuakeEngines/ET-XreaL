@@ -1269,7 +1269,7 @@ GLShader_generic::GLShader_generic():
 			glUseProgramObjectARB(0);
 
 			ValidateProgram(shaderProgram->program);
-			ShowProgramUniforms(shaderProgram->program);
+			//ShowProgramUniforms(shaderProgram->program);
 			
 			GL_CheckErrors();
 

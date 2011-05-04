@@ -956,7 +956,7 @@ void Tess_StageIteratorSky(void)
 				gl_skyboxShader->SetUniform_PortalPlane(plane);
 			}
 
-			//gl_skyboxShader->SetRequiredVertexPointers();
+			gl_skyboxShader->SetRequiredVertexPointers();
 
 			// bind u_ColorMap
 			GL_SelectTexture(0);

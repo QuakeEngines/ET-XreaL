@@ -1615,61 +1615,7 @@ public:
 };
 
 
-/*
-class u_ColorGen:
-GLUniform
-{
-public:
-	u_ColorGen(GLShader* shader):
-	  GLUniform(shader)
-	{
-	}
 
-	const char* GetName() const { return "u_ColorGen"; }
-	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
-	{
-		shaderProgram->u_ColorGen = glGetUniformLocationARB(shaderProgram->program, GetName());
-	}
-
-	void SetUniform_ColorGen(colorGen_t value)
-	{
-		GLSL_SetUniform_ColorGen(_shader->GetProgram(), value);
-
-		switch (value)
-		{
-			case CGEN_VERTEX:
-			case CGEN_ONE_MINUS_VERTEX:
-				_shader->AddVertexAttribBit(ATTR_COLOR);
-				break;
-
-			default:
-				_shader->DelVertexAttribBit(ATTR_COLOR);
-				break;
-		}
-	}
-};
-
-class u_AlphaGen:
-GLUniform
-{
-public:
-	u_AlphaGen(GLShader* shader):
-	  GLUniform(shader)
-	{
-	}
-
-	const char* GetName() const { return "u_AlphaGen"; }
-	void				UpdateShaderProgramUniformLocation(shaderProgram_t *shaderProgram) const
-	{
-		shaderProgram->u_AlphaGen = glGetUniformLocationARB(shaderProgram->program, GetName());
-	}
-
-	void SetUniform_AlphaGen(alphaGen_t value)
-	{
-		GLSL_SetUniform_AlphaGen(_shader->GetProgram(), value);
-	}
-};
-*/
 
 class u_ColorModulate:
 GLUniform
