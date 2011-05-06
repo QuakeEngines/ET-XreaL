@@ -1,0 +1,14 @@
+You can convert the .map files from Quake 3 and Enemy Territory to the Doom 3 .map format.
+
+1) Convert it to to Quake 3 brush primitives using GtkRadiant 1.4 by selecting brush primitives in the options.
+Just open and save the map.
+
+2) Convert the .map file from the Q3A brush primitives format to the Doom 3 .map format using ETXMap.
+
+./ETXMap.exe .. -fs_basepath .. -map2map -format quake3 ../etmain/maps/yourmap.map.
+
+The converted result will be saved as ../etmain/maps/yourmap_converted.map.
+
+
+If you skip 1) then you loose all texcoords on brush surfaces.
+
