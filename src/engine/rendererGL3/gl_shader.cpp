@@ -352,6 +352,7 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 							(float)GF_INVERSE_SAWTOOTH,
 							(float)GF_NOISE));
 
+		/*
 		Q_strcat(bufferExtra, sizeof(bufferExtra),
 						 va("#ifndef deformGen_t\n"
 							"#define deformGen_t\n"
@@ -370,7 +371,9 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 							(float)DGEN_WAVE_INVERSE_SAWTOOTH,
 							DGEN_BULGE,
 							DGEN_MOVE));
+						*/
 
+		/*
 		Q_strcat(bufferExtra, sizeof(bufferExtra),
 						 va("#ifndef colorGen_t\n"
 							"#define colorGen_t\n"
@@ -388,6 +391,7 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 									"#endif\n",
 									AGEN_VERTEX,
 									AGEN_ONE_MINUS_VERTEX));
+									*/
 
 		Q_strcat(bufferExtra, sizeof(bufferExtra),
 								 va("#ifndef alphaTest_t\n"
