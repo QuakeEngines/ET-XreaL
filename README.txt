@@ -48,7 +48,9 @@ This file contains the following sections:
 	
 	12) FUTURE PLAN
 	
-	13) DONATIONS
+	13) CONTRIBUTIONS
+	
+	14) DONATIONS
 
 
 
@@ -160,6 +162,7 @@ __________________________________________
 	* added support for Linux 64-bit
 	* replaced Linux sound backend with SDL
 	* added .avi recorder from ioquake3 including sound support
+	* added AABB collision optimisations
 	* added new ETXMap BSP compiler based on NetRadiant's q3map2
 	* added new ETXRadiant level editor based on DarkRadiant
 
@@ -243,7 +246,6 @@ r_hdrKey						Middle gray value used in HDR tone mapping
 								0 computes it dynamically
 								0.72 default
 
-r_hdrWhitePoint					Smallest luminance value that will be mapped to white
 r_hdrMinLuminance				Minimum luminance value threshold
 r_hdrMaxLuminance				Maximum luminance value threshold
 
@@ -293,6 +295,7 @@ __________________________________________
 
 	* broken map loading screen
 	* a few skys are broken (r_fastsky 1 can help with this)
+	* light bleeding problems with cg_shadows 2 - 3 which are typical for variance shadow mapping
 
 
 ___________________________________________________
@@ -308,7 +311,8 @@ The best way for telling us about a bug is by submitting a bug report at our Sou
 
 	http://sourceforge.net/tracker/?group_id=27204&atid=389772
 
-The most important fact about this tracker is that we can’t simply forget to fix the bugs which are posted there. It’s also a great way to keep track of fixed stuff.
+The most important fact about this tracker is that we can’t simply forget to fix the bugs which are posted there. 
+It’s also a great way to keep track of fixed stuff.
 
 If you want to report an issue with the game, you should make sure that your report includes all information useful to characterize and reproduce the bug.
 
@@ -330,12 +334,33 @@ __________________________________________
 
 	* optimize ET decal system with VBOs
 	* add Blender tools to make it easier to replace the existing models
+	* improve ETXMap ET .map -> Doom 3 .map format conversion routine to handle detail brushes as func_static entities
+	* improve ETXMap compiler for better support of extracting models from .bsp files for Blender and further editing
+	* finish Doom 3 style ETXRadiant entity definitions file etmain/def/entities.def to have full support for all ET entity types
+	* write SCons files for ETXMap and ETXRadiant
 	* add Bullet physics engine (maybe)
+	* use projection matrix that makes the near plane identical to the portal clipping plane.
+		(Eric Leyngel describes this method in his "Projection Matrix Tricks" paper.)
+		comment from https://bugzilla.icculus.org/show_bug.cgi?id=4358
 
-	
+
+
 ___________________________________________________
 
-13) DONATIONS
+13) CONTRIBUTIONS
+__________________________________________
+
+If you want to contribute media assets like textures, models or sounds to the project then:
+
+	1) Don't derivate them from the original Enemy Territory assets. If you want to add textures or models then you have to create them from scratch.
+	
+	2) Release your assets under the "Creative Commons Attribution-ShareAlike 3.0 Unported" license.
+		See http://creativecommons.org/licenses/by-sa/3.0/ for more details.
+
+
+___________________________________________________
+
+14) DONATIONS
 __________________________________________
 
 If you think that this project is cool and helps you with your projects or you just have fun then make a small donation, please.

@@ -21,18 +21,8 @@ __________________________________
 ET-XreaL Media License
 _______________________
 
-The media is not tied to a single license unlike in other free game projects.
-Every file can have its own copyright and license that reflects the idea of "The Open Source Definition".
-See http://opensource.org/docs/osd for further information.
-
-As game media is not source code we prefer the "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported" license.
-See http://creativecommons.org/licenses/by-nc-sa/3.0/ for more details.
-
--------------------------------------------------------------------------------------------------
-
-See ET-XreaL/etmain/MEDIA.txt for a listing of the individual copyrights and licenses of media files.
-
--------------------------------------------------------------------------------------------------
+The media is licensed under the "Creative Commons Attribution-ShareAlike 3.0 Unported" license.
+See http://creativecommons.org/licenses/by-sa/3.0/ for more details.
 
 
 
