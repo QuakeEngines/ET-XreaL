@@ -153,42 +153,33 @@ Type scons -h for more compile options.
 
 ___________________________________________________
 
-7) Changes made since the Wolfenstein: Enemy Territory GPL release
+7) CHANGES
 __________________________________________
 
-	* ported XreaL renderer to src/engine/rendererGL3/
-	* rewrote .mdm/.mdx code to be GPU accelerated
-	* rewrote .md3/.mdc code to be GPU accelerated
-	* added support for Linux 64-bit
-	* replaced Linux sound backend with SDL
-	* added .avi recorder from ioquake3 including sound support
-	* added AABB collision optimisations
-	* added new ETXMap BSP compiler based on NetRadiant's q3map2
-	* added new ETXRadiant level editor based on DarkRadiant
+See CHANGELOG.txt for full list of all changes.
 
-	
 	
 ___________________________________________________
 
 8) General XreaL id Tech 3 Features
 __________________________________________
 	
-	* clever usage of vertex buffer objects (VBO) to speed up rendering of everything
-    * avoids geometry processing at render time using the CPU (worst bottleneck with the Q3A engine)
-    * renders up to 500 000 – 1 000 000 polygons at 80 - 200 fps on current hardware (DX10 generation)
-	* optional GPU occlusion culling (improved Coherent Hierarchy Culling) useful for rendering large city scenes
+	* Clever usage of vertex buffer objects (VBO) to speed up rendering of everything
+    * Avoids geometry processing at render time using the CPU (worst bottleneck with the Q3A engine)
+    * Renders up to 500 000 – 1 000 000 polygons at 80 - 200 fps on current hardware (DX10 generation)
+	* Optional GPU occlusion culling (improved Coherent Hierarchy Culling) useful for rendering large city scenes
     * Doom 3 .MD5mesh/.MD5anim skeletal model and animation support
     * Unreal Actor X .PSK/.PSA skeletal model and animation support
-    * true 64 bit HDR lighting with adaptive tone mapping
-    * advanced projective and omni-directional soft shadow mapping methods like VSM and ESM
-    * real-time sun lights with parallel-split shadow maps
-    * optional deferred shading
-    * relief mapping that can be enabled by materials
-    * optional uniform lighting and shadowing model like in Doom 3 including globe mapping
-    * supports almost all Quake 3, Enemy Territory and Doom 3 material shader keywords
+    * True 64 bit HDR lighting with adaptive tone mapping
+    * Advanced projective and omni-directional soft shadow mapping methods like EVSM
+    * Real-time sun lights with parallel-split shadow maps
+    * Optional deferred shading
+    * Relief mapping that can be enabled by materials
+    * Optional uniform lighting and shadowing model like in Doom 3 including globe mapping
+    * Supports almost all Quake 3, Enemy Territory and Doom 3 material shader keywords
     * TGA, PNG, JPG and DDS format support for textures
-    * usage of frame buffer objects (FBO) to perform offscreen rendering effects
-    * improved TrueType font support that does not require external tools
+    * Usage of frame buffer objects (FBO) to perform offscreen rendering effects
+    * Improved TrueType font support that does not require external tools
 
 	
 
@@ -197,14 +188,14 @@ ___________________________________________________
 9) CONSOLE VARIABLES
 __________________________________________
 	
-cg_shadows						Sets the shadows quality
+cg_shadows						Sets the shadows quality (higher value -> more expensive and better quality)
 								0 = Off
 								1 = Blob shadow
-								2 = planar (broken and unsupported)
-								3 = stencil shadow volumes in XreaL (unsupported and was removed)
+								2 = Exponential Shadow Mapping (16-bit quality)
+								3 = Exponential Shadow Mapping (32-bit quality)
 								4 = Variance Shadow Mapping (16-bit quality)
 								5 = Variance Shadow Mapping (32-bit quality)
-								6 = Exponential Shadow Mapping (32-bit quality)
+								6 = Exponential Variance Shadow Mapping (32-bit quality)
 								
 
 r_dynamicLight					Enable dynamic lights
@@ -275,7 +266,7 @@ r_showTris						Shows all fast GPU path triangles blue and slow CPU path triangl
 								This usually happens with deformVertexes shader commands.
 								
 r_showBatches					Draws all batches (geometry, material and lightmap combination) as individual colors.
-								General rule: more batches => less performance
+								General rule: more batches -> less performance
 								Avoid many many tiny lightmaps like in the TCE mod and rather use lightmaps with 2048^2 for better batching.
 								
 r_showLightMaps					Draw all lightmaps (requires glsl_restart)
@@ -293,9 +284,9 @@ ___________________________________________________
 10) KNOWN ISSUES
 __________________________________________
 
-	* broken map loading screen
-	* a few skys are broken (r_fastsky 1 can help with this)
-	* light bleeding problems with cg_shadows 2 - 3 which are typical for variance shadow mapping
+	* Broken map loading screen
+	* A few skys are broken (r_fastsky 1 can help with this)
+	* Light bleeding problems with cg_shadows 4 - 5 which are typical for variance shadow mapping
 
 
 ___________________________________________________
@@ -316,10 +307,10 @@ It’s also a great way to keep track of fixed stuff.
 
 If you want to report an issue with the game, you should make sure that your report includes all information useful to characterize and reproduce the bug.
 
-    * search on Google
-    * include the computer’s hardware and software description ( CPU, RAM, 3D Card, distribution, kernel etc. )
-    * if appropriate, send a console log, a screenshot, an strace ..
-    * if you are sending a console log, make sure to enable developer output:
+    * Search on Google
+    * Include the computer’s hardware and software description ( CPU, RAM, 3D Card, distribution, kernel etc. )
+    * If appropriate, send a console log, a screenshot, an strace ..
+    * If you are sending a console log, make sure to enable developer output:
 
               ETXreaL.exe +set developer 1 +set logfile 2
 
@@ -332,14 +323,14 @@ ___________________________________________________
 12) FUTURE PLAN
 __________________________________________
 
-	* optimize ET decal system with VBOs
-	* add Blender tools to make it easier to replace the existing models
-	* improve ETXMap ET .map -> Doom 3 .map format conversion routine to handle detail brushes as func_static entities
-	* improve ETXMap compiler for better support of extracting models from .bsp files for Blender and further editing
-	* finish Doom 3 style ETXRadiant entity definitions file etmain/def/entities.def to have full support for all ET entity types
-	* write SCons files for ETXMap and ETXRadiant
-	* add Bullet physics engine (maybe)
-	* use projection matrix that makes the near plane identical to the portal clipping plane.
+	* Optimize ET decal system with VBOs
+	* Add Blender tools to make it easier to replace the existing models
+	* Improve ETXMap ET .map -> Doom 3 .map format conversion routine to handle detail brushes as func_static entities
+	* Improve ETXMap compiler for better support of extracting models from .bsp files for Blender and further editing
+	* Finish Doom 3 style ETXRadiant entity definitions file etmain/def/entities.def to have full support for all ET entity types
+	* Write SCons files for ETXMap and ETXRadiant
+	* Add Bullet physics engine (maybe)
+	* Use projection matrix that makes the near plane identical to the portal clipping plane.
 		(Eric Leyngel describes this method in his "Projection Matrix Tricks" paper.)
 		comment from https://bugzilla.icculus.org/show_bug.cgi?id=4358
 

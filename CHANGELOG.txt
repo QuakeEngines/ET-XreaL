@@ -1,0 +1,50 @@
+
+___________________________________________________
+
+GIT MASTER HEAD (to be released)
+__________________________________________
+
+	* Changed required minimum OpenGL version to 3.2 on Windows
+	* IMPORTANT: Changed media license for community contributions to "Creative Commons Attribution-ShareAlike 3.0 Unported"
+	* Improved r_softShadows quality and speed with irregular shadowmap sampling like in Crysis
+	* Implemented Exponential Variance Shadow Mapping to fight the VSM light bleeding problems
+	* Fixed bugs concerning r_vboDeformVertexes
+	* Added more ET specific keywords to the .shader parser
+	* Added top-down view for r_showBspNodes
+	
+	
+___________________________________________________
+
+ET-XreaL_snapshot_20110505.7z
+__________________________________________
+
+	* Optimized ET skeletal animation with LOD meshes
+	* Fixed shader problems with open source Intel driver
+	* Renamed r_noDynamicLighting to r_dynamicLight for better compatibility with ET mods
+	* Fixed sky vs. global fog rendering issues
+	* Enabled SSE math code
+	* Fixed bug in Tess_SurfacePolybuffer() which caused the broken flamethrower flames
+	* Fixed bug concerning .map entity modelscale_vec keyword
+	* Added cheat to ignore zz-XreaL-<date>.pk3 files if connecting to pure servers
+	* Added CPU deformVertexes fallback if there is no OpenGL 3 driver or r_vboDeformVertexes is set to 0
+	* Added r_shadowMapSizeSunUltra - r_shadowMapSizeSunLow
+	* Removed old, broken and unsupported stencil shadow volumes code
+	* Fixed PVS culling by areamasks
+	* Started to rewrite deferred shading path
+
+
+___________________________________________________
+
+ET-XreaL_snapshot_20101115.7z
+__________________________________________
+
+	* Ported XreaL renderer to src/engine/rendererGL3/
+	* Rewrote .mdm/.mdx code to be GPU accelerated
+	* Rewrote .md3/.mdc code to be GPU accelerated
+	* Added support for Linux 64-bit
+	* Replaced Linux sound backend with SDL
+	* Added .avi recorder from ioquake3 including sound support
+	* Added AABB collision optimisations
+	* Added new ETXMap BSP compiler based on NetRadiant's q3map2
+	* Added new ETXRadiant level editor based on DarkRadiant
+
