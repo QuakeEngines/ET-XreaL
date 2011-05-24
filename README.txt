@@ -187,7 +187,31 @@ ___________________________________________________
 
 9) CONSOLE VARIABLES
 __________________________________________
-	
+
+
+r_mode							Sets the window or fullscreen resolution. ET:XreaL has more entries than the original engine.
+								0 = 320x240
+								1 = 400x300
+								2 = 512x384
+								3 = 640x480
+								4 = 800x600
+								5 = 960x720
+								6 = 1024x768
+								7 = 1152x864
+								8 = 1280x720 (16:9)
+								9 = 1280x768 (16:10)
+								10 = 1280x800 (16:10)
+								11 = 1280x1024
+								12 = 1360x768 (16:9)
+								13 = 1440x900 (16:10)
+								14 = 1680x1050 (16:10)
+								15 = 1600x1200
+								16 = 1920x1080 (16:9)
+								17 = 1920x1200 (16:10)
+								18 = 2048x1536
+								19 = 2560x1600 (16:10)
+
+
 cg_shadows						Sets the shadows quality (higher value -> more expensive and better quality)
 								0 = Off
 								1 = Blob shadow
