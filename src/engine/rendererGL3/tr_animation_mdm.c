@@ -66,7 +66,6 @@ static short   *sh, *sh2;
 static float   *pf;
 static int      ingles[3], tingles[3];	// ydnar
 static vec3_t   angles, tangles, torsoParentOffset, torsoAxis[3];	//, tmpAxis[3];   // rain - unused
-static float   *tempVert, *tempNormal;
 static vec3_t   vec, v2, dir;
 static float    diff;			//, a1, a2;   // rain - unused
 static int      render_count;
@@ -1811,6 +1810,7 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	md5Vertex_t    *v;
 	srfTriangle_t  *tri;
 	int				baseIndex, baseVertex;
+	float          *tmpPosition, *tmpNormal, *tmpTangent, *tmpBinormal;
 
 #ifdef DBG_PROFILE_BONES
 	int             di = 0, dt, ldt;
@@ -1959,97 +1959,37 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	
 
 	// deform the vertexes by the lerped bones
-
 	v = surface->verts;
-	tempVert = (float *)(&tess.xyz[baseVertex][0]);
-	tempNormal = (float *)(&tess.normals[baseVertex][0]);
-	for(j = 0; j < render_count; j++, tempVert += 4, tempNormal += 4, v++)
+	tmpPosition = (float *)(&tess.xyz[baseVertex][0]);
+	tmpNormal = (float *)(&tess.normals[baseVertex][0]);
+	tmpBinormal = (float *)(&tess.binormals[baseVertex][0]);
+	tmpTangent = (float *)(&tess.tangents[baseVertex][0]);
+	for(j = 0; j < render_count; j++, tmpPosition += 4, tmpNormal += 4, tmpTangent += 4, tmpBinormal += 4, v++)
 	{
 		md5Weight_t    *w;
 
-		VectorClear(tempVert);
+		VectorSet(tmpPosition, 0, 0, 0, 1);
+		VectorSet(tmpTangent, 0, 0, 0, 1);
+		VectorSet(tmpBinormal, 0, 0, 0, 1);
+		VectorSet(tmpNormal, 0, 0, 0, 1);
 
 		for(k = 0; k < v->numWeights; k++)
 		{
 			w = v->weights[k];
 
 			bone = &bones[w->boneIndex];
-			LocalAddScaledMatrixTransformVectorTranslate(w->offset, w->boneWeight, bone->matrix, bone->translation, tempVert);
-		}
-		tempVert[3] = 1;
+			LocalAddScaledMatrixTransformVectorTranslate(w->offset, w->boneWeight, bone->matrix, bone->translation, tmpPosition);
 
-		LocalMatrixTransformVector(v->normal, bones[v->weights[0]->boneIndex].matrix, tempNormal);
+			LocalAddScaledMatrixTransformVector(v->tangent, w->boneWeight, bone->matrix, tmpTangent);
+			LocalAddScaledMatrixTransformVector(v->binormal, w->boneWeight, bone->matrix, tmpBinormal);
+			LocalAddScaledMatrixTransformVector(v->normal, w->boneWeight, bone->matrix, tmpNormal);
+		}
+
+		//LocalMatrixTransformVector(v->normal, bones[v->weights[0]->boneIndex].matrix, tempNormal);
 
 		tess.texCoords[baseVertex + j][0] = v->texCoords[0];
 		tess.texCoords[baseVertex + j][1] = v->texCoords[1];
 	}
-
-	DBG_SHOWTIME
-
-	// calc tangent spaces
-#if 1
-	if(!tess.skipTangentSpaces && r_normalMapping->integer)
-	{
-		int             i;
-		float          *v;
-		const float    *v0, *v1, *v2;
-		const float    *t0, *t1, *t2;
-		vec3_t          tangent;
-		vec3_t          binormal;
-		vec3_t          normal;
-		int            *indices;
-		int				numIndexes;
-	
-
-		for(i = 0; i < render_count; i++)
-		{
-			VectorClear(tess.tangents[baseVertex + i]);
-			VectorClear(tess.binormals[baseVertex + i]);
-			VectorClear(tess.normals[baseVertex + i]);
-		}
-
-		numIndexes = tess.numIndexes - baseIndex;
-		for(i = 0, indices = tess.indexes + baseIndex; i < numIndexes; i += 3, indices += 3)
-		{
-			v0 = tess.xyz[indices[0]];
-			v1 = tess.xyz[indices[1]];
-			v2 = tess.xyz[indices[2]];
-
-			t0 = tess.texCoords[indices[0]];
-			t1 = tess.texCoords[indices[1]];
-			t2 = tess.texCoords[indices[2]];
-
-			R_CalcTangentSpaceFast(tangent, binormal, normal, v0, v1, v2, t0, t1, t2);
-
-			for(j = 0; j < 3; j++)
-			{
-				v = tess.tangents[indices[j]];
-				VectorAdd(v, tangent, v);
-
-				v = tess.binormals[indices[j]];
-				VectorAdd(v, binormal, v);
-
-				v = tess.normals[indices[j]];
-				VectorAdd(v, normal, v);
-			}
-		}
-
-		for(i = 0; i < render_count; i++)
-		{
-			VectorNormalizeFast(tess.tangents[baseVertex + i]);
-			VectorNormalizeFast(tess.binormals[baseVertex + i]);
-			VectorNormalizeFast(tess.normals[baseVertex + i]);
-		}
-
-		// TEST
-		/*
-		for(i = 0; i < numVertexes; i++)
-		{
-			VectorSet(tess.normals[tess.numVertexes + i], 0, 0, 1);
-		}
-		*/
-	}
-#endif
 	
 	DBG_SHOWTIME
 
