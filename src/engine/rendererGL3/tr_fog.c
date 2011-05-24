@@ -206,7 +206,7 @@ RE_SetFog
 */
 void RE_SetFog(int fogvar, int var1, int var2, float r, float g, float b, float density)
 {
-	ri.Printf(PRINT_ALL, "RE_SetFog( fogvar = %i, var1 = %i, var2 = %i, r = %f, g = %f, b = %f, density = %f )\n",
+	ri.Printf(PRINT_DEVELOPER, "RE_SetFog( fogvar = %i, var1 = %i, var2 = %i, r = %f, g = %f, b = %f, density = %f )\n",
 							fogvar, var1, var2, r, g, b, density);
 
 	if(fogvar != FOG_CMD_SWITCHFOG)
@@ -462,7 +462,7 @@ RE_SetGlobalFog
 */
 void RE_SetGlobalFog(qboolean restore, int duration, float r, float g, float b, float depthForOpaque)
 {
-	ri.Printf(PRINT_ALL, "RE_SetGlobalFog( restore = %i, duration = %i, r = %f, g = %f, b = %f, depthForOpaque = %f )\n",
+	ri.Printf(PRINT_DEVELOPER, "RE_SetGlobalFog( restore = %i, duration = %i, r = %f, g = %f, b = %f, depthForOpaque = %f )\n",
 							restore, duration, r, g, b, depthForOpaque);
 
 	if(restore)

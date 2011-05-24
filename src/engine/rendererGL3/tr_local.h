@@ -95,16 +95,6 @@ typedef enum
 
 typedef enum
 {
-	SHADOWING_BLOB,
-	SHADOWING_PLANAR,
-	SHADOWING_STENCIL,
-	SHADOWING_VSM16,
-	SHADOWING_VSM32,
-	SHADOWING_ESM
-} shadowingMode_t;
-
-typedef enum
-{
 	RSPEEDS_GENERAL = 1,
 	RSPEEDS_CULLING,
 	RSPEEDS_VIEWCLUSTER,
@@ -1363,6 +1353,7 @@ typedef struct shaderProgram_s
 	int32_t         u_EnvironmentMap0;
 	int32_t         u_EnvironmentMap1;
 
+	int32_t			u_RandomMap;
 	int32_t         u_GrainMap;
 	int32_t         u_VignetteMap;
 
@@ -2950,6 +2941,7 @@ typedef struct bspNode_s
 	int             cluster;
 	int             area;
 	qboolean		sameAABBAsParent;
+	qboolean		shrinkedAABB;
 
 	int             numMarkSurfaces;
 	bspSurface_t  **markSurfaces;
@@ -3700,6 +3692,7 @@ typedef struct
 	image_t        *greenImage;
 	image_t        *blueImage;
 	image_t        *flatImage;	// use this as default normalmap
+	image_t        *randomNormalsImage;
 	image_t        *noFalloffImage;
 	image_t        *attenuationXYImage;
 	image_t        *blackCubeImage;
@@ -3761,7 +3754,6 @@ typedef struct
 	shader_t       *defaultDynamicLightShader;
 
 	// external shaders
-	shader_t       *projectionShadowShader;
 	shader_t       *flareShader;
 	shader_t       *sunShader;
 	char           *sunShaderName;
@@ -4162,6 +4154,7 @@ extern cvar_t  *r_dynamicLightOcclusionCulling;
 extern cvar_t  *r_chcMaxPrevInvisNodesBatchSize;
 extern cvar_t  *r_chcMaxVisibleFrames;
 extern cvar_t  *r_chcVisibilityThreshold;
+extern cvar_t  *r_chcIgnoreLeaves;
 
 extern cvar_t  *r_hdrRendering;
 extern cvar_t  *r_hdrMinLuminance;
@@ -4195,6 +4188,8 @@ extern cvar_t  *r_cameraPostFX;
 extern cvar_t  *r_cameraVignette;
 extern cvar_t  *r_cameraFilmGrain;
 extern cvar_t  *r_cameraFilmGrainScale;
+
+extern cvar_t  *r_evsmPostProcess;
 
 //====================================================================
 

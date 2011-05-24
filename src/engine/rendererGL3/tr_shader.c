@@ -3966,7 +3966,9 @@ static qboolean ParseShader(char *_text)
 				continue;
 			}
 
+#if defined(COMPAT_ET)
 			RE_SetFog(FOG_SKY, 0, 5, fogColor[0], fogColor[1], fogColor[2], atof(token));
+#endif
 			continue;
 		}
 		// ET waterfogvars
@@ -3992,7 +3994,7 @@ static qboolean ParseShader(char *_text)
 			//----(SA)  right now allow one water color per map.  I'm sure this will need
 			//          to change at some point, but I'm not sure how to track fog parameters
 			//          on a "per-water volume" basis yet.
-
+#if defined(COMPAT_ET)
 			if(fogvar == 0)
 			{					// '0' specifies "use the map values for everything except the fog color
 				// TODO
@@ -4005,7 +4007,7 @@ static qboolean ParseShader(char *_text)
 			{					// density "exp" fog
 				RE_SetFog(FOG_WATER, 0, 5, watercolor[0], watercolor[1], watercolor[2], fogvar);
 			}
-
+#endif
 			continue;
 		}
 		// ET fogvars
@@ -4040,10 +4042,10 @@ static qboolean ParseShader(char *_text)
 			{
 				fogFar = 5;
 			}
-
+#if defined(COMPAT_ET)
 			RE_SetFog(FOG_MAP, 0, fogFar, fogColor[0], fogColor[1], fogColor[2], fogDensity);
 			RE_SetFog(FOG_CMD_SWITCHFOG, FOG_MAP, 50, 0, 0, 0, 0);
-
+#endif
 			continue;
 		}
 		// ET sunshader <name>
@@ -5085,7 +5087,7 @@ static shader_t *FinishShader(void)
 
 
 	// HACK: allow alpha tested surfaces to create shadowmaps
-	if(r_shadows->integer >= SHADOWING_VSM16)
+	if(r_shadows->integer >= SHADOWING_ESM16)
 	{
 		if(shader.noShadows && shader.alphaTest)
 		{
@@ -6629,7 +6631,6 @@ static void CreateExternalShaders(void)
 {
 	ri.Printf(PRINT_ALL, "----- CreateExternalShaders -----\n");
 
-	tr.projectionShadowShader = R_FindShader("projectionShadow", SHADER_3D_DYNAMIC, qtrue);
 	tr.flareShader = R_FindShader("flareShader", SHADER_3D_DYNAMIC, qtrue);
 	tr.sunShader = R_FindShader("sun", SHADER_3D_DYNAMIC, qtrue);
 

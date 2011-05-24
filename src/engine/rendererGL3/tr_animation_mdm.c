@@ -581,7 +581,7 @@ void R_AddMDMInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	// is outside the view frustum and we don't care about proper shadowing
 	if(ent->cull == CULL_OUT)
 	{
-		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
+		if(r_shadows->integer <= SHADOWING_BLOB || light->l.noShadows)
 			return;
 		else
 			iaType = IA_SHADOWONLY;

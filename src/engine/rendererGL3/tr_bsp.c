@@ -5104,10 +5104,13 @@ static void R_SetParent(bspNode_t * node, bspNode_t * parent)
 			int             c;
 			bspSurface_t  **mark;
 			srfGeneric_t   *gen;
+			qboolean		mergedSurfBounds;
 
 			// add node surfaces to bounds
 			mark = node->markSurfaces;
 			c = node->numMarkSurfaces;
+			ClearBounds(node->surfMins, node->surfMaxs);
+			mergedSurfBounds = qfalse;
 			while(c--)
 			{
 				gen = (srfGeneric_t *) (**mark).data;
@@ -5119,6 +5122,13 @@ static void R_SetParent(bspNode_t * node, bspNode_t * parent)
 				AddPointToBounds(gen->bounds[0], node->surfMins, node->surfMaxs);
 				AddPointToBounds(gen->bounds[1], node->surfMins, node->surfMaxs);
 				mark++;
+				mergedSurfBounds = qtrue;
+			}
+
+			if(!mergedSurfBounds)
+			{
+				VectorCopy(node->mins, node->surfMins);
+				VectorCopy(node->maxs, node->surfMaxs);
 			}
 		}
 
@@ -5129,10 +5139,12 @@ static void R_SetParent(bspNode_t * node, bspNode_t * parent)
 	R_SetParent(node->children[1], node);
 
 	// ydnar: surface bounds
+#if 1
 	AddPointToBounds(node->children[0]->surfMins, node->surfMins, node->surfMaxs);
 	AddPointToBounds(node->children[0]->surfMins, node->surfMins, node->surfMaxs);
 	AddPointToBounds(node->children[1]->surfMins, node->surfMins, node->surfMaxs);
 	AddPointToBounds(node->children[1]->surfMaxs, node->surfMins, node->surfMaxs);
+#endif
 }
 
 /*
@@ -5236,7 +5248,7 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 		//	ri.Error(ERR_DROP, "leaf %i is empty", j);
 
 		Com_Memset(out->lastVisited, -1, sizeof(out->lastVisited));
-		Com_Memset(out->visible, qtrue, sizeof(out->visible));
+		Com_Memset(out->visible, qfalse, sizeof(out->visible));
 		//out->occlusionQuerySamples[0] = 1;
 
 		InitLink(&out->visChain, out);
@@ -5251,10 +5263,43 @@ static void R_LoadNodesAndLeafs(lump_t * nodeLump, lump_t * leafLump)
 		tess.numVertexes = 0;
 
 #if 0
-		if(out->contents != CONTENTS_NODE)
+		out->shrinkedAABB = qfalse;
+		if(out->contents != CONTENTS_NODE && out->numMarkSurfaces)
 		{
+			// BSP leaves don't have an optimal size so shrink them if possible by their surfaces
+			#if 1
+			mins[0] = Q_min(Q_max(out->mins[0], out->surfMins[0]), out->maxs[0]);
+			mins[1] = Q_min(Q_max(out->mins[1], out->surfMins[1]), out->maxs[1]);
+			mins[2] = Q_min(Q_max(out->mins[2], out->surfMins[2]), out->maxs[2]);
+
+			maxs[0] = Q_max(Q_min(out->maxs[0], out->surfMaxs[0]), out->mins[0]);
+			maxs[1] = Q_max(Q_min(out->maxs[1], out->surfMaxs[1]), out->mins[1]);
+			maxs[2] = Q_max(Q_min(out->maxs[2], out->surfMaxs[2]), out->mins[2]);
+			#else
+			mins[0] = Q_max(out->mins[0], out->surfMins[0]);
+			mins[1] = Q_max(out->mins[1], out->surfMins[1]);
+			mins[2] = Q_max(out->mins[2], out->surfMins[2]);
+
+			maxs[0] = Q_min(out->maxs[0], out->surfMaxs[0]);
+			maxs[1] = Q_min(out->maxs[1], out->surfMaxs[1]);
+			maxs[2] = Q_min(out->maxs[2], out->surfMaxs[2]);
+			#endif
+
+			for(i = 0; i < 3; i++)
+			{
+				if(mins[i] > maxs[i])
+				{
+					float tmp = mins[i];
+					mins[i] = maxs[i];
+					maxs[i] = tmp;
+				}
+			}
+
 			VectorCopy(out->surfMins, mins);
 			VectorCopy(out->surfMaxs, maxs);
+
+			if(!VectorCompareEpsilon(out->mins, mins, 1.0) || !VectorCompareEpsilon(out->maxs, maxs, 1.0))
+				out->shrinkedAABB = qtrue;
 		}
 		else
 #endif
@@ -6817,7 +6862,7 @@ static void R_KillRedundantInteractions(trRefLight_t * light)
 	bspSurface_t   *surface;
 	vec3_t          localBounds[2];
 
-	if(r_shadows->integer <= SHADOWING_PLANAR)
+	if(r_shadows->integer <= SHADOWING_BLOB)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -6843,7 +6888,7 @@ static void R_KillRedundantInteractions(trRefLight_t * light)
 			continue;
 
 		// HACK: allow fancy alphatest shadows with shadow mapping
-		if(r_shadows->integer >= SHADOWING_VSM16 && surface->shader->alphaTest)
+		if(r_shadows->integer >= SHADOWING_ESM16 && surface->shader->alphaTest)
 			continue;
 
 		for(iaCache2 = light->firstInteractionCache; iaCache2; iaCache2 = iaCache2->next)
@@ -7076,7 +7121,7 @@ static void R_CreateVBOLightMeshes(trRefLight_t * light)
 	if(!r_vboLighting->integer)
 		return;
 
-	if(r_deferredShading->integer && r_shadows->integer < SHADOWING_VSM16)
+	if(r_deferredShading->integer && r_shadows->integer < SHADOWING_ESM16)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -7375,7 +7420,7 @@ static void R_CreateVBOShadowMeshes(trRefLight_t * light)
 	if(!r_vboShadows->integer)
 		return;
 
-	if(r_shadows->integer < SHADOWING_VSM16)
+	if(r_shadows->integer < SHADOWING_ESM16)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -7737,7 +7782,7 @@ static void R_CreateVBOShadowCubeMeshes(trRefLight_t * light)
 	if(!r_vboShadows->integer)
 		return;
 
-	if(r_shadows->integer < SHADOWING_VSM16)
+	if(r_shadows->integer < SHADOWING_ESM16)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -8061,7 +8106,7 @@ static void R_CalcInteractionCubeSideBits(trRefLight_t * light)
 	bspSurface_t   *surface;
 	vec3_t          localBounds[2];
 
-	if(r_shadows->integer <= SHADOWING_PLANAR)
+	if(r_shadows->integer <= SHADOWING_BLOB)
 		return;
 
 	if(!light->firstInteractionCache)
@@ -8251,7 +8296,7 @@ void R_PrecacheInteractions()
 	ri.Printf(PRINT_ALL, "%i interactions precached\n", s_worldData.numInteractions);
 	ri.Printf(PRINT_ALL, "%i interactions were hidden in shadows\n", c_redundantInteractions);
 
-	if(r_shadows->integer >= SHADOWING_VSM16)
+	if(r_shadows->integer >= SHADOWING_ESM16)
 	{
 		// only interesting for omni-directional shadow mapping
 		ri.Printf(PRINT_ALL, "%i omni pyramid tests\n", tr.pc.c_pyramidTests);

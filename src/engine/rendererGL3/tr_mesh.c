@@ -346,12 +346,6 @@ void R_AddMDVSurfaces(trRefEntity_t * ent)
 
 			// we will add shadows even if the main object isn't visible in the view
 
-			// projection shadows work fine with personal models
-			if(r_shadows->integer == SHADOWING_PLANAR && (ent->e.renderfx & RF_SHADOW_PLANE) && shader->sort == SS_OPAQUE)
-			{
-				R_AddDrawSurf((void *)mdvSurface, tr.projectionShadowShader, -1, 0);
-			}
-
 			// don't add third_person objects if not viewing through a portal
 			if(!personalModel)
 			{
@@ -381,7 +375,7 @@ void R_AddMDVInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	// is outside the view frustum and we don't care about proper shadowing
 	if(ent->cull == CULL_OUT)
 	{
-		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
+		if(r_shadows->integer <= SHADOWING_BLOB || light->l.noShadows)
 			return;
 		else
 			iaType = IA_SHADOWONLY;

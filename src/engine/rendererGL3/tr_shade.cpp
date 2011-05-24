@@ -333,16 +333,16 @@ static void GLSL_LoadGPUShader(GLhandleARB program, const char *name, const char
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GLHW_NV_DX10\n#define GLHW_NV_DX10 1\n#endif\n");
 		}
 
-		if(r_shadows->integer >= SHADOWING_VSM16 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
+		if(r_shadows->integer >= SHADOWING_ESM16 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
 		{
-			if(r_shadows->integer == SHADOWING_ESM)
+			if(r_shadows->integer == SHADOWING_EVSM32)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef ESM\n#define ESM 1\n#endif\n");
 
 				if(r_debugShadowMaps->integer)
 				{
 					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef DEBUG_ESM\n#define DEBUG_ESM %i\n#endif\n", r_debugShadowMaps->integer));
+							 va("#ifndef DEBUG_EVSM\n#define DEBUG_EVSM %i\n#endif\n", r_debugShadowMaps->integer));
 				}
 
 				if(r_lightBleedReduction->value)
@@ -2805,7 +2805,7 @@ static void Render_forwardLighting_DBS_omni(shaderStage_t * diffuseStage,
 
 	bool normalMapping = r_normalMapping->integer && (diffuseStage->bundle[TB_NORMALMAP].image[0] != NULL);
 
-	bool shadowCompare = (r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0);
+	bool shadowCompare = (r_shadows->integer >= SHADOWING_ESM16 && !light->l.noShadows && light->shadowLOD >= 0);
 
 	// choose right shader program ----------------------------------
 	gl_forwardLightingShader_omniXYZ->SetPortalClipping(backEnd.viewParms.isPortal);
@@ -2984,6 +2984,10 @@ static void Render_forwardLighting_DBS_omni(shaderStage_t * diffuseStage,
 		GL_Bind(tr.shadowCubeFBOImage[light->shadowLOD]);
 	}
 
+	// bind u_RandomMap
+	GL_SelectTexture(6);
+	GL_Bind(tr.randomNormalsImage);
+
 	gl_forwardLightingShader_omniXYZ->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
@@ -3006,7 +3010,7 @@ static void Render_forwardLighting_DBS_proj(shaderStage_t * diffuseStage,
 
 	bool normalMapping = r_normalMapping->integer && (diffuseStage->bundle[TB_NORMALMAP].image[0] != NULL);
 
-	bool shadowCompare = (r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0);
+	bool shadowCompare = (r_shadows->integer >= SHADOWING_ESM16 && !light->l.noShadows && light->shadowLOD >= 0);
 
 	// choose right shader program ----------------------------------
 	gl_forwardLightingShader_projXYZ->SetPortalClipping(backEnd.viewParms.isPortal);
@@ -3186,6 +3190,10 @@ static void Render_forwardLighting_DBS_proj(shaderStage_t * diffuseStage,
 		GL_Bind(tr.shadowMapFBOImage[light->shadowLOD]);
 	}
 
+	// bind u_RandomMap
+	GL_SelectTexture(6);
+	GL_Bind(tr.randomNormalsImage);
+
 	gl_forwardLightingShader_projXYZ->SetRequiredVertexPointers();
 
 	Tess_DrawElements();
@@ -3209,7 +3217,7 @@ static void Render_forwardLighting_DBS_directional(shaderStage_t * diffuseStage,
 
 	bool normalMapping = r_normalMapping->integer && (diffuseStage->bundle[TB_NORMALMAP].image[0] != NULL);
 
-	bool shadowCompare = (r_shadows->integer >= SHADOWING_VSM16 && !light->l.noShadows && light->shadowLOD >= 0);
+	bool shadowCompare = (r_shadows->integer >= SHADOWING_ESM16 && !light->l.noShadows && light->shadowLOD >= 0);
 
 	// choose right shader program ----------------------------------
 	gl_forwardLightingShader_directionalSun->SetPortalClipping(backEnd.viewParms.isPortal);

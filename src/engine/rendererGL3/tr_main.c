@@ -1607,7 +1607,7 @@ static void R_SetupProjection(qboolean infiniteFarClip)
 	}
 #else
 
-	if(zFar <= 0 || infiniteFarClip)
+	if(zFar <= 0 || infiniteFarClip)// || r_showBspNodes->integer)
 	{
 		MatrixPerspectiveProjectionFovXYInfiniteRH(proj, tr.refdef.fov_x, tr.refdef.fov_y, zNear);
 	}
@@ -3002,7 +3002,7 @@ void R_AddLightInteractions()
 		light->numLightOnlyInteractions = 0;
 		light->noSort = qfalse;
 
-		if(r_deferredShading->integer && r_shadows->integer < SHADOWING_VSM16)
+		if(r_deferredShading->integer && r_shadows->integer < SHADOWING_ESM16)
 		{
 			// add one fake interaction for this light
 			// because the renderer backend only loops through interactions

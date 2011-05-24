@@ -242,11 +242,13 @@ qhandle_t RE_RegisterModel(const char *name)
 			loaded = R_LoadMD3(mod, lod, buffer, bufferLen, name);
 			ri.FS_FreeFile(buffer);
 		}
+#if defined(COMPAT_ET)
 		else if(ident == MDC_IDENT)
 		{
 			loaded = R_LoadMDC(mod, lod, buffer, bufferLen, name);
 			ri.FS_FreeFile(buffer);
 		}
+#endif
 		else
 		{
 			ri.FS_FreeFile(buffer);

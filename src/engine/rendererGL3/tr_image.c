@@ -1307,12 +1307,20 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 		image->uploadHeight = scaledHeight;
 		image->internalFormat = internalFormat;
 
-		if(image->filterType == FT_DEFAULT && glConfig2.generateMipmapAvailable)
+		if(image->filterType == FT_DEFAULT)
 		{
-			// raynorpat: if hardware mipmap generation is available, use it
-			//glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);	// make sure its nice
-			glTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-			glTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	// default to trilinear
+			if(glConfig.driverType == GLDRV_OPENGL3)// || glConfig2.framebufferObjectAvailable)
+			{
+				glGenerateMipmap(image->type);
+				glTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	// default to trilinear
+			}
+			else if(glConfig2.generateMipmapAvailable)
+			{
+				// raynorpat: if hardware mipmap generation is available, use it
+				//glHint(GL_GENERATE_MIPMAP_HINT_SGIS, GL_NICEST);	// make sure its nice
+				glTexParameteri(image->type, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+				glTexParameteri(image->type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	// default to trilinear
+			}
 		}
 
 		switch (image->type)
@@ -1334,7 +1342,7 @@ void R_UploadImage(const byte ** dataArray, int numData, image_t * image)
 				break;
 		}
 
-		if(!glConfig2.generateMipmapAvailable)
+		if(glConfig.driverType != GLDRV_OPENGL3 /*&& !glConfig2.framebufferObjectAvailable*/ && !glConfig2.generateMipmapAvailable)
 		{
 			if(image->filterType == FT_DEFAULT && !(image->bits & (IF_DEPTH16 | IF_DEPTH24 | IF_DEPTH32 | IF_PACKED_DEPTH24_STENCIL8)))
 			{
@@ -2730,6 +2738,37 @@ static void R_CreateDefaultImage(void)
 	tr.defaultImage = R_CreateImage("_default", (byte *) data, DEFAULT_SIZE, DEFAULT_SIZE, IF_NOPICMIP, FT_DEFAULT, WT_REPEAT);
 }
 
+static void R_CreateRandomNormalsImage(void)
+{
+	int             x, y;
+	byte            data[DEFAULT_SIZE][DEFAULT_SIZE][4];
+
+	// the default image will be a box, to allow you to see the mapping coordinates
+	Com_Memset(data, 32, sizeof(data));
+	for(x = 0; x < DEFAULT_SIZE; x++)
+	{
+		for(y = 0; y < DEFAULT_SIZE; y++)
+		{
+			vec3_t			n;
+			float			r, angle;
+
+			r = random();
+			angle = 2.0 * M_PI * r;// / 360.0;
+	
+			VectorSet(n, cos(angle), sin(angle), r);
+			VectorNormalize(n);
+
+			//VectorSet(n, crandom(), crandom(), crandom());
+
+			data[y][x][0] = (byte) (128 + 127 * n[0]);
+			data[y][x][1] = (byte) (128 + 127 * n[1]);
+			data[y][x][2] = (byte) (128 + 127 * n[2]);
+			data[y][x][3] = 255;
+		}
+	}
+	tr.randomNormalsImage = R_CreateImage("_randomNormals", (byte *) data, DEFAULT_SIZE, DEFAULT_SIZE, IF_NOPICMIP, FT_DEFAULT, WT_REPEAT);
+}
+
 static void R_CreateNoFalloffImage(void)
 {
 	byte            data[DEFAULT_SIZE][DEFAULT_SIZE][4];
@@ -3146,7 +3185,7 @@ static void R_CreateShadowMapFBOImage(void)
 	int             width, height;
 	byte           *data;
 
-	if(!glConfig2.textureFloatAvailable || r_shadows->integer <= SHADOWING_STENCIL)
+	if(!glConfig2.textureFloatAvailable || r_shadows->integer < SHADOWING_ESM16)
 		return;
 
 	for(i = 0; i < MAX_SHADOWMAPS; i++)
@@ -3155,25 +3194,47 @@ static void R_CreateShadowMapFBOImage(void)
 
 		data = ri.Hunk_AllocateTempMemory(width * height * 4);
 
-		if(glConfig.hardwareType == GLHW_ATI)
+		if(glConfig.driverType == GLDRV_OPENGL3 || (glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10))
 		{
-			tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM16)
-		{
-			tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
-		{
-			tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_ESM)
-		{
-			tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			// we can do the most expensive filtering types with OpenGL 3 hardware
+			if(r_shadows->integer == SHADOWING_ESM32)
+			{
+				tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_VSM32)
+			{
+				tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_EVSM32)
+			{
+				if(r_evsmPostProcess->integer)
+				{
+					tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+				}
+				else
+				{
+					tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+				}
+			}
+			else
+			{
+				tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
 		}
 		else
 		{
-			tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			if(r_shadows->integer == SHADOWING_ESM16)
+			{
+				tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_ESM16)
+			{
+				tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else
+			{
+				tr.shadowMapFBOImage[i] = R_CreateImage(va("_shadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
 		}
 
 		ri.Hunk_FreeTempMemory(data);
@@ -3187,25 +3248,47 @@ static void R_CreateShadowMapFBOImage(void)
 
 		data = ri.Hunk_AllocateTempMemory(width * height * 4);
 
-		if(glConfig.hardwareType == GLHW_ATI)
+		if(glConfig.driverType == GLDRV_OPENGL3 || (glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10))
 		{
-			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM16)
-		{
-			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
-		{
-			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_ESM)
-		{
-			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			// we can do the most expensive filtering types with OpenGL 3 hardware
+			if(r_shadows->integer == SHADOWING_ESM32)
+			{
+				tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_VSM32)
+			{
+				tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_EVSM32)
+			{
+				if(r_evsmPostProcess->integer)
+				{	
+					tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_DEPTH24, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+				}
+				else
+				{
+					tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+				}
+			}
+			else
+			{
+				tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
 		}
 		else
 		{
-			tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			if(r_shadows->integer == SHADOWING_ESM16)
+			{
+				tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_ALPHA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_VSM16)
+			{
+				tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else
+			{
+				tr.sunShadowMapFBOImage[i] = R_CreateImage(va("_sunShadowMapFBO%d", i), data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
 		}
 
 		ri.Hunk_FreeTempMemory(data);
@@ -3220,7 +3303,7 @@ static void R_CreateShadowCubeFBOImage(void)
 	int             width, height;
 	byte           *data[6];
 
-	if(!glConfig2.textureFloatAvailable || r_shadows->integer < SHADOWING_VSM16)
+	if(!glConfig2.textureFloatAvailable || r_shadows->integer < SHADOWING_ESM16)
 		return;
 
 	for(j = 0; j < 5; j++)
@@ -3232,25 +3315,46 @@ static void R_CreateShadowCubeFBOImage(void)
 			data[i] = ri.Hunk_AllocateTempMemory(width * height * 4);
 		}
 
-		if(glConfig.hardwareType == GLHW_ATI)
+		if(glConfig.driverType == GLDRV_OPENGL3 || (glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10))
 		{
-			tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_RGBA16, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM16)
-		{
-			tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
-		{
-			tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
-		}
-		else if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_ESM)
-		{
-			tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			if(r_shadows->integer == SHADOWING_ESM32)
+			{
+				tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_VSM32)
+			{
+				tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_LA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_EVSM32)
+			{
+				if(r_evsmPostProcess->integer)
+				{
+					tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_ALPHA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+				}
+				else
+				{
+					tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_RGBA32F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+				}
+			}
+			else
+			{
+				tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
 		}
 		else
 		{
-			tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			if(r_shadows->integer == SHADOWING_VSM16)
+			{
+				tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_ALPHA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else if(r_shadows->integer == SHADOWING_VSM16)
+			{
+				tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_LA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
+			else
+			{
+				tr.shadowCubeFBOImage[j] = R_CreateCubeImage(va("_shadowCubeFBO%d", j), (const byte **)data, width, height, IF_NOPICMIP | IF_RGBA16F, (r_shadowMapLinearFilter->integer ? FT_LINEAR : FT_NEAREST), WT_EDGE_CLAMP);
+			}
 		}
 
 		for(i = 5; i >= 0; i--)
@@ -3417,6 +3521,7 @@ void R_CreateBuiltinImages(void)
 		R_CreateImage("_quadratic", (byte *) data, DEFAULT_SIZE, DEFAULT_SIZE, IF_NOPICMIP | IF_NOCOMPRESSION, FT_LINEAR,
 					  WT_CLAMP);
 
+	R_CreateRandomNormalsImage();
 	R_CreateFogImage();
 	R_CreateNoFalloffImage();
 	R_CreateAttenuationXYImage();

@@ -440,37 +440,25 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 			Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef GLHW_NV_DX10\n#define GLHW_NV_DX10 1\n#endif\n");
 		}
 
-		if(r_shadows->integer >= SHADOWING_VSM16 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
+		if(r_shadows->integer >= SHADOWING_ESM16 && glConfig2.textureFloatAvailable && glConfig2.framebufferObjectAvailable)
 		{
-			if(r_shadows->integer == SHADOWING_ESM)
+			if(r_shadows->integer == SHADOWING_ESM16 || r_shadows->integer == SHADOWING_ESM32)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef ESM\n#define ESM 1\n#endif\n");
+			}
+			else if(r_shadows->integer == SHADOWING_EVSM32)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef EVSM\n#define EVSM 1\n#endif\n");
 
-				if(r_debugShadowMaps->integer)
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef DEBUG_ESM\n#define DEBUG_ESM %i\n#endif\n", r_debugShadowMaps->integer));
-				}
+				// The exponents for the EVSM techniques should be less than ln(FLT_MAX/FILTER_SIZE)/2 {ln(FLT_MAX/1)/2 ~44.3}
+				//         42.9 is the maximum possible value for FILTER_SIZE=15
+				//         42.0 is the truncated value that we pass into the sample
+				Q_strcat(bufferExtra, sizeof(bufferExtra),
+					 va("#ifndef r_EVSMExponents\n#define r_EVSMExponents vec2(%f, %f)\n#endif\n", 42.0f, 42.0f));
 
-				if(r_lightBleedReduction->value)
+				if(r_evsmPostProcess->integer)
 				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef r_LightBleedReduction\n#define r_LightBleedReduction %f\n#endif\n",
-								r_lightBleedReduction->value));
-				}
-
-				if(r_overDarkeningFactor->value)
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef r_OverDarkeningFactor\n#define r_OverDarkeningFactor %f\n#endif\n",
-								r_overDarkeningFactor->value));
-				}
-
-				if(r_shadowMapDepthScale->value)
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef r_ShadowMapDepthScale\n#define r_ShadowMapDepthScale %f\n#endif\n",
-								r_shadowMapDepthScale->value));
+					Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef r_EVSMPostProcess\n#define r_EVSMPostProcess 1\n#endif\n");
 				}
 			}
 			else
@@ -481,30 +469,45 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 				{
 					Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_CLAMP\n#define VSM_CLAMP 1\n#endif\n");
 				}
-
-				if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_EPSILON\n#define VSM_EPSILON 0.000001\n#endif\n");
-				}
-				else
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_EPSILON\n#define VSM_EPSILON 0.0001\n#endif\n");
-				}
-
-				if(r_debugShadowMaps->integer)
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef DEBUG_VSM\n#define DEBUG_VSM %i\n#endif\n", r_debugShadowMaps->integer));
-				}
-
-				if(r_lightBleedReduction->value)
-				{
-					Q_strcat(bufferExtra, sizeof(bufferExtra),
-							 va("#ifndef r_LightBleedReduction\n#define r_LightBleedReduction %f\n#endif\n",
-								r_lightBleedReduction->value));
-				}
 			}
 
+			if((glConfig.hardwareType == GLHW_NV_DX10 || glConfig.hardwareType == GLHW_ATI_DX10) && r_shadows->integer == SHADOWING_VSM32)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_EPSILON\n#define VSM_EPSILON 0.000001\n#endif\n");
+			}
+			else
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef VSM_EPSILON\n#define VSM_EPSILON 0.0001\n#endif\n");
+			}
+
+			if(r_lightBleedReduction->value)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra),
+						 va("#ifndef r_LightBleedReduction\n#define r_LightBleedReduction %f\n#endif\n",
+							r_lightBleedReduction->value));
+			}
+
+			if(r_overDarkeningFactor->value)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra),
+						 va("#ifndef r_OverDarkeningFactor\n#define r_OverDarkeningFactor %f\n#endif\n",
+							r_overDarkeningFactor->value));
+			}
+
+			if(r_shadowMapDepthScale->value)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra),
+						 va("#ifndef r_ShadowMapDepthScale\n#define r_ShadowMapDepthScale %f\n#endif\n",
+							r_shadowMapDepthScale->value));
+			}
+
+			if(r_debugShadowMaps->integer)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra),
+						 va("#ifndef r_DebugShadowMaps\n#define r_DebugShadowMaps %i\n#endif\n", r_debugShadowMaps->integer));
+			}
+
+			/*
 			if(r_softShadows->integer == 1)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef PCF_2X2\n#define PCF_2X2 1\n#endif\n");
@@ -525,9 +528,15 @@ std::string	GLShader::BuildGPUShaderText(	const char *mainShaderName,
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef PCF_6X6\n#define PCF_6X6 1\n#endif\n");
 			}
-			else if(r_softShadows->integer == 6)
+			*/
+			if(r_softShadows->integer == 6)
 			{
 				Q_strcat(bufferExtra, sizeof(bufferExtra), "#ifndef PCSS\n#define PCSS 1\n#endif\n");
+			}
+			else if(r_softShadows->integer)
+			{
+				Q_strcat(bufferExtra, sizeof(bufferExtra),
+					va("#ifndef r_PCFSamples\n#define r_PCFSamples %1.1f\n#endif\n", r_softShadows->value + 1.0f));
 			}
 
 			if(r_parallelShadowSplits->integer)
@@ -1738,10 +1747,11 @@ GLShader_forwardLighting_omniXYZ::GLShader_forwardLighting_omniXYZ():
 			shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
 			shaderProgram->u_AttenuationMapXY = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapXY");
 			shaderProgram->u_AttenuationMapZ = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapZ");
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				shaderProgram->u_ShadowMap = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap");
 			}
+			shaderProgram->u_RandomMap = glGetUniformLocationARB(shaderProgram->program, "u_RandomMap");
 
 			glUseProgramObjectARB(shaderProgram->program);
 			glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
@@ -1749,10 +1759,11 @@ GLShader_forwardLighting_omniXYZ::GLShader_forwardLighting_omniXYZ():
 			glUniform1iARB(shaderProgram->u_SpecularMap, 2);
 			glUniform1iARB(shaderProgram->u_AttenuationMapXY, 3);
 			glUniform1iARB(shaderProgram->u_AttenuationMapZ, 4);
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				glUniform1iARB(shaderProgram->u_ShadowMap, 5);
 			}
+			glUniform1iARB(shaderProgram->u_RandomMap, 6);
 			glUseProgramObjectARB(0);
 
 			ValidateProgram(shaderProgram->program);
@@ -1875,6 +1886,7 @@ GLShader_forwardLighting_projXYZ::GLShader_forwardLighting_projXYZ():
 			{
 				shaderProgram->u_ShadowMap0 = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap0");
 			}
+			shaderProgram->u_RandomMap = glGetUniformLocationARB(shaderProgram->program, "u_RandomMap");
 
 			glUseProgramObjectARB(shaderProgram->program);
 			glUniform1iARB(shaderProgram->u_DiffuseMap, 0);
@@ -1882,10 +1894,11 @@ GLShader_forwardLighting_projXYZ::GLShader_forwardLighting_projXYZ():
 			glUniform1iARB(shaderProgram->u_SpecularMap, 2);
 			glUniform1iARB(shaderProgram->u_AttenuationMapXY, 3);
 			glUniform1iARB(shaderProgram->u_AttenuationMapZ, 4);
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				glUniform1iARB(shaderProgram->u_ShadowMap0, 5);
 			}
+			glUniform1iARB(shaderProgram->u_RandomMap, 6);
 			glUseProgramObjectARB(0);
 
 			ValidateProgram(shaderProgram->program);
@@ -2005,7 +2018,7 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 			shaderProgram->u_DiffuseMap	= glGetUniformLocationARB(shaderProgram->program, "u_DiffuseMap");
 			shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
 			shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				shaderProgram->u_ShadowMap0 = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap0");
 				shaderProgram->u_ShadowMap1 = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap1");
@@ -2020,7 +2033,7 @@ GLShader_forwardLighting_directionalSun::GLShader_forwardLighting_directionalSun
 			glUniform1iARB(shaderProgram->u_SpecularMap, 2);
 			//glUniform1iARB(shaderProgram->u_AttenuationMapXY, 3);
 			//glUniform1iARB(shaderProgram->u_AttenuationMapZ, 4);
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				glUniform1iARB(shaderProgram->u_ShadowMap0, 5);
 				glUniform1iARB(shaderProgram->u_ShadowMap1, 6);
@@ -2129,7 +2142,7 @@ GLShader_deferredLighting_omniXYZ::GLShader_deferredLighting_omniXYZ():
 			shaderProgram->u_DepthMap = glGetUniformLocationARB(shaderProgram->program, "u_DepthMap");
 			shaderProgram->u_AttenuationMapXY = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapXY");
 			shaderProgram->u_AttenuationMapZ = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapZ");
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				shaderProgram->u_ShadowMap = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap");
 			}
@@ -2141,7 +2154,7 @@ GLShader_deferredLighting_omniXYZ::GLShader_deferredLighting_omniXYZ():
 			glUniform1iARB(shaderProgram->u_DepthMap, 3);
 			glUniform1iARB(shaderProgram->u_AttenuationMapXY, 4);
 			glUniform1iARB(shaderProgram->u_AttenuationMapZ, 5);
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				glUniform1iARB(shaderProgram->u_ShadowMap, 6);
 			}
@@ -2246,7 +2259,7 @@ GLShader_deferredLighting_projXYZ::GLShader_deferredLighting_projXYZ():
 			shaderProgram->u_DepthMap = glGetUniformLocationARB(shaderProgram->program, "u_DepthMap");
 			shaderProgram->u_AttenuationMapXY = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapXY");
 			shaderProgram->u_AttenuationMapZ = glGetUniformLocationARB(shaderProgram->program, "u_AttenuationMapZ");
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				shaderProgram->u_ShadowMap0 = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap0");
 			}
@@ -2258,7 +2271,7 @@ GLShader_deferredLighting_projXYZ::GLShader_deferredLighting_projXYZ():
 			glUniform1iARB(shaderProgram->u_DepthMap, 3);
 			glUniform1iARB(shaderProgram->u_AttenuationMapXY, 4);
 			glUniform1iARB(shaderProgram->u_AttenuationMapZ, 5);
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				glUniform1iARB(shaderProgram->u_ShadowMap0, 6);
 			}
@@ -2361,7 +2374,7 @@ GLShader_deferredLighting_directionalSun::GLShader_deferredLighting_directionalS
 			shaderProgram->u_NormalMap = glGetUniformLocationARB(shaderProgram->program, "u_NormalMap");
 			shaderProgram->u_SpecularMap = glGetUniformLocationARB(shaderProgram->program, "u_SpecularMap");
 			shaderProgram->u_DepthMap = glGetUniformLocationARB(shaderProgram->program, "u_DepthMap");
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				shaderProgram->u_ShadowMap0 = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap0");
 				shaderProgram->u_ShadowMap1 = glGetUniformLocationARB(shaderProgram->program, "u_ShadowMap1");
@@ -2377,7 +2390,7 @@ GLShader_deferredLighting_directionalSun::GLShader_deferredLighting_directionalS
 			glUniform1iARB(shaderProgram->u_DepthMap, 3);
 			//glUniform1iARB(shaderProgram->u_AttenuationMapXY, 4);
 			//glUniform1iARB(shaderProgram->u_AttenuationMapZ, 5);
-			//if(r_shadows->integer >= SHADOWING_VSM16)
+			//if(r_shadows->integer >= SHADOWING_ESM16)
 			{
 				glUniform1iARB(shaderProgram->u_ShadowMap0, 6);
 				glUniform1iARB(shaderProgram->u_ShadowMap1, 7);

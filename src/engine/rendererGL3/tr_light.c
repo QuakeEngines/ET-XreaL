@@ -43,7 +43,7 @@ void R_AddBrushModelInteractions(trRefEntity_t * ent, trRefLight_t * light)
 	// and we don't care about proper shadowing
 	if(ent->cull == CULL_OUT)
 	{
-		if(r_shadows->integer <= SHADOWING_PLANAR || light->l.noShadows)
+		if(r_shadows->integer <= SHADOWING_BLOB || light->l.noShadows)
 			return;
 		else
 			iaType = IA_SHADOWONLY;
@@ -1179,16 +1179,14 @@ qboolean R_AddLightInteraction(trRefLight_t * light, surfaceType_t * surface, sh
 	ia->scissorWidth = light->scissor.coords[2] - light->scissor.coords[0];
 	ia->scissorHeight = light->scissor.coords[3] - light->scissor.coords[1];
 
-#if defined(USE_D3D10)
-	// TODO
-#else
+	/*
 	if(r_shadows->integer == SHADOWING_STENCIL && glDepthBoundsEXT)
 	{
 		ia->depthNear = light->depthNear;
 		ia->depthFar = light->depthFar;
 		ia->noDepthBoundsTest = light->noDepthBoundsTest;
 	}
-#endif
+	*/
 
 	if(glConfig2.occlusionQueryAvailable)
 	{
@@ -1562,14 +1560,12 @@ R_SetupLightDepthBounds
 */
 void R_SetupLightDepthBounds(trRefLight_t * light)
 {
+#if 0
 	int             i, j;
 	vec3_t          v, world;
 	vec4_t          eye, clip, normalized, window;
 	float           depthMin, depthMax;
 
-#if defined(USE_D3D10)
-	// TODO
-#else
 	if(r_shadows->integer == SHADOWING_STENCIL && glDepthBoundsEXT)
 	{
 		tr.pc.c_depthBoundsTestsRejected++;
@@ -1668,7 +1664,7 @@ byte R_CalcLightCubeSideBits(trRefLight_t * light, vec3_t worldBounds[2])
 	return cubeSideBits;
 #endif
 
-	if(light->l.rlType != RL_OMNI || r_shadows->integer < SHADOWING_VSM16 || r_noShadowPyramids->integer)
+	if(light->l.rlType != RL_OMNI || r_shadows->integer < SHADOWING_ESM16 || r_noShadowPyramids->integer)
 		return CUBESIDE_CLIPALL;
 
 	cubeSideBits = 0;
@@ -1817,6 +1813,12 @@ void R_SetupLightLOD(trRefLight_t * light)
 	float           projectedRadius;
 	int             lod;
 	int             numLods;
+
+	if(light->l.noShadows)
+	{
+		light->shadowLOD = -1;
+		return;
+	}
 
 	numLods = 5;
 
