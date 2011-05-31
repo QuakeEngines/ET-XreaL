@@ -5,7 +5,7 @@ Just open and save the map.
 
 2) Convert the .map file from the Q3A brush primitives format to the Doom 3 .map format using ETXMap.
 
-	$ ./ETXMap.exe .. -fs_basepath .. -map2map -format quake3 ../etmain/maps/yourmap.map
+	$ ./ETXMap.exe -fs_basepath .. -map2map -format quake3 ../etmain/maps/yourmap.map
 
 The converted result will be saved as ../etmain/maps/yourmap_converted.map
 
