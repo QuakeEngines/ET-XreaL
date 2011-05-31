@@ -446,7 +446,7 @@ void ProcessWorldModel(void)
 	MakeTreePortals(tree);
 	FilterStructuralBrushesIntoTree(e, tree);
 
-#if 0
+#if 1
 	if(drawBSP)
 	{
 		// draw unoptimized portals in new window

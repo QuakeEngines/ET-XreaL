@@ -323,7 +323,7 @@ void InsertModel(char *name, int frame, matrix_t transform, matrix_t nTransform,
 			si = ShaderInfoForShader(picoShaderName);
 
 			// Tr3B: HACK to support the messy Doom 3 materials provided by .ASE files
-			if(!si->explicit)
+			if(!si->explicitDef)
 			{
 				picoShaderName = PicoGetShaderMapName(shader);
 

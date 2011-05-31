@@ -93,6 +93,7 @@ static void SelectSplitPlaneNum(node_t * node, face_t * list, int *splitPlaneNum
 	float           dist;
 	int             planenum;
 	float           sizeBias;
+	//int				checks;
 
 	//int frontC,backC,splitsC,facingC;
 
@@ -124,15 +125,18 @@ static void SelectSplitPlaneNum(node_t * node, face_t * list, int *splitPlaneNum
 	bestValue = -99999;
 	bestSplit = list;
 
+	//checks = 0;
 
 	// div0: this check causes detail/structural mixes
-	//for( split = list; split; split = split->next )
-	//  split->checked = qfalse;
+	//for(split = list; split; split = split->next)
+	//	split->checked = qfalse;
 
 	for(split = list; split; split = split->next)
 	{
-		//if ( split->checked )
-		//  continue;
+		//if(split->checked)
+		//	continue;
+
+		//checks++;
 
 		plane = &mapplanes[split->planenum];
 		splits = 0;

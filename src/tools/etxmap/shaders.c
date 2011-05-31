@@ -1014,7 +1014,7 @@ static void ParseShaderFile(const char *filename)
 			/* shader name is initial token */
 			si = AllocShaderInfo();
 			strcpy(si->shader, token);
-			si->explicit = qtrue;
+			si->explicitDef = qtrue;
 			MatchToken("{");
 
 			/* copy shader text to the shaderinfo */

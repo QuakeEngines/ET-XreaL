@@ -725,7 +725,7 @@ const char     *UniqueEntityName(const entity_t * ent, const char *suggestion)
 
 	classname = ValueForKey(ent, "classname");
 
-	for(i = 0; i < 9999; i++)
+	for(i = 0; i < 100000; i++)
 	{
 		uniquename = va("%s_%i", classname, i);
 

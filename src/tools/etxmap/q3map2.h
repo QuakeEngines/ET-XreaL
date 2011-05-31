@@ -60,6 +60,7 @@ dependencies
 #include <windows.h>
 #endif
 
+#include <glib.h>
 
 /* general */
 //#include "version.h"          /* ttimo: might want to guard that if built outside of the GtkRadiant tree */
@@ -799,7 +800,7 @@ typedef struct shaderInfo_s
 	vec3_t          fogDir;		/* ydnar */
 
 	char           *shaderText;	/* ydnar */
-	qb_t            explicit;	/* Tr3B: .mtr material was found */
+	qb_t            explicitDef;	/* Tr3B: .mtr material was found */
 	qb_t            custom;
 	qb_t            finished;
 }
@@ -2046,7 +2047,7 @@ Q_EXTERN int				blockSize[ 3 ]					/* should be the same as in radiant */
 #ifndef MAIN_C
 							;
 #else
-= {0, 0, 0}; /* Tr3B: was { 1024, 1024, 1024 }; */
+= {1024, 1024, 1024};
 #endif
 
 Q_EXTERN char				name[ 1024 ];
@@ -2426,6 +2427,7 @@ abstracted bsp globals
 Q_EXTERN int				numEntities Q_ASSIGN( 0 );
 Q_EXTERN int				numBSPEntities Q_ASSIGN( 0 );
 Q_EXTERN entity_t			entities[ MAX_MAP_ENTITIES ];
+Q_EXTERN entity_t			convertDetailBrushesFuncStaticEntity;
 
 Q_EXTERN int				numBSPModels Q_ASSIGN( 0 );
 Q_EXTERN int				allocatedBSPModels Q_ASSIGN( 0 );
