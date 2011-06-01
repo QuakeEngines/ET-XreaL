@@ -37,13 +37,12 @@ extern "C" {
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-//#define PRE_RELEASE_DEMO
+#define PRODUCT_NAME							"ET:XreaL" // Case, Spaces allowed
+#define PRODUCT_NAME_UPPPER						"ET:XreaL" // Case, No spaces
+#define PRODUCT_NAME_LOWER						"et:xreal" // No case, No spaces
+#define PRODUCT_NAME_LOWER_NOSPECIALCHARS		"etxreal"
+#define PRODUCT_VERSION							"0.9.0"
 
-#ifndef PRE_RELEASE_DEMO
-#define Q3_VERSION      "ET 2.60d"
-#else
-#define Q3_VERSION      "ET 2.32"
-#endif							// PRE_RELEASE_DEMO
 // 2.60d: Mac OSX universal binaries
 // 2.60c: Mac OSX universal binaries
 // 2.60b: CVE-2006-2082 fix
@@ -60,16 +59,31 @@ extern "C" {
 // 1.1b - TTimo SP linux release (+ MP updates)
 // 1.1b5 - Mac update merge in
 
-#define CONFIG_NAME     "etconfig.cfg"
-
-//#define LOCALIZATION_SUPPORT
-
+#define ENGINE_NAME             "ET:XreaL Engine"
+#define ENGINE_VERSION          "0.9.0"
 
 #if 1
 #if !defined(COMPAT_ET)
 #define COMPAT_ET 1
 #endif
 #endif
+
+#ifdef SVN_VERSION
+# define Q3_VERSION PRODUCT_NAME " " SVN_VERSION
+#else
+# define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
+#endif
+
+#define Q3_ENGINE ENGINE_NAME " " ENGINE_VERSION
+#define Q3_ENGINE_DATE          __DATE__
+
+#define CLIENT_WINDOW_TITLE     PRODUCT_NAME
+#define CLIENT_WINDOW_MIN_TITLE PRODUCT_NAME_LOWER
+
+
+#define CONFIG_NAME     "etconfig.cfg"
+
+//#define LOCALIZATION_SUPPORT
 
 
 #define NEW_ANIMS
