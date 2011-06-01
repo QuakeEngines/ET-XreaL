@@ -82,9 +82,6 @@ typedef enum
 #define TRY_PFD_FAIL_SOFT   1
 #define TRY_PFD_FAIL_HARD   2
 
-//#define   WINDOW_CLASS_NAME   "Wolfenstein"
-#define WINDOW_CLASS_NAME   "ET:XreaL"
-
 static void     GLW_InitExtensions(void);
 static rserr_t  GLW_SetMode(int mode, int colorbits, qboolean cdsFullscreen);
 
@@ -588,7 +585,7 @@ static qboolean GLW_CreateWindow(int width, int height, int colorbits, qboolean 
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wc.hbrBackground = (void *)COLOR_GRAYTEXT;
 		wc.lpszMenuName = 0;
-		wc.lpszClassName = WINDOW_CLASS_NAME;
+		wc.lpszClassName = CLIENT_WINDOW_TITLE;
 
 		if(!RegisterClass(&wc))
 		{
@@ -661,9 +658,8 @@ static qboolean GLW_CreateWindow(int width, int height, int colorbits, qboolean 
 			}
 		}
 
-		g_wvPtr->hWnd = CreateWindowEx(exstyle, WINDOW_CLASS_NAME,
-								   //"Wolfenstein",
-								   "ET:XreaL", stylebits, x, y, w, h, NULL, NULL, g_wvPtr->hInstance, NULL);
+		g_wvPtr->hWnd = CreateWindowEx(exstyle, CLIENT_WINDOW_TITLE,
+								   CLIENT_WINDOW_TITLE, stylebits, x, y, w, h, NULL, NULL, g_wvPtr->hInstance, NULL);
 
 		if(!g_wvPtr->hWnd)
 		{

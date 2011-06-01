@@ -738,18 +738,23 @@ void Con_DrawSolidConsole(float frac)
 
 
 	// draw the version number
-
 	re.SetColor(g_color_table[ColorIndex(COLNSOLE_COLOR)]);
 
 	i = strlen(Q3_VERSION);
-
 	for(x = 0; x < i; x++)
 	{
-
 		SCR_DrawSmallChar(cls.glconfig.vidWidth - (i - x) * SMALLCHAR_WIDTH,
 						  (lines - (SMALLCHAR_HEIGHT + SMALLCHAR_HEIGHT / 2)), Q3_VERSION[x]);
-
 	}
+
+// XreaL BEGIN
+	i = strlen(Q3_ENGINE);
+	for(x = 0; x < i; x++)
+	{
+		SCR_DrawSmallChar(cls.glconfig.vidWidth - (i - x) * SMALLCHAR_WIDTH,
+						  (lines - (SMALLCHAR_HEIGHT * 2 + SMALLCHAR_HEIGHT / 2)), Q3_ENGINE[x]);
+	}
+// XreaL END
 
 
 	// draw the text

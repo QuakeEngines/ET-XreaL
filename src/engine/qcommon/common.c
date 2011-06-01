@@ -84,6 +84,9 @@ cvar_t         *com_cl_running;
 cvar_t         *com_logfile;	// 1 = buffer log, 2 = flush after each print
 cvar_t         *com_showtrace;
 cvar_t         *com_version;
+// XreaL BEGIN
+cvar_t         *com_engine;
+// XreaL END
 
 //cvar_t    *com_blood;
 cvar_t         *com_buildScript;	// for automated data building scripts
@@ -3146,6 +3149,9 @@ void Com_Init(char *commandLine)
 	volatile qboolean safeMode = qtrue;
 
 	Com_Printf("%s %s %s\n", Q3_VERSION, CPUSTRING, __DATE__);
+// XreaL BEGIN
+	Com_Printf("%s %s %s\n", Q3_ENGINE, CPUSTRING, Q3_ENGINE_DATE);
+// XreaL END
 
 	if(setjmp(abortframe))
 	{
@@ -3352,6 +3358,11 @@ void Com_Init(char *commandLine)
 
 	s = va("%s %s %s", Q3_VERSION, CPUSTRING, __DATE__);
 	com_version = Cvar_Get("version", s, CVAR_ROM | CVAR_SERVERINFO);
+
+	// XreaL BEGIN
+	s = va("%s %s %s", Q3_ENGINE, CPUSTRING, Q3_ENGINE_DATE);
+	com_engine = Cvar_Get("engine", s, CVAR_ROM | CVAR_SERVERINFO);
+	// XreaL END
 
 	Sys_Init();
 	Netchan_Init(Com_Milliseconds() & 0xffff);	// pick a port value that should be nice and random

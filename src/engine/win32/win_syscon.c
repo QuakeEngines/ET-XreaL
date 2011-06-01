@@ -661,8 +661,8 @@ void Sys_CreateConsole(void)
 	WNDCLASS        wc;
 	RECT            rect;
 
-	const char     *DEDCLASS = "ET:XreaL WinConsole";
-	const char     *WINDOWNAME = "ET:XreaL Console";
+	const char     *DEDCLASS = CLIENT_WINDOW_TITLE " WinConsole";
+	const char     *WINDOWNAME = CLIENT_WINDOW_TITLE " Console";
 
 	int             nHeight;
 	int             swidth, sheight;

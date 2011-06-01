@@ -193,7 +193,8 @@ bool GLShader::GetCompileMacrosString(int permutation, std::string& compileMacro
 
 void GLShader::UpdateShaderProgramUniformLocations(shaderProgram_t *shaderProgram) const
 {
-	for(size_t j = 0; j < _uniforms.size(); j++)
+	size_t numUniforms = _uniforms.size();
+	for(size_t j = 0; j < numUniforms; j++)
 	{
 		GLUniform* uniform = _uniforms[j];
 
@@ -1122,7 +1123,8 @@ void GLShader::BindProgram()
 	if(_currentProgram->program == 0)
 	{
 		std::string activeMacros = "";
-		for(size_t j = 0; j < _compileMacros.size(); j++)
+		size_t numMacros = _compileMacros.size();
+		for(size_t j = 0; j < numMacros; j++)
 		{
 			GLCompileMacro* macro = _compileMacros[j];
 
@@ -1145,7 +1147,8 @@ void GLShader::BindProgram()
 void GLShader::SetRequiredVertexPointers()
 {
 	uint32_t macroVertexAttribs = 0;
-	for(size_t j = 0; j < _compileMacros.size(); j++)
+	size_t numMacros = _compileMacros.size();
+	for(size_t j = 0; j < numMacros; j++)
 	{
 		GLCompileMacro* macro = _compileMacros[j];
 

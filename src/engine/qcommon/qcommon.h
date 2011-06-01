@@ -950,6 +950,9 @@ extern cvar_t  *com_sv_running;
 extern cvar_t  *com_cl_running;
 extern cvar_t  *com_viewlog;	// 0 = hidden, 1 = visible, 2 = minimized
 extern cvar_t  *com_version;
+// XreaL BEGIN
+extern cvar_t  *com_engine;
+// XreaL END
 
 //extern    cvar_t  *com_blood;
 extern cvar_t  *com_buildScript;	// for building release pak files

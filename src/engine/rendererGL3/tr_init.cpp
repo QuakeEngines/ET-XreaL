@@ -719,7 +719,7 @@ void R_TakeScreenshot(char *name, ssFormat_t format)
 
 	if(ri.Cmd_Argc() == 2)
 	{
-		Com_sprintf(fileName, sizeof(fileName), "screenshots/etxreal-%s.%s", ri.Cmd_Argv(1), name);
+		Com_sprintf(fileName, sizeof(fileName), "screenshots/%s-%s.%s", PRODUCT_NAME_LOWER_NOSPECIALCHARS, ri.Cmd_Argv(1), name);
 	}
 	else
 	{
@@ -730,7 +730,8 @@ void R_TakeScreenshot(char *name, ssFormat_t format)
 		// scan for a free filename
 		for(lastNumber = 0; lastNumber <= 999; lastNumber++)
 		{
-			Com_sprintf(fileName, sizeof(fileName), "screenshots/etxreal-%04d%02d%02d-%02d%02d%02d-%03d.%s",
+			Com_sprintf(fileName, sizeof(fileName), "screenshots/%s-%04d%02d%02d-%02d%02d%02d-%03d.%s",
+						PRODUCT_NAME_LOWER_NOSPECIALCHARS,
 						1900 + t.tm_year, 1 + t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, lastNumber, name);
 
 			if(!ri.FS_FileExists(fileName))
