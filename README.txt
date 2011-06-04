@@ -161,26 +161,36 @@ See CHANGELOG.txt for full list of all changes.
 	
 ___________________________________________________
 
-8) General XreaL id Tech 3 Features
+8) General ET:XreaL id Tech 3 Features
 __________________________________________
 	
+ETXreaL
+	* Modern OpenGL 3.2 renderer with all deprecated OpenGL calls removed
 	* Clever usage of vertex buffer objects (VBO) to speed up rendering of everything
-    * Avoids geometry processing at render time using the CPU (worst bottleneck with the Q3A engine)
-    * Renders up to 500 000 – 1 000 000 polygons at 80 - 200 fps on current hardware (DX10 generation)
+	* Avoids geometry processing each frame using the CPU (worst bottleneck with the Q3A engine)
+	* Renders up to 500 000 – 1 000 000 polygons at 80 - 200 fps on current hardware (DX10 generation)
 	* Optional GPU occlusion culling (improved Coherent Hierarchy Culling) useful for rendering large city scenes
-    * Doom 3 .MD5mesh/.MD5anim skeletal model and animation support
-    * Unreal Actor X .PSK/.PSA skeletal model and animation support
-    * True 64 bit HDR lighting with adaptive tone mapping
-    * Advanced projective and omni-directional soft shadow mapping methods like EVSM
-    * Real-time sun lights with parallel-split shadow maps
-    * Optional deferred shading
-    * Relief mapping that can be enabled by materials
-    * Optional uniform lighting and shadowing model like in Doom 3 including globe mapping
-    * Supports almost all Quake 3, Enemy Territory and Doom 3 material shader keywords
-    * TGA, PNG, JPG and DDS format support for textures
-    * Usage of frame buffer objects (FBO) to perform offscreen rendering effects
-    * Improved TrueType font support that does not require external tools
+	* Doom 3 .MD5mesh/.MD5anim skeletal model and animation support
+	* Unreal Actor X .PSK/.PSA skeletal model and animation support
+	* True 64 bit HDR lighting with adaptive tone mapping
+	* Advanced projective and omni-directional soft shadow mapping methods like EVSM
+	* Real-time sun lights with parallel-split shadow maps
+	* Optional deferred shading
+	* Relief mapping that can be enabled by materials
+	* Optional uniform lighting and shadowing model like in Doom 3 including globe mapping
+	* Supports almost all Quake 3, Enemy Territory and Doom 3 material shader keywords
+	* TGA, PNG, JPG and DDS format support for textures
+	* Usage of frame buffer objects (FBO) to perform offscreen rendering effects
+	* Improved TrueType font support that does not require external tools
+	* Linux 64-bit support
+	* Linux sound backend using SDL
+	* .avi recorder from ioquake3 including sound support
+	* Optimized collision detection routines
 
+ETXMap
+	* Based on q3map2 by Randy 'ydnar' Reddig including additional fixes by the NetRadiant edition
+	* Supports Doom 3 and Quake 4 .map formats
+	* Built-in mini BSP viewer using -draw
 	
 
 ___________________________________________________
