@@ -2209,6 +2209,18 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 		AdjustBrushesForOrigin(mapEnt, originNeg);
 		AdjustPatchesForOrigin(mapEnt, originNeg);
 
+		// group entities should always contain detail brushes
+		for(brush = mapEnt->brushes; brush != NULL; brush = brush->next)
+		{
+			if(!(brush->compileFlags & C_DETAIL) || !brush->detail)
+			{
+				c_detail++;
+				c_structural--;
+				brush->detail = qtrue;
+				brush->compileFlags |= C_DETAIL;
+			}
+		}
+
 		MoveBrushesToWorld(mapEnt);
 		MovePatchesToWorld(mapEnt);
 		numEntities--;
