@@ -1602,6 +1602,7 @@ brush_t        *FinishBrush(void);
 
 
 /* portals.c */
+winding_t      *BaseWindingForNode(node_t * node);
 void            MakeHeadnodePortals(tree_t * tree);
 void            MakeNodePortal(node_t * node);
 void            SplitNodePortals(node_t * node);
@@ -1674,7 +1675,7 @@ void            CreateMapFogs(void);
 /* facebsp.c */
 face_t         *MakeStructuralBSPFaceList(brush_t * list);
 face_t         *MakeVisibleBSPFaceList(brush_t * list);
-tree_t         *FaceBSP(face_t * list);
+tree_t         *FaceBSP(face_t * list, qboolean drawDebug);
 
 
 /* model.c */
@@ -1933,11 +1934,9 @@ void            WriteXBSPFile(const char *filename);
 
 
 /* gldraw.c */
-void            Draw_Winding(winding_t * w);
-void            Draw_AuxWinding(winding_t * w);
-void            Draw_Scene(void (*drawFunc) (void));
-void            Draw_AuxWinding(winding_t * w);
+void            Draw_Winding(winding_t * w, float r, float g, float b, float a);
 void			Draw_AABB(const vec3_t origin, const vec3_t mins, const vec3_t maxs, vec4_t color);
+void            Draw_Scene(void (*drawFunc) (void));
 
 /* -------------------------------------------------------------------------------
 
@@ -2014,7 +2013,7 @@ Q_EXTERN qboolean			nofog Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			noHint Q_ASSIGN( qfalse );				/* ydnar */
 Q_EXTERN qboolean			renameModelShaders Q_ASSIGN( qfalse );	/* ydnar */
 Q_EXTERN qboolean			skyFixHack Q_ASSIGN( qfalse );			/* ydnar */
-Q_EXTERN qboolean			bspAlternateSplitWeights Q_ASSIGN( qfalse );			/* 27 */
+Q_EXTERN qboolean			bspAlternateSplitWeights Q_ASSIGN( qtrue );			/* 27 */
 Q_EXTERN qboolean			deepBSP Q_ASSIGN( qfalse );				/* div0 */
 Q_EXTERN qboolean			inlineEntityModels Q_ASSIGN( qfalse );	/* Tr3B */
 Q_EXTERN qboolean			drawBSP Q_ASSIGN( qfalse );				/* Tr3B */

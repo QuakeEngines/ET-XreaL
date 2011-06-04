@@ -505,6 +505,119 @@ void CalcNodeBounds(node_t * node)
 	}
 }
 
+
+//============================================================
+
+static int PortalVisibleSides(portal_t * p)
+{
+	int             fcon, bcon;
+
+	if(!p->onnode)
+		return 0;				// outside
+
+	fcon = p->nodes[0]->opaque;
+	bcon = p->nodes[1]->opaque;
+
+	// same contents never create a face
+	if(fcon == bcon)
+		return 0;
+
+	if(!fcon)
+		return 1;
+	if(!bcon)
+		return 2;
+	return 0;
+}
+
+static void DrawPortal(portal_t * p, qboolean areaportal)
+{
+	winding_t      *w;
+	int             sides;
+
+	sides = PortalVisibleSides(p);
+	//if(!sides)
+	//	return;
+
+	w = p->winding;
+
+	if(sides == 2)				// back side
+		w = ReverseWinding(w);
+
+	if(areaportal)
+	{
+		Draw_Winding(w, 1, 0, 0, 0.3);
+	}
+	else
+	{
+		Draw_Winding(w, 0, 0, 1, 0.3);
+	}
+
+	if(sides == 2)
+		FreeWinding(w);
+}
+
+static void DrawTreePortals_r(node_t * node)
+{
+	int             s;
+	portal_t       *p;
+	winding_t      *w;
+
+	if(node->planenum != PLANENUM_LEAF)
+	{
+		DrawTreePortals_r(node->children[0]);
+		DrawTreePortals_r(node->children[1]);
+		return;
+	}
+
+	// draw all the portals
+	for(p = node->portals; p; p = p->next[s])
+	{
+		w = p->winding;
+		s = (p->nodes[1] == node);
+
+		if(w)					// && p->nodes[0] == node)
+		{
+			//if(PortalPassable(p))
+			//	continue;
+
+			DrawPortal(p, node->areaportal);
+		}
+	}
+}
+
+static void DrawTreeNodes_r(node_t * node)
+{
+	int             s;
+	portal_t       *p, *nextp;
+	winding_t      *w;
+	vec4_t			nodeColor = {1, 1, 0, 0.3};
+	vec4_t			leafColor = {0, 0, 1, 0.3};
+
+	if(!node)
+		return;
+
+	if(node->planenum == PLANENUM_LEAF)
+	{
+		//Draw_AABB(vec3_origin, node->mins, node->maxs, leafColor);
+		return;
+	}
+
+	Draw_AABB(vec3_origin, node->mins, node->maxs, nodeColor);
+
+	DrawTreeNodes_r(node->children[0]);
+	DrawTreeNodes_r(node->children[1]);
+}
+
+static tree_t  *drawTree = NULL;
+static int		drawTreeNodesNum;
+static void DrawTreePortals(void)
+{
+	DrawTreePortals_r(drawTree->headnode);
+	DrawTreeNodes_r(drawTree->headnode);
+}
+
+//============================================================
+
 /*
 ==================
 MakeTreePortals_r
@@ -546,6 +659,13 @@ void MakeTreePortals_r(node_t * node)
 	MakeNodePortal(node);
 	SplitNodePortals(node);
 
+#if 0
+	if(drawBSP)
+	{
+		Draw_Scene(DrawTreePortals);
+	}
+#endif
+
 	MakeTreePortals_r(node->children[0]);
 	MakeTreePortals_r(node->children[1]);
 }
@@ -558,10 +678,26 @@ MakeTreePortals
 void MakeTreePortals(tree_t * tree)
 {
 	Sys_FPrintf(SYS_VRB, "--- MakeTreePortals ---\n");
+
+#if 1
+	if(drawBSP)
+	{
+		drawTree = tree;
+	}
+#endif
+
 	MakeHeadnodePortals(tree);
 	MakeTreePortals_r(tree->headnode);
+	
 	Sys_FPrintf(SYS_VRB, "%9d tiny portals\n", c_tinyportals);
 	Sys_FPrintf(SYS_VRB, "%9d bad portals\n", c_badportals);	/* ydnar */
+
+#if 0
+	if(drawBSP)
+	{
+		Draw_Scene(DrawTreePortals);
+	}
+#endif
 }
 
 /*

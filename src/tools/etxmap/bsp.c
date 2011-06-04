@@ -312,11 +312,11 @@ static void DrawPortal(portal_t * p, qboolean areaportal)
 
 	if(areaportal)
 	{
-		Draw_AuxWinding(w);
+		Draw_Winding(w, 1, 0, 0, 0.3);
 	}
 	else
 	{
-		Draw_Winding(w);
+		Draw_Winding(w, 0, 0, 1, 0.3);
 	}
 
 	if(sides == 2)
@@ -344,8 +344,8 @@ static void DrawTreePortals_r(node_t * node)
 
 		if(w)					// && p->nodes[0] == node)
 		{
-			if(PortalPassable(p))
-				continue;
+			//if(PortalPassable(p))
+			//	continue;
 
 			DrawPortal(p, node->areaportal);
 		}
@@ -353,6 +353,7 @@ static void DrawTreePortals_r(node_t * node)
 }
 
 static tree_t  *drawTree = NULL;
+static int		drawTreeNodesNum;
 static void DrawTreePortals(void)
 {
 	DrawTreePortals_r(drawTree->headnode);
@@ -361,23 +362,63 @@ static void DrawTreePortals(void)
 
 static void DrawTreeNodes_r(node_t * node)
 {
-	int             s;
-	portal_t       *p, *nextp;
+	int             i, s;
+	brush_t        *b;
 	winding_t      *w;
+	vec4_t			nodeColor = {1, 1, 0, 0.3};
 	vec4_t			leafColor = {0, 0, 1, 0.3};
 
-	if(node->planenum != PLANENUM_LEAF)
+	if(!node)
+		return;
+
+	drawTreeNodesNum++;
+
+	if(node->planenum == PLANENUM_LEAF)
 	{
-		DrawTreeNodes_r(node->children[0]);
-		DrawTreeNodes_r(node->children[1]);
+		//VectorCopy(debugColors[drawTreeNodesNum % 12], leafColor);
+
+		Draw_AABB(vec3_origin, node->mins, node->maxs, leafColor);
+
+		for(b = node->brushlist; b != NULL; b = b->next)
+		{
+			for(i = 0; i < b->numsides; i++)
+			{
+				w = b->sides[i].winding;
+				if(!w)
+					continue;
+
+				if(node->areaportal)
+				{
+					Draw_Winding(w, 1, 0, 0, 0.3);
+				}
+				else if(b->detail)
+				{
+					Draw_Winding(w, 0, 1, 0, 0.3);
+				}
+				else
+				{
+					// opaque
+					Draw_Winding(w, 0, 0, 0, 0.1);
+				}
+			}
+		}
 		return;
 	}
 
-	Draw_AABB(vec3_origin, node->mins, node->maxs, leafColor);
+	//Draw_AABB(vec3_origin, node->mins, node->maxs, nodeColor);
+
+	DrawTreeNodes_r(node->children[0]);
+	DrawTreeNodes_r(node->children[1]);
 }
 static void DrawNodes(void)
 {
+	drawTreeNodesNum = 0;
 	DrawTreeNodes_r(drawTree->headnode);
+}
+
+static void DrawTree(void)
+{
+	DrawNodes();
 }
 
 
@@ -442,15 +483,15 @@ void ProcessWorldModel(void)
 
 	/* build an initial bsp tree using all of the sides of all of the structural brushes */
 	faces = MakeStructuralBSPFaceList(entities[0].brushes);
-	tree = FaceBSP(faces);
+	tree = FaceBSP(faces, qtrue);
 	MakeTreePortals(tree);
 	FilterStructuralBrushesIntoTree(e, tree);
 
-#if 1
+#if 0
 	if(drawBSP)
 	{
-		// draw unoptimized portals in new window
 		drawTree = tree;
+		Draw_Scene(DrawNodes);
 		Draw_Scene(DrawTreePortals);
 	}
 #endif
@@ -467,7 +508,7 @@ void ProcessWorldModel(void)
 		/* build a visible face tree */
 		faces = MakeVisibleBSPFaceList(entities[0].brushes);
 		FreeTree(tree);
-		tree = FaceBSP(faces);
+		tree = FaceBSP(faces, qtrue);
 		MakeTreePortals(tree);
 		FilterStructuralBrushesIntoTree(e, tree);
 		leaked = qfalse;
@@ -504,12 +545,12 @@ void ProcessWorldModel(void)
 		ClipSidesIntoTree(e, tree);
 	}
 
-#if 0
+#if 1
 	if(drawBSP)
 	{
-		// draw unoptimized portals in new window
 		drawTree = tree;
-		Draw_Scene(DrawTree);
+		Draw_Scene(DrawNodes);
+		Draw_Scene(DrawTreePortals);
 	}
 #endif
 

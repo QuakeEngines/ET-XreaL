@@ -129,7 +129,8 @@ static void Draw_BeginScene(void)
 
 	Reshape(drawScreen->w, drawScreen->h);
 
-	glClearColor(1, 0.8, 0.8, 0);
+	//glClearColor(1, 0.8, 0.8, 0);
+	glClearColor(0.8, 0.8, 0.8, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/*
@@ -207,7 +208,7 @@ void Draw_SetBlack(void)
 	glColor3f(0, 0, 0);
 }
 
-void Draw_Winding(winding_t * w)
+void Draw_Winding(winding_t * w, float r, float g, float b, float a)
 {
 	int             i;
 
@@ -220,31 +221,7 @@ void Draw_Winding(winding_t * w)
 		glVertex3f(w->p[i][0], w->p[i][1], w->p[i][2]);
 	glEnd();
 
-	glColor4f(0, 0, 1, 0.3);
-	glBegin(GL_POLYGON);
-	for(i = 0; i < w->numpoints; i++)
-		glVertex3f(w->p[i][0], w->p[i][1], w->p[i][2]);
-	glEnd();
-
-	glFlush();
-}
-
-void Draw_AuxWinding(winding_t * w)
-{
-	int             i;
-
-	if(!drawInit)
-		return;
-
-//  Sys_FPrintf(SYS_VRB, "Draw_AuxWinding()\n");
-
-	glColor4f(0, 0, 0, 0.5);
-	glBegin(GL_LINE_LOOP);
-	for(i = 0; i < w->numpoints; i++)
-		glVertex3f(w->p[i][0], w->p[i][1], w->p[i][2]);
-	glEnd();
-
-	glColor4f(1, 0, 0, 0.3);
+	glColor4f(r, g, b, a);
 	glBegin(GL_POLYGON);
 	for(i = 0; i < w->numpoints; i++)
 		glVertex3f(w->p[i][0], w->p[i][1], w->p[i][2]);
@@ -308,9 +285,11 @@ void Draw_Scene(void (*drawFunc) (void))
 	matrix_t        rotation;
 	vec3_t          forward, right, up;
 	qboolean        mouseGrabbed;
+	qboolean		mouseGrabbedLastFrame;
 	int             oldTime, newTime, deltaTime;	// for frame independent movement
 
 	mouseGrabbed = qfalse;
+	mouseGrabbedLastFrame = qfalse;
 
 	oldTime = SDL_GetTicks();
 	while(1)
@@ -347,11 +326,12 @@ void Draw_Scene(void (*drawFunc) (void))
 
 				case SDL_MOUSEMOTION:
 				{
-					if(mouseGrabbed)
+					if(mouseGrabbed && !mouseGrabbedLastFrame)
 					{
 						drawAngles[PITCH] += event.motion.yrel;
 						drawAngles[YAW] -= event.motion.xrel;
 					}
+					mouseGrabbedLastFrame = qfalse;
 					break;
 				}
 
@@ -366,6 +346,7 @@ void Draw_Scene(void (*drawFunc) (void))
 								SDL_WM_GrabInput(SDL_GRAB_ON);
 								SDL_ShowCursor(0);
 								mouseGrabbed = qtrue;
+								mouseGrabbedLastFrame = qtrue;
 							}
 							else
 							{
