@@ -1560,7 +1560,77 @@ void WriteMapFileDoom3(char *filename)
 				fprintf(f, "( %f %f %f %f ) ", plane->normal[0], plane->normal[1], plane->normal[2], -plane->dist);
 
 				// write texture matrix
-				Write2DMatrix(f, 2, 3, (float *)side->texMat);
+				if(g_bBrushPrimit == BPRIMIT_OLDBRUSHES)
+				{
+					// old quake-style texturing
+					// Tr3B: ported code from Q3Radiant void FaceToBrushPrimitFace(face_t *f)
+
+					float			STfromXYZ[2][4];
+					float           texMat[2][3];
+
+					vec3_t			texX,texY;
+					vec3_t			proj;
+					
+					// ST of (0,0) (1,0) (0,1)
+					vec_t			ST[3][5]; // [ point index ] [ xyz ST ]
+					
+					
+					#if 0 //def _DEBUG
+					if ( f->plane.normal[0]==0.0f && f->plane.normal[1]==0.0f && f->plane.normal[2]==0.0f )
+					{
+						Sys_Printf("Warning : f->plane.normal is (0,0,0) in FaceToBrushPrimitFace\n");
+					}
+					#endif
+					
+					// compute axis base
+					ComputeAxisBase(mapplanes[side->planenum].normal, texX, texY);
+					
+					// compute projection vector
+					VectorCopy(mapplanes[side->planenum].normal, proj);
+					VectorScale(proj, mapplanes[side->planenum].dist, proj);
+
+					si = side->shaderInfo;
+					for (l = 0; l < 4; l++)
+					{
+						STfromXYZ[0][l] = side->vecs[0][l];
+						STfromXYZ[1][l] = side->vecs[1][l];
+
+						STfromXYZ[0][l] /= si->shaderWidth;
+						STfromXYZ[1][l] /= si->shaderHeight;
+					}
+
+					// (0,0) in plane axis base is (0,0,0) in world coordinates + projection on the affine plane
+					// (1,0) in plane axis base is texX in world coordinates + projection on the affine plane
+					// (0,1) in plane axis base is texY in world coordinates + projection on the affine plane
+					// use old texture code to compute the ST coords of these points
+					VectorCopy(proj,ST[0]);
+					ST[0][3] = DotProduct(ST[0], STfromXYZ[0]) + STfromXYZ[0][3];
+					ST[0][4] = DotProduct(ST[0], STfromXYZ[1]) + STfromXYZ[1][3];
+					
+					VectorCopy(texX,ST[1]);
+					VectorAdd(ST[1],proj,ST[1]);
+					ST[1][3] = DotProduct(ST[1], STfromXYZ[0]) + STfromXYZ[0][3];
+					ST[1][4] = DotProduct(ST[1], STfromXYZ[1]) + STfromXYZ[1][3];
+
+					VectorCopy(texY,ST[2]);
+					VectorAdd(ST[2],proj,ST[2]);
+					ST[2][3] = DotProduct(ST[2], STfromXYZ[0]) + STfromXYZ[0][3];
+					ST[2][4] = DotProduct(ST[2], STfromXYZ[1]) + STfromXYZ[1][3];
+					
+					// compute texture matrix
+					texMat[0][2] = ST[0][3];
+					texMat[1][2] = ST[0][4];
+					texMat[0][0] = ST[1][3] - texMat[0][2];
+					texMat[1][0] = ST[1][4] - texMat[1][2];
+					texMat[0][1] = ST[2][3] - texMat[0][2];
+					texMat[1][1] = ST[2][4] - texMat[1][2];
+
+					Write2DMatrix(f, 2, 3, (float *)texMat);
+				}
+				else
+				{
+					Write2DMatrix(f, 2, 3, (float *)side->texMat);
+				}
 
 				si = side->shaderInfo;
 				fprintf(f, " \"%s\"", si->shader);
@@ -1637,7 +1707,7 @@ void WriteMapFileDoom3(char *filename)
 int ConvertMapMain(int argc, char **argv)
 {
 	int             i;
-	const char     *name;
+	//const char     *name;
 	//int             (*convertFunc) (char *);
 	//game_t         *convertGame;
 
@@ -1695,7 +1765,7 @@ int ConvertMapMain(int argc, char **argv)
 			  " -v                     = verbose output\n"
 			  //"   quake1       = convert from QuakeWorld to XreaL\n"
 			  //"   quake2       = convert from Quake2 to XreaL\n"
-			  " -format quake3         = convert from Quake3 to Doom 3\n"
+			  " -format quake3         = convert from Quake3 or ET to Doom 3\n"
 			  " -format quake4         = convert from Quake4 to Doom 3\n");
 	}
 
