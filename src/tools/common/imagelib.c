@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #define JPEG_INTERNALS
-#include "../jpeg-6/jpeglib.h"
+#include "../jpeg/jpeglib.h"
 #include "../png/png.h"
 
 
@@ -1250,16 +1250,47 @@ void Load32BitImage(const char *name, unsigned **pixels, int *width, int *height
 
 
 /*
+=========================================================
+
+JPG LOADING
+
+=========================================================
+*/
+
+static void JPGErrorExit(j_common_ptr cinfo)
+{
+	char            buffer[JMSG_LENGTH_MAX];
+
+	(*cinfo->err->format_message) (cinfo, buffer);
+
+	/* Let the memory manager delete any temp files before we die */
+	jpeg_destroy(cinfo);
+
+	Sys_FPrintf(SYS_ERR, "libjpeg error: %s\n", buffer);
+}
+
+static void JPGOutputMessage(j_common_ptr cinfo)
+{
+	char            buffer[JMSG_LENGTH_MAX];
+
+	/* Create the message */
+	(*cinfo->err->format_message) (cinfo, buffer);
+
+	/* Send it to stderr, adding a newline */
+	Sys_FPrintf(SYS_WRN, "libjpeg warning: %s\n", buffer);
+}
+
+/*
 =============
 LoadJPGBuffer
 =============
 */
-void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width, int *height)
+void LoadJPGBuffer(const char *filename, byte * fbuffer, int fbufferSize, byte ** pic, int *width, int *height)
 {
 	/* This struct contains the JPEG decompression parameters and pointers to
 	 * working space (which is allocated as needed by the JPEG library).
 	 */
-	struct jpeg_decompress_struct cinfo;
+	struct jpeg_decompress_struct cinfo = {NULL};
 
 	/* We use our private extension JPEG error handler.
 	 * Note that this struct must live as long as the main JPEG parameter
@@ -1301,13 +1332,15 @@ void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width
 	 * address which we place into the link field in cinfo.
 	 */
 	cinfo.err = jpeg_std_error(&jerr);
+	cinfo.err->error_exit = JPGErrorExit;
+	cinfo.err->output_message = JPGOutputMessage;
 
 	/* Now we can initialize the JPEG decompression object. */
 	jpeg_create_decompress(&cinfo);
 
 	/* Step 2: specify data source (eg, a file) */
 
-	jpeg_stdio_src(&cinfo, fbuffer);
+	jpeg_mem_src(&cinfo, fbuffer, fbufferSize);
 
 	/* Step 3: read file parameters with jpeg_read_header() */
 
@@ -1320,9 +1353,11 @@ void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width
 
 	/* Step 4: set parameters for decompression */
 
-	/* In this example, we don't need to change any of the defaults set by
-	 * jpeg_read_header(), so we do nothing here.
+	/*
+	 * Make sure it always converts images to RGB color space. This will
+	 * automatically convert 8-bit greyscale images to RGB as well.
 	 */
+	cinfo.out_color_space = JCS_RGB;
 
 	/* Step 5: Start decompressor */
 
@@ -1340,14 +1375,14 @@ void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width
 	/* JSAMPLEs per row in output buffer */
 	pixelcount = cinfo.output_width * cinfo.output_height;
 	row_stride = cinfo.output_width * cinfo.output_components;
-	out = safe_malloc(pixelcount * 4);
-
+	
 	if(!cinfo.output_width || !cinfo.output_height || ((pixelcount * 4) / cinfo.output_width) / 4 != cinfo.output_height || pixelcount > 0x1FFFFFFF || cinfo.output_components > 4)	// 4*1FFFFFFF == 0x7FFFFFFC < 0x7FFFFFFF
 	{
 		Error("LoadJPG( '%s' ) invalid image size: %dx%d*4=%d, components: %d\n", filename,
 				 cinfo.output_width, cinfo.output_height, pixelcount * 4, cinfo.output_components);
 	}
 
+	out = safe_malloc(pixelcount * 4);
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
 
@@ -1370,6 +1405,7 @@ void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width
 
 	// If we are processing an 8-bit JPEG (greyscale), we'll have to convert
 	// the greyscale values to RGBA.
+	/*
 	if(cinfo.output_components == 1)
 	{
 		int             sindex, dindex = 0;
@@ -1391,6 +1427,7 @@ void LoadJPGBuffer(const char *filename, byte * fbuffer, byte ** pic, int *width
 		out = out_converted;
 	}
 	else
+	*/
 	{
 		// clear all the alphas to 255
 		int             i, j;

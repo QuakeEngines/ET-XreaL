@@ -39,7 +39,7 @@ void            WriteTGA(const char *filename, byte * data, int width, int heigh
 
 void            Load32BitImage(const char *name, unsigned **pixels, int *width, int *height);
 
-void            LoadJPGBuffer(const char *name, byte * buffer, byte ** pic, int *width, int *height);
+void            LoadJPGBuffer(const char *name, byte * buffer, int bufferSize, byte ** pic, int *width, int *height);
 
 void            LoadPNGBuffer(byte * buffer, byte ** pic, int *width, int *height);
 void            WritePNG(const char *filename, const byte * data, int width, int height, qboolean flip);

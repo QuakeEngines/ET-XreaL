@@ -402,14 +402,14 @@ image_t        *ImageLoad(const char *filename)
 			LoadPNGBuffer(buffer, &image->pixels, &image->width, &image->height);
 		else
 		{
-#if 0
+#if 1
 			/* attempt to load jpg */
 			StripExtension(name);
 			strcat(name, ".jpg");
 			size = vfsLoadFile((const char *)name, (void **)&buffer, 0);
 			if(size > 0)
 			{
-				LoadJPGBuffer((const char *)name, buffer, &image->pixels, &image->width, &image->height);
+				LoadJPGBuffer((const char *)name, buffer, size, &image->pixels, &image->width, &image->height);
 				if(image->pixels == NULL)
 					Sys_Printf("WARNING: LoadJPGBuffer: '%s'\n", image->name);
 			}
