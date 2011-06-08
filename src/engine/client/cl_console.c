@@ -748,12 +748,15 @@ void Con_DrawSolidConsole(float frac)
 	}
 
 // XreaL BEGIN
+	// useful for total conversions
+#if 0
 	i = strlen(Q3_ENGINE);
 	for(x = 0; x < i; x++)
 	{
 		SCR_DrawSmallChar(cls.glconfig.vidWidth - (i - x) * SMALLCHAR_WIDTH,
 						  (lines - (SMALLCHAR_HEIGHT * 2 + SMALLCHAR_HEIGHT / 2)), Q3_ENGINE[x]);
 	}
+#endif
 // XreaL END
 
 
