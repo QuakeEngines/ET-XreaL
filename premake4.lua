@@ -2,9 +2,10 @@
 -- ETXreaL build configuration script
 -- 
 solution "ETXreaL"
-	configurations { "Release", "ReleaseWithSymbols", "Debug" }
+	--configurations { "Release", "ReleaseWithSymbols", "Debug" }
+	configurations { "Release", "Debug" }
 	platforms {"x32", "x64"}
-
+	
 --
 -- Options
 --

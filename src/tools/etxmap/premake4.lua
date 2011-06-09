@@ -13,6 +13,7 @@ project "ETXMap"
 		"../common/imagelib.c", "../common/imagelib.h",
 		"../common/inout.c", "../common/inout.h",
 		"../common/mathlib.c", "../common/mathlib.h",
+		"../common/md4.c", "../common/md4.h",
 		"../common/mutex.c", "../common/mutex.h",
 		"../common/polylib.c", "../common/polylib.h",
 		"../common/scriplib.c", "../common/scriplib.h",

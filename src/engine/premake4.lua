@@ -77,16 +77,7 @@ project "ETXreaL"
 	
 	--
 	-- Platform Configurations
-	-- 
-	--configuration { "x86", "Debug" }
-	--	targetname  "ioquake3d.x86"
-	--configuration { "x86", "Release" }
-	--	targetname  "ioquake3.x86"
-	--configuration { "x64", "Debug" }
-	--	targetname  "ioquake3d.x86_64"
-	--configuration { "x64", "Release" }
-	--	targetname  "ioquake3.x86_64"
-	
+	-- 	
 	configuration "x86"
 		files
 		{ 
@@ -130,12 +121,22 @@ project "ETXreaL"
 	--configuration "openal-link"
 	--	links        { "openal " }
 	--	defines      { "USE_OPENAL" }
-		
+
+	
+	--configuration { "vs*", "Release" }
+	-- newaction {
+		-- trigger = "prebuild",
+		-- description = "Compile libcurl.lib",
+		-- execute = function ()
+			-- os.execute("cd ../libs/curl-7.12.2;cd lib;nmake /f Makefile.vc6 CFG=release")
+		-- end
+	-- }
+	
 	-- 
 	-- Project Configurations
 	-- 
 	configuration "vs*"
-		flags       {"WinMain"}
+		flags       { "WinMain" }
 		files
 		{
 			"win32/**.c", "win32/**.cpp", "win32/**.h",
@@ -189,6 +190,12 @@ project "ETXreaL"
 			--"USE_INTERNAL_ZLIB",
 			--"FLOATING_POINT",
 			--"USE_ALLOCA"
+		}
+		prebuildcommands
+		{
+		   "cd ../libs/curl-7.12.2",
+		   "cd lib",
+		   "nmake /f Makefile.vc6 CFG=release",
 		}
 	
 	configuration "linux"
