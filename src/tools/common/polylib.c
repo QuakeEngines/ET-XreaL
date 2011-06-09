@@ -759,3 +759,46 @@ void AddWindingToConvexHull(winding_t * w, winding_t ** hull, vec3_t normal)
 	*hull = w;
 	memcpy(w->p, hullPoints, numHullPoints * sizeof(vec3_t));
 }
+
+
+void ChopWindingByBounds(winding_t ** w, vec3_t mins, vec3_t maxs, vec_t boxEpsilon)
+{
+	vec3_t          bounds[2];
+	int             i, j, n;
+	vec4_t          bplanes[6];
+	vec_t          *plane;
+
+	for(i = 0; i < 3; i++)
+	{
+		bounds[0][i] = mins[i] - boxEpsilon;
+		bounds[1][i] = maxs[i] + boxEpsilon;
+	}
+
+	for(i = 0; i < 3; i++)
+	{
+		for(j = 0; j < 2; j++)
+		{
+			n = j * 3 + i;
+
+			plane = bplanes[n];
+			plane[0] = plane[1] = plane[2] = plane[3] = 0;
+			if(j)
+			{
+				plane[i] = -1;
+				plane[3] = -bounds[j][i];
+			}
+			else
+			{
+				plane[i] = 1;
+				plane[3] = bounds[j][i];
+			}
+		}
+	}
+
+	// clip the basewinding by all the other planes
+	for(i = 0; i < 6; i++)
+	{
+		if(*w != NULL)
+			ChopWindingInPlace(w, bplanes[i], bplanes[i][3], ON_EPSILON);
+	}
+}

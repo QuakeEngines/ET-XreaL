@@ -54,6 +54,9 @@ void            AddWindingToConvexHull(winding_t * w, winding_t ** hull, vec3_t 
 
 void            ChopWindingInPlace(winding_t ** w, vec3_t normal, vec_t dist, vec_t epsilon);
 
+// Tr3B
+void			ChopWindingByBounds(winding_t ** w, vec3_t mins, vec3_t maxs, vec_t boxEpsilon);
+
 // frees the original if clipped
 
 void            pw(winding_t * w);
