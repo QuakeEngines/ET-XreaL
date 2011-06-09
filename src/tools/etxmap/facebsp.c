@@ -178,11 +178,8 @@ static void SelectSplitPlaneNum(node_t * node, face_t * list, int *splitPlaneNum
 
 		if(bspAlternateSplitWeights)
 		{
-			// from 27
-			sizeBias = WindingArea(split->w);
-
 			//Base score = 20000 perfectly balanced 
-			value = 0; //20000
+			value = 0;//20000;
 			value -= abs(front - back);	// prefer centered planes
 			value -= plane->counter;	// if we've already used this plane sometime in the past try not to use it again 
 			value += facing * 5;		// if we're going to have alot of other surfs use this plane, we want to get it in quickly.
@@ -193,6 +190,48 @@ static void SelectSplitPlaneNum(node_t * node, face_t * list, int *splitPlaneNum
 			{
 				value += 5;		// axial is better
 			}
+
+			// we want a huge score bias based on plane size
+			#if 0
+			{
+				winding_t      *w;
+				node_t         *n;
+				plane_t        *plane;
+				vec3_t          normal;
+				vec_t           dist;
+
+				// create temporary winding to draw the split plane
+				w = CopyWinding(split->w);
+
+				// clip by all the parents
+				for(n = node->parent; n && w;)
+				{
+					plane = &mapplanes[n->planenum];
+
+					if(n->children[0] == node)
+					{						
+						// take front
+						ChopWindingInPlace(&w, plane->normal, plane->dist, 0.001);	// BASE_WINDING_EPSILON
+					}
+					else
+					{						
+						// take back
+						VectorNegate(plane->normal, normal);
+						dist = -plane->dist;
+						ChopWindingInPlace(&w, normal, dist, 0.001); // BASE_WINDING_EPSILON
+					}
+					node = n;
+					n = n->parent;
+				}
+
+				// clip by node AABB
+				if(w != NULL)
+					ChopWindingByBounds(&w, node->mins, node->maxs, CLIP_EPSILON);
+
+				if(w != NULL)
+					value += WindingArea(w);
+			}
+			#endif
 		}
 		else
 		{
@@ -230,7 +269,7 @@ static void SelectSplitPlaneNum(node_t * node, face_t * list, int *splitPlaneNum
 	if(bestValue == -99999)
 		return;
 
-	//Sys_FPrintf(SYS_VRB, "F: %d B:%d S:%d FA:%ds\n", frontC, backC, splitsC, facingC);
+	//Sys_FPrintf(SYS_VRB, "F: %9d B:%9d S:%9d FA:%9d\n", frontC, backC, splitsC, facingC);
 
 	/* set best split data */
 	*splitPlaneNum = bestSplit->planenum;
@@ -301,51 +340,17 @@ static void DrawPartitions()
 {
 	face_t         *face;
 	winding_t      *w;
-	vec3_t          bounds[2];
-	int             i, j, n;
-	plane_t         bplanes[6], *pl;
-
-	//
+	
 	// create temporary winding to draw the split plane
-	//
 	w = BaseWindingForNode(drawSplitNode);
 
-	for(i = 0; i < 3; i++)
+	ChopWindingByBounds(&w, drawSplitNode->mins, drawSplitNode->maxs, 32);
+
+	if(w != NULL)
 	{
-		bounds[0][i] = drawSplitNode->mins[i] - 30;
-		bounds[1][i] = drawSplitNode->maxs[i] + 30;
+		Draw_Winding(w, 0, 0, 1, 0.3);
+		FreeWinding(w);
 	}
-
-	for(i = 0; i < 3; i++)
-	{
-		for(j = 0; j < 2; j++)
-		{
-			n = j * 3 + i;
-
-			pl = &bplanes[n];
-			memset(pl, 0, sizeof(*pl));
-			if(j)
-			{
-				pl->normal[i] = -1;
-				pl->dist = -bounds[j][i];
-			}
-			else
-			{
-				pl->normal[i] = 1;
-				pl->dist = bounds[j][i];
-			}
-		}
-	}
-
-	// clip the basewinding by all the other planes
-	for(i = 0; i < 6; i++)
-	{
-		ChopWindingInPlace(&w, bplanes[i].normal, bplanes[i].dist, ON_EPSILON);
-	}
-
-
-	Draw_Winding(w, 0, 0, 1, 0.3);
-	FreeWinding(w);
 
 	for(face = drawChildLists[0]; face != NULL; face = face->next)
 	{
