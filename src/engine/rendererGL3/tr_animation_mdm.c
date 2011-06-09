@@ -1968,10 +1968,10 @@ void Tess_MDM_SurfaceAnim(mdmSurfaceIntern_t * surface)
 	{
 		md5Weight_t    *w;
 
-		VectorSet(tmpPosition, 0, 0, 0, 1);
-		VectorSet(tmpTangent, 0, 0, 0, 1);
-		VectorSet(tmpBinormal, 0, 0, 0, 1);
-		VectorSet(tmpNormal, 0, 0, 0, 1);
+		Vector4Set(tmpPosition, 0, 0, 0, 1);
+		Vector4Set(tmpTangent, 0, 0, 0, 1);
+		Vector4Set(tmpBinormal, 0, 0, 0, 1);
+		Vector4Set(tmpNormal, 0, 0, 0, 1);
 
 		for(k = 0; k < v->numWeights; k++)
 		{

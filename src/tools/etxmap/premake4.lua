@@ -101,6 +101,23 @@ project "ETXMap"
 			--"USE_ALLOCA"
 		}
 	
-	--configuration "linux"
-		-- TODO
+	configuration { "linux", "gmake" }
+		buildoptions
+		{
+			"`pkg-config --cflags glib-2.0`",
+			"`pkg-config --cflags sdl`",
+		}
+		linkoptions
+		{
+			"`pkg-config --libs glib-2.0`",
+			"`pkg-config --libs sdl`",
+		}
+
+	configuration "linux"
+		targetname  "etxmap"
+		links
+		{
+			"GL",
+			"GLU",
+		}
 		

@@ -144,6 +144,8 @@ project "ETXreaL"
 			"win32/win_gamma.c",
 			"win32/win_gl3imp.c",
 			
+			"../libs/glew/src/wglew.h",
+			
 			--"code/libspeex/**.c", "code/libspeex/**.h",
 			--"code/zlib/**.c", "code/zlib/**.h",
 			--"code/libcurl/**.c", "code/libcurl/**.h",
@@ -154,10 +156,6 @@ project "ETXreaL"
 		{
 			--"win32/win_gamma.c",
 			"win32/win_glimp.c",
-		}
-		includedirs
-		{
-			"../libs/glew/src/wglew.h",
 		}
 		libdirs
 		{
@@ -197,52 +195,54 @@ project "ETXreaL"
 		   "cd lib",
 		   "nmake /f Makefile.vc6 CFG=release",
 		}
+
+	configuration { "linux", "gmake" }
+		buildoptions
+		{
+			"`pkg-config --cflags x11`",
+			"`pkg-config --cflags xext`",
+			"`pkg-config --cflags xxf86dga`",
+			"`pkg-config --cflags xxf86vm`",
+			"`pkg-config --cflags sdl`",
+			"`pkg-config --cflags libcurl`",
+		}
+		linkoptions
+		{
+			"`pkg-config --libs x11`",
+			"`pkg-config --libs xext`",
+			"`pkg-config --libs xxf86dga`",
+			"`pkg-config --libs xxf86vm`",
+			"`pkg-config --libs sdl`",
+			"`pkg-config --libs libcurl`",
+		}
 	
 	configuration "linux"
+		targetname  "etxreal"
 		files
 		{
-			"code/sys/sys_unix.c",
-			"code/sys/con_log.c",
-			"code/sys/con_tty.c",
-			
-			"code/glfw/lib/x11/*.c", "code/glfw/lib/x11/*.h",
+			"unix/linux_signals.c",
+			"unix/unix_main.c",
+			"unix/unix_net.c",
+			"unix/unix_shared.c",
+			"unix/sdl_snd.c",
+			"unix/linux_joystick.c",
+			"unix/linux_gl3imp.c",
+			"../libs/glew/src/glew.c",
 		}
 		includedirs
 		{
 			"code/glfw/lib/x11",
 		}
+		--buildoptions
+		--{
+		--	"-pthread"
+		--}
 		links
-		{ 
-			"m", 
-			"dl", 
-			"z", 
-			"GL",
-			"IL",
-			"ILU",
-			"ILUT",
-			"theora",
-			"speex",
-			"speexdsp",
-			"curl",
-			"ogg",
-			"vorbis",
-			"vorbisfile",
-			"X11",
-			"Xrandr",
-			"pthread"
-		}
-		buildoptions
 		{
-			"-pthread"
+			"GL",
 		}
 		defines
 		{
-            "_GLFW_USE_LINUX_JOYSTICKS",
-			"_GLFW_HAS_XRANDR",
-			"_GLFW_HAS_PTHREAD",
-			"_GLFW_HAS_SCHED_YIELD",
-			"_GLFW_HAS_GLXGETPROCADDRESSARB",
-			"_GLFW_HAS_DLOPEN",
-			"_GLFW_HAS_SYSCONF"
+            "PNG_NO_ASSEMBLER_CODE",
 		}
 		

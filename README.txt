@@ -139,22 +139,30 @@ __________________________________
 6) COMPILING ON GNU/LINUX
 _________________________
 
-You need the following dependencies in order to compile XreaL with all features:
 
+1. You need the following dependencies in order to compile XreaL with all features:
  
-On Debian or Ubuntu:
+	On Debian or Ubuntu:
 
-	> apt-get install scons libcurl-openssl-dev libsdl1.2-dev libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
+		> apt-get install libcurl-openssl-dev libsdl1.2-dev libxxf86dga-dev libxxf86vm-dev libglu1-mesa-dev
 	
-On Fedora
+	On Fedora
 
-	> yum install scons SDL-devel libXxf86dga-devel libXxf86vm-devel mesa-libGLU-devel
+		> yum install SDL-devel libXxf86dga-devel libXxf86vm-devel mesa-libGLU-devel
 
-Compile XreaL:
+
+2. Download and extract Premake 4.x to the ET-XreaL/ root directory or install it using your
+	Linux distribution's package system.
+
+3. Generate the Makefiles using Premake:
+
+	> ./premake4 gmake 
 	
-	> scons
+4. Compile ETXreaL targets with
 
-Type scons -h for more compile options.
+	> make
+
+Type ./premake4 --help for more compile options.
 
 
 ___________________________________________________
@@ -174,7 +182,7 @@ ETXreaL
 	* Modern OpenGL 3.2 renderer with all deprecated OpenGL calls removed
 	* Clever usage of vertex buffer objects (VBO) to speed up rendering of everything
 	* Avoids geometry processing each frame using the CPU (worst bottleneck with the Q3A engine)
-	* Renders up to 500 000 – 1 000 000 polygons at 80 - 200 fps on current hardware (DX10 generation)
+	* Renders up to 500 000 ï¿½ 1 000 000 polygons at 80 - 200 fps on current hardware (DX10 generation)
 	* Optional GPU occlusion culling (improved Coherent Hierarchy Culling) useful for rendering large city scenes
 	* Doom 3 .MD5mesh/.MD5anim skeletal model and animation support
 	* Unreal Actor X .PSK/.PSA skeletal model and animation support
@@ -336,27 +344,27 @@ ___________________________________________________
 11) BUG REPORTS
 __________________________________________
 
-ET-XreaL is not perfect, it’s not bug free as every other software.
+ET-XreaL is not perfect, itï¿½s not bug free as every other software.
 For fixing as much problems as possible we need as much bug reports as possible.
-We can’t fix anything if we don’t know about the problems.
+We canï¿½t fix anything if we donï¿½t know about the problems.
 
 The best way for telling us about a bug is by submitting a bug report at our SourceForge bug tracker page:
 
 	http://sourceforge.net/tracker/?group_id=27204&atid=389772
 
-The most important fact about this tracker is that we can’t simply forget to fix the bugs which are posted there. 
-It’s also a great way to keep track of fixed stuff.
+The most important fact about this tracker is that we canï¿½t simply forget to fix the bugs which are posted there. 
+Itï¿½s also a great way to keep track of fixed stuff.
 
 If you want to report an issue with the game, you should make sure that your report includes all information useful to characterize and reproduce the bug.
 
     * Search on Google
-    * Include the computer’s hardware and software description ( CPU, RAM, 3D Card, distribution, kernel etc. )
+    * Include the computerï¿½s hardware and software description ( CPU, RAM, 3D Card, distribution, kernel etc. )
     * If appropriate, send a console log, a screenshot, an strace ..
     * If you are sending a console log, make sure to enable developer output:
 
               ETXreaL.exe +set developer 1 +set logfile 2
 
-NOTE: We can’t help you with OS-specific issues like configuring OpenGL correctly, configuring ALSA or configuring the network.
+NOTE: We canï¿½t help you with OS-specific issues like configuring OpenGL correctly, configuring ALSA or configuring the network.
 	
 
 	
