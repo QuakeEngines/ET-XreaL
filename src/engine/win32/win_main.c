@@ -724,6 +724,9 @@ void           *QDECL Sys_LoadDll(const char *name, char *fqpath, int (QDECL ** 
 	*entryPoint = (int (QDECL *) (int,...))GetProcAddress(libHandle, "vmMain");
 	if(!*entryPoint || !dllEntry)
 	{
+		// XreaL BEGIN
+		Com_Printf("Sys_LoadDll failed:\n\"%s\"", Sys_DLLError());
+		// XreaL END
 		FreeLibrary(libHandle);
 		return NULL;
 	}
@@ -732,6 +735,7 @@ void           *QDECL Sys_LoadDll(const char *name, char *fqpath, int (QDECL ** 
 	return libHandle;
 }
 
+// XreaL BEGIN
 // RB: added generic DLL loading routines
 void           *Sys_LoadDLLSimple(const char *name)
 {
@@ -754,6 +758,7 @@ char		   *Sys_DLLError()
 	
 	return buf;
 }
+// XreaL END
 
 
 /*
