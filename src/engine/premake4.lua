@@ -339,12 +339,14 @@ project "ETXreaL-dedicated"
 		flags       { "WinMain" }
 		files
 		{
-			"win32/**.c", "win32/**.cpp", "win32/**.h",
+			"win32/win_local.h",
+			"win32/win_eh.cpp",
+			"win32/win_main.c",
+			"win32/win_net.c",
+			"win32/win_shared.c",
+			"win32/win_syscon.c",
+			"win32/win_wndproc.c",
 			"win32/winquake.rc",
-			"win32/win_gamma.c",
-			"win32/win_gl3imp.c",
-			
-			"../libs/glew/src/wglew.h",
 		}
 		excludes
 		{
