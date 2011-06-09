@@ -3,6 +3,7 @@
 -- 
 solution "ETXreaL"
 	configurations { "Release", "ReleaseWithSymbols", "Debug" }
+	platforms {"x32", "x64"}
 
 --
 -- Options
@@ -47,3 +48,8 @@ solution "ETXreaL"
 
 include "src/engine"
 --include "src/engine/rendererGL3"
+include "etmain/src/game"
+include "etmain/src/cgame"
+include "etmain/src/ui"
+
+include "src/tools/etxmap"

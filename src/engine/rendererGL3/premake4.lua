@@ -90,6 +90,10 @@ project "rendererGL3"
 			"_CRT_SECURE_NO_WARNINGS",
 		}
 	
+	
+	-- configuration { "linux", "gmake" }
+		-- TODO linkoptions { "`wx-config --ldflags`" }
+	
 	configuration "linux"
 		files
 		{
