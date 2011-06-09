@@ -32,7 +32,7 @@ This file contains the following sections:
 	
 	4) GETTING THE SOURCE CODE AND MEDIA
 
-	5) COMPILING ON WIN32 WITH VISUAL C++ 2008 EXPRESS EDITION
+	5) COMPILING ON WIN32 WITH VISUAL C++ 2010 EXPRESS EDITION
 
 	6) COMPILING ON GNU/LINUX
 	
@@ -114,19 +114,25 @@ This project's SourceForge.net Git repository can be checked out through Git wit
 
 ___________________________________________________________________
 
-5) COMPILING ON WIN32 WITH VISUAL C++ 2008 EXPRESS EDITION
+5) COMPILING ON WIN32 WITH VISUAL C++ 2010 EXPRESS EDITION
 __________________________________________________________
 
-1. Download and install the Visual C++ 2008 Express Edition.
-2. Use the VC9 solutions to compile what you need:
-	ET-XreaL/src/engine/wolf.sln
-	ET-XreaL/src/tools/etxmap/etxmap.sln
-	ET-XreaL/src/tools/etxradiant/tools/vcprojects/ETXRadiant.sln
+1. Download and install the Visual C++ 2010 Express Edition.
 
+2. Generate the VC10 projects using Premake:
+
+	> premake4.exe vs2010
+
+3. Use the VC10 solution to compile what you need:
+	ET-XreaL/ETXreaL.sln
+	
+4. OPTIONAL BUILD ETXRadiant (might be difficult)
 	You need additional Win32 dependencies to build the ETXRadiant.
 	Copy them from the DarkRadiant Subversion repository:
 	
 	> svn export -r5702 https://darkradiant.svn.sourceforge.net/svnroot/darkradiant/trunk/w32deps/   ET-XreaL/src/tools/etxradiant/w32deps
+	
+	Compile with ET-XreaL/src/tools/etxradiant/tools/vcprojects/ETXRadiant.sln
 
 __________________________________
 
@@ -146,7 +152,7 @@ On Fedora
 
 Compile XreaL:
 	
-	> scons or make
+	> scons
 
 Type scons -h for more compile options.
 
@@ -306,6 +312,8 @@ r_showBatches					Draws all batches (geometry, material and lightmap combination
 r_showLightMaps					Draw all lightmaps (requires glsl_restart)
 								
 r_showDeluxeMaps				Draw all directional lightmaps (requires glsl_restart)
+
+r_showLightGrid					Draws all lightgrid points with color and direction.
 
 
 
