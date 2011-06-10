@@ -162,7 +162,12 @@ _________________________
 
 	> make
 
-Type ./premake4 --help for more compile options.
+If you want to build for x86_64 then type:
+
+	> make config=release64
+
+
+Type "./premake4 --help" or "make help" for more compile options.
 
 
 ___________________________________________________
