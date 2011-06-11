@@ -1,0 +1,20 @@
+
+If it's only a local commit in your repository clone:
+
+	> git reset --hard HEAD~1
+
+
+If it was pushed to Sourceforge:
+
+	1. Log into Sourceforge
+	
+		> ssh -t user,xreal@shell.sourceforge.net create
+	
+	2. Cd into bare repository
+	
+		> cd /home/scm_git/x/xr/xreal/<repository>
+
+	3. Throw away last commit
+	
+		> git update-ref HEAD HEAD^
+
