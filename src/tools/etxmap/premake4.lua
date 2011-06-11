@@ -3,7 +3,7 @@ project "ETXMap"
 	targetname  "ETXMap"
 	language    "C++"
 	kind        "ConsoleApp"
-	targetdir 	"../../../etxradiant"
+	targetdir 	"../../.."
 	flags       { "ExtraWarnings" }
 	files
 	{
