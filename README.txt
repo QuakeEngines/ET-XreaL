@@ -205,6 +205,7 @@ ETXreaL
 	* Linux sound backend using SDL
 	* .avi recorder from ioquake3 including sound support
 	* Optimized collision detection routines
+	* Support for Omni-bot
 
 ETXMap
 	* Based on q3map2 by Randy 'ydnar' Reddig including additional fixes by the NetRadiant edition

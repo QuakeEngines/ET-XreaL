@@ -8,8 +8,8 @@ ETXreaL
 	* IMPORTANT: Changed media license for community contributions to "Creative Commons Attribution-ShareAlike 3.0 Unported"
 
 	* Changed required minimum OpenGL version to 3.2 on Windows
-	* 20% faster runtime speed by using better Visual Studio compiler options
-	* Added Premake 4.3 and generated new VS 2010 project files
+	* 20 - 80% faster runtime speed by using better Visual Studio compiler options
+	* Replaced VS 2008 and SCons project files by Premake 4.3
 	* Improved r_softShadows quality and speed with irregular shadowmap sampling like in Crysis
 	* Implemented Exponential Variance Shadow Mapping to fight the VSM light bleeding problems
 	* Optimized tangent space calculations for ET skeletal models (big speed improvement if r_vboVertexSkinning 0)
@@ -17,11 +17,13 @@ ETXreaL
 	* Added more ET specific keywords to the .shader parser
 	* Added top-down view for r_showBspNodes
 	* Added engine version to the console
+	* Updated JPG loader to libjpeg 8c
+	* Added Omni-bot 0.81 to default etmain game
 
 ETXMap
 	* Improved ETXMap -map2map -format quake3 using additional support for worldspawn detail brushes
-	* Changed ParseMapEntity() to handle all brushes of func_group entities as detail brushes
 	* Improved alternate BSP splitter algorithm for faster map compiles and better rendering speeds
+	* Updated JPG loader to libjpeg 8c
 		
 	
 	
