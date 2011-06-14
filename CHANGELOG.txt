@@ -22,6 +22,7 @@ ETXreaL
 
 ETXMap
 	* Improved ETXMap -map2map -format quake3 using additional support for worldspawn detail brushes
+	* Improved ETXMap -map2map -format quake3 to support texture coordinates without GtkRadiant 1.4
 	* Improved alternate BSP splitter algorithm for faster map compiles and better rendering speeds
 	* Updated JPG loader to libjpeg 8c
 		
