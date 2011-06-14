@@ -54,3 +54,5 @@ include "etmain/src/cgame"
 include "etmain/src/ui"
 
 include "src/tools/etxmap"
+
+include "omni-bot/src"
