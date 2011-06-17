@@ -622,18 +622,18 @@ static void RB_TakeScreenshotJPEG(int x, int y, int width, int height, char *fil
 {
 	byte           *buffer;
 
-	buffer = (byte*) ri.Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight * 4);
+	buffer = (byte*) ri.Hunk_AllocateTempMemory(glConfig.vidWidth * glConfig.vidHeight * 3);
 
 #if defined(USE_D3D10)
 	// TODO
 #else
-	glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #endif
 
 	// gamma correct
 	if((tr.overbrightBits > 0) && glConfig.deviceSupportsGamma)
 	{
-		R_GammaCorrect(buffer, glConfig.vidWidth * glConfig.vidHeight * 4);
+		R_GammaCorrect(buffer, glConfig.vidWidth * glConfig.vidHeight * 3);
 	}
 
 	ri.FS_WriteFile(fileName, buffer, 1);	// create path
