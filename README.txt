@@ -380,6 +380,11 @@ ___________________________________________________
 __________________________________________
 
 	* Add a Creative Commons BY-SA high resolution texture replacement pack including new material definitions to support diffuse, normal and specular textures
+	* Create improved versions of existing maps with an etx_ prefix like:
+       etx_beach
+       etx_battery
+       etx_fueldump
+       ...
 	* Add fake per pixel lighting to allow bump mapping if ETXreaL runs a map that has no deluxemaps
 	* Improve ETXMap ET .map -> Doom 3 .map format conversion routine to handle spawnflags -> boolean type conversions
 	* Improve ETXMap compiler for better support of extracting models from .bsp files for Blender and further editing
