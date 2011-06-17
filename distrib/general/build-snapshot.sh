@@ -26,7 +26,7 @@ cp $DEVELOPER/$DEFAULTGAME/qagame_mp_x86.dll $RELEASE/$DEFAULTGAME/
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/cgame_mp_x86.dll
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/qagame_mp_x86.dll
 7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/src
-7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/ui
+7z a $RELEASE.7z $RELEASE/$DEFAULTGAME/ui -x!*.menu -xr!assets
 
 # build core pk3 and delete everything else
 cd $RELEASE/$DEFAULTGAME
@@ -56,16 +56,18 @@ cd $ROOT
 # add maps
 #cp $DEVELOPER/$DEFAULTGAME/map-qx_hod-20100928.pk3 $RELEASE/$DEFAULTGAME
 
+#mkdir $RELEASE/bin32/
+#mkdir $RELEASE/bin64/
 
 # add Win32 binaries
-cp $DEVELOPER/ETXreaL.exe $RELEASE/
-cp $DEVELOPER/ETXreaL-dedicated.exe $RELEASE/
-#cp $DEVELOPER/base/cgamex86.dll $RELEASE/base/
-#cp $DEVELOPER/base/qagamex86.dll $RELEASE/base/
-#cp $DEVELOPER/base/uix86.dll $RELEASE/base/
-
-#cp $DEVELOPER/xmap.exe $RELEASE/
-#cp $DEVELOPER/xmap2.exe $RELEASE/
+cp $DEVELOPER/bin32/ETXreaL.exe $RELEASE/bin32/
+cp $DEVELOPER/bin32/ETXreaL-dedicated.exe $RELEASE/bin32/
+cp $DEVELOPER/bin32/ETXMap.exe $RELEASE/bin32/
+cp $DEVELOPER/bin32/omnibot_et.dll $RELEASE/bin32/
+cp $DEVELOPER/bin32/SDL.dll $RELEASE/bin32/
+cp $DEVELOPER/bin32/libglib-2.0-0.dll $RELEASE/bin32/
+cp $DEVELOPER/bin32/msvcp100.dll $RELEASE/bin32/
+cp $DEVELOPER/bin32/msvcr100.dll $RELEASE/bin32/
 
 #cp $DEVELOPER/gtkradiant/gtkradiant.exe $RELEASE/gtkradiant/
 #mkdir $RELEASE/gtkradiant/modules
@@ -106,11 +108,9 @@ cp $DEVELOPER/ETXreaL-dedicated.exe $RELEASE/
 # clean up things
 rm -rf $RELEASE/.git/
 rm $RELEASE/.gitmodules
-rm -rf $RELEASE/etxradiant/.git
+rm -rf $RELEASE/etmain/.git
+rm -rf $RELEASE/omni-bot/.git
 rm -rf $RELEASE/distrib/
-#rm $RELEASE/SConstruct
-#rm $RELEASE/SConscript*
-#rm $RELEASE/Makefile
 rm $RELEASE/indent*
 rm $RELEASE/.indent.pro
 #rm $RELEASE/CODINGSTYLE.txt
