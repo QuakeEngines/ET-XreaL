@@ -3,7 +3,6 @@ project "ETXMap"
 	targetname  "ETXMap"
 	language    "C++"
 	kind        "ConsoleApp"
-	targetdir 	"../../.."
 	flags       { "ExtraWarnings" }
 	files
 	{
@@ -43,16 +42,15 @@ project "ETXMap"
 		--"USE_XML", 
 	}
 	
-	--
-	-- Release/Debug Configurations
-	--
-	configuration "Debug"
-		defines     "_DEBUG"
-		flags       { "Symbols", "StaticRuntime" }
 	
-	configuration "Release"
-		defines     "NDEBUG"
-		flags       { "OptimizeSpeed", "StaticRuntime" }
+	--
+	-- Platform Configurations
+	-- 	
+	configuration "x32"
+		targetdir 	"../../../bin32"
+	
+	configuration "x64"
+		targetdir 	"../../../bin64"
 	
 	
 	-- 
@@ -84,12 +82,6 @@ project "ETXMap"
 			"SDLmain",
 			"opengl32",
 			"glu32",
-		}
-		buildoptions
-		{
-			--"/EHa",
-			--"/fp:fast",
-			--"/arch:SSE"
 		}
 		defines
 		{

@@ -6,6 +6,36 @@ solution "ETXreaL"
 	configurations { "Release", "Debug" }
 	platforms {"x32", "x64"}
 	
+	--
+	-- Release/Debug Configurations
+	--
+	configuration "Release"
+		defines     "NDEBUG"
+		flags      
+		{
+			"OptimizeSpeed",
+			"EnableSSE",
+			"StaticRuntime"
+		}
+		
+	--configuration "ReleaseReleaseWithSymbols"
+	--	defines     "NDEBUG"
+	--	flags
+	--	{
+	--		"OptimizeSpeed",
+	--		"EnableSSE",
+	--		"Symbols",
+	--		"StaticRuntime"
+	--	}
+	
+	configuration "Debug"
+		defines     "_DEBUG"
+		flags
+		{
+			"Symbols",
+			"StaticRuntime"
+		}
+	
 --
 -- Options
 --

@@ -3,7 +3,6 @@ project "ETXreaL"
 	targetname  "ETXreaL"
 	language    "C++"
 	kind        "WindowedApp"
-	targetdir 	"../.."
 	flags       { "ExtraWarnings" }
 	files
 	{
@@ -111,29 +110,20 @@ project "ETXreaL"
 	--
 	-- Platform Configurations
 	-- 	
-	configuration "x86"
+	configuration "x32"
+		targetdir 	"../../bin32"
 		files
 		{ 
 			"code/qcommon/vm_x86.c",
 		}
 	
-	--configuration "x64"
+	configuration "x64"
+		targetdir 	"../../bin64"
 	--	files
 	--	{ 
 	--		"qcommon/vm_x86_64.c",
 	--		"qcommon/vm_x86_64_assembler.c",
 	--	}
-	
-	--
-	-- Release/Debug Configurations
-	--
-	configuration "Debug"
-		defines     "_DEBUG"
-		flags       { "Symbols", "StaticRuntime" }
-	
-	configuration "Release"
-		defines     "NDEBUG"
-		flags       { "OptimizeSpeed", "StaticRuntime" }
 		
 	--
 	-- Options Configurations
@@ -343,29 +333,15 @@ project "ETXreaL-dedicated"
 	--
 	-- Platform Configurations
 	-- 	
-	configuration "x86"
+	configuration "x32"
+		targetdir 	"../../bin32"
 		files
 		{ 
 			"code/qcommon/vm_x86.c",
 		}
 	
-	--configuration "x64"
-	--	files
-	--	{ 
-	--		"qcommon/vm_x86_64.c",
-	--		"qcommon/vm_x86_64_assembler.c",
-	--	}
-	
-	--
-	-- Release/Debug Configurations
-	--
-	configuration "Debug"
-		defines     "_DEBUG"
-		flags       { "Symbols", "StaticRuntime" }
-	
-	configuration "Release"
-		defines     "NDEBUG"
-		flags       { "OptimizeSpeed", "StaticRuntime" }
+	configuration "x64"
+		targetdir 	"../../bin64"
 	
 	-- 
 	-- Project Configurations
@@ -405,8 +381,6 @@ project "ETXreaL-dedicated"
 		buildoptions
 		{
 			"/EHa",
-			"/fp:fast",
-			"/arch:SSE"
 		}
 		defines
 		{

@@ -1548,7 +1548,22 @@ char           *Sys_DefaultHomePath(void)
 
 char           *Sys_DefaultInstallPath(void)
 {
-	return Sys_Cwd();
+	static char     installdir[MAX_OSPATH];
+
+	Com_sprintf(installdir, sizeof(installdir), "%s", Sys_Cwd());
+
+	if(strstr(installdir, "bin32") ||  strstr(installdir, "bin64"))
+	{
+		int				i, len;
+
+		len = strlen(installdir);
+		for(i = len; i >= len - 6; i--)
+		{
+			installdir[i] = '\0';
+		}
+	}
+
+	return installdir;
 }
 
 qboolean Sys_IsNumLockDown(void)

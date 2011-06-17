@@ -379,19 +379,14 @@ ___________________________________________________
 12) FUTURE PLAN
 __________________________________________
 
+	* Add a Creative Commons BY-SA high resolution texture replacement pack including new material definitions to support diffuse, normal and specular textures
 	* Add fake per pixel lighting to allow bump mapping if ETXreaL runs a map that has no deluxemaps
 	* Improve ETXMap ET .map -> Doom 3 .map format conversion routine to handle spawnflags -> boolean type conversions
 	* Improve ETXMap compiler for better support of extracting models from .bsp files for Blender and further editing
-	* Finish Doom 3 style ETXRadiant entity definitions file etmain/def/entities.def to have full support for all ET entity types
+	* Finish Doom 3 style DarkRadiant entity definitions file etmain/def/entities.def to have full support for all ET entity types
 	* Add Blender tools to make it easier to replace the existing models
-	* Write SCons files for ETXMap and ETXRadiant
 	* Optimize ET decal system with VBOs
 	* Add Bullet physics engine (maybe)
-	* Use projection matrix that makes the near plane identical to the portal clipping plane.
-		(Eric Leyngel describes this method in his "Projection Matrix Tricks" paper.)
-		comment from https://bugzilla.icculus.org/show_bug.cgi?id=4358
-
-
 
 ___________________________________________________
 
