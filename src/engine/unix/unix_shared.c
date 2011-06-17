@@ -404,13 +404,34 @@ void Sys_SetDefaultInstallPath( const char *path ) {
 	Q_strncpyz( installPath, path, sizeof( installPath ) );
 }
 
-char *Sys_DefaultInstallPath( void ) {
-	if ( *installPath ) {
+// XreaL Begin
+char *Sys_DefaultInstallPath(void)
+{
+	if(*installPath)
+	{
 		return installPath;
-	} else {
-		return Sys_Cwd();
+	}
+	else
+	{
+		static char     installdir[MAX_OSPATH];
+
+		Com_sprintf(installdir, sizeof(installdir), "%s", Sys_Cwd());
+
+		if(strstr(installdir, "bin32") ||  strstr(installdir, "bin64"))
+		{
+			int				i, len;
+
+			len = strlen(installdir);
+			for(i = len; i >= len - 6; i--)
+			{
+				installdir[i] = '\0';
+			}
+		}
+
+		return installdir;
 	}
 }
+// XreaL END
 
 void Sys_SetDefaultHomePath( const char *path ) {
 	Q_strncpyz( homePath, path, sizeof( homePath ) );

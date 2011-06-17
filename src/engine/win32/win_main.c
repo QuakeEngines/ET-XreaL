@@ -1546,6 +1546,7 @@ char           *Sys_DefaultHomePath(void)
 	return NULL;
 }
 
+// XreaL BEGIN
 char           *Sys_DefaultInstallPath(void)
 {
 	static char     installdir[MAX_OSPATH];
@@ -1565,6 +1566,7 @@ char           *Sys_DefaultInstallPath(void)
 
 	return installdir;
 }
+// XreaL END
 
 qboolean Sys_IsNumLockDown(void)
 {
