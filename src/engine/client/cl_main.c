@@ -1944,6 +1944,11 @@ void CL_Video_f(void)
 		return;
 	}
 
+	if(cl_avidemo->integer <= 0)
+	{
+		Cvar_Set("cl_avidemo", "30");
+	}
+
 	if(Cmd_Argc() == 2)
 	{
 		// explicit filename
@@ -4097,7 +4102,7 @@ void CL_Init(void)
 	Cmd_AddCommand("wav_stoprecord", CL_WavStopRecord_f);
 
 // XreaL BEGIN
-	//Cmd_AddCommand("video", CL_Video_f);
+	Cmd_AddCommand("video", CL_Video_f);
 	Cmd_AddCommand("stopvideo", CL_StopVideo_f);
 // XreaL END
 
