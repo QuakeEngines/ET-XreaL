@@ -122,7 +122,7 @@ game_t struct
 {
 	"et",				/* -game x */
 	"etmain",			/* default base game data dir */
-	".etwolf",			/* unix home sub-dir */
+	".etxreal",			/* unix home sub-dir */
 	"et",				/* magic path word */
 	"scripts",			/* shader directory */
 	1024,				/* max lightmapped surface verts */
