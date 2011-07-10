@@ -1911,8 +1911,8 @@ typedef struct
 // Note that the ordering indicates the order of preference used
 // when there are multiple images of different formats available
 static imageExtToLoaderMap_t imageLoaders[] = {
-	{"tga", LoadTGA},
 	{"png", LoadPNG},
+	{"tga", LoadTGA},
 	{"jpg", LoadJPG},
 	{"jpeg", LoadJPG},
 //	{"dds", LoadDDS},	// need to write some direct uploader routines first
