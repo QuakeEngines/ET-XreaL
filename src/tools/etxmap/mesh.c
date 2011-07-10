@@ -444,7 +444,7 @@ mesh_t         *SubdivideMesh(mesh_t in, float maxError, float minLength)
 	mesh_t          out;
 
 	/* ydnar: static for os x */
-	MAC_STATIC bspDrawVert_t expand[MAX_EXPANDED_AXIS][MAX_EXPANDED_AXIS];
+	static bspDrawVert_t expand[MAX_EXPANDED_AXIS][MAX_EXPANDED_AXIS];
 
 
 	out.width = in.width;
@@ -628,7 +628,7 @@ mesh_t         *SubdivideMesh2(mesh_t in, int iterations)
 	mesh_t          out;
 
 	/* ydnar: static for os x */
-	MAC_STATIC bspDrawVert_t expand[MAX_EXPANDED_AXIS][MAX_EXPANDED_AXIS];
+	static bspDrawVert_t expand[MAX_EXPANDED_AXIS][MAX_EXPANDED_AXIS];
 
 
 	/* initial setup */
@@ -735,7 +735,7 @@ mesh_t         *RemoveLinearMeshColumnsRows(mesh_t * in)
 	mesh_t          out;
 
 	/* ydnar: static for os x */
-	MAC_STATIC bspDrawVert_t expand[MAX_EXPANDED_AXIS][MAX_EXPANDED_AXIS];
+	static bspDrawVert_t expand[MAX_EXPANDED_AXIS][MAX_EXPANDED_AXIS];
 
 
 	out.width = in->width;

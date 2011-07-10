@@ -457,9 +457,9 @@ void PatchMapDrawSurfs(entity_t * e)
 	byte           *bordering;
 
 	/* ydnar: mac os x fails with these if not static */
-	MAC_STATIC parseMesh_t *meshes[MAX_MAP_DRAW_SURFS];
-	MAC_STATIC qb_t grouped[MAX_MAP_DRAW_SURFS];
-	MAC_STATIC byte group[MAX_MAP_DRAW_SURFS];
+	static parseMesh_t *meshes[MAX_MAP_DRAW_SURFS];
+	static qb_t grouped[MAX_MAP_DRAW_SURFS];
+	static byte group[MAX_MAP_DRAW_SURFS];
 
 
 	/* note it */
