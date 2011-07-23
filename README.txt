@@ -340,6 +340,7 @@ ___________________________________________________
 10) KNOWN ISSUES
 __________________________________________
 
+	* Omni-bot does not compile for 64 bit targets because the GameMonkey scripting engine does not support it
 	* Broken map loading screen
 	* A few skys are broken (r_fastsky 1 can help with this)
 	* Light bleeding problems with cg_shadows 4 - 5 which are typical for variance shadow mapping

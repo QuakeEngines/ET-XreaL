@@ -1,7 +1,7 @@
 
 ___________________________________________________
 
-GIT MASTER HEAD (to be released)
+ET-XreaL-0.3.0.7z
 __________________________________________
 
 ETXreaL
@@ -28,7 +28,11 @@ ETXMap
 	* Improved alternate BSP splitter algorithm for faster map compiles and better rendering speeds
 	* Updated JPG loader to libjpeg 8c
 	* Changed Unix home dir from .etwolf to .etxreal
-		
+	
+ETMain
+	* Added replacement textures for battery and fueldump by Eonfge
+	* Added high quality skyboxes and models by AVOC
+	* Added fueldump additions by KeMoN
 	
 	
 ___________________________________________________
