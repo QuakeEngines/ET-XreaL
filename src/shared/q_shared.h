@@ -41,7 +41,7 @@ extern "C" {
 #define PRODUCT_NAME_UPPPER						"ET:XreaL" // Case, No spaces
 #define PRODUCT_NAME_LOWER						"et:xreal" // No case, No spaces
 #define PRODUCT_NAME_LOWER_NOSPECIALCHARS		"etxreal"
-#define PRODUCT_VERSION							"0.9.0"
+#define PRODUCT_VERSION							"0.3.0"
 
 // 2.60d: Mac OSX universal binaries
 // 2.60c: Mac OSX universal binaries

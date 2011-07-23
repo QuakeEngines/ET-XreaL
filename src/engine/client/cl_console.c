@@ -749,7 +749,7 @@ void Con_DrawSolidConsole(float frac)
 
 // XreaL BEGIN
 	// useful for total conversions
-#if 0
+#if 1
 	i = strlen(Q3_ENGINE);
 	for(x = 0; x < i; x++)
 	{
