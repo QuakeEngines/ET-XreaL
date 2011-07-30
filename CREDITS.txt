@@ -1,0 +1,77 @@
+___________________________________________________
+
+Contributors for ETXreaL
+__________________________________________
+
+The following people have actively contributed to the project, be it with code, assets or testing.
+
+___________________________________________________
+
+Technical, Programming
+__________________________________________
+
+Robert 'Tr3B' Beckebans
+ - Lead programming
+ - XreaL renderer engine
+ - ETXMap map compiler
+ 
+Joshua 'Ethr' England
+ - Menus
+
+___________________________________________________
+
+Artistic, Media Assets
+__________________________________________
+
+Kevin 'Eonfge' Degeling - www.kevindegeling.nl
+ - Battery replacement textures
+
+Konrad 'morsik' Moson - http://morsik.darkserver.it
+ - Battery terrain textures
+ - temperate_sd texture set
+
+'KeMoN'
+ - Level improvments
+ 
+'ETDamien'
+ - Textures
+ 
+
+
+___________________________________________________
+
+Texture Source Contributors
+__________________________________________
+ 
+#No rights Reserved
+ 
+Bill Scott
+http://www.texturemate.com/content/about
+ 
+#Public Domain
+ 
+http://www.burningwell.org/
+http://www.public-domain-image.com/
+http://www.photos-public-domain.com/
+ 
+#Creative Commons Attribution
+#found with Flickr's advanced search option
+ 
+sunshinecity
+http://www.flickr.com/photos/sunshinecity/443920222/sizes/o/in/photostream/
+ 
+AZAdam
+http://www.flickr.com/photos/azadam/9982162/sizes/l/in/photostream/
+ 
+Pam Rosengren
+http://www.flickr.com/photos/pamrosengren/136740033/sizes/o/in/photostream/
+ 
+Marek Bereza
+http://www.flickr.com/photos/mrkbrz/3742604734/sizes/o/in/photostream/
+http://www.flickr.com/photos/mrkbrz/3742604388/sizes/o/in/photostream/
+ 
+Éamonn
+http://www.flickr.com/photos/68518558@N00/426702914/sizes/z/in/photostream/
+ 
+TGiles Douglas
+http://www.flickr.com/photos/orangelimey/2408454318/sizes/o/in/photostream/
