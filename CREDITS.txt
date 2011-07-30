@@ -31,7 +31,7 @@ Konrad 'morsik' Moson - http://morsik.darkserver.it
  - temperate_sd texture set
 
 'KeMoN'
- - Level improvments
+ - Level improvements
  
 'ETDamien'
  - Textures
