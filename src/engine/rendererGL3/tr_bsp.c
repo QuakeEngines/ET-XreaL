@@ -9178,6 +9178,10 @@ void RE_LoadWorldMap(const char *name)
 	// try will not look at the partially loaded version
 	tr.world = NULL;
 
+	// tr.worldDeluxeMapping will be set by R_LoadEntities()
+	tr.worldDeluxeMapping = qfalse;
+	tr.worldHDR_RGBE = qfalse;
+
 	Com_Memset(&s_worldData, 0, sizeof(s_worldData));
 	Q_strncpyz(s_worldData.name, name, sizeof(s_worldData.name));
 
