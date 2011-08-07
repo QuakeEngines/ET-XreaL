@@ -4,10 +4,11 @@ ROOT=`pwd`
 DATE=`date +%Y%m%d`
 DEVELOPER=../..
 #RELEASE=../../../snapshots/ET-XreaL_snapshot_$DATE
-RELEASE=ET-XreaL_snapshot_$DATE
+VERSION=0.3.0
+RELEASE=ET-XreaL-$VERSION
 DEFAULTGAME=etmain
-COREPK3=zz-XreaL-$DATE.pk3
-DLLPK3=mp_bin.pk3
+COREPK3=zz-ETXreaL-$VERSION.pk3
+DLLPK3=mp_bin-$VERSION.pk3
 
 # remove previously created package
 rm $RELEASE.7z
@@ -30,7 +31,7 @@ cp $DEVELOPER/$DEFAULTGAME/qagame_mp_x86.dll $RELEASE/$DEFAULTGAME/
 
 # build core pk3 and delete everything else
 cd $RELEASE/$DEFAULTGAME
-rm zz-XreaL*.pk3
+rm zz-ETXreaL*.pk3
 
 # create mp_bin.pk3
 zip -r $DLLPK3 src
@@ -52,6 +53,9 @@ cd $DEFAULTGAME
 unzip $COREPK3 MEDIA.txt
 
 cd $ROOT
+
+# add model packs
+cp $DEVELOPER/$DEFAULTGAME/sd-mapobjects.pk3 $RELEASE/$DEFAULTGAME
 
 # add maps
 #cp $DEVELOPER/$DEFAULTGAME/map-qx_hod-20100928.pk3 $RELEASE/$DEFAULTGAME
