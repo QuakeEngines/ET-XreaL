@@ -702,6 +702,7 @@ void R_ShutdownVBOs(void)
 		}
 	}
 
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 	if(tr.world)
 	{
 		for(j = 0; j < MAX_VISCOUNTS; j++)
@@ -723,6 +724,7 @@ void R_ShutdownVBOs(void)
 			Com_DestroyGrowList(&tr.world->clusterVBOSurfaces[j]);
 		}
 	}
+#endif // #if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 
 	Com_DestroyGrowList(&tr.vbos);
 	Com_DestroyGrowList(&tr.ibos);
@@ -754,6 +756,7 @@ void R_VBOList_f(void)
 		vertexesSize += vbo->vertexesSize;
 	}
 
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 	if(tr.world)
 	{
 		for(j = 0; j < MAX_VISCOUNTS; j++)
@@ -773,6 +776,7 @@ void R_VBOList_f(void)
 			}
 		}
 	}
+#endif // #if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 
 	for(i = 0; i < tr.ibos.currentElements; i++)
 	{

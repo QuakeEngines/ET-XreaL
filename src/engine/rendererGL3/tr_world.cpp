@@ -338,6 +338,7 @@ static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 		}
 	}
 
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 	if(r_mergeClusterSurfaces->integer &&
 		!r_dynamicBspOcclusionCulling->integer &&
 		((r_mergeClusterFaces->integer && *surf->data == SF_FACE) ||
@@ -345,6 +346,7 @@ static void R_AddWorldSurface(bspSurface_t * surf, int decalBits)
 		(r_mergeClusterTriangles->integer && *surf->data == SF_TRIANGLES)) &&
 		!shader->isSky && !shader->isPortal && !ShaderRequiresCPUDeforms(shader))
 		return;
+#endif
 
 	// try to cull before lighting or adding
 	if(R_CullSurface(surf->data, surf->shader, &frontFace))
@@ -817,6 +819,7 @@ static int BSPSurfaceCompare(const void *a, const void *b)
 R_UpdateClusterSurfaces()
 ===============
 */
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 static void R_UpdateClusterSurfaces()
 {
 	int             i, k, l;
@@ -1137,6 +1140,7 @@ static void R_UpdateClusterSurfaces()
 		}
 	}
 }
+#endif // #if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 
 /*
 ===============
@@ -1211,10 +1215,12 @@ static void R_MarkLeaves(void)
 	}
 	*/
 
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 	if(r_mergeClusterSurfaces->integer && !r_dynamicBspOcclusionCulling->integer)
 	{
 		R_UpdateClusterSurfaces();
 	}
+#endif
 
 	if(r_novis->integer || tr.visClusters[tr.visIndex] == -1)
 	{
@@ -2337,6 +2343,7 @@ void R_AddWorldSurfaces(void)
 		// ydnar: add decal surfaces
 		R_AddDecalSurfaces(tr.world->models);
 
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 		if(r_mergeClusterSurfaces->integer && !r_dynamicBspOcclusionCulling->integer)
 		{
 			int             j, i;
@@ -2366,6 +2373,7 @@ void R_AddWorldSurfaces(void)
 				R_AddDrawSurf((surfaceType_t *)srf, shader, srf->lightmapNum, 0);
 			}
 		}
+#endif
 	}
 }
 

@@ -3902,13 +3902,14 @@ R_CreateClusters
 static void R_CreateClusters()
 {
 	int             i, j;
-	int             numClusters;
+	bspSurface_t   *surface, **mark;
 	bspNode_t      *node, *parent;
+#if defined(USE_BSP_CLUSTERSURFACE_MERGING)
+	int             numClusters;
 	bspCluster_t   *cluster;
 	growList_t      clusterSurfaces;
 	const byte     *vis;
 	int             c;
-	bspSurface_t   *surface, **mark;
 	int             surfaceNum;
 	vec3_t          mins, maxs;
 
@@ -4061,7 +4062,7 @@ static void R_CreateClusters()
 	//ri.Printf(PRINT_ALL, "noVis cluster contains %i bsp surfaces\n", cluster->numMarkSurfaces);
 
 	ri.Printf(PRINT_ALL, "%i world clusters created\n", numClusters + 1);
-
+#endif // #if defined(USE_BSP_CLUSTERSURFACE_MERGING)
 
 	// reset surfaces' viewCount
 	for(i = 0, surface = s_worldData.surfaces; i < s_worldData.numSurfaces; i++, surface++)
