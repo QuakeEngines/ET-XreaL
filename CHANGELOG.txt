@@ -34,6 +34,7 @@ ETMain
 	* Added replacement textures for battery and fueldump by Eonfge
 	* Added high quality skyboxes and models by AVOC
 	* Added fueldump additions by KeMoN
+	* Converted original ET maps to the Doom 3 .map format and added an etx_ prefix to them
 	
 	
 ___________________________________________________
