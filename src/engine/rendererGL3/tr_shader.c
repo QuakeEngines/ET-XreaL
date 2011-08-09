@@ -5499,13 +5499,12 @@ shader_t       *R_FindShader(const char *name, shaderType_t type, qboolean mipRa
 	// ydnar: allow implicit mapping ('-' = use shader name)
 	if(implicitMap[0] == '\0' || implicitMap[0] == '-')
 	{
-		Q_strncpyz(fileName, name, sizeof(fileName));
+		Q_strncpyz(fileName, strippedName, sizeof(fileName));
 	}
 	else
 	{
 		Q_strncpyz(fileName, implicitMap, sizeof(fileName));
 	}
-	COM_DefaultExtension(fileName, sizeof(fileName), ".tga");
 
 	// ydnar: implicit shaders were breaking nopicmip/nomipmaps
 	if(!mipRawImage)
