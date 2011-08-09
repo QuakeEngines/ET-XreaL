@@ -1636,9 +1636,9 @@ void WriteMapFileDoom3(char *filename)
 				fprintf(f, " \"%s\"", si->shader);
 
 				// support detail flags
-				//if(side->compileFlags & C_DETAIL)
-				//	fprintf(f, " %i 0 0\n", CONTENTS_DETAIL);
-				//else
+				if(side->compileFlags & C_DETAIL)
+					fprintf(f, " %i 0 0\n", C_DETAIL);
+				else
 					fprintf(f, " 0 0 0\n");
 
 			}
@@ -1781,6 +1781,7 @@ int ConvertMapMain(int argc, char **argv)
 	LoadMapFile(source, qfalse);
 
 	// Tr3B: append temporary func_static containing the worldspawn detail brushes
+	/*
 	if(convertDetailBrushesFuncStaticEntity.lastBrush != NULL)
 	{
 		mapEnt = &entities[numEntities];
@@ -1791,6 +1792,7 @@ int ConvertMapMain(int argc, char **argv)
 		mapEnt->mapEntityNum = numMapEntities;
 		numMapEntities++;
 	}
+	*/
 	
 	StripExtension(source);
 	DefaultExtension(source, "_converted.map");

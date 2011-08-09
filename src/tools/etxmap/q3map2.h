@@ -2426,7 +2426,7 @@ abstracted bsp globals
 Q_EXTERN int				numEntities Q_ASSIGN( 0 );
 Q_EXTERN int				numBSPEntities Q_ASSIGN( 0 );
 Q_EXTERN entity_t			entities[ MAX_MAP_ENTITIES ];
-Q_EXTERN entity_t			convertDetailBrushesFuncStaticEntity;
+Q_EXTERN entity_t			convertDetailBrushesEntity;
 
 Q_EXTERN int				numBSPModels Q_ASSIGN( 0 );
 Q_EXTERN int				allocatedBSPModels Q_ASSIGN( 0 );
