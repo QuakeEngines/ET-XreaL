@@ -812,12 +812,20 @@ void RemoveKey(entity_t * ent, const char *key)
 			// unlink
 			if(ep->next == NULL)
 			{
-				// last element
+				// first element
 				ep_prev->next = NULL;
+				//ent->epairs = NULL;
+			}
+			else if(ep == ent->epairs)
+			{
+				// last element
+				ent->epairs = ep->next;
 			}
 			else
 			{
+				// in between
 				ep_prev->next = ep->next;
+				//ent->epairs = 
 			}
 
 			free(ep);
