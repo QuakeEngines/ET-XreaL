@@ -25,6 +25,8 @@ __________________________________________
 
 Kevin 'Eonfge' Degeling - www.kevindegeling.nl
  - Battery replacement textures
+ - Fueldump replacement textures
+ - Railgun replacement textures
 
 Konrad 'morsik' Moson - http://morsik.darkserver.it
  - Battery terrain textures
@@ -56,6 +58,15 @@ http://www.photos-public-domain.com/
  
 #Creative Commons Attribution
 #found with Flickr's advanced search option
+
+quinet
+http://www.flickr.com/photos/quinet/4305890250/sizes/o/in/photostream/
+
+Sultry
+http://www.flickr.com/photos/painterwoman/5505350176/sizes/o/in/photostream/
+ 
+DominusVobiscum
+http://www.flickr.com/photos/27398485@N08/2555751642/sizes/o/in/photostream/
  
 sunshinecity
 http://www.flickr.com/photos/sunshinecity/443920222/sizes/o/in/photostream/
