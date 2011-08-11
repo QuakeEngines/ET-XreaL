@@ -85,4 +85,7 @@ include "etmain/src/ui"
 
 include "src/tools/etxmap"
 
-include "omni-bot/src"
+if not os.is("linux") and not os.is64bit() then
+	include "omni-bot/src"
+end
+
