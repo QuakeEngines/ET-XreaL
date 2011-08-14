@@ -17,28 +17,49 @@ Robert 'Tr3B' Beckebans
  
 Joshua 'Ethr' England
  - Menus
-
+ 
 ___________________________________________________
 
 Artistic, Media Assets
 __________________________________________
 
 Kevin 'Eonfge' Degeling - www.kevindegeling.nl
+ - Asset management/recruitment
  - Battery replacement textures
  - Fueldump replacement textures
  - Railgun replacement textures
 
+Danny 'FireFly'
+ - Models
+ - Original levels: (to be added later)
+   * Vescuvius
+   * Tramfight
+   * V1 rocket
+   * Pirates
+   
+MLB team
+Marko, Lowlife and Bob
+ - Models
+ - Original MLB levels (to be added later)
+ 
+ 
 Konrad 'morsik' Moson - http://morsik.darkserver.it
  - Battery terrain textures
  - temperate_sd texture set
-
+ 
 'KeMoN'
  - Level improvements
  
 'ETDamien'
  - Textures
- 
 
+ ___________________________________________________
+
+Support, Knowledge and Misc
+__________________________________________
+
+Konrad 'morsik' Moson - http://morsik.darkserver.it
+ - Beta Server
 
 ___________________________________________________
 
