@@ -326,12 +326,20 @@ void            Sys_PumpEvents(void);
 
 #define MAC_STATIC
 
-#ifdef __i386__
+#if   defined __i686__
+#define CPUSTRING   "linux-i686"
+#elif defined __i586__
+#define CPUSTRING   "linux-i586"
+#elif defined __i486__
+#define CPUSTRING   "linux-i486"
+#elif defined __i386__
 #define CPUSTRING   "linux-i386"
+#elif defined __x86_64__
+#define CPUSTRING   "linux-x86_64"
 #elif defined __axp__
 #define CPUSTRING   "linux-alpha"
 #else
-#define CPUSTRING   "linux-other"
+#define CPUSTRING   "linux-unknown"
 #endif
 
 #define ID_INLINE inline
