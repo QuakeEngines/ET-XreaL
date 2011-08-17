@@ -649,7 +649,11 @@ extern int      cl_connectedToPureServer;
 
 char           *Sys_GetDLLName(const char *name)
 {
+#if defined(_WIN64)
+	return va("%s_mp_x86_64.dll", name);
+#else
 	return va("%s_mp_x86.dll", name);
+#endif
 }
 
 // fqpath param added 2/15/02 by T.Ray - Sys_LoadDll is only called in vm.c at this time

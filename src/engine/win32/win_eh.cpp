@@ -129,6 +129,9 @@ void BuildDump( char* buffer, int size ) {
 void BuildRegisters( char* buffer, int size ) {
 	char minibuffer[256];
 
+	minibuffer[0] = '\0';
+
+#if !defined(_WIN64)
 	Com_sprintf( minibuffer, sizeof( minibuffer ),
 				 "Registers      : EAX=%.8x CS=%.4x EIP=%.8x EFLGS=%.8x\r\n"
 				 "               : EBX=%.8x SS=%.4x ESP=%.8x EBP=%.8x\r\n"
@@ -151,6 +154,7 @@ void BuildRegisters( char* buffer, int size ) {
 				 m_exPointers->ContextRecord->Edi,
 				 m_exPointers->ContextRecord->SegGs
 				 );
+#endif
 
 	Q_strcat( buffer, size, minibuffer );
 }

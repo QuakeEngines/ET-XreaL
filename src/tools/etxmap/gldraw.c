@@ -21,10 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#include "q3map2.h"
+
+#if defined(USE_OPENGL)
+
 #include <SDL.h>
 #include <SDL_opengl.h>
-
-#include "q3map2.h"
 
 // can't use the glvertex3fv functions, because the vec3_t fields
 // could be either floats or doubles, depending on DOUBLEVEC_T
@@ -184,32 +186,41 @@ static void Draw_Shutdown(void)
 	drawInit = qfalse;
 }
 
+#endif // #if defined(USE_OPENGL)
+
 void Draw_SetRed(void)
 {
+#if defined(USE_OPENGL)
 	if(!drawInit)
 		return;
 
 	glColor3f(1, 0, 0);
+#endif
 }
 
 void Draw_SetGrey(void)
 {
+#if defined(USE_OPENGL)
 	if(!drawInit)
 		return;
 
 	glColor3f(0.5, 0.5, 0.5);
+#endif
 }
 
 void Draw_SetBlack(void)
 {
+#if defined(USE_OPENGL)
 	if(!drawInit)
 		return;
 
 	glColor3f(0, 0, 0);
+#endif
 }
 
 void Draw_Winding(winding_t * w, float r, float g, float b, float a)
 {
+#if defined(USE_OPENGL)
 	int             i;
 
 	if(!drawInit)
@@ -228,11 +239,12 @@ void Draw_Winding(winding_t * w, float r, float g, float b, float a)
 	glEnd();
 
 	glFlush();
+#endif
 }
 
 void Draw_AABB(const vec3_t origin, const vec3_t mins, const vec3_t maxs, vec4_t color)
 {
-#if 1
+#if defined(USE_OPENGL)
 	vec3_t          corners[8];
 	int             i;
 
@@ -281,6 +293,7 @@ void Draw_AABB(const vec3_t origin, const vec3_t mins, const vec3_t maxs, vec4_t
 
 void Draw_Scene(void (*drawFunc) (void))
 {
+#if defined(USE_OPENGL)
 	Uint8          *keys;
 	matrix_t        rotation;
 	vec3_t          forward, right, up;
@@ -493,4 +506,5 @@ void Draw_Scene(void (*drawFunc) (void))
 
 		oldTime = newTime;
 	}
+#endif // #if defined(USE_OPENGL)
 }

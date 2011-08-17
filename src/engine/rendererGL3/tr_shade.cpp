@@ -1428,7 +1428,10 @@ void GLSL_ShutdownGPUShaders(void)
 #endif // #if !defined(GLSL_COMPILE_STARTUP_ONLY)
 
 	glState.currentProgram = 0;
-	glUseProgramObjectARB(0);
+	if(glUseProgramObjectARB != NULL)
+	{
+		glUseProgramObjectARB(0);
+	}
 }
 
 /*

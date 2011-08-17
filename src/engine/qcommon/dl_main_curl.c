@@ -45,6 +45,33 @@ If you have questions concerning this license or the applicable additional terms
 #define APP_NAME        "ID_DOWNLOAD"
 #define APP_VERSION     "2.0"
 
+
+// FIXME FIXME FIXME
+#if defined(_WIN64)
+void DL_InitDownload()
+{
+}
+
+void DL_Shutdown()
+{
+}
+
+int DL_BeginDownload(const char *localName, const char *remoteName, int debug)
+{
+
+	return 1;
+}
+
+// (maybe this should be CL_DL_DownloadLoop)
+dlStatus_t DL_DownloadLoop()
+{
+
+	return DL_DONE;
+}
+
+#else
+
+
 // initialize once
 static int      dl_initialized = 0;
 
@@ -222,3 +249,6 @@ dlStatus_t DL_DownloadLoop()
 
 	return DL_DONE;
 }
+
+
+#endif // #if defined(_WIN64)

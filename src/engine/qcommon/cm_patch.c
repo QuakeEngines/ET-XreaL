@@ -2092,7 +2092,9 @@ void CM_DrawDebugSurface(void (*drawPoly) (int color, int numPoints, float *poin
 
 	if(cv2->integer != 1)
 	{
+#if defined(USE_BOTLIB)
 		BotDrawDebugPolygons(drawPoly, cv2->integer);
+#endif
 		return;
 	}
 #endif

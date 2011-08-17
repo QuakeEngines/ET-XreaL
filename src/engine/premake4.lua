@@ -29,8 +29,8 @@ project "ETXreaL"
 		"qcommon/cm_*.c",
 		"qcommon/unzip.c",
 		
-		"qcommon/dl_main_curl.c",
 		"qcommon/dl_**.h",
+		"qcommon/dl_main_curl.c",
 		
 		"rendererGL3/**.c", "rendererGL3/**.cpp", "rendererGL3/**.h",
 		
@@ -179,6 +179,7 @@ project "ETXreaL"
 		{
 			--"win32/win_gamma.c",
 			"win32/win_glimp.c",
+			"win32/win_eh.cpp",
 		}
 		libdirs
 		{
@@ -190,19 +191,12 @@ project "ETXreaL"
 			"winmm",
 			"wsock32",
 			"Iphlpapi",
-			"libcurl",
 			"opengl32",
 		}
 		--linkoptions
 		--{
 		--	"/NODEFAULTLIB:libc"
 		--}
-		buildoptions
-		{
-			"/EHa",
-			"/fp:fast",
-			"/arch:SSE"
-		}
 		defines
 		{
 			"WIN32",
@@ -212,12 +206,29 @@ project "ETXreaL"
 			--"FLOATING_POINT",
 			--"USE_ALLOCA"
 		}
+		
+		
+	configuration { "vs*", "x32" }
+		libdirs
+		{
+			"../libs/curl-7.12.2/lib"
+		}
+		links
+		{ 
+			"libcurl",
+		}
 		prebuildcommands
 		{
 		   "cd ../libs/curl-7.12.2",
 		   "cd lib",
 		   "nmake /f Makefile.vc6 CFG=release",
 		}
+		
+	configuration { "vs*", "x64" }
+		--files
+		--{
+		--	"qcommon/dl_main_stubs.c",
+		--}
 
 	configuration { "linux", "gmake" }
 		buildoptions

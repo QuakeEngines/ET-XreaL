@@ -213,7 +213,7 @@ typedef unsigned __int8 uint8_t;
 
 //======================= WIN32 DEFINES =================================
 
-#if defined(_WIN32) || defined(__WIN32__)
+#if defined(_WIN32) || defined(_WIN64)
 
 #define MAC_STATIC
 
@@ -224,12 +224,16 @@ typedef unsigned __int8 uint8_t;
 #ifdef NDEBUG
 #ifdef _M_IX86
 #define CPUSTRING   "win-x86"
+#elif defined(_WIN64)
+#define CPUSTRING   "win-x86_64"
 #elif defined _M_ALPHA
 #define CPUSTRING   "win-AXP"
 #endif
 #else
 #ifdef _M_IX86
 #define CPUSTRING   "win-x86-debug"
+#elif defined(_WIN64)
+#define CPUSTRING   "win-x86_64-debug"
 #elif defined _M_ALPHA
 #define CPUSTRING   "win-AXP-debug"
 #endif
@@ -825,6 +829,25 @@ static ID_INLINE float Q_fabs(float x)
 	return tmp.f;
 #endif
 }
+
+/* MSVC 64 bit does not have lrintf */
+#ifdef _MSC_VER
+static ID_INLINE long lrintf(float f)
+{
+#ifdef _M_X64
+    return (long)((f>0.0f) ? (f + 0.5f):(f -0.5f));
+#else
+    int i;
+ 
+    _asm{
+        fld f
+        fistp i
+    };
+ 
+    return i;
+#endif
+}
+#endif
 
 #define SQRTFAST( x ) ( 1.0f / Q_rsqrt( x ) )
 

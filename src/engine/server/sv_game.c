@@ -32,7 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../../../etmain/src/game/botlib.h"
 
-botlib_export_t *botlib_export;
+botlib_export_t *botlib_export = NULL;
 
 void SV_GameError(const char *string)
 {

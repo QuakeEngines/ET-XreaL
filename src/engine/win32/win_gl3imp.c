@@ -663,7 +663,8 @@ static qboolean GLW_CreateWindow(int width, int height, int colorbits, qboolean 
 
 		if(!g_wvPtr->hWnd)
 		{
-			ri.Error(ERR_VID_FATAL, "GLW_CreateWindow() - Couldn't create window");
+			char* error = WinGetLastErrorLocal();
+			ri.Error(ERR_VID_FATAL, "GLW_CreateWindow(): could not create window: '%s'", error);
 		}
 
 		ShowWindow(g_wvPtr->hWnd, SW_SHOW);

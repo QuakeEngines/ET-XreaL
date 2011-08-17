@@ -132,7 +132,7 @@ game_t struct
 	qtrue,				/* disable shader lightstyles hack */
 	qtrue,				/* keep light entities on bsp */
 	8,					/* default patchMeta subdivisions tolerance */
-	qfalse,				/* patch casting enabled */
+	qtrue,				/* patch casting enabled */
 	qtrue,				/* compile deluxemaps */
 	0,					/* deluxemaps default mode */
 	512,                /* minimap size */

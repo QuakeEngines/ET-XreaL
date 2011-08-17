@@ -797,6 +797,16 @@ int MiniMapBSPMain(int argc, char **argv)
 
 
 /*
+MD4BlockChecksum()
+calculates an md4 checksum for a block of data
+*/
+
+static int MD4BlockChecksum(void *buffer, int length)
+{
+	return Com_BlockChecksum(buffer, length);
+}
+
+/*
 FixAAS()
 resets an aas checksum to match the given BSP
 */

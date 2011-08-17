@@ -2122,7 +2122,7 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	}
 #endif
 
-#if 1
+#if 0
 	// HACK:
 	if(!Q_stricmp("func_rotating", classname))// && !mapEnt->brushes && !mapEnt->patches && model[0] != '\0')
 	{

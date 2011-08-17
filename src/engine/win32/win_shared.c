@@ -68,8 +68,12 @@ Sys_SnapVector
 ================
 */
 // *INDENT-OFF*
-long fastftol( float f ) {
-#ifndef __GNUC__
+long fastftol( float f )
+{
+#if defined(_WIN64)
+	return (long)((f>0.0f) ? (f + 0.5f):(f -0.5f));
+
+#elif defined(_WIN32)
 	static int tmp;
 
 	__asm fld f
@@ -92,8 +96,16 @@ long fastftol( float f ) {
 #endif
 }
 
-void Sys_SnapVector( float *v ) {
-#ifndef __GNUC__
+void Sys_SnapVector( float *v )
+{
+#if defined(_WIN64)
+	*v = (float)fastftol( *v );
+	v++;
+	*v = (float)fastftol( *v );
+	v++;
+	*v = (float)fastftol( *v );
+
+#elif defined(_WIN32)
 	int i;
 	float f;
 
@@ -145,6 +157,8 @@ void Sys_SnapVector( float *v ) {
 **
 ** --------------------------------------------------------------------------------
 */
+#ifndef _WIN64
+
 static void CPUID( int func, unsigned regs[4] ) {
 #ifndef __GNUC__
 	unsigned regEAX, regEBX, regECX, regEDX;
@@ -393,9 +407,14 @@ static int IsAthlon()
 
 	return qtrue;
 }
+#endif // #ifndef _WIN64
 
 int Sys_GetProcessorId(void)
 {
+#if defined(_WIN64)
+	return CPUID_GENERIC;
+
+#else
 #if defined _M_ALPHA
 	return CPUID_AXP;
 #elif !defined _M_IX86
@@ -431,12 +450,13 @@ int Sys_GetProcessorId(void)
 	return CPUID_INTEL_MMX;
 
 #endif
+#endif
 }
 
 // *INDENT-OFF*
-int Sys_GetHighQualityCPU() {
-	return ( !IsP3() && !IsAthlon() ) ? 0 : 1;
-}
+//int Sys_GetHighQualityCPU() {
+//	return ( !IsP3() && !IsAthlon() ) ? 0 : 1;
+//}
 
 //bani - defined but not used
 #if 0
@@ -464,6 +484,7 @@ static void GetClockTicks( double *t ) {
 }
 #endif
 
+#if !defined(_WIN64)
 float Sys_RealGetCPUSpeed( void ) {
 	LARGE_INTEGER c0, c1, freq;
 	unsigned int stamp0, stamp1, cycles, ticks, tries;
@@ -567,6 +588,15 @@ float Sys_RealGetCPUSpeed( void ) {
 
 	return( (float)total / 3.f );
 }
+#endif // #if !defined(_WIN64)
+
+#if defined(_WIN64)
+float Sys_GetCPUSpeed(void) 
+{
+	return 100.f;
+}
+
+#else
 
 float Sys_GetCPUSpeed( void ) {
 	float cpuSpeed;
@@ -590,6 +620,8 @@ float Sys_GetCPUSpeed( void ) {
 
 	return cpuSpeed;
 }
+#endif // #if defined(_WIN64)
+
 // *INDENT-ON*
 
 /*

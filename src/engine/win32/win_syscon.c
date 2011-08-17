@@ -38,6 +38,14 @@ If you have questions concerning this license or the applicable additional terms
 #include <io.h>
 #include <conio.h>
 
+// XreaL BEGIN
+#if defined(_WIN64)
+#if !defined(GWL_WNDPROC)
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
+// XreaL END
+
 #define SYSCON_DEFAULT_WIDTH    540
 #define SYSCON_DEFAULT_HEIGHT   450
 

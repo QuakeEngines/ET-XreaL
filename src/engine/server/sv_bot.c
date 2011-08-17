@@ -120,6 +120,8 @@ void SV_BotFreeClient(int clientNum)
 	}
 }
 
+#if defined(USE_BOTLIB)
+
 /*
 ==================
 BotDrawDebugPolygons
@@ -438,6 +440,8 @@ void           *BotImport_HunkAlloc(int size)
 	return Hunk_Alloc(size, h_high);
 }
 
+#endif // #if defined(USE_BOTLIB)
+
 /*
 ==================
 BotImport_DebugPolygonCreate
@@ -445,6 +449,7 @@ BotImport_DebugPolygonCreate
 */
 int BotImport_DebugPolygonCreate(int color, int numPoints, vec3_t * points)
 {
+#if defined(USE_BOTLIB)
 	bot_debugpoly_t *poly;
 	int             i;
 
@@ -466,6 +471,9 @@ int BotImport_DebugPolygonCreate(int color, int numPoints, vec3_t * points)
 	memcpy(poly->points, points, numPoints * sizeof(vec3_t));
 	//
 	return i;
+#else
+	return 0;
+#endif
 }
 
 /*
@@ -475,6 +483,7 @@ BotImport_DebugPolygonCreate
 */
 bot_debugpoly_t *BotImport_GetFreeDebugPolygon(void)
 {
+#if defined(USE_BOTLIB)
 	int             i;
 
 	for(i = 1; i < MAX_DEBUGPOLYS; i++)
@@ -485,7 +494,12 @@ bot_debugpoly_t *BotImport_GetFreeDebugPolygon(void)
 		}
 	}
 	return NULL;
+#else
+	return NULL;
+#endif
 }
+
+
 
 /*
 ==================
@@ -522,6 +536,8 @@ void BotImport_DebugPolygonDeletePointer(bot_debugpoly_t * pPoly)
 {
 	pPoly->inuse = qfalse;
 }
+
+#if defined(USE_BOTLIB)
 
 /*
 ==================
@@ -615,6 +631,8 @@ void BotClientCommand(int client, char *command)
 	SV_ExecuteClientCommand(&svs.clients[client], command, qtrue, qfalse);
 }
 
+#endif // #if defined(USE_BOTLIB)
+
 /*
 ==================
 SV_BotFrame
@@ -664,6 +682,7 @@ int SV_BotLibSetup(void)
 		return -1;
 	}
 
+#if defined(USE_BOTLIB)
 	// RF, set RCD calculation status
 	bot_norcd = Cvar_Get("bot_norcd", "0", 0);
 	botlib_export->BotLibVarSet("bot_norcd", bot_norcd->string);
@@ -683,6 +702,7 @@ int SV_BotLibSetup(void)
 // added single player
 	return botlib_export->BotLibSetup((SV_GameIsSinglePlayer() || SV_GameIsCoop()));
 // END  Arnout changes, 28-08-2002.
+#endif
 }
 
 /*
@@ -695,13 +715,16 @@ it is changing to a different game directory.
 */
 int SV_BotLibShutdown(void)
 {
-
+#if defined(USE_BOTLIB)
 	if(!botlib_export)
 	{
 		return -1;
 	}
 
 	return botlib_export->BotLibShutdown();
+#else
+		return -1;
+#endif
 }
 
 /*
@@ -711,7 +734,6 @@ SV_BotInitCvars
 */
 void SV_BotInitCvars(void)
 {
-
 	Cvar_Get("bot_enable", "0", 0);	//enable the bot
 	Cvar_Get("bot_developer", "0", 0);	//bot developer mode
 	Cvar_Get("bot_debug", "0", 0);	//enable bot debugging
@@ -751,6 +773,7 @@ SV_BotInitBotLib
 */
 void SV_BotInitBotLib(void)
 {
+#if defined(USE_BOTLIB)
 	botlib_import_t botlib_import;
 
 #if COPY_PROTECT
@@ -806,6 +829,7 @@ void SV_BotInitBotLib(void)
 	//botlib_import.BotGameIsSinglePlayer = SV_GameIsSinglePlayer;
 
 	botlib_export = (botlib_export_t *) GetBotLibAPI(BOTLIB_API_VERSION, &botlib_import);
+#endif
 }
 
 

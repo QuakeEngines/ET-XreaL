@@ -69,19 +69,10 @@ project "ETXMap"
 			"../../libs/glib/lib/glib-2.0/include",
 			"../../libs/sdl/include",
 		}
-		libdirs
-		{
-			"../../libs/glib/lib",
-			"../../libs/sdl/lib",
-		}
 		links
 		{ 
 			"wsock32",
 			"glib-2.0",
-			"SDL",
-			"SDLmain",
-			"opengl32",
-			"glu32",
 		}
 		defines
 		{
@@ -92,8 +83,38 @@ project "ETXMap"
 			--"FLOATING_POINT",
 			--"USE_ALLOCA"
 		}
+		
+	configuration { "vs*", "x32" }
+		defines
+		{
+			"USE_OPENGL",
+		}
+		libdirs
+		{
+			"../../libs/glib/lib",
+			"../../libs/sdl/lib",
+		}
+		links
+		{ 
+			"wsock32",
+			"SDL",
+			"SDLmain",
+			"opengl32",
+			"glu32",
+		}
+		
+	configuration { "vs*", "x64" }
+		libdirs
+		{
+			"../../libs/glib/lib64",
+			"../../libs/sdl/lib64",
+		}
 	
 	configuration { "linux", "gmake" }
+		defines
+		{
+			"USE_OPENGL",
+		}
 		buildoptions
 		{
 			"`pkg-config --cflags glib-2.0`",
