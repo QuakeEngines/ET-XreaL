@@ -91,6 +91,7 @@ project "ETXreaL"
 		"BUILD_FREETYPE",
 		"FT2_BUILD_LIBRARY",
 		"BOTLIB",
+		"USE_BOTLIB",
 		--"USE_CURL", 
 		--"USE_CODEC_VORBIS", 
 		--"USE_CIN_THEORA",
