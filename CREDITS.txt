@@ -28,6 +28,8 @@ Kevin 'Eonfge' Degeling - www.kevindegeling.nl
  - Battery replacement textures
  - Fueldump replacement textures
  - Railgun replacement textures
+ - Oasis replacement textures
+ - Goldrush replacement textures
 
 Danny 'FireFly'
  - Models
@@ -77,7 +79,12 @@ http://www.burningwell.org/
 http://www.public-domain-image.com/
 http://www.photos-public-domain.com/
  
-#Creative Commons Attribution
+#Creative Commons Attribution Share-Alike
+
+Wikimedia Commons
+http://commons.wikimedia.org/
+
+#Flickr Creative Commons Attribution
 #found with Flickr's advanced search option
 
 quinet
