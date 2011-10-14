@@ -326,6 +326,7 @@ project "ETXreaL-dedicated"
 	{ 
 		"DEDICATED",
 		"BOTLIB",
+		"USE_BOTLIB",
 		--"USE_CURL", 
 		--"USE_CODEC_VORBIS", 
 		--"USE_CIN_THEORA",
