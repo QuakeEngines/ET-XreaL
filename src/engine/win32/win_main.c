@@ -1559,8 +1559,16 @@ char           *Sys_DefaultInstallPath(void)
 
 	Q_strreplace(installdir, sizeof(installdir), "bin32", "");
 	Q_strreplace(installdir, sizeof(installdir), "bin64", "");
+
+	Q_strreplace(installdir, sizeof(installdir), "src/engine", "");
+	Q_strreplace(installdir, sizeof(installdir), "src\\engine", "");
+	
 	Q_strreplace(installdir, sizeof(installdir), "bin/win32", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin\\win32", "");
+	
 	Q_strreplace(installdir, sizeof(installdir), "bin/win64", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin\\win64", "");
+	
 	Q_strreplace(installdir, sizeof(installdir), "bin/linux-x86", "");
 	Q_strreplace(installdir, sizeof(installdir), "bin/linux-x86_64", "");
 

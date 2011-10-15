@@ -46,11 +46,11 @@ project "ETXMap"
 	--
 	-- Platform Configurations
 	-- 	
-	configuration "x32"
-		targetdir 	"../../../bin32"
+	--configuration "x32"
+	--	targetdir 	"../../../bin32"
 	
-	configuration "x64"
-		targetdir 	"../../../bin64"
+	--configuration "x64"
+	--	targetdir 	"../../../bin64"
 	
 	
 	-- 
@@ -85,6 +85,7 @@ project "ETXMap"
 		}
 		
 	configuration { "vs*", "x32" }
+		targetdir 	"../../../bin/win32"
 		defines
 		{
 			"USE_OPENGL",
@@ -104,6 +105,7 @@ project "ETXMap"
 		}
 		
 	configuration { "vs*", "x64" }
+		targetdir 	"../../../bin/win64"
 		libdirs
 		{
 			"../../libs/glib/lib64",
@@ -125,6 +127,12 @@ project "ETXMap"
 			"`pkg-config --libs glib-2.0`",
 			"`pkg-config --libs sdl`",
 		}
+		
+	configuration { "linux", "x32" }
+		targetdir 	"../../../bin/linux-x86"
+		
+	configuration { "linux", "x64" }
+		targetdir 	"../../../bin/linux-x86_64"
 
 	configuration "linux"
 		targetname  "etxmap"

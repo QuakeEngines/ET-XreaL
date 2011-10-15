@@ -112,14 +112,13 @@ project "ETXreaL"
 	-- Platform Configurations
 	-- 	
 	configuration "x32"
-		targetdir 	"../../bin32"
 		files
 		{ 
 			"code/qcommon/vm_x86.c",
 		}
 	
-	configuration "x64"
-		targetdir 	"../../bin64"
+	--configuration "x64"
+	--	targetdir 	"../../bin/x64"
 	--	files
 	--	{ 
 	--		"qcommon/vm_x86_64.c",
@@ -210,6 +209,7 @@ project "ETXreaL"
 		
 		
 	configuration { "vs*", "x32" }
+		targetdir 	"../../bin/win32"
 		libdirs
 		{
 			"../libs/curl-7.12.2/lib"
@@ -226,6 +226,7 @@ project "ETXreaL"
 		}
 		
 	configuration { "vs*", "x64" }
+		targetdir 	"../../bin/win64"
 		--files
 		--{
 		--	"qcommon/dl_main_stubs.c",
@@ -250,6 +251,12 @@ project "ETXreaL"
 			"`pkg-config --libs sdl`",
 			"`pkg-config --libs libcurl`",
 		}
+	
+	configuration { "linux", "x32" }
+		targetdir 	"../../bin/linux-x86"
+		
+	configuration { "linux", "x64" }
+		targetdir 	"../../bin/linux-x86_64"
 	
 	configuration "linux"
 		targetname  "etxreal"
@@ -284,7 +291,6 @@ project "ETXreaL-dedicated"
 	targetname  "ETXreaL-dedicated"
 	language    "C++"
 	kind        "WindowedApp"
-	targetdir 	"../.."
 	flags       { "ExtraWarnings" }
 	files
 	{
@@ -347,14 +353,13 @@ project "ETXreaL-dedicated"
 	-- Platform Configurations
 	-- 	
 	configuration "x32"
-		targetdir 	"../../bin32"
 		files
 		{ 
 			"code/qcommon/vm_x86.c",
 		}
 	
-	configuration "x64"
-		targetdir 	"../../bin64"
+	--configuration "x64"
+	--	targetdir 	"../../bin64"
 	
 	-- 
 	-- Project Configurations
@@ -404,6 +409,12 @@ project "ETXreaL-dedicated"
 			--"FLOATING_POINT",
 			--"USE_ALLOCA"
 		}
+		
+	configuration { "vs*", "x32" }
+		targetdir 	"../../bin/win32"
+		
+	configuration { "vs*", "x64" }
+		targetdir 	"../../bin/win64"
 
 	configuration { "linux", "gmake" }
 		buildoptions
@@ -414,6 +425,12 @@ project "ETXreaL-dedicated"
 		{
 			--"`pkg-config --libs sdl`",
 		}
+		
+	configuration { "linux", "x32" }
+		targetdir 	"../../bin/linux-x86"
+		
+	configuration { "linux", "x64" }
+		targetdir 	"../../bin/linux-x86_64"
 	
 	configuration "linux"
 		targetname  "etxreal-dedicated"
