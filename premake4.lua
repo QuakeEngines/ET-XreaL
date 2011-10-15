@@ -40,11 +40,11 @@ solution "ETXreaL"
 --
 -- Options
 --
---newoption
---{
---	trigger = "with-omnibot",
---	description = "Compile with Omni-bot support"
---}
+newoption
+{
+	trigger = "with-omnibot",
+	description = "Compile with Omni-bot support"
+}
 
 
 --newoption
@@ -93,9 +93,7 @@ include "etmain/src/ui"
 
 include "src/tools/etxmap"
 
-if os.is("windows") then
-	include "omni-bot/src"
-elseif os.is("linux") and not os.is64bit() then
+if _OPTIONS["with-omnibot"] then
 	include "omni-bot/src"
 end
 
