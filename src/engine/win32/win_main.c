@@ -1557,16 +1557,12 @@ char           *Sys_DefaultInstallPath(void)
 
 	Com_sprintf(installdir, sizeof(installdir), "%s", Sys_Cwd());
 
-	if(strstr(installdir, "bin32") ||  strstr(installdir, "bin64"))
-	{
-		int				i, len;
-
-		len = strlen(installdir);
-		for(i = len; i >= len - 6; i--)
-		{
-			installdir[i] = '\0';
-		}
-	}
+	Q_strreplace(installdir, sizeof(installdir), "bin32", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin64", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin/win32", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin/win64", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin/linux-x86", "");
+	Q_strreplace(installdir, sizeof(installdir), "bin/linux-x86_64", "");
 
 	return installdir;
 }
