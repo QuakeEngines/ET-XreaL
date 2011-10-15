@@ -417,16 +417,14 @@ char *Sys_DefaultInstallPath(void)
 
 		Com_sprintf(installdir, sizeof(installdir), "%s", Sys_Cwd());
 
-		if(strstr(installdir, "bin32") ||  strstr(installdir, "bin64"))
-		{
-			int				i, len;
+		Q_strreplace(installdir, sizeof(installdir), "bin32", "");
+		Q_strreplace(installdir, sizeof(installdir), "bin64", "");
 
-			len = strlen(installdir);
-			for(i = len; i >= len - 6; i--)
-			{
-				installdir[i] = '\0';
-			}
-		}
+		Q_strreplace(installdir, sizeof(installdir), "src/engine", "");
+		Q_strreplace(installdir, sizeof(installdir), "src\\engine", "");
+		
+		Q_strreplace(installdir, sizeof(installdir), "bin/linux-x86", "");
+		Q_strreplace(installdir, sizeof(installdir), "bin/linux-x86_64", "");
 
 		return installdir;
 	}
