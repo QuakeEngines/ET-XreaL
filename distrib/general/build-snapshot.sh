@@ -5,10 +5,10 @@ DATE=`date +%Y%m%d`
 DEVELOPER=../..
 #RELEASE=../../../snapshots/ET-XreaL_snapshot_$DATE
 VERSION=0.3.0
-RELEASE=ET-XreaL-$VERSION
+RELEASE=ETXreaL-$VERSION
 DEFAULTGAME=etmain
-COREPK3=zz-ETXreaL-$VERSION.pk3
-DLLPK3=mp_bin-$VERSION.pk3
+COREPK3=zz-ETXreaL-$DATE.pk3
+DLLPK3=mp_bin-$DATE.pk3
 
 # remove previously created package
 rm $RELEASE.7z
@@ -60,18 +60,21 @@ cp $DEVELOPER/$DEFAULTGAME/sd-mapobjects.pk3 $RELEASE/$DEFAULTGAME
 # add maps
 #cp $DEVELOPER/$DEFAULTGAME/map-qx_hod-20100928.pk3 $RELEASE/$DEFAULTGAME
 
-#mkdir $RELEASE/bin32/
-#mkdir $RELEASE/bin64/
+#mkdir $RELEASE/bin/win32/
+#mkdir $RELEASE/bin/win64/
 
 # add Win32 binaries
-cp $DEVELOPER/bin32/ETXreaL.exe $RELEASE/bin32/
-cp $DEVELOPER/bin32/ETXreaL-dedicated.exe $RELEASE/bin32/
-cp $DEVELOPER/bin32/ETXMap.exe $RELEASE/bin32/
-cp $DEVELOPER/bin32/omnibot_et.dll $RELEASE/bin32/
-cp $DEVELOPER/bin32/SDL.dll $RELEASE/bin32/
-cp $DEVELOPER/bin32/libglib-2.0-0.dll $RELEASE/bin32/
-cp $DEVELOPER/bin32/msvcp100.dll $RELEASE/bin32/
-cp $DEVELOPER/bin32/msvcr100.dll $RELEASE/bin32/
+cp $DEVELOPER/bin/win32/ETXreaL.exe $RELEASE/bin/win32/
+cp $DEVELOPER/bin/win32/ETXreaL-dedicated.exe $RELEASE/bin/win32/
+cp $DEVELOPER/bin/win32/ETXMap.exe $RELEASE/bin/win32/
+cp $DEVELOPER/bin/win32/omnibot_et.dll $RELEASE/bin/win32/
+#cp $DEVELOPER/bin/win32/SDL.dll $RELEASE/bin/win32/
+#cp $DEVELOPER/bin/win32/libglib-2.0-0.dll $RELEASE/bin/win32/
+#cp $DEVELOPER/bin/win32/msvcp100.dll $RELEASE/bin/win32/
+#cp $DEVELOPER/bin/win32/msvcr100.dll $RELEASE/bin/win32/
+
+# add Win64 binaries
+cp $DEVELOPER/bin/win64/ETXMap.exe $RELEASE/bin/win64/
 
 #cp $DEVELOPER/gtkradiant/gtkradiant.exe $RELEASE/gtkradiant/
 #mkdir $RELEASE/gtkradiant/modules
