@@ -117,6 +117,7 @@ extern qboolean sv_cheats;		//bani
 
 // XreaL BEGIN
 cvar_t         *cl_aviMotionJpeg;
+cvar_t         *cl_guidServerUniq;
 // XreaL END
 
 clientActive_t  cl;
@@ -1079,6 +1080,30 @@ void CL_ClearState(void)
 	Com_Memset(&cl, 0, sizeof(cl));
 }
 
+// XreaL BEGIN
+/*
+====================
+CL_UpdateGUID
+
+update cl_guid using ETKEY_FILE and optional prefix
+====================
+*/
+static void CL_UpdateGUID(const char *prefix, int prefix_len)
+{
+	fileHandle_t    f;
+	int             len;
+
+	len = FS_SV_FOpenFileRead(ETKEY_FILE, &f);
+	FS_FCloseFile(f);
+
+	if(len != ETKEY_SIZE)
+		Cvar_Set("cl_guid", "");
+	else
+		Cvar_Set("cl_guid", Com_MD5File(ETKEY_FILE, ETKEY_SIZE, prefix, prefix_len));
+}
+// XreaL END
+
+
 /*
 =====================
 CL_ClearStaticDownload
@@ -1202,6 +1227,10 @@ void CL_Disconnect(qboolean showMainMenu)
 	{
 		cls.state = CA_DISCONNECTED;
 	}
+
+// XreaL BEGIN
+	CL_UpdateGUID(NULL, 0);
+// XreaL END
 }
 
 
@@ -1539,6 +1568,13 @@ void CL_Connect_f(void)
 
 	Q_strncpyz(ip_port, NET_AdrToString(clc.serverAddress), sizeof(ip_port));
 	Com_Printf("%s resolved to %s\n", cls.servername, ip_port);
+
+// XreaL BEGIN
+	if(cl_guidServerUniq->integer)
+		CL_UpdateGUID(ip_port, strlen(ip_port));
+	else
+		CL_UpdateGUID(NULL, 0);
+// XreaL END
 
 	// if we aren't playing on a lan, we need to authenticate
 	// with the cd key
@@ -3858,6 +3894,54 @@ void CL_LoadTranslations_f(void)
 
 //===========================================================================================
 
+
+
+/*
+===============
+CL_GenerateQKey
+
+test to see if a valid ETKEY_FILE exists.  If one does not, try to generate
+it by filling it with 2048 bytes of random data.
+===============
+*/
+// XreaL BEGIN
+static void CL_GenerateETKey(void)
+{
+	int             len = 0;
+	unsigned char   buff[ETKEY_SIZE];
+	fileHandle_t    f;
+
+	len = FS_SV_FOpenFileRead(ETKEY_FILE, &f);
+	FS_FCloseFile(f);
+	if(len == ETKEY_SIZE)
+	{
+		Com_Printf("ETKEY found.\n");
+		return;
+	}
+	else
+	{
+		if(len > 0)
+		{
+			Com_Printf("ETKEY file size != %d, regenerating\n", ETKEY_SIZE);
+		}
+
+		Com_Printf("ETKEY building random string\n");
+		Com_RandomBytes(buff, sizeof(buff));
+
+		f = FS_SV_FOpenFileWrite(ETKEY_FILE);
+		if(!f)
+		{
+			Com_Printf("ETKEY could not open %s for write\n", ETKEY_FILE);
+			return;
+		}
+		FS_Write(buff, sizeof(buff), f);
+		FS_FCloseFile(f);
+		Com_Printf("ETKEY generated\n");
+	}
+}
+// XreaL END
+
+
 /*
 ====================
 CL_Init
@@ -3972,6 +4056,10 @@ void CL_Init(void)
 	cl_packetdelay = Cvar_Get("cl_packetdelay", "0", CVAR_CHEAT);
 
 	Cvar_Get("cl_maxPing", "800", CVAR_ARCHIVE);
+
+// XreaL BEGIN
+	cl_guidServerUniq = Cvar_Get("cl_guidServerUniq", "1", CVAR_ARCHIVE);
+// XreaL END
 
 	// NERVE - SMF
 	Cvar_Get("cg_drawCompass", "1", CVAR_ARCHIVE);
@@ -4113,6 +4201,12 @@ void CL_Init(void)
 	Cbuf_Execute();
 
 	Cvar_Set("cl_running", "1");
+
+// XreaL BEGIN
+	CL_GenerateETKey();
+	Cvar_Get("cl_guid", "", CVAR_USERINFO | CVAR_ROM);
+	CL_UpdateGUID(NULL, 0);
+// XreaL END
 
 	// DHM - Nerve
 	autoupdateChecked = qfalse;

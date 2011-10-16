@@ -206,6 +206,7 @@ ETXreaL
 	* .avi recorder from ioquake3 including sound support
 	* Optimized collision detection routines
 	* Support for Omni-bot
+	* GUID System
 
 ETXMap
 	* Based on q3map2 by Randy 'ydnar' Reddig including additional fixes by the NetRadiant edition
@@ -283,13 +284,9 @@ r_hdrRendering					Enable High Dynamic Range lighting (experimental)
 // ----------------------------------------------------------------------------
 HDR variables that are cheat protected but might be interesting for some people
 
-r_hdrToneMapingOperator			Tone mapping method:  
-								1 = Reinhard (Yxy)
-								4 = Exponential
-
 r_hdrKey						Middle gray value used in HDR tone mapping
 								0 computes it dynamically
-								0.72 default
+								0.27 default
 
 r_hdrMinLuminance				Minimum luminance value threshold
 r_hdrMaxLuminance				Maximum luminance value threshold

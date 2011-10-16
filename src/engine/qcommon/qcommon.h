@@ -917,8 +917,15 @@ int QDECL Com_VPrintf(const char *fmt, va_list argptr) _attribute((format(printf
 void            Com_Quit_f(void);
 int             Com_EventLoop(void);
 int             Com_Milliseconds(void);	// will be journaled properly
+
 unsigned int    Com_BlockChecksum(const void *buffer, int length);
 unsigned int    Com_BlockChecksumKey(void *buffer, int length, int key);
+
+// XreaL BEGIN
+char           *Com_MD5File(const char *filename, int length, const char *prefix, int prefix_len);
+void            Com_RandomBytes(byte * string, int len);
+// XreaL END
+
 int             Com_Filter(char *filter, char *name, int casesensitive);
 int             Com_FilterPath(char *filter, char *name, int casesensitive);
 int             Com_RealTime(qtime_t * qtime);
@@ -1217,6 +1224,7 @@ void           *Sys_GetCGameAPI(void);
 void            Sys_UnloadUI(void);
 void           *Sys_GetUIAPI(void);
 
+// XreaL BEGIN
 // RB: added generic DLL loading routines
 void           *Sys_LoadDLLSimple(const char *name);
 void		   *Sys_LoadFunction(void *dllHandle, const char *functionName);
@@ -1224,6 +1232,7 @@ char		   *Sys_DLLError();
 
 // RB: added to link OS specific pointers to the renderer.dll space
 void           *Sys_GetSystemHandles(void);
+// XreaL END
 
 char           *Sys_GetCurrentUser(void);
 
@@ -1237,6 +1246,10 @@ void            Sys_Print(const char *msg);
 // Sys_Milliseconds should only be used for profiling purposes,
 // any game related timing information should come from event timestamps
 int             Sys_Milliseconds(void);
+
+// XreaL BEGIN
+qboolean        Sys_RandomBytes(byte * string, int len);
+// XreaL END
 
 void            Sys_SnapVector(float *v);
 

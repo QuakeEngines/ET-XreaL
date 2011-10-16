@@ -81,6 +81,28 @@ int Sys_Milliseconds( void ) {
 	return curtime;
 }
 
+/*
+==================
+Sys_RandomBytes
+==================
+*/
+qboolean Sys_RandomBytes(byte * string, int len)
+{
+	FILE           *fp;
+
+	fp = fopen("/dev/urandom", "r");
+	if(!fp)
+		return qfalse;
+
+	if(!fread(string, sizeof(byte), len, fp))
+	{
+		fclose(fp);
+		return qfalse;
+	}
+
+	fclose(fp);
+	return qtrue;
+}
 
 /*
 ================

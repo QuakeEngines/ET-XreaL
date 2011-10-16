@@ -64,6 +64,30 @@ int Sys_Milliseconds(void)
 
 /*
 ================
+Sys_RandomBytes
+================
+*/
+qboolean Sys_RandomBytes(byte * string, int len)
+{
+	HCRYPTPROV      prov;
+
+	if(!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+	{
+
+		return qfalse;
+	}
+
+	if(!CryptGenRandom(prov, len, (BYTE *) string))
+	{
+		CryptReleaseContext(prov, 0);
+		return qfalse;
+	}
+	CryptReleaseContext(prov, 0);
+	return qtrue;
+}
+
+/*
+================
 Sys_SnapVector
 ================
 */

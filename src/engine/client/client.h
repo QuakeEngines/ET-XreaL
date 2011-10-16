@@ -37,6 +37,14 @@ If you have questions concerning this license or the applicable additional terms
 #include "../../shared/cg_public.h"
 #include "../../../etmain/src/game/bg_public.h"	// FIXME
 
+// XreaL BEGIN
+
+// file full of random crap that gets used to create cl_guid
+#define ETKEY_FILE "etkey"
+#define ETKEY_SIZE 2048
+
+// XreaL END
+
 #define RETRANSMIT_TIMEOUT  3000	// time between connection packet retransmits
 
 #define LIMBOCHAT_WIDTH     140	// NERVE - SMF - NOTE TTimo buffer size indicator, not related to screen bbox
