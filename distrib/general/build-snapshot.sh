@@ -7,8 +7,8 @@ DEVELOPER=../..
 VERSION=0.3.0
 RELEASE=ETXreaL-$VERSION
 DEFAULTGAME=etmain
-COREPK3=zz-ETXreaL-$DATE.pk3
-DLLPK3=mp_bin-$DATE.pk3
+COREPK3=xreal-core-$DATE.pk3
+DLLPK3=xreal-mp_bin-$DATE.pk3
 
 # remove previously created package
 rm $RELEASE.7z
@@ -31,7 +31,7 @@ cp $DEVELOPER/$DEFAULTGAME/qagame_mp_x86.dll $RELEASE/$DEFAULTGAME/
 
 # build core pk3 and delete everything else
 cd $RELEASE/$DEFAULTGAME
-rm zz-ETXreaL*.pk3
+rm xreal-core*.pk3
 
 # create mp_bin.pk3
 zip -r $DLLPK3 src
@@ -42,7 +42,7 @@ mv $DLLPK3 ..
 
 # build pk3 with XreaL addons
 rm -rf src
-zip -r $COREPK3 . -x \*.pk3 \src \*.dll
+zip -r $COREPK3 . -x \*.pk3 \src \levelshots \maps \*.arena \*.dll
 cd ..
 mv $DEFAULTGAME/$COREPK3 .
 rm -rf $DEFAULTGAME

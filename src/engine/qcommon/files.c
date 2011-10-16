@@ -358,13 +358,13 @@ qboolean FS_PakIsPure(pack_t * pack)
 		}
 
 		// XreaL BEGIN
-
-		// CHEAT ALARM: always allow zz-XreaL-<date>.pk3 files so we don't need them on the server
-		if(strstr(pack->pakBasename, "zz-XreaL-"))
+#if 1
+		// CHEAT ALARM: always allow xreal-<anything>.pk3 files so we don't need them on the server
+		if(strstr(pack->pakBasename, "xreal-"))
 		{
 			return qtrue;
 		}
-
+#endif
 		// XreaL END
 
 		return qfalse;			// not on the pure server pak list

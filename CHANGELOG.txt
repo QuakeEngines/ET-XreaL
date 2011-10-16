@@ -22,6 +22,7 @@ ETXreaL
 	* Added Omni-bot 0.81 to default etmain game
 	* Defaulted com_maxfps to 125
 	* Rewrote HDR tone mapping to use correct RGB <-> XYZ <-> Yxy color space conversions
+	* Changed filesystem to ignore xreal-<anything>.pk3 files for sv_pure 1 so the client can connect to non ETXreaL servers
 
 ETXMap
 	* Improved ETXMap -map2map -format quake3 using additional support for worldspawn detail brushes
