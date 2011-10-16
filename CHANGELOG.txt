@@ -10,7 +10,7 @@ ETXreaL
 	* Changed required minimum OpenGL version to 3.2 on Windows
 	* 20 - 80% faster runtime speed by using better Visual Studio compiler options
 	* Replaced VS 2008 and SCons project files by Premake 4.3
-	* Changed default binary installation folders to bin32/ and bin64/ to avoid conflicts between different architectures
+	* Changed default binary installation folders to bin/ to avoid conflicts between different architectures
 	* Improved r_softShadows quality and speed with irregular shadowmap sampling like in Crysis
 	* Implemented Exponential Variance Shadow Mapping to fight the VSM light bleeding problems
 	* Optimized tangent space calculations for ET skeletal models (big speed improvement if r_vboVertexSkinning 0)
