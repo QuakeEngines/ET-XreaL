@@ -22,6 +22,7 @@ ETXreaL
 	* Added Omni-bot 0.81 to default etmain game
 	* Defaulted com_maxfps to 125
 	* Rewrote HDR tone mapping to use correct RGB <-> XYZ <-> Yxy color space conversions
+	* Added GUID system to generate internal etkeys which are sent as cl_guid
 
 ETXMap
 	* Improved ETXMap -map2map -format quake3 using additional support for worldspawn detail brushes
