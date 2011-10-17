@@ -206,7 +206,7 @@ ETXreaL
 	* .avi recorder from ioquake3 including sound support
 	* Optimized collision detection routines
 	* Support for Omni-bot
-	* GUID System
+	* GUID system to generate internal etkeys which are sent as cl_guid
 
 ETXMap
 	* Based on q3map2 by Randy 'ydnar' Reddig including additional fixes by the NetRadiant edition

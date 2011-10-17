@@ -22,7 +22,7 @@ ETXreaL
 	* Added Omni-bot 0.81 to default etmain game
 	* Defaulted com_maxfps to 125
 	* Rewrote HDR tone mapping to use correct RGB <-> XYZ <-> Yxy color space conversions
-	* Changed filesystem to ignore xreal-<anything>.pk3 files for sv_pure 1 so the client can connect to non ETXreaL servers
+	* Added GUID system to generate internal etkeys which are sent as cl_guid
 
 ETXMap
 	* Improved ETXMap -map2map -format quake3 using additional support for worldspawn detail brushes
@@ -51,7 +51,6 @@ __________________________________________
 	* Enabled SSE math code
 	* Fixed bug in Tess_SurfacePolybuffer() which caused the broken flamethrower flames
 	* Fixed bug concerning .map entity modelscale_vec keyword
-	* Added cheat to ignore zz-XreaL-<date>.pk3 files if connecting to pure servers
 	* Added CPU deformVertexes fallback if there is no OpenGL 3 driver or r_vboDeformVertexes is set to 0
 	* Added r_shadowMapSizeSunUltra - r_shadowMapSizeSunLow
 	* Removed old, broken and unsupported stencil shadow volumes code
