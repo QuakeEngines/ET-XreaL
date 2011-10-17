@@ -358,8 +358,8 @@ qboolean FS_PakIsPure(pack_t * pack)
 		}
 
 		// XreaL BEGIN
-#if 1
-		// CHEAT ALARM: always allow xreal-<anything>.pk3 files so we don't need them on the server
+#if 0
+		// CHEAT ALERT: always allow xreal-<anything>.pk3 files so we don't need them on the server
 		if(strstr(pack->pakBasename, "xreal-"))
 		{
 			return qtrue;
@@ -4142,14 +4142,15 @@ const char     *FS_ReferencedPakPureChecksums(void)
 			if(search->pack && (search->pack->referenced & nFlags))
 			{
 				// XreaL BEGIN
-
-				// CHEAT ALARM: always allow zz-XreaL-<date>.pk3 files so we don't need them on the server
-				if(strstr(search->pack->pakBasename, "zz-XreaL-"))
+#if 0
+				// CHEAT ALERT: always allow xreal-<date>.pk3 files so we don't need them on the server
+				if(strstr(search->pack->pakBasename, "xreal-"))
 				{
 					continue;
 				}
-				// XreaL END
 				else
+#endif
+				// XreaL END
 				{
 					Q_strcat(info, sizeof(info), va("%i ", search->pack->pure_checksum));
 					if(nFlags & (FS_CGAME_REF | FS_UI_REF))
