@@ -1081,13 +1081,28 @@ void CL_ClearState(void)
 }
 
 // XreaL BEGIN
+char *calculateGUID(char *key)
+{
+	char *tmp, *hash;
+	tmp  = do_MD5(key, 0x00b684a3);
+	hash = do_MD5(tmp, 0x00051a56);
+
+	// guids are lowercased after md5sums, we must to change case to upper
+	// so it can be compared in mods with xpsave data for example
+	int i;
+	for (i = 0; hash[i]; i++)
+		hash[i] = toupper(hash[i]);
+
+	return hash;
+}
+
 /*
 ====================
 CL_UpdateGUID
 
-update cl_guid using ETKEY_FILE and optional prefix
+ * update cl_guid using ETKEY_FILE and optional prefix
 ====================
-*/
+ */
 static void CL_UpdateGUID(const char *prefix, int prefix_len)
 {
 	fileHandle_t    f;
@@ -1099,7 +1114,19 @@ static void CL_UpdateGUID(const char *prefix, int prefix_len)
 	if(len != ETKEY_SIZE)
 		Cvar_Set("cl_guid", "");
 	else
-		Cvar_Set("cl_guid", Com_MD5File(ETKEY_FILE, ETKEY_SIZE, prefix, prefix_len));
+	{
+		char key[17];
+		char *buffer;
+		len = FS_ReadFile(ETKEY_FILE, (void **)&buffer);
+		if (buffer)
+		{
+			int i;
+			for (i = 0; i < 18; i++)
+				key[i] = buffer[i+10];
+
+			Cvar_Set("cl_guid", calculateGUID(key));
+		}
+	}
 }
 // XreaL END
 

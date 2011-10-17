@@ -319,3 +319,31 @@ char           *Com_MD5File(const char *fn, int length, const char *prefix, int 
 	}
 	return final;
 }
+
+void MD5InitSeed(MD5_CTX *mdContext, unsigned long pseudoRandomNumber)
+{
+	mdContext->bits[0] = mdContext->bits[1] = (uint32_t)0;
+	mdContext->buf[0] = (uint32_t)0x67452301 + pseudoRandomNumber * 11;
+	mdContext->buf[1] = (uint32_t)0xefcdab89 + pseudoRandomNumber * 71;
+	mdContext->buf[2] = (uint32_t)0x98badcfe + pseudoRandomNumber * 37;
+	mdContext->buf[3] = (uint32_t)0x10325476 + pseudoRandomNumber * 97;
+}
+
+char *do_MD5(char *key, int seed) {
+	MD5_CTX           ctx;
+	int               i;
+	static char       hash[33];
+	static const char hex[16] = "0123456789abcdef";
+	unsigned char     digest[16];
+	
+	MD5InitSeed(&ctx, seed);
+	MD5Update(&ctx, key, strlen(key));
+	MD5Final(&ctx, digest);
+	
+	for(i = 0; i < 16; i++) {
+		hash[i << 1]       = hex[digest[i] >> 4];
+		hash[(i << 1) + 1] = hex[digest[i] & 15];
+	}
+	hash[i << 1] = 0;
+	return hash;
+}
