@@ -300,7 +300,7 @@ r_hdrDebug						Shows min, max and average luminance detected by the scene input
 
 // ----------------------------------------------------------------------------
 
-r_deferredShading				(experimental)
+r_deferredShading				(experimental, only allowed for development mode using devmap)
 								0 = Renders dynamic lights using Forward Shading like in Doom 3 (default)
 								1 = Renders dynamic lights using Deferred Shading like in S.T.A.L.K.E.R.
 								Pros:
