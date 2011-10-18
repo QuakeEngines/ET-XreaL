@@ -300,7 +300,7 @@ char           *Com_MD5File(const char *fn, int length, const char *prefix, int 
 
 	for(;;)
 	{
-		r = FS_Read2(buffer, sizeof(buffer), f);
+		r = FS_Read(buffer, sizeof(buffer), f);
 		if(r < 1)
 			break;
 		if(r + total > length)
@@ -329,21 +329,66 @@ void MD5InitSeed(MD5_CTX *mdContext, unsigned long pseudoRandomNumber)
 	mdContext->buf[3] = (uint32_t)0x10325476 + pseudoRandomNumber * 97;
 }
 
-char *do_MD5(char *key, int seed) {
+// XreaL BEGIN
+// for ET compatibility
+static char *CalculateMD5ForSeed(const char *key, int seed) 
+{
 	MD5_CTX           ctx;
 	int               i;
 	static char       hash[33];
-	static const char hex[16] = "0123456789abcdef";
+	static const char hex[17] = "0123456789abcdef\0";
 	unsigned char     digest[16];
 	
 	MD5InitSeed(&ctx, seed);
-	MD5Update(&ctx, key, strlen(key));
+	MD5Update(&ctx, (const byte*) key, strlen(key));
 	MD5Final(&ctx, digest);
 	
-	for(i = 0; i < 16; i++) {
+	for(i = 0; i < 16; i++) 
+	{
 		hash[i << 1]       = hex[digest[i] >> 4];
 		hash[(i << 1) + 1] = hex[digest[i] & 15];
 	}
 	hash[i << 1] = 0;
 	return hash;
 }
+
+
+static char *CalculateGUID(const char *key)
+{
+	int				i;
+	char           *tmp, *hash;
+	tmp  = CalculateMD5ForSeed(key, 0x00b684a3);
+	hash = CalculateMD5ForSeed(tmp, 0x00051a56);
+
+	// guids are lowercased after md5sums, we must to change case to upper
+	// so it can be compared in mods with xpsave data for example
+	for (i = 0; hash[i]; i++)
+		hash[i] = toupper(hash[i]);
+
+	return hash;
+}
+
+char           *Com_MD5FileETCompat(const char *filename)
+{
+	char			   key[17];
+	char              *buffer;
+	int                len;
+
+	len = FS_ReadFile(filename, (void **)&buffer);
+	if (buffer)
+	{
+		int i;
+		for (i = 0; i < 18; i++)
+		{
+			key[i] = buffer[i + 10];
+		}
+
+		return CalculateGUID(key);
+	}
+	else
+	{
+		return "";
+	}
+}
+
+// XreaL END

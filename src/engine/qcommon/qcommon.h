@@ -923,6 +923,7 @@ unsigned int    Com_BlockChecksumKey(void *buffer, int length, int key);
 
 // XreaL BEGIN
 char           *Com_MD5File(const char *filename, int length, const char *prefix, int prefix_len);
+char           *Com_MD5FileETCompat(const char *filename);
 void            Com_RandomBytes(byte * string, int len);
 // XreaL END
 
