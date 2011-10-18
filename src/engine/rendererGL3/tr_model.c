@@ -104,7 +104,12 @@ qhandle_t RE_RegisterModel(const char *name)
 
 	if(!name || !name[0])
 	{
+		// Tr3B: changed to PRINT_DEVELOPER FOR ET
+#if defined(COMPAT_ET)
+		ri.Printf(PRINT_DEVELOPER, "RE_RegisterModel: NULL name\n");
+#else
 		ri.Printf(PRINT_ALL, "RE_RegisterModel: NULL name\n");
+#endif
 		return 0;
 	}
 

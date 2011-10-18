@@ -1305,6 +1305,7 @@ static void GLW_InitExtensions(void)
 	}
 	else
 	{
+		ri.Cvar_Set("r_ext_texture_filter_anisotropic", "0");
 		ri.Printf(PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n");
 	}
 	GL_CheckErrors();
