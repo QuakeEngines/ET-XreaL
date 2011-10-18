@@ -96,8 +96,13 @@ covered by the original EULA and must be obeyed as usual.
 Wolfenstein: Enemy Territory is a free release, and can be downloaded from
 http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks
 
-Install the latest version of Wolfenstein: Enemy Territory for your platform to get the game data
-and copy it to ET-XreaL/etmain or patch your Wolfenstein: Enemy Territory by extracting ET-XreaL_snapshot_date.7z over it.
+Install the latest version of Wolfenstein: Enemy Territory for your platform to get the game data.
+
+Now copy pak0.pk3, pak1.pk3 and pak2.pk3 from your Wolfenstein: Enemy Territory/etmain to ETXreaL/etmain.
+	
+You can find binaries to start ETXreaL in ETXreaL/bin/. 
+
+NOTE: You don't need to copy the binaries to anywhere just start them.
 
 
 
@@ -254,7 +259,7 @@ cg_shadows						Sets the shadows quality (higher value -> more expensive and bet
 								
 
 r_dynamicLight					Enable dynamic lights
-r_dynamicLightCastShadows		Enable dynamic lights to cast shadows with all interacting surfaces (expensive)
+r_dynamicLightShadows			Enable dynamic lights to cast shadows with all interacting surfaces (expensive)
 
 r_vboVertexSkinning				Enables skeletal animation rendering on the GPU
 								Pros:
