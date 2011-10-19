@@ -387,7 +387,7 @@ char           *Com_MD5FileETCompat(const char *filename)
 	}
 	else
 	{
-		return "";
+		return 0;
 	}
 }
 
