@@ -370,26 +370,25 @@ static char *CalculateGUID(const char *key)
 
 char           *Com_MD5FileETCompat(const char *filename)
 {
-	char			   key[18];
+	char			   key[19] = {0};
 	char              *buffer;
 	int                len;
 
 	len = FS_ReadFile(filename, (void **)&buffer);
 	if (buffer)
 	{
-		int i;
-		for (i = 0; i < 18; i++)
+		if (len >= 28)
 		{
-			key[i] = buffer[i + 10];
-		}
-		key[18] = 0;
+			int i;
+			for (i = 0; i < 18; i++)
+			{
+				key[i] = buffer[i + 10];
+			}
 
-		return CalculateGUID(key);
+			return CalculateGUID(key);
+		}
 	}
-	else
-	{
-		return 0;
-	}
+	return 0;
 }
 
 // XreaL END
