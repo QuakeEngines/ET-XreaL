@@ -370,7 +370,7 @@ static char *CalculateGUID(const char *key)
 
 char           *Com_MD5FileETCompat(const char *filename)
 {
-	char			   key[17];
+	char			   key[18];
 	char              *buffer;
 	int                len;
 
@@ -382,6 +382,7 @@ char           *Com_MD5FileETCompat(const char *filename)
 		{
 			key[i] = buffer[i + 10];
 		}
+		key[18] = 0;
 
 		return CalculateGUID(key);
 	}
