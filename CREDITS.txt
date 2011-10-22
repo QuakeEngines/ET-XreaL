@@ -30,6 +30,7 @@ Kevin 'Eonfge' Degeling - www.kevindegeling.nl
  - Railgun replacement textures
  - Oasis replacement textures
  - Goldrush replacement textures
+ - Radar replacement textures
 
 Danny 'FireFly'
  - Models
@@ -48,6 +49,9 @@ Marko, Lowlife and Bob
 Konrad 'morsik' Moson - http://morsik.darkserver.it
  - Battery terrain textures
  - temperate_sd texture set
+ 
+ Ivo "Evol" van Dijk - http://www.evol-productions.com
+ -ET-XreaL soundtrack
  
 'KeMoN'
  - Level improvements
@@ -114,3 +118,49 @@ http://www.flickr.com/photos/68518558@N00/426702914/sizes/z/in/photostream/
  
 TGiles Douglas
 http://www.flickr.com/photos/orangelimey/2408454318/sizes/o/in/photostream/
+
+___________________________________________________
+
+Fair Use assets
+__________________________________________
+
+Quote From Wikipedia
+
+    17 U.S.C. § 107
+
+    Notwithstanding the provisions of sections 17 U.S.C. § 106 and 17 U.S.C. § 106A, the fair use of a copyrighted work, including such use by reproduction in copies or phonorecords or by any other means specified by that section, for purposes such as criticism, comment, news reporting, teaching (including multiple copies for classroom use), scholarship, or research, is not an infringement of copyright. In determining whether the use made of a work in any particular case is a fair use the factors to be considered shall include:
+
+        -    the purpose and character of the use, including whether such use is of a commercial nature or is for nonprofit educational purposes;
+        -    the nature of the copyrighted work;
+        -    the amount and substantiality of the portion used in relation to the copyrighted work as a whole; and
+        -    the effect of the use upon the potential market for or value of the copyrighted work.
+
+    The fact that a work is unpublished shall not itself bar a finding of fair use if such finding is made upon consideration of all the above factors.
+	
+-- Wikipedia
+	
+The following assets are used under the United States Fair Use for news reporting, critism an teaching. The following items are used to make a political statement in favour of Open Source and the protection of civil rights. They are also featured because they directly apply to the multiple licenses of ET-XreaL
+
+Free Software Foundation
+- GNU GPL 3.0 Logo
+- GNU 'Gnu' image
+
+Creative Commons
+- CC-BY-SA Logo
+
+Electronic Freedom Foundation
+- Black E with white F's in Circle
+
+Open Source Initinative
+- Open Source 'Open Lock' Logo
+
+Bits of Freedom
+- Barbed Wire Logo
+
+Id Software
+- Cacodemon (Doom)
+- Dopefish (Commander Keen)
+- Commander keen (Commander Keen/Doom)
+- Vore (Quake)
+
+When any rightsholder feels that his rights are violated, he can contact Kevin 'Eonfge' Degeling.

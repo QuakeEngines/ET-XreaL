@@ -1096,9 +1096,15 @@ static void CL_UpdateGUID(const char *prefix, int prefix_len)
 	FS_FCloseFile(f);
 
 	if(len != ETKEY_SIZE)
+	{
 		Cvar_Set("cl_guid", "");
+	}
 	else
-		Cvar_Set("cl_guid", Com_MD5FileETCompat(ETKEY_FILE));
+	{
+		char *guid = Com_MD5FileETCompat(ETKEY_FILE);
+		if (guid)
+			Cvar_Set("cl_guid", guid);
+	}
 }
 // XreaL END
 
