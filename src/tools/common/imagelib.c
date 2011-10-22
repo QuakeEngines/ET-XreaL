@@ -1663,14 +1663,14 @@ static void png_flush_data(png_structp png)
 {
 }
 
-void WritePNG(const char *name, const byte * pic, int width, int height, qboolean flip)
+void WritePNG(const char *name, const byte * pic, int width, int height, int numBytes, qboolean flip)
 {
 	png_structp     png;
 	png_infop       info;
 	int             i;
 	int             row_stride;
 	byte           *buffer;
-	const byte     *row;
+	byte           *row;
 	png_bytep      *row_pointers;
 
 	png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -1687,7 +1687,7 @@ void WritePNG(const char *name, const byte * pic, int width, int height, qboolea
 	}
 
 	png_compressed_size = 0;
-	buffer = safe_malloc(width * height * 3);
+	buffer = safe_malloc(width * height * numBytes);
 
 	// set error handling
 	if(setjmp(png_jmpbuf(png)))
@@ -1698,8 +1698,18 @@ void WritePNG(const char *name, const byte * pic, int width, int height, qboolea
 	}
 
 	png_set_write_fn(png, buffer, png_write_data, png_flush_data);
-	png_set_IHDR(png, info, width, height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+
+	if(numBytes == 4)
+	{
+		png_set_IHDR(png, info, width, height, 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
 				 PNG_FILTER_TYPE_DEFAULT);
+	}
+	else
+	{
+		// should be 3
+		png_set_IHDR(png, info, width, height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+				PNG_FILTER_TYPE_DEFAULT);
+	}
 
 	// write the file header information
 	png_write_info(png, info);
@@ -1714,8 +1724,9 @@ void WritePNG(const char *name, const byte * pic, int width, int height, qboolea
 		return;
 	}
 
-	row_stride = width * 3;
-	row = pic + (height - 1) * row_stride;
+	row_stride = width * numBytes;
+	row = (byte *)pic + (height - 1) * row_stride;
+
 	if(flip)
 	{
 		for(i = height - 1; i >= 0; i--)

@@ -42,4 +42,4 @@ void            Load32BitImage(const char *name, unsigned **pixels, int *width, 
 void            LoadJPGBuffer(const char *name, byte * buffer, int bufferSize, byte ** pic, int *width, int *height);
 
 void            LoadPNGBuffer(byte * buffer, byte ** pic, int *width, int *height);
-void            WritePNG(const char *filename, const byte * data, int width, int height, qboolean flip);
+void            WritePNG(const char *filename, const byte * data, int width, int height, int numBytesPerPixel, qboolean flip);

@@ -761,7 +761,7 @@ int MiniMapBSPMain(int argc, char **argv)
 					*p++ = b;
 				}
 			Sys_Printf(" writing to %s...", minimapFilename);
-			WritePNG(minimapFilename, data4b, minimap.width, minimap.height, qtrue);
+			WritePNG(minimapFilename, data4b, minimap.width, minimap.height, 4, qfalse);
 			break;
 		case MINIMAP_MODE_WHITE:
 			p = data4b;
@@ -782,7 +782,7 @@ int MiniMapBSPMain(int argc, char **argv)
 					*p++ = b;
 				}
 			Sys_Printf(" writing to %s...", minimapFilename);
-			WritePNG(minimapFilename, data4b, minimap.width, minimap.height, qtrue);
+			WritePNG(minimapFilename, data4b, minimap.width, minimap.height, 4, qfalse);
 			break;
 	}
 
