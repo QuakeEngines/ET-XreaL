@@ -336,7 +336,7 @@ static char *CalculateMD5ForSeed(const char *key, int seed)
 	MD5_CTX           ctx;
 	int               i;
 	static char       hash[33];
-	static const char hex[17] = "0123456789abcdef\0";
+	static const char hex[17] = "0123456789abcdef";
 	unsigned char     digest[16];
 	
 	MD5InitSeed(&ctx, seed);
@@ -388,7 +388,7 @@ char           *Com_MD5FileETCompat(const char *filename)
 			return CalculateGUID(key);
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 // XreaL END
