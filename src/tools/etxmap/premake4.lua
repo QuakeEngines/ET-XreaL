@@ -74,6 +74,10 @@ project "ETXMap"
 			"wsock32",
 			"glib-2.0",
 		}
+		linkoptions
+		{
+			"/LARGEADDRESSAWARE",
+		}
 		defines
 		{
 			"WIN32",
