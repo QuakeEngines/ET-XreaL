@@ -1418,8 +1418,15 @@ void R_Register(void)
 	
 	r_parallaxMapping = ri.Cvar_Get("r_parallaxMapping", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_dynamicLightShadows = ri.Cvar_Get("r_dynamicLightShadows", "1", CVAR_ARCHIVE);
+
+#if defined(COMPAT_ET)
+	r_precomputedLighting = ri.Cvar_Get("r_precomputedLighting", "1", CVAR_CHEAT);
+	r_vertexLighting = ri.Cvar_Get("r_vertexLighting", "0", CVAR_CHEAT);
+#else
 	r_precomputedLighting = ri.Cvar_Get("r_precomputedLighting", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_vertexLighting = ri.Cvar_Get("r_vertexLighting", "0", CVAR_ARCHIVE | CVAR_LATCH);
+#endif
+
 	r_compressDiffuseMaps = ri.Cvar_Get("r_compressDiffuseMaps", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_compressSpecularMaps = ri.Cvar_Get("r_compressSpecularMaps", "1", CVAR_ARCHIVE | CVAR_LATCH);
 	r_compressNormalMaps = ri.Cvar_Get("r_compressNormalMaps", "0", CVAR_ARCHIVE | CVAR_LATCH);
