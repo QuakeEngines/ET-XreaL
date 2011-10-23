@@ -1820,7 +1820,6 @@ void GLimp_EndFrame(void)
 */
 void GLimp_Init(void)
 {
-	char            buf[1024];
 	cvar_t         *lastValidRenderer = ri.Cvar_Get("r_lastValidRenderer", "(uninitialized)", CVAR_ARCHIVE);
 	cvar_t         *cv;
 
@@ -1854,6 +1853,10 @@ void GLimp_Init(void)
 
 	GL_CheckErrors();
 
+	ri.Printf(PRINT_ALL, "GL_VENDOR: '%s'\n", glGetString(GL_VENDOR));
+	ri.Printf(PRINT_ALL, "GL_RENDERER: '%s'\n", glGetString(GL_RENDERER));
+	ri.Printf(PRINT_ALL, "GL_VERSION: '%s'\n", glGetString(GL_VERSION));
+
 	// get our config strings
 	Q_strncpyz(glConfig.vendor_string, glGetString(GL_VENDOR), sizeof(glConfig.vendor_string));
 	Q_strncpyz(glConfig.renderer_string, glGetString(GL_RENDERER), sizeof(glConfig.renderer_string));
@@ -1871,47 +1874,26 @@ void GLimp_Init(void)
 	
 #endif
 
-	// chipset specific configuration
-	Q_strncpyz(buf, glConfig.renderer_string, sizeof(buf));
-	Q_strlwr(buf);
-
 	GL_CheckErrors();
+
+	glConfig.hardwareType = GLHW_GENERIC;
 
 	//
 	// NOTE: if changing cvars, do it within this block.  This allows them
 	// to be overridden when testing driver fixes, etc. but only sets
 	// them to their default state when the hardware is first installed/run.
 	//
-	if(Q_stricmp(lastValidRenderer->string, glConfig.renderer_string))
-	{
-		glConfig.hardwareType = GLHW_GENERIC;
-
-		ri.Cvar_Set("r_textureMode", "GL_LINEAR_MIPMAP_NEAREST");
-
-		// VOODOO GRAPHICS w/ 2MB
-		if(strstr(buf, "voodoo graphics/1 tmu/2 mb"))
-		{
-			ri.Cvar_Set("r_picmip", "2");
-			ri.Cvar_Get("r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH);
-		}
-		else
-		{
-
-//----(SA)  FIXME: RETURN TO DEFAULT  Another id build change for DK/DM
-			ri.Cvar_Set("r_picmip", "1");	//----(SA)    was "1" // JPW NERVE back to 1
-//----(SA)
-
-			if(strstr(buf, "rage 128") || strstr(buf, "rage128"))
-			{
-				ri.Cvar_Set("r_finish", "0");
-			}
-			// Savage3D and Savage4 should always have trilinear enabled
-			else if(strstr(buf, "savage3d") || strstr(buf, "s3 savage4"))
-			{
-				ri.Cvar_Set("r_texturemode", "GL_LINEAR_MIPMAP_LINEAR");
-			}
-		}
-	}
+//	if(Q_stricmp(lastValidRenderer->string, glConfig.renderer_string))
+//	{
+//		glConfig.hardwareType = GLHW_GENERIC;
+//
+//		ri.Cvar_Set("r_textureMode", "GL_LINEAR_MIPMAP_NEAREST");
+//
+////----(SA)  FIXME: RETURN TO DEFAULT  Another id build change for DK/DM
+//			ri.Cvar_Set("r_picmip", "1");	//----(SA)    was "1" // JPW NERVE back to 1
+////----(SA)
+//		}
+//	}
 
 	//
 	// this is where hardware specific workarounds that should be
@@ -1919,19 +1901,47 @@ void GLimp_Init(void)
 	//
 	if(Q_stristr(glConfig.renderer_string, "geforce"))
 	{
-		if(Q_stristr(glConfig.renderer_string, "8400") ||
+		if(glConfig.driverType == GLDRV_OPENGL3)
+		{
+			glConfig.hardwareType = GLHW_NV_DX10;
+		}
+		else if(Q_stristr(glConfig.renderer_string, "8400") ||
 		   Q_stristr(glConfig.renderer_string, "8500") ||
 		   Q_stristr(glConfig.renderer_string, "8600") ||
 		   Q_stristr(glConfig.renderer_string, "8800") ||
 		   Q_stristr(glConfig.renderer_string, "9500") ||
 		   Q_stristr(glConfig.renderer_string, "9600") ||
 		   Q_stristr(glConfig.renderer_string, "9800") ||
+		   Q_stristr(glConfig.renderer_string, "gts 240") ||
 		   Q_stristr(glConfig.renderer_string, "gts 250") ||
 		   Q_stristr(glConfig.renderer_string, "gtx 260") ||
 		   Q_stristr(glConfig.renderer_string, "gtx 275") ||
 		   Q_stristr(glConfig.renderer_string, "gtx 280") ||
 		   Q_stristr(glConfig.renderer_string, "gtx 285") ||
-		   Q_stristr(glConfig.renderer_string, "gtx 295"))
+		   Q_stristr(glConfig.renderer_string, "gtx 295") ||
+		   Q_stristr(glConfig.renderer_string, "gt 320") ||
+		   Q_stristr(glConfig.renderer_string, "gt 330") ||
+		   Q_stristr(glConfig.renderer_string, "gt 340") ||
+		   Q_stristr(glConfig.renderer_string, "gt 415") ||
+		   Q_stristr(glConfig.renderer_string, "gt 420") ||
+		   Q_stristr(glConfig.renderer_string, "gt 425") ||
+		   Q_stristr(glConfig.renderer_string, "gt 430") ||
+		   Q_stristr(glConfig.renderer_string, "gt 435") ||
+		   Q_stristr(glConfig.renderer_string, "gt 440") ||
+		   Q_stristr(glConfig.renderer_string, "gt 520") ||
+		   Q_stristr(glConfig.renderer_string, "gt 525") ||
+		   Q_stristr(glConfig.renderer_string, "gt 540") ||
+		   Q_stristr(glConfig.renderer_string, "gt 550") ||
+		   Q_stristr(glConfig.renderer_string, "gt 555") ||
+		   Q_stristr(glConfig.renderer_string, "gts 450") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 460") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 470") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 480") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 485") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 560") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 570") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 580") ||
+		   Q_stristr(glConfig.renderer_string, "gtx 590"))
 			glConfig.hardwareType = GLHW_NV_DX10;
 	}
 	else if(Q_stristr(glConfig.renderer_string, "quadro fx"))
