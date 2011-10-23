@@ -351,8 +351,8 @@ static int CompareLightSurface(const void *a, const void *b)
 
 
 	/* get shaders */
-	asi = surfaceInfos[*((int *)a)].si;
-	bsi = surfaceInfos[*((int *)b)].si;
+	asi = surfaceInfos[*((const int *)a)].si;
+	bsi = surfaceInfos[*((const int *)b)].si;
 
 	/* dummy check */
 	if(asi == NULL)
@@ -653,10 +653,10 @@ based on AllocateLightmapForSurface()
 qboolean AddSurfaceToRawLightmap(int num, rawLightmap_t * lm)
 {
 	bspDrawSurface_t *ds, *ds2;
-	surfaceInfo_t  *info, *info2;
+	surfaceInfo_t  *info;
 	int             num2, n, i, axisNum;
 	float           s, t, d, len, sampleSize;
-	vec3_t          mins, maxs, origin, faxis, size, exactSize, delta, normalized, vecs[2];
+	vec3_t          mins, maxs, origin, faxis, size, delta, normalized, vecs[2];
 	vec4_t          plane;
 	bspDrawVert_t  *verts;
 
@@ -730,7 +730,6 @@ qboolean AddSurfaceToRawLightmap(int num, rawLightmap_t * lm)
 	/* round to the lightmap resolution */
 	for(i = 0; i < 3; i++)
 	{
-		exactSize[i] = lm->maxs[i] - lm->mins[i];
 		mins[i] = sampleSize * floor(lm->mins[i] / sampleSize);
 		maxs[i] = sampleSize * ceil(lm->maxs[i] / sampleSize);
 		size[i] = (maxs[i] - mins[i]) / sampleSize + 1.0f;
@@ -816,7 +815,6 @@ qboolean AddSurfaceToRawLightmap(int num, rawLightmap_t * lm)
 		/* get surface */
 		num2 = lightSurfaces[lm->firstLightSurface + n];
 		ds2 = &bspDrawSurfaces[num2];
-		info2 = &surfaceInfos[num2];
 		verts = &yDrawVerts[ds2->firstVert];
 
 		/* set the lightmap texture coordinates in yDrawVerts in [0, superSample * lm->customWidth] space */
@@ -839,7 +837,6 @@ qboolean AddSurfaceToRawLightmap(int num, rawLightmap_t * lm)
 	/* get first drawsurface */
 	num2 = lightSurfaces[lm->firstLightSurface];
 	ds2 = &bspDrawSurfaces[num2];
-	info2 = &surfaceInfos[num2];
 	verts = &yDrawVerts[ds2->firstVert];
 
 	/* calculate lightmap origin */
@@ -914,8 +911,8 @@ static int CompareSurfaceInfo(const void *a, const void *b)
 
 
 	/* get surface info */
-	aInfo = &surfaceInfos[*((int *)a)];
-	bInfo = &surfaceInfos[*((int *)b)];
+	aInfo = &surfaceInfos[*((const int *)a)];
+	bInfo = &surfaceInfos[*((const int *)b)];
 
 	/* model first */
 	if(aInfo->modelindex < bInfo->modelindex)
@@ -993,7 +990,7 @@ void SetupSurfaceLightmaps(void)
 	int             i, j, k, s, num, num2;
 	bspModel_t     *model;
 	bspLeaf_t      *leaf;
-	bspDrawSurface_t *ds, *ds2;
+	bspDrawSurface_t *ds;
 	surfaceInfo_t  *info, *info2;
 	rawLightmap_t  *lm;
 	qboolean        added;
@@ -1205,7 +1202,6 @@ void SetupSurfaceLightmaps(void)
 			{
 				/* get info and attempt early out */
 				num2 = sortSurfaces[j];
-				ds2 = &bspDrawSurfaces[num2];
 				info2 = &surfaceInfos[num2];
 				if(info2->hasLightmap == qfalse || info2->lm != NULL)
 					continue;
@@ -1271,8 +1267,7 @@ void StitchSurfaceLightmaps(void)
 {
 	int             i, j, x, y, x2, y2, *cluster, *cluster2, numStitched, numCandidates, numLuxels, f, fOld, start;
 	rawLightmap_t  *lm, *a, *b, *c[MAX_STITCH_CANDIDATES];
-	float          *luxel, *luxel2, *origin, *origin2, *normal, *normal2,
-		sampleSize, average[3], totalColor, ootc, *luxels[MAX_STITCH_LUXELS];
+	float          *luxel, *luxel2, *origin, *origin2, *normal, *normal2, sampleSize, average[3], totalColor, ootc;
 
 
 	/* disabled for now */
@@ -1385,7 +1380,6 @@ void StitchSurfaceLightmaps(void)
 
 							/* add luxel */
 							//% VectorSet( luxel2, 255, 0, 255 );
-							luxels[numLuxels++] = luxel2;
 							VectorAdd(average, luxel2, average);
 							totalColor += luxel2[3];
 						}
@@ -1991,7 +1985,7 @@ for a given surface lightmap, find output lightmap pages and positions for it
 #define LIGHTMAP_RESERVE_COUNT 1
 static void FindOutLightmaps(rawLightmap_t * lm)
 {
-	int             i, j, k, lightmapNum, xMax, yMax, x, y, sx, sy, ox, oy, offset, temp;
+	int             i, j, k, lightmapNum, xMax, yMax, x = -1, y = -1, sx, sy, ox, oy, offset;
 	outLightmap_t  *olm;
 	surfaceInfo_t  *info;
 	float          *luxel, *deluxel;
@@ -2277,21 +2271,14 @@ static void FindOutLightmaps(rawLightmap_t * lm)
 				if(deluxemap)
 				{
 					/* normalize average light direction */
-					if(VectorNormalize2(deluxel, direction))
-					{
-						/* encode [-1,1] in [0,255] */
-						pixel = olm->bspDirBytes + (((oy * olm->customWidth) + ox) * 3);
-						for(i = 0; i < 3; i++)
-						{
-							temp = (direction[i] + 1.0f) * 127.5f;
-							if(temp < 0)
-								pixel[i] = 0;
-							else if(temp > 255)
-								pixel[i] = 255;
-							else
-								pixel[i] = temp;
-						}
-					}
+					pixel = olm->bspDirBytes + (((oy * olm->customWidth) + ox) * 3);
+					VectorScale(deluxel, 1000.0f, direction);
+					VectorNormalize(direction);
+
+					/* encode [-1,1] in [0,255] */
+					VectorScale(direction, 127.5f, direction);
+					for(i = 0; i < 3; i++)
+						pixel[i] = (byte) (127.5f + direction[i]);
 				}
 			}
 		}
@@ -2313,8 +2300,8 @@ static int CompareRawLightmap(const void *a, const void *b)
 
 
 	/* get lightmaps */
-	alm = &rawLightmaps[*((int *)a)];
-	blm = &rawLightmaps[*((int *)b)];
+	alm = &rawLightmaps[*((const int *)a)];
+	blm = &rawLightmaps[*((const int *)b)];
 
 	/* get min number of surfaces */
 	min = (alm->numLightSurfaces < blm->numLightSurfaces ? alm->numLightSurfaces : blm->numLightSurfaces);
@@ -2348,7 +2335,112 @@ static int CompareRawLightmap(const void *a, const void *b)
 	return 0;
 }
 
+void FillOutLightmap(outLightmap_t * olm)
+{
+	int             x, y;
+	int             ofs;
+	vec3_t          dir_sum, light_sum;
+	int             cnt, filled;
+	byte           *lightBitsNew = NULL;
+	byte           *lightBytesNew = NULL;
+	byte           *dirBytesNew = NULL;
 
+	lightBitsNew = safe_malloc((olm->customWidth * olm->customHeight + 8) / 8);
+	lightBytesNew = safe_malloc(olm->customWidth * olm->customHeight * 3);
+	if(deluxemap)
+		dirBytesNew = safe_malloc(olm->customWidth * olm->customHeight * 3);
+
+	/*
+	   memset(olm->lightBits, 0, (olm->customWidth * olm->customHeight + 8) / 8);
+	   olm->lightBits[0] |= 1;
+	   olm->lightBits[(10 * olm->customWidth + 30) >> 3] |= 1 << ((10 * olm->customWidth + 30) & 7);
+	   memset(olm->bspLightBytes, 0, olm->customWidth * olm->customHeight * 3);
+	   olm->bspLightBytes[0] = 255;
+	   olm->bspLightBytes[(10 * olm->customWidth + 30) * 3 + 2] = 255;
+	 */
+
+	memcpy(lightBitsNew, olm->lightBits, (olm->customWidth * olm->customHeight + 8) / 8);
+	memcpy(lightBytesNew, olm->bspLightBytes, olm->customWidth * olm->customHeight * 3);
+	if(deluxemap)
+		memcpy(dirBytesNew, olm->bspDirBytes, olm->customWidth * olm->customHeight * 3);
+
+	for(;;)
+	{
+		filled = 0;
+		for(y = 0; y < olm->customHeight; ++y)
+		{
+			for(x = 0; x < olm->customWidth; ++x)
+			{
+				ofs = y * olm->customWidth + x;
+				if(olm->lightBits[ofs >> 3] & (1 << (ofs & 7)))	/* already filled */
+					continue;
+				cnt = 0;
+				VectorClear(dir_sum);
+				VectorClear(light_sum);
+
+				/* try all four neighbors */
+				ofs = ((y + olm->customHeight - 1) % olm->customHeight) * olm->customWidth + x;
+				if(olm->lightBits[ofs >> 3] & (1 << (ofs & 7)))	/* already filled */
+				{
+					++cnt;
+					VectorAdd(light_sum, olm->bspLightBytes + ofs * 3, light_sum);
+					if(deluxemap)
+						VectorAdd(dir_sum, olm->bspDirBytes + ofs * 3, dir_sum);
+				}
+
+				ofs = ((y + 1) % olm->customHeight) * olm->customWidth + x;
+				if(olm->lightBits[ofs >> 3] & (1 << (ofs & 7)))	/* already filled */
+				{
+					++cnt;
+					VectorAdd(light_sum, olm->bspLightBytes + ofs * 3, light_sum);
+					if(deluxemap)
+						VectorAdd(dir_sum, olm->bspDirBytes + ofs * 3, dir_sum);
+				}
+
+				ofs = y * olm->customWidth + (x + olm->customWidth - 1) % olm->customWidth;
+				if(olm->lightBits[ofs >> 3] & (1 << (ofs & 7)))	/* already filled */
+				{
+					++cnt;
+					VectorAdd(light_sum, olm->bspLightBytes + ofs * 3, light_sum);
+					if(deluxemap)
+						VectorAdd(dir_sum, olm->bspDirBytes + ofs * 3, dir_sum);
+				}
+
+				ofs = y * olm->customWidth + (x + 1) % olm->customWidth;
+				if(olm->lightBits[ofs >> 3] & (1 << (ofs & 7)))	/* already filled */
+				{
+					++cnt;
+					VectorAdd(light_sum, olm->bspLightBytes + ofs * 3, light_sum);
+					if(deluxemap)
+						VectorAdd(dir_sum, olm->bspDirBytes + ofs * 3, dir_sum);
+				}
+
+				if(cnt)
+				{
+					++filled;
+					ofs = y * olm->customWidth + x;
+					lightBitsNew[ofs >> 3] |= (1 << (ofs & 7));
+					VectorScale(light_sum, 1.0 / cnt, lightBytesNew + ofs * 3);
+					if(deluxemap)
+						VectorScale(dir_sum, 1.0 / cnt, dirBytesNew + ofs * 3);
+				}
+			}
+		}
+
+		if(!filled)
+			break;
+
+		memcpy(olm->lightBits, lightBitsNew, (olm->customWidth * olm->customHeight + 8) / 8);
+		memcpy(olm->bspLightBytes, lightBytesNew, olm->customWidth * olm->customHeight * 3);
+		if(deluxemap)
+			memcpy(olm->bspDirBytes, dirBytesNew, olm->customWidth * olm->customHeight * 3);
+	}
+
+	free(lightBitsNew);
+	free(lightBytesNew);
+	if(deluxemap)
+		free(dirBytesNew);
+}
 
 /*
 StoreSurfaceLightmaps()
@@ -2375,8 +2467,8 @@ void StoreSurfaceLightmaps(void)
 	char            dirname[1024], filename[1024];
 	shaderInfo_t   *csi;
 	char            lightmapName[128];
-	char           *rgbGenValues[256];
-	char           *alphaGenValues[256];
+	const char     *rgbGenValues[256];
+	const char     *alphaGenValues[256];
 
 
 	/* note it */
@@ -3066,6 +3158,10 @@ void StoreSurfaceLightmaps(void)
 	{
 		/* get output lightmap */
 		olm = &outLightmaps[i];
+
+		/* fill output lightmap */
+		if(lightmapFill)
+			FillOutLightmap(olm);
 
 		/* is this a valid bsp lightmap? */
 		if(olm->lightmapNum >= 0 && !externalLightmaps)

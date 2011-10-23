@@ -44,7 +44,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 #define MAX_NODE_ITEMS			5
 #define MAX_NODE_TRIANGLES		5
 #define MAX_TRACE_DEPTH			32
-#define MIN_NODE_SIZE			512 //32.0f
+#define MIN_NODE_SIZE			512 // Tr3B: was 32.0f which caused high memory consumption
 
 #define GROW_TRACE_INFOS		32768	//% 4096
 #define GROW_TRACE_WINDINGS		65536	//% 32768
@@ -516,52 +516,16 @@ void ClipTraceWinding(traceWinding_t * tw, vec4_t plane, traceWinding_t * front,
 					mid.xyz[k] = -plane[3];
 				else
 					mid.xyz[k] = a->xyz[k] + frac * (b->xyz[k] - a->xyz[k]);
-
-				/* set texture coordinates */
-				if(k > 1)
-					continue;
-				mid.st[0] = a->st[0] + frac * (b->st[0] - a->st[0]);
-				mid.st[1] = a->st[1] + frac * (b->st[1] - a->st[1]);
 			}
+			/* set texture coordinates */
+			mid.st[0] = a->st[0] + frac * (b->st[0] - a->st[0]);
+			mid.st[1] = a->st[1] + frac * (b->st[1] - a->st[1]);
 
 			/* copy midpoint to front and back polygons */
 			front->v[front->numVerts++] = mid;
 			back->v[back->numVerts++] = mid;
 		}
 	}
-}
-
-
-
-/*
-FilterPointToTraceNodes_r() - ydnar
-debugging tool
-*/
-
-static int FilterPointToTraceNodes_r(vec3_t pt, int nodeNum)
-{
-	float           dot;
-	traceNode_t    *node;
-
-
-	if(nodeNum < 0 || nodeNum >= numTraceNodes)
-		return -1;
-
-	node = &traceNodes[nodeNum];
-
-	if(node->type >= 0)
-	{
-		dot = DotProduct(pt, node->plane) - node->plane[3];
-		if(dot > -0.001f)
-			FilterPointToTraceNodes_r(pt, node->children[0]);
-		if(dot < 0.001f)
-			FilterPointToTraceNodes_r(pt, node->children[1]);
-		return -1;
-	}
-
-	Sys_Printf("%d ", nodeNum);
-
-	return nodeNum;
 }
 
 
@@ -1529,6 +1493,9 @@ qboolean TraceTriangle(traceInfo_t * ti, traceTriangle_t * tt, trace_t * trace)
 		return qtrue;
 	}
 
+	/* force subsampling because the lighting is texture dependent */
+	trace->forceSubsampling = 1.0;
+
 	/* try to avoid double shadows near triangle seams */
 	if(u < -ASLF_EPSILON || u > (1.0f + ASLF_EPSILON) || v < -ASLF_EPSILON || (u + v) > (1.0f + ASLF_EPSILON))
 		return qfalse;
@@ -1569,6 +1536,7 @@ qboolean TraceTriangle(traceInfo_t * ti, traceTriangle_t * tt, trace_t * trace)
 	/* check filter for opaque */
 	if(trace->color[0] <= 0.001f && trace->color[1] <= 0.001f && trace->color[2] <= 0.001f)
 	{
+		VectorClear(trace->color);
 		VectorMA(trace->origin, depth, trace->direction, trace->hit);
 		trace->opaque = qtrue;
 		return qtrue;

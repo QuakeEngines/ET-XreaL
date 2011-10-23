@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------------
 
-Copyright (C) 1999-2006 Id Software, Inc. and contributors.
+Copyright (C) 1999-2007 id Software, Inc. and contributors.
 For a list of contributors, see the accompanying CONTRIBUTORS file.
 
 This file is part of GtkRadiant.
@@ -35,7 +35,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 
 
 /* version */
-#define Q3MAP_VERSION	"0.9.0"
+#define Q3MAP_VERSION	"0.9.8"
 
 
 
@@ -113,6 +113,12 @@ port-related hacks
 constants
 
 ------------------------------------------------------------------------------- */
+
+/* temporary hacks and tests (please keep off in SVN to prevent anyone's legacy map from screwing up) */
+/* 2011-01-10 TTimo says we should turn these on in SVN, so turning on now */
+//#define Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES	1
+//#define Q3MAP2_EXPERIMENTAL_SNAP_NORMAL_FIX		1
+//#define Q3MAP2_EXPERIMENTAL_SNAP_PLANE_FIX		1
 
 /* general */
 //#define MAX_QPATH             64
@@ -265,6 +271,9 @@ constants
 #define BSP_LUXEL_SIZE			3
 #define RAD_LUXEL_SIZE			3
 #define SUPER_LUXEL_SIZE		4
+#define SUPER_FLAG_SIZE			4
+#define FLAG_FORCE_SUBSAMPLING 1
+#define FLAG_ALREADY_SUBSAMPLED 2
 #define SUPER_ORIGIN_SIZE		3
 #define SUPER_NORMAL_SIZE		4
 #define SUPER_DELUXEL_SIZE		3
@@ -277,6 +286,7 @@ constants
 #define BSP_LUXEL( s, x, y )	(lm->bspLuxels[ s ] + ((((y) * lm->w) + (x)) * BSP_LUXEL_SIZE))
 #define RAD_LUXEL( s, x, y )	(lm->radLuxels[ s ] + ((((y) * lm->w) + (x)) * RAD_LUXEL_SIZE))
 #define SUPER_LUXEL( s, x, y )	(lm->superLuxels[ s ] + ((((y) * lm->sw) + (x)) * SUPER_LUXEL_SIZE))
+#define SUPER_FLAG( x, y )	(lm->superFlags + ((((y) * lm->sw) + (x)) * SUPER_FLAG_SIZE))
 #define SUPER_DELUXEL( x, y )	(lm->superDeluxels + ((((y) * lm->sw) + (x)) * SUPER_DELUXEL_SIZE))
 #define BSP_DELUXEL( x, y )		(lm->bspDeluxels + ((((y) * lm->w) + (x)) * BSP_DELUXEL_SIZE))
 #define SUPER_CLUSTER( x, y )	(lm->superClusters + (((y) * lm->sw) + (x)))
@@ -525,7 +535,7 @@ general types
 ------------------------------------------------------------------------------- */
 
 /* ydnar: for smaller structs */
-typedef char    qb_t;
+typedef unsigned char qb_t;
 
 
 /* ydnar: for q3map_tcMod */
@@ -646,6 +656,14 @@ typedef struct remap_s
 	char            to[MAX_QPATH];
 }
 remap_t;
+
+typedef struct skinfile_s
+{
+	struct skinfile_s *next;
+	char            name[1024];
+	char            to[MAX_QPATH];
+}
+skinfile_t;
 
 
 /* wingdi.h hack, it's the same: 0 */
@@ -1375,6 +1393,7 @@ typedef struct
 	int             compileFlags;	/* for determining surface compile flags traced through */
 	qboolean        passSolid;
 	qboolean        opaque;
+	vec_t           forceSubsampling;	/* needs subsampling (alphashadow), value = max color contribution possible from it */
 
 	/* working data */
 	int             numTestNodes;
@@ -1467,6 +1486,7 @@ typedef struct rawLightmap_s
 	float          *bspLuxels[MAX_LIGHTMAPS];
 	float          *radLuxels[MAX_LIGHTMAPS];
 	float          *superLuxels[MAX_LIGHTMAPS];
+	unsigned char  *superFlags;
 	float          *superOrigins;
 	float          *superNormals;
 	int            *superClusters;
@@ -1694,6 +1714,7 @@ void            AddTriangleModels(entity_t * e);
 mapDrawSurface_t *AllocDrawSurface(surfaceType_t type);
 void            FinishSurface(mapDrawSurface_t * ds);
 void            StripFaceSurface(mapDrawSurface_t * ds);
+void            MaxAreaFaceSurface(mapDrawSurface_t * ds);
 qboolean        CalcSurfaceTextureRange(mapDrawSurface_t * ds);
 qboolean        CalcLightmapAxis(vec3_t normal, vec3_t axis);
 void            ClassifySurfaces(int numSurfs, mapDrawSurface_t * ds);
@@ -1706,7 +1727,8 @@ void            ClearSurface(mapDrawSurface_t * ds);
 void            AddEntitySurfaceModels(entity_t * e);
 mapDrawSurface_t *DrawSurfaceForSide(entity_t * e, brush_t * b, side_t * s, winding_t * w);
 mapDrawSurface_t *DrawSurfaceForMesh(entity_t * e, parseMesh_t * p, mesh_t * mesh);
-mapDrawSurface_t *DrawSurfaceForFlare(int entNum, vec3_t origin, vec3_t normal, vec3_t color, char *flareShader, int lightStyle);
+mapDrawSurface_t *DrawSurfaceForFlare(int entNum, vec3_t origin, vec3_t normal, vec3_t color, const char *flareShader,
+									  int lightStyle);
 mapDrawSurface_t *DrawSurfaceForShader(char *shader);
 void            ClipSidesIntoTree(entity_t * e, tree_t * tree);
 void            MakeDebugPortalSurfs(tree_t * tree);
@@ -1760,6 +1782,8 @@ void            LoadSurfaceExtraFile(const char *path);
 void            ProcessDecals(void);
 void            MakeEntityDecals(entity_t * e);
 
+/* map.c */
+void            TextureAxisFromPlane(plane_t * pln, vec3_t xv, vec3_t yv);
 
 /* brush_primit.c */
 void            ComputeAxisBase(vec3_t normal, vec3_t texX, vec3_t texY);
@@ -2015,6 +2039,7 @@ Q_EXTERN qboolean			renameModelShaders Q_ASSIGN( qfalse );	/* ydnar */
 Q_EXTERN qboolean			skyFixHack Q_ASSIGN( qfalse );			/* ydnar */
 Q_EXTERN qboolean			bspAlternateSplitWeights Q_ASSIGN( qtrue );			/* 27 */
 Q_EXTERN qboolean			deepBSP Q_ASSIGN( qfalse );				/* div0 */
+Q_EXTERN qboolean			maxAreaFaceSurface Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			inlineEntityModels Q_ASSIGN( qfalse );	/* Tr3B */
 Q_EXTERN qboolean			drawBSP Q_ASSIGN( qfalse );				/* Tr3B */
 
@@ -2035,8 +2060,32 @@ Q_EXTERN qboolean			debugInset Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			debugPortals Q_ASSIGN( qfalse );
 Q_EXTERN qboolean           lightmapTriangleCheck Q_ASSIGN(qfalse);
 Q_EXTERN qboolean           lightmapExtraVisClusterNudge Q_ASSIGN(qfalse);
+Q_EXTERN qboolean           lightmapFill Q_ASSIGN(qfalse);
+
+#if Q3MAP2_EXPERIMENTAL_SNAP_NORMAL_FIX
+// Increasing the normalEpsilon to compensate for new logic in SnapNormal(), where
+// this epsilon is now used to compare against 0 components instead of the 1 or -1
+// components.  Unfortunately, normalEpsilon is also used in PlaneEqual().  So changing
+// this will affect anything that calls PlaneEqual() as well (which are, at the time
+// of this writing, FindFloatPlane() and AddBrushBevels()).
+Q_EXTERN double				normalEpsilon Q_ASSIGN(0.00005);
+#else
 Q_EXTERN double				normalEpsilon Q_ASSIGN( 0.00001 );
+#endif
+
+#if Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES
+// NOTE: This distanceEpsilon is too small if parts of the map are at maximum world
+// extents (in the range of plus or minus 2^16).  The smallest epsilon at values
+// close to 2^16 is about 0.007, which is greater than distanceEpsilon.  Therefore,
+// maps should be constrained to about 2^15, otherwise slightly undesirable effects
+// may result.  The 0.01 distanceEpsilon used previously is just too coarse in my
+// opinion.  The real fix for this problem is to have 64 bit distances and then make
+// this epsilon even smaller, or to constrain world coordinates to plus minus 2^15
+// (or even 2^14).
+Q_EXTERN double				distanceEpsilon Q_ASSIGN(0.005);
+#else
 Q_EXTERN double				distanceEpsilon Q_ASSIGN( 0.01 );
+#endif
 
 
 /* bsp */
@@ -2046,7 +2095,7 @@ Q_EXTERN int				blockSize[ 3 ]					/* should be the same as in radiant */
 #ifndef MAIN_C
 							;
 #else
-= {1024, 1024, 1024};
+							= { 1024, 1024, 1024 };
 #endif
 
 Q_EXTERN char				name[ 1024 ];
@@ -2086,6 +2135,7 @@ Q_EXTERN int				numMapDrawSurfs;
 Q_EXTERN int				numSurfacesByType[ NUM_SURFACE_TYPES ];
 Q_EXTERN int				numClearedSurfaces;
 Q_EXTERN int				numStripSurfaces;
+Q_EXTERN int				numMaxAreaSurfaces;
 Q_EXTERN int				numFanSurfaces;
 Q_EXTERN int				numMergedSurfaces;
 Q_EXTERN int				numMergedVerts;
@@ -2213,6 +2263,8 @@ Q_EXTERN qboolean			shade Q_ASSIGN( qfalse );
 Q_EXTERN float				shadeAngleDegrees Q_ASSIGN( 0.0f );
 Q_EXTERN int				superSample Q_ASSIGN( 0 );
 Q_EXTERN int				lightSamples Q_ASSIGN( 1 );
+Q_EXTERN qboolean			lightRandomSamples Q_ASSIGN( qfalse );
+Q_EXTERN int				lightSamplesSearchBoxSize Q_ASSIGN( 1 );
 Q_EXTERN qboolean			filter Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			dark Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			sunOnly Q_ASSIGN( qfalse );
@@ -2239,6 +2291,7 @@ Q_EXTERN qboolean					floodlight_lowquality Q_ASSIGN( qfalse );
 Q_EXTERN vec3_t						floodlightRGB;
 Q_EXTERN float						floodlightIntensity Q_ASSIGN( 512.0f );
 Q_EXTERN float						floodlightDistance Q_ASSIGN( 1024.0f );
+Q_EXTERN float						floodlightDirectionScale Q_ASSIGN( 1.0f );
 
 Q_EXTERN qboolean			dump Q_ASSIGN( qfalse );
 Q_EXTERN qboolean			debug Q_ASSIGN( qfalse );

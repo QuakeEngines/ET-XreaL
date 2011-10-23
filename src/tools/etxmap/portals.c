@@ -817,6 +817,10 @@ qboolean FloodEntities(tree_t * tree)
 		if(!strcmp("1", ValueForKey(&entities[i], "noflood")))
 			continue;
 
+		/* also allow bmodel entities outside, as they could be on a moving path that will go into the map */
+		if(e->brushes != NULL || e->patches != NULL)
+			continue;
+
 		/* handle skybox entities */
 		value = ValueForKey(e, "classname");
 		if(!Q_stricmp(value, "_skybox"))

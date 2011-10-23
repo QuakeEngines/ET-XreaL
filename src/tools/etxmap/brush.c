@@ -353,7 +353,12 @@ returns false if the brush doesn't enclose a valid volume
 qboolean CreateBrushWindings(brush_t * brush)
 {
 	int             i, j;
+
+#if Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES
+	winding_accu_t *w;
+#else
 	winding_t      *w;
+#endif
 	side_t         *side;
 	plane_t        *plane;
 
@@ -366,7 +371,11 @@ qboolean CreateBrushWindings(brush_t * brush)
 		plane = &mapplanes[side->planenum];
 
 		/* make huge winding */
+#if Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES
+		w = BaseWindingForPlaneAccu(plane->normal, plane->dist);
+#else
 		w = BaseWindingForPlane(plane->normal, plane->dist);
+#endif
 
 		/* walk the list of brush sides */
 		for(j = 0; j < brush->numsides && w != NULL; j++)
@@ -378,14 +387,40 @@ qboolean CreateBrushWindings(brush_t * brush)
 			if(brush->sides[j].bevel)
 				continue;
 			plane = &mapplanes[brush->sides[j].planenum ^ 1];
+#if Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES
+			ChopWindingInPlaceAccu(&w, plane->normal, plane->dist, 0);
+#else
 			ChopWindingInPlace(&w, plane->normal, plane->dist, 0);	// CLIP_EPSILON );
+#endif
 
 			/* ydnar: fix broken windings that would generate trifans */
+#if Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES
+			// I think it's better to FixWindingAccu() once after we chop with all planes
+			// so that error isn't multiplied.  There is nothing natural about welding
+			// the points unless they are the final endpoints.  ChopWindingInPlaceAccu()
+			// is able to handle all kinds of degenerate windings.
+#else
 			FixWinding(w);
+#endif
 		}
 
 		/* set side winding */
+#if Q3MAP2_EXPERIMENTAL_HIGH_PRECISION_MATH_FIXES
+		if(w != NULL)
+		{
+			FixWindingAccu(w);
+			if(w->numpoints < 3)
+			{
+				FreeWindingAccu(w);
+				w = NULL;
+			}
+		}
+		side->winding = (w ? CopyWindingAccuToRegular(w) : NULL);
+		if(w)
+			FreeWindingAccu(w);
+#else
 		side->winding = w;
+#endif
 	}
 
 	/* find brush bounds */
@@ -506,6 +541,8 @@ void WriteBSPBrushMap(char *name, brush_t * list)
 		fprintf(f, "{\n");
 		for(i = 0, s = list->sides; i < list->numsides; i++, s++)
 		{
+			// TODO: See if we can use a smaller winding to prevent resolution loss.
+			// Is WriteBSPBrushMap() used only to decompile maps?
 			w = BaseWindingForPlane(mapplanes[s->planenum].normal, mapplanes[s->planenum].dist);
 
 			fprintf(f, "( %i %i %i ) ", (int)w->p[0][0], (int)w->p[0][1], (int)w->p[0][2]);

@@ -148,17 +148,12 @@ static void CreateSkyLights(vec3_t color, float value, int iterations, float fil
 	int             angleSteps, elevationSteps;
 	float           angle, elevation;
 	float           angleStep, elevationStep;
-	float           step, start;
 	sun_t           sun;
 
 
 	/* dummy check */
 	if(value <= 0.0f || iterations < 2)
 		return;
-
-	/* calculate some stuff */
-	step = 2.0f / (iterations - 1);
-	start = -1.0f;
 
 	/* basic sun setup */
 	VectorCopy(color, sun.color);
@@ -760,11 +755,13 @@ int LightContributionToSample(trace_t * trace)
 	float           addDeluxe = 0.0f, addDeluxeBounceScale = 0.25f;
 	qboolean        angledDeluxe = qfalse;
 	float           colorBrightness;
+	qboolean        doAddDeluxe = qtrue;
 
 	/* get light */
 	light = trace->light;
 
 	/* clear color */
+	trace->forceSubsampling = 0.0f;	/* to make sure */
 	VectorClear(trace->color);
 	VectorClear(trace->colorNoShadow);
 	VectorClear(trace->directionContribution);
@@ -828,15 +825,25 @@ int LightContributionToSample(trace_t * trace)
 			angle = DotProduct(trace->normal, trace->direction);
 
 			/* twosided lighting */
-			if(trace->twoSided)
-				angle = fabs(angle);
+			if(trace->twoSided && angle < 0)
+			{
+				angle = -angle;
+
+				/* no deluxemap contribution from "other side" light */
+				doAddDeluxe = qfalse;
+			}
 
 			/* attenuate */
 			angle *= -DotProduct(light->normal, trace->direction);
 			if(angle == 0.0f)
 				return 0;
 			else if(angle < 0.0f && (trace->twoSided || (light->flags & LIGHT_TWOSIDED)))
+			{
 				angle = -angle;
+
+				/* no deluxemap contribution from "other side" light */
+				doAddDeluxe = qfalse;
+			}
 
 			/* clamp the distance to prevent super hot spots */
 			dist = sqrt(dist * dist + light->extraDist * light->extraDist);
@@ -871,9 +878,19 @@ int LightContributionToSample(trace_t * trace)
 					dist = SetupTrace(trace);
 					if(dist >= light->envelope)
 						return 0;
+
+					/* no deluxemap contribution from "other side" light */
+					doAddDeluxe = qfalse;
 				}
 				else
 					return 0;
+			}
+
+			/* also don't deluxe if the direction is on the wrong side */
+			if(DotProduct(trace->normal, trace->direction) < 0)
+			{
+				/* no deluxemap contribution from "other side" light */
+				doAddDeluxe = qfalse;
 			}
 
 			/* ydnar: moved to here */
@@ -905,8 +922,13 @@ int LightContributionToSample(trace_t * trace)
 			float           dot = DotProduct(trace->normal, trace->direction);
 
 			/* twosided lighting */
-			if(trace->twoSided)
-				dot = fabs(dot);
+			if(trace->twoSided && dot < 0)
+			{
+				dot = -dot;
+
+				/* no deluxemap contribution from "other side" light */
+				doAddDeluxe = qfalse;
+			}
 
 			/* jal: optional half Lambert attenuation (http://developer.valvesoftware.com/wiki/Half_Lambert) */
 			if(lightAngleHL)
@@ -1018,8 +1040,13 @@ int LightContributionToSample(trace_t * trace)
 			float           dot = DotProduct(trace->normal, trace->direction);
 
 			/* twosided lighting */
-			if(trace->twoSided)
-				dot = fabs(dot);
+			if(trace->twoSided && dot < 0)
+			{
+				dot = -dot;
+
+				/* no deluxemap contribution from "other side" light */
+				doAddDeluxe = qfalse;
+			}
 
 			/* jal: optional half Lambert attenuation (http://developer.valvesoftware.com/wiki/Half_Lambert) */
 			if(lightAngleHL)
@@ -1080,6 +1107,7 @@ int LightContributionToSample(trace_t * trace)
 		{
 			/* trace */
 			TraceLine(trace);
+			trace->forceSubsampling *= add;
 			if(!(trace->compileFlags & C_SKY) || trace->opaque)
 			{
 				VectorClear(trace->color);
@@ -1092,6 +1120,8 @@ int LightContributionToSample(trace_t * trace)
 		/* return to sender */
 		return 1;
 	}
+	else
+		Error("Light of undefined type!");
 
 	/* VorteX: set noShadow color */
 	VectorScale(light->color, add, trace->colorNoShadow);
@@ -1117,11 +1147,16 @@ int LightContributionToSample(trace_t * trace)
 	if(bouncing)
 	{
 		addDeluxe *= addDeluxeBounceScale;
-		if(addDeluxe < 0.00390625f)
-			addDeluxe = 0.00390625f;
+		/* better NOT increase it beyond the original value
+		   if( addDeluxe < 0.00390625f )
+		   addDeluxe = 0.00390625f;
+		 */
 	}
 
-	VectorScale(trace->direction, addDeluxe, trace->directionContribution);
+	if(doAddDeluxe)
+	{
+		VectorScale(trace->direction, addDeluxe, trace->directionContribution);
+	}
 
 	/* setup trace */
 	trace->testAll = qfalse;
@@ -1129,6 +1164,7 @@ int LightContributionToSample(trace_t * trace)
 
 	/* raytrace */
 	TraceLine(trace);
+	trace->forceSubsampling *= add;
 	if(trace->passSolid || trace->opaque)
 	{
 		VectorClear(trace->color);
@@ -2022,6 +2058,7 @@ int LightMain(int argc, char **argv)
 	char            mapSource[1024];
 	const char     *value;
 	int             lightmapMergeSize = 0;
+	qboolean        lightSamplesInsist = qfalse;
 
 
 	/* note it */
@@ -2218,13 +2255,35 @@ int LightMain(int argc, char **argv)
 			i++;
 		}
 
+		else if(!strcmp(argv[i], "-randomsamples"))
+		{
+			lightRandomSamples = qtrue;
+			Sys_Printf("Random sampling enabled\n", lightRandomSamples);
+		}
+
 		else if(!strcmp(argv[i], "-samples"))
 		{
+			if(*argv[i + 1] == '+')
+				lightSamplesInsist = qtrue;
+			else
+				lightSamplesInsist = qfalse;
 			lightSamples = atoi(argv[i + 1]);
 			if(lightSamples < 1)
 				lightSamples = 1;
 			else if(lightSamples > 1)
 				Sys_Printf("Adaptive supersampling enabled with %d sample(s) per lightmap texel\n", lightSamples);
+			i++;
+		}
+
+		else if(!strcmp(argv[i], "-samplessearchboxsize"))
+		{
+			lightSamplesSearchBoxSize = atoi(argv[i + 1]);
+			if(lightSamplesSearchBoxSize <= 0)
+				lightSamplesSearchBoxSize = 1;
+			if(lightSamplesSearchBoxSize > 4)
+				lightSamplesSearchBoxSize = 4;	/* more makes no sense */
+			else if(lightSamplesSearchBoxSize != 1)
+				Sys_Printf("Adaptive supersampling uses %f times the normal search box size\n", lightSamplesSearchBoxSize);
 			i++;
 		}
 
@@ -2693,12 +2752,53 @@ int LightMain(int argc, char **argv)
 		{
 			lightmapExtraVisClusterNudge = qtrue;
 		}
+		else if(!strcmp(argv[i], "-fill"))
+		{
+			lightmapFill = qtrue;
+			Sys_Printf("Filling lightmap colors from surrounding pixels to improve JPEG compression\n");
+		}
 		/* unhandled args */
 		else
 		{
 			Sys_Printf("WARNING: Unknown argument \"%s\"\n", argv[i]);
 		}
 
+	}
+
+	/* fix up samples count */
+	if(lightRandomSamples)
+	{
+		if(!lightSamplesInsist)
+		{
+			/* approximately match -samples in quality */
+			switch (lightSamples)
+			{
+					/* somewhat okay */
+				case 1:
+				case 2:
+					lightSamples = 16;
+					Sys_Printf("Adaptive supersampling preset enabled with %d random sample(s) per lightmap texel\n",
+							   lightSamples);
+					break;
+
+					/* good */
+				case 3:
+					lightSamples = 64;
+					Sys_Printf("Adaptive supersampling preset enabled with %d random sample(s) per lightmap texel\n",
+							   lightSamples);
+					break;
+
+					/* perfect */
+				case 4:
+					lightSamples = 256;
+					Sys_Printf("Adaptive supersampling preset enabled with %d random sample(s) per lightmap texel\n",
+							   lightSamples);
+					break;
+
+				default:
+					break;
+			}
+		}
 	}
 
 	/* fix up lightmap search power */

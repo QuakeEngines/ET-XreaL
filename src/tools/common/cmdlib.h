@@ -80,6 +80,10 @@ void           *safe_malloc_info(size_t size, char *info);
 extern int      myargc;
 extern char   **myargv;
 
+// *INDENT-OFF*
+void 			Com_sprintf(char *dest, int size, const char *fmt, ...);
+// *INDENT-ON*
+
 char           *va(char *format, ...);
 char           *strlower(char *in);
 int             Q_strncasecmp(const char *s1, const char *s2, int n);

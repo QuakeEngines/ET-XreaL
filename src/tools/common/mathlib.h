@@ -77,6 +77,9 @@ extern vec3_t   vec3_origin;
 int             VectorCompare(const vec3_t v1, const vec3_t v2);
 void            Vec10Copy(vec_t * in, vec_t * out);
 
+qboolean        VectorIsOnAxis(vec3_t v);
+qboolean        VectorIsOnAxialPlane(vec3_t v);
+
 vec_t           Q_rint(vec_t in);
 vec_t           _DotProduct(vec3_t v1, vec3_t v2);
 void            _VectorSubtract(vec3_t va, vec3_t vb, vec3_t out);

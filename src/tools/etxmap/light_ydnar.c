@@ -1281,13 +1281,18 @@ void MapRawLightmap(int rawLightmapNum)
 						if(MapQuad(lm, info, dv))
 							continue;
 
-						/* get drawverts and map first triangle */
-						MapTriangle(lm, info, dv, mapNonAxial);
+						for(mapNonAxial = 0; mapNonAxial < 2; mapNonAxial++)
+						{
+							/* get drawverts and map first triangle */
+							dv[1] = &verts[pw[r + 1]];
+							dv[2] = &verts[pw[r + 2]];
+							MapTriangle(lm, info, dv, mapNonAxial);
 
-						/* get drawverts and map second triangle */
-						dv[1] = &verts[pw[r + 2]];
-						dv[2] = &verts[pw[r + 3]];
-						MapTriangle(lm, info, dv, mapNonAxial);
+							/* get drawverts and map second triangle */
+							dv[1] = &verts[pw[r + 2]];
+							dv[2] = &verts[pw[r + 3]];
+							MapTriangle(lm, info, dv, mapNonAxial);
+						}
 					}
 				}
 
@@ -1597,7 +1602,7 @@ float DirtForSample(trace_t * trace)
 
 			/* trace */
 			TraceLine(trace);
-			if(trace->opaque)
+			if(trace->opaque && !(trace->compileFlags & C_SKY))
 			{
 				VectorSubtract(trace->hit, trace->origin, displacement);
 				gatherDirt += 1.0f - ooDepth * VectorLength(displacement);
@@ -1688,8 +1693,8 @@ void DirtyRawLightmap(int rawLightmapNum)
 	trace.recvShadows = lm->recvShadows;
 	trace.numSurfaces = lm->numLightSurfaces;
 	trace.surfaces = &lightSurfaces[lm->firstLightSurface];
-	trace.inhibitRadius = DEFAULT_INHIBIT_RADIUS;
-	trace.testAll = qtrue;
+	trace.inhibitRadius = 0.0f;
+	trace.testAll = qfalse;
 
 	/* twosided lighting (may or may not be a good idea for lightmapped stuff) */
 	trace.twoSided = qfalse;
@@ -1841,7 +1846,9 @@ static qboolean SubmapRawLuxel(rawLightmap_t * lm, int x, int y, float bx, float
 		//% normal2 = SUPER_NORMAL( x, y );
 	}
 	else
-		Sys_Printf("WARNING: Spurious lightmap S vector\n");
+	{
+		Error("Spurious lightmap S vector\n");
+	}
 
 	VectorSubtract(origin2, origin, originVecs[0]);
 	//% VectorSubtract( normal2, normal, normalVecs[ 0 ] );
@@ -1901,14 +1908,15 @@ recursively subsamples a luxel until its color gradient is low enough or subsamp
 */
 
 static void SubsampleRawLuxel_r(rawLightmap_t * lm, trace_t * trace, vec3_t sampleOrigin, int x, int y, float bias,
-								float *lightLuxel)
+								float *lightLuxel, float *lightDeluxel)
 {
 	int             b, samples, mapped, lighted;
 	int             cluster[4];
 	vec4_t          luxel[4];
+	vec3_t          deluxel[3];
 	vec3_t          origin[4], normal[4];
 	float           biasDirs[4][2] = { {-1.0f, -1.0f}, {1.0f, -1.0f}, {-1.0f, 1.0f}, {1.0f, 1.0f} };
-	vec3_t          color, total;
+	vec3_t          color, direction = { 0, 0, 0 }, total;
 
 
 	/* limit check */
@@ -1945,9 +1953,20 @@ static void SubsampleRawLuxel_r(rawLightmap_t * lm, trace_t * trace, vec3_t samp
 		/* sample light */
 
 		LightContributionToSample(trace);
+		if(trace->forceSubsampling > 1.0f)
+		{
+			/* alphashadow: we subsample as deep as we can */
+			++lighted;
+			++mapped;
+			++mapped;
+		}
 
 		/* add to totals (fixme: make contrast function) */
 		VectorCopy(trace->color, luxel[b]);
+		if(lightDeluxel)
+		{
+			VectorCopy(trace->directionContribution, deluxel[b]);
+		}
 		VectorAdd(total, trace->color, total);
 		if((luxel[b][0] + luxel[b][1] + luxel[b][2]) > 0.0f)
 			lighted++;
@@ -1961,7 +1980,7 @@ static void SubsampleRawLuxel_r(rawLightmap_t * lm, trace_t * trace, vec3_t samp
 		{
 			if(cluster[b] < 0)
 				continue;
-			SubsampleRawLuxel_r(lm, trace, origin[b], x, y, (bias * 0.25f), luxel[b]);
+			SubsampleRawLuxel_r(lm, trace, origin[b], x, y, (bias * 0.5f), luxel[b], lightDeluxel ? deluxel[b] : NULL);
 		}
 	}
 
@@ -1969,12 +1988,20 @@ static void SubsampleRawLuxel_r(rawLightmap_t * lm, trace_t * trace, vec3_t samp
 	//% VectorClear( color );
 	//% samples = 0;
 	VectorCopy(lightLuxel, color);
+	if(lightDeluxel)
+	{
+		VectorCopy(lightDeluxel, direction);
+	}
 	samples = 1;
 	for(b = 0; b < 4; b++)
 	{
 		if(cluster[b] < 0)
 			continue;
 		VectorAdd(color, luxel[b], color);
+		if(lightDeluxel)
+		{
+			VectorAdd(direction, deluxel[b], direction);
+		}
 		samples++;
 	}
 
@@ -1989,6 +2016,83 @@ static void SubsampleRawLuxel_r(rawLightmap_t * lm, trace_t * trace, vec3_t samp
 		/* add to color */
 		VectorCopy(color, lightLuxel);
 		lightLuxel[3] += 1.0f;
+
+		if(lightDeluxel)
+		{
+			direction[0] /= samples;
+			direction[1] /= samples;
+			direction[2] /= samples;
+			VectorCopy(direction, lightDeluxel);
+		}
+	}
+}
+
+/* A mostly Gaussian-like bounded random distribution (sigma is expected standard deviation) */
+static void GaussLikeRandom(float sigma, float *x, float *y)
+{
+	float           r;
+
+	r = Random() * 2 * Q_PI;
+	*x = sigma * 2.73861278752581783822 * cos(r);
+	*y = sigma * 2.73861278752581783822 * sin(r);
+	r = Random();
+	r = 1 - sqrt(r);
+	r = 1 - sqrt(r);
+	*x *= r;
+	*y *= r;
+}
+static void RandomSubsampleRawLuxel(rawLightmap_t * lm, trace_t * trace, vec3_t sampleOrigin, int x, int y, float bias,
+									float *lightLuxel, float *lightDeluxel)
+{
+	int             b, mapped;
+	int             cluster;
+	vec3_t          origin, normal;
+	vec3_t          total, totaldirection;
+	float           dx, dy;
+
+	VectorClear(total);
+	VectorClear(totaldirection);
+	mapped = 0;
+	for(b = 0; b < lightSamples; ++b)
+	{
+		/* set origin */
+		VectorCopy(sampleOrigin, origin);
+		GaussLikeRandom(bias, &dx, &dy);
+
+		/* calculate position */
+		if(!SubmapRawLuxel(lm, x, y, dx, dy, &cluster, origin, normal))
+		{
+			cluster = -1;
+			continue;
+		}
+		mapped++;
+
+		trace->cluster = cluster;
+		VectorCopy(origin, trace->origin);
+		VectorCopy(normal, trace->normal);
+
+		LightContributionToSample(trace);
+		VectorAdd(total, trace->color, total);
+		if(lightDeluxel)
+		{
+			VectorAdd(totaldirection, trace->directionContribution, totaldirection);
+		}
+	}
+
+	/* add to luxel */
+	if(mapped > 0)
+	{
+		/* average */
+		lightLuxel[0] = total[0] / mapped;
+		lightLuxel[1] = total[1] / mapped;
+		lightLuxel[2] = total[2] / mapped;
+
+		if(lightDeluxel)
+		{
+			lightDeluxel[0] = totaldirection[0] / mapped;
+			lightDeluxel[1] = totaldirection[1] / mapped;
+			lightDeluxel[2] = totaldirection[2] / mapped;
+		}
 	}
 }
 
@@ -2001,18 +2105,21 @@ illuminates the luxels
 
 #define STACK_LL_SIZE			(SUPER_LUXEL_SIZE * 64 * 64)
 #define LIGHT_LUXEL( x, y )		(lightLuxels + ((((y) * lm->sw) + (x)) * SUPER_LUXEL_SIZE))
+#define LIGHT_DELUXEL( x, y )		(lightDeluxels + ((((y) * lm->sw) + (x)) * SUPER_DELUXEL_SIZE))
 
 void IlluminateRawLightmap(int rawLightmapNum)
 {
-	int             i, t, x, y, sx, sy, size, llSize, luxelFilterRadius, lightmapNum;
+	int             i, t, x, y, sx, sy, size, luxelFilterRadius, lightmapNum;
 	int            *cluster, *cluster2, mapped, lighted, totalLighted;
+	size_t          llSize, ldSize;
 	rawLightmap_t  *lm;
 	surfaceInfo_t  *info;
 	qboolean        filterColor, filterDir;
 	float           brightness;
 	float          *origin, *normal, *dirt, *luxel, *luxel2, *deluxel, *deluxel2;
-	float          *lightLuxels, *lightLuxel, samples, filterRadius, weight;
-	vec3_t          color, averageColor, averageDir, total, temp, temp2;
+	unsigned char  *flag;
+	float          *lightLuxels, *lightDeluxels, *lightLuxel, *lightDeluxel, samples, filterRadius, weight;
+	vec3_t          color, direction, averageColor, averageDir, total, temp, temp2;
 	float           tests[4][2] = { {0.0f, 0}, {1, 0}, {0, 1}, {1, 1} };
 	trace_t         trace;
 	float           stackLightLuxels[STACK_LL_SIZE];
@@ -2126,10 +2233,15 @@ void IlluminateRawLightmap(int rawLightmapNum)
 	{
 		/* allocate temporary per-light luxel storage */
 		llSize = lm->sw * lm->sh * SUPER_LUXEL_SIZE * sizeof(float);
+		ldSize = lm->sw * lm->sh * SUPER_DELUXEL_SIZE * sizeof(float);
 		if(llSize <= (STACK_LL_SIZE * sizeof(float)))
 			lightLuxels = stackLightLuxels;
 		else
 			lightLuxels = safe_malloc(llSize);
+		if(deluxemap)
+			lightDeluxels = safe_malloc(ldSize);
+		else
+			lightDeluxels = NULL;
 
 		/* clear luxels */
 		//% memset( lm->superLuxels[ 0 ], 0, llSize );
@@ -2155,12 +2267,12 @@ void IlluminateRawLightmap(int rawLightmapNum)
 					VectorCopy(ambientColor, luxel);
 					if(deluxemap)
 					{
-						//brightness = DotProduct(ambientColor, LUMINANCE_VECTOR) + 0.0001f;
 						brightness = RGBTOGRAY(ambientColor) * (1.0f / 255.0f);
-						brightness *= (1.0 / 255.0);
+
 						// use AT LEAST this amount of contribution from ambient for the deluxemap, fixes points that receive ZERO light
 						if(brightness < 0.00390625f)
 							brightness = 0.00390625f;
+
 						VectorScale(normal, brightness, deluxel);
 					}
 					luxel[3] = 1.0f;
@@ -2202,7 +2314,28 @@ void IlluminateRawLightmap(int rawLightmapNum)
 
 			/* setup */
 			memset(lightLuxels, 0, llSize);
+			if(deluxemap)
+				memset(lightDeluxels, 0, ldSize);
 			totalLighted = 0;
+
+			/* determine filter radius */
+			filterRadius = lm->filterRadius > trace.light->filterRadius ? lm->filterRadius : trace.light->filterRadius;
+			if(filterRadius < 0.0f)
+				filterRadius = 0.0f;
+
+			/* set luxel filter radius */
+			luxelFilterRadius = superSample * filterRadius / lm->sampleSize;
+			if(luxelFilterRadius == 0 && (filterRadius > 0.0f || filter))
+				luxelFilterRadius = 1;
+
+			/* allocate sampling flags storage */
+			if((lightSamples > 1 || lightRandomSamples) && luxelFilterRadius == 0)
+			{
+				size = lm->sw * lm->sh * SUPER_LUXEL_SIZE * sizeof(unsigned char);
+				if(lm->superFlags == NULL)
+					lm->superFlags = safe_malloc(size);
+				memset((void *)lm->superFlags, 0, size);
+			}
 
 			/* initial pass, one sample per luxel */
 			for(y = 0; y < lm->sh; y++)
@@ -2216,9 +2349,10 @@ void IlluminateRawLightmap(int rawLightmapNum)
 
 					/* get particulars */
 					lightLuxel = LIGHT_LUXEL(x, y);
-					deluxel = SUPER_DELUXEL(x, y);
+					lightDeluxel = LIGHT_DELUXEL(x, y);
 					origin = SUPER_ORIGIN(x, y);
 					normal = SUPER_NORMAL(x, y);
+					flag = SUPER_FLAG(x, y);
 
 #if 0
 					////////// 27's temp hack for testing edge clipping ////
@@ -2245,28 +2379,20 @@ void IlluminateRawLightmap(int rawLightmapNum)
 
 						/* add the contribution to the deluxemap */
 						if(deluxemap)
-							VectorAdd(deluxel, trace.directionContribution, deluxel);
+						{
+							VectorCopy(trace.directionContribution, lightDeluxel);
+						}
 
+						/* check for evilness */
+						if(trace.forceSubsampling > 1.0f && (lightSamples > 1 || lightRandomSamples) && luxelFilterRadius == 0)
+						{
+							totalLighted++;
+							*flag |= FLAG_FORCE_SUBSAMPLING;	/* force */
+						}
 						/* add to count */
-						if(trace.color[0] || trace.color[1] || trace.color[2])
+						else if(trace.color[0] || trace.color[1] || trace.color[2])
 							totalLighted++;
 					}
-
-					/* add to light direction map (fixme: use luxel normal as starting point for deluxel?) */
-#if 0
-					if(deluxemap)
-					{
-						if(DotProduct(normal, trace.direction) > 0)	// do not take light from the back side
-						{
-							/* color to grayscale (photoshop rgb weighting) */
-							//brightness = brightness = DotProduct(trace.color, LUMINANCE_VECTOR) + 0.0001f;
-							brightness = trace.colorNoShadow[0] * 0.3f + trace.colorNoShadow[1] * 0.59f + trace.colorNoShadow[2] * 0.11f;
-							brightness *= (1.0 / 255.0);
-							VectorScale(trace.direction, brightness, trace.direction);
-							VectorAdd(deluxel, trace.direction, deluxel);
-						}
-					}
-#endif
 				}
 			}
 
@@ -2274,19 +2400,9 @@ void IlluminateRawLightmap(int rawLightmapNum)
 			if(totalLighted == 0)
 				continue;
 
-			/* determine filter radius */
-			filterRadius = lm->filterRadius > trace.light->filterRadius ? lm->filterRadius : trace.light->filterRadius;
-			if(filterRadius < 0.0f)
-				filterRadius = 0.0f;
-
-			/* set luxel filter radius */
-			luxelFilterRadius = superSample * filterRadius / lm->sampleSize;
-			if(luxelFilterRadius == 0 && (filterRadius > 0.0f || filter))
-				luxelFilterRadius = 1;
-
 			/* secondary pass, adaptive supersampling (fixme: use a contrast function to determine if subsampling is necessary) */
 			/* 2003-09-27: changed it so filtering disamples supersampling, as it would waste time */
-			if(lightSamples > 1 && luxelFilterRadius == 0)
+			if((lightSamples > 1 || lightRandomSamples) && luxelFilterRadius == 0)
 			{
 				/* walk luxels */
 				for(y = 0; y < (lm->sh - 1); y++)
@@ -2312,6 +2428,14 @@ void IlluminateRawLightmap(int rawLightmapNum)
 							mapped++;
 
 							/* get luxel */
+							flag = SUPER_FLAG(sx, sy);
+							if(*flag & FLAG_FORCE_SUBSAMPLING)
+							{
+								/* force a lighted/mapped discrepancy so we subsample */
+								++lighted;
+								++mapped;
+								++mapped;
+							}
 							lightLuxel = LIGHT_LUXEL(sx, sy);
 							VectorAdd(total, lightLuxel, total);
 							if((lightLuxel[0] + lightLuxel[1] + lightLuxel[2]) > 0.0f)
@@ -2335,7 +2459,11 @@ void IlluminateRawLightmap(int rawLightmapNum)
 								cluster = SUPER_CLUSTER(sx, sy);
 								if(*cluster < 0)
 									continue;
+								flag = SUPER_FLAG(sx, sy);
+								if(*flag & FLAG_ALREADY_SUBSAMPLED)	// already subsampled
+									continue;
 								lightLuxel = LIGHT_LUXEL(sx, sy);
+								lightDeluxel = LIGHT_DELUXEL(sx, sy);
 								origin = SUPER_ORIGIN(sx, sy);
 
 								/* only subsample shadowed luxels */
@@ -2343,7 +2471,14 @@ void IlluminateRawLightmap(int rawLightmapNum)
 								//%     continue;
 
 								/* subsample it */
-								SubsampleRawLuxel_r(lm, &trace, origin, sx, sy, 0.25f, lightLuxel);
+								if(lightRandomSamples)
+									RandomSubsampleRawLuxel(lm, &trace, origin, sx, sy, 0.5f * lightSamplesSearchBoxSize,
+															lightLuxel, deluxemap ? lightDeluxel : NULL);
+								else
+									SubsampleRawLuxel_r(lm, &trace, origin, sx, sy, 0.25f * lightSamplesSearchBoxSize, lightLuxel,
+														deluxemap ? lightDeluxel : NULL);
+
+								*flag |= FLAG_ALREADY_SUBSAMPLED;
 
 								/* debug code to colorize subsampled areas to yellow */
 								//% luxel = SUPER_LUXEL( lightmapNum, sx, sy );
@@ -2409,6 +2544,7 @@ void IlluminateRawLightmap(int rawLightmapNum)
 					{
 						/* setup */
 						VectorClear(averageColor);
+						VectorClear(averageDir);
 						samples = 0.0f;
 
 						/* cheaper distance-based filtering */
@@ -2427,6 +2563,7 @@ void IlluminateRawLightmap(int rawLightmapNum)
 								if(*cluster < 0)
 									continue;
 								lightLuxel = LIGHT_LUXEL(sx, sy);
+								lightDeluxel = LIGHT_DELUXEL(sx, sy);
 
 								/* create weight */
 								weight = (abs(sx - x) == luxelFilterRadius ? 0.5f : 1.0f);
@@ -2435,6 +2572,11 @@ void IlluminateRawLightmap(int rawLightmapNum)
 								/* scale luxel by filter weight */
 								VectorScale(lightLuxel, weight, color);
 								VectorAdd(averageColor, color, averageColor);
+								if(deluxemap)
+								{
+									VectorScale(lightDeluxel, weight, direction);
+									VectorAdd(averageDir, direction, averageDir);
+								}
 								samples += weight;
 							}
 						}
@@ -2462,6 +2604,15 @@ void IlluminateRawLightmap(int rawLightmapNum)
 							luxel[1] += averageColor[1] / samples;
 							luxel[2] += averageColor[2] / samples;
 						}
+
+						if(deluxemap)
+						{
+							/* scale into luxel */
+							deluxel = SUPER_DELUXEL(x, y);
+							deluxel[0] += averageDir[0] / samples;
+							deluxel[1] += averageDir[1] / samples;
+							deluxel[2] += averageDir[2] / samples;
+						}
 					}
 
 					/* single sample */
@@ -2469,7 +2620,9 @@ void IlluminateRawLightmap(int rawLightmapNum)
 					{
 						/* get particulars */
 						lightLuxel = LIGHT_LUXEL(x, y);
+						lightDeluxel = LIGHT_DELUXEL(x, y);
 						luxel = SUPER_LUXEL(lightmapNum, x, y);
+						deluxel = SUPER_DELUXEL(x, y);
 
 						/* handle negative light */
 						if(trace.light->flags & LIGHT_NEGATIVE)
@@ -2485,6 +2638,11 @@ void IlluminateRawLightmap(int rawLightmapNum)
 						/* handle normal light */
 						else
 							VectorAdd(luxel, lightLuxel, luxel);
+
+						if(deluxemap)
+						{
+							VectorAdd(deluxel, lightDeluxel, deluxel);
+						}
 					}
 				}
 			}
@@ -2493,6 +2651,9 @@ void IlluminateRawLightmap(int rawLightmapNum)
 		/* free temporary luxels */
 		if(lightLuxels != stackLightLuxels)
 			free(lightLuxels);
+
+		if(deluxemap)
+			free(lightDeluxels);
 	}
 
 	/* free light list */
@@ -2861,16 +3022,16 @@ void IlluminateVertexes(int num)
 				if(radVertLuxel[0] <= ambientColor[0] && radVertLuxel[1] <= ambientColor[1] && radVertLuxel[2] <= ambientColor[2])
 				{
 					/* nudge the sample point around a bit */
-					for(x = 0; x < 4; x++)
+					for(x = 0; x < 5; x++)
 					{
 						/* two's complement 0, 1, -1, 2, -2, etc */
 						x1 = ((x >> 1) ^ (x & 1 ? -1 : 0)) + (x & 1);
 
-						for(y = 0; y < 4; y++)
+						for(y = 0; y < 5; y++)
 						{
 							y1 = ((y >> 1) ^ (y & 1 ? -1 : 0)) + (y & 1);
 
-							for(z = 0; z < 4; z++)
+							for(z = 0; z < 5; z++)
 							{
 								z1 = ((z >> 1) ^ (z & 1 ? -1 : 0)) + (z & 1);
 
@@ -2885,6 +3046,23 @@ void IlluminateVertexes(int num)
 															 &surfaceClusters[info->firstSurfaceCluster]);
 								if(trace.cluster < 0)
 									continue;
+
+								/* r7 dirt */
+								if(dirty && !bouncing)
+									dirt = DirtForSample(&trace);
+								else
+									dirt = 1.0f;
+
+								/* jal: floodlight */
+								floodLightAmount = 0.0f;
+								VectorClear(floodColor);
+								if(floodlighty && !bouncing)
+								{
+									floodLightAmount =
+										floodlightIntensity * FloodLightForSample(&trace, floodlightDistance,
+																				  floodlight_lowquality);
+									VectorScale(floodlightRGB, floodLightAmount, floodColor);
+								}
 
 								/* trace */
 								LightingAtSample(&trace, ds->vertexStyles, colors);
@@ -3229,7 +3407,7 @@ determines if two clusters are visible to each other using the PVS
 
 qboolean ClusterVisible(int a, int b)
 {
-	int             portalClusters, leafBytes;
+	int             leafBytes;
 	byte           *pvs;
 
 
@@ -3246,7 +3424,7 @@ qboolean ClusterVisible(int a, int b)
 		return qtrue;
 
 	/* get pvs data */
-	portalClusters = ((int *)bspVisBytes)[0];
+	/* portalClusters = ((int *) bspVisBytes)[ 0 ]; */
 	leafBytes = ((int *)bspVisBytes)[1];
 	pvs = bspVisBytes + VIS_HEADER_SIZE + (a * leafBytes);
 
@@ -3551,7 +3729,7 @@ void SetupEnvelopes(qboolean forGrid, qboolean fastFlag)
 	int             i, x, y, z, x1, y1, z1;
 	light_t        *light, *light2, **owner;
 	bspLeaf_t      *leaf;
-	vec3_t          origin, dir, mins, maxs, nullVector = { 0, 0, 0 };
+	vec3_t          origin, dir, mins, maxs;
 	float           radius, intensity;
 	light_t        *buckets[256];
 
@@ -3664,6 +3842,7 @@ void SetupEnvelopes(qboolean forGrid, qboolean fastFlag)
 					/* check for fast mode */
 					if(!(light->flags & LIGHT_FAST) && !(light->flags & LIGHT_FAST_TEMP))
 						light->envelope = MAX_WORLD_COORD * 8.0f;
+					intensity = light->photons;	/* hopefully not used */
 				}
 				else
 				{
@@ -4043,7 +4222,7 @@ void SetupFloodLight(void)
 	int             i, j;
 	float           angle, elevation, angleStep, elevationStep;
 	const char     *value;
-	double          v1, v2, v3, v4, v5;
+	double          v1, v2, v3, v4, v5, v6;
 
 	/* note it */
 	Sys_FPrintf(SYS_VRB, "--- SetupFloodLight ---\n");
@@ -4077,8 +4256,9 @@ void SetupFloodLight(void)
 		v1 = v2 = v3 = 0;
 		v4 = floodlightDistance;
 		v5 = floodlightIntensity;
+		v6 = floodlightDirectionScale;
 
-		sscanf(value, "%lf %lf %lf %lf %lf", &v1, &v2, &v3, &v4, &v5);
+		sscanf(value, "%lf %lf %lf %lf %lf %lf", &v1, &v2, &v3, &v4, &v5, &v6);
 
 		floodlightRGB[0] = v1;
 		floodlightRGB[1] = v2;
@@ -4093,9 +4273,12 @@ void SetupFloodLight(void)
 			v4 = 1024;
 		if(v5 < 1)
 			v5 = 128;
+		if(v6 < 0)
+			v6 = 1;
 
 		floodlightDistance = v4;
 		floodlightIntensity = v5;
+		floodlightDirectionScale = v6;
 
 		floodlighty = qtrue;
 		Sys_Printf("FloodLighting enabled via worldspawn _floodlight key.\n");
@@ -4191,7 +4374,7 @@ float FloodLightForSample(trace_t * trace, float floodLightDistance, qboolean fl
 			TraceLine(trace);
 			contribution = 1;
 
-			if(trace->compileFlags & C_SKY)
+			if(trace->compileFlags & C_SKY || trace->compileFlags & C_TRANSLUCENT)
 			{
 				contribution = 1.0f;
 			}
@@ -4379,7 +4562,8 @@ void FloodLightRawLightmap(int rawLightmapNum)
 
 	/* global pass */
 	if(floodlighty && floodlightIntensity)
-		FloodLightRawLightmapPass(lm, floodlightRGB, floodlightIntensity, floodlightDistance, floodlight_lowquality, 1.0f);
+		FloodLightRawLightmapPass(lm, floodlightRGB, floodlightIntensity, floodlightDistance, floodlight_lowquality,
+								  floodlightDirectionScale);
 
 	/* custom pass */
 	if(lm->floodlightIntensity)

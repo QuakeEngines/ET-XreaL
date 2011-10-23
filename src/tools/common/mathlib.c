@@ -146,6 +146,54 @@ void Vec10Copy(vec_t * in, vec_t * out)
 }
 
 
+/*
+================
+VectorIsOnAxis
+================
+*/
+qboolean VectorIsOnAxis(vec3_t v)
+{
+	int	i, zeroComponentCount;
+
+	zeroComponentCount = 0;
+	for (i = 0; i < 3; i++)
+	{
+		if (v[i] == 0.0)
+		{
+			zeroComponentCount++;
+		}
+	}
+
+	if (zeroComponentCount > 1)
+	{
+		// The zero vector will be on axis.
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+/*
+================
+VectorIsOnAxialPlane
+================
+*/
+qboolean VectorIsOnAxialPlane(vec3_t v)
+{
+	int	i;
+
+	for (i = 0; i < 3; i++)
+	{
+		if (v[i] == 0.0)
+		{
+			// The zero vector will be on axial plane.
+			return qtrue;
+		}
+	}
+
+	return qfalse;
+}
+
 void VectorRotate3x3(vec3_t v, float r[3][3], vec3_t d)
 {
 	d[0] = v[0] * r[0][0] + v[1] * r[1][0] + v[2] * r[2][0];

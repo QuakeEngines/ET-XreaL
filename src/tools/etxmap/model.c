@@ -205,7 +205,7 @@ InsertModel() - ydnar
 adds a picomodel into the bsp
 */
 
-void InsertModel(char *name, int frame, matrix_t transform, matrix_t nTransform, remap_t * remap, shaderInfo_t * celShader, int eNum, int castShadows,
+void InsertModel(char *name, int skin, int frame, matrix_t transform, matrix_t nTransform, remap_t * remap, shaderInfo_t * celShader, int eNum, int castShadows,
 				 int recvShadows, int spawnFlags, float lightmapScale, int lightmapSampleSize, float shadeAngle)
 {
 	int             i, j, k, s, numSurfaces;
@@ -222,14 +222,77 @@ void InsertModel(char *name, int frame, matrix_t transform, matrix_t nTransform,
 	byte           *color;
 	picoIndex_t    *indexes;
 	remap_t        *rm, *glob;
+	skinfile_t     *sf, *sf2;
 	double          normalEpsilon_save;
 	double          distanceEpsilon_save;
+	char            skinfilename[MAX_QPATH];
+	char           *skinfilecontent;
+	int             skinfilesize;
+	char           *skinfileptr, *skinfilenextptr;
 
 
 	/* get model */
 	model = LoadModel(name, frame);
 	if(model == NULL)
 		return;
+
+	/* load skin file */
+	Com_sprintf(skinfilename, sizeof(skinfilename), "%s_%d.skin", name, skin);
+	skinfilename[sizeof(skinfilename) - 1] = 0;
+	skinfilesize = vfsLoadFile(skinfilename, (void **)&skinfilecontent, 0);
+	if(skinfilesize < 0 && skin != 0)
+	{
+		/* fallback to skin 0 if invalid */
+		Com_sprintf(skinfilename, sizeof(skinfilename), "%s_0.skin", name);
+		skinfilename[sizeof(skinfilename) - 1] = 0;
+		skinfilesize = vfsLoadFile(skinfilename, (void **)&skinfilecontent, 0);
+		if(skinfilesize >= 0)
+			Sys_Printf("Skin %d of %s does not exist, using 0 instead\n", skin, name);
+	}
+	sf = NULL;
+	if(skinfilesize >= 0)
+	{
+		int             pos;
+		Sys_Printf("Using skin %d of %s\n", skin, name);
+
+		for(skinfileptr = skinfilecontent; *skinfileptr; skinfileptr = skinfilenextptr)
+		{
+			// for fscanf
+			char            format[64];
+
+			skinfilenextptr = strchr(skinfileptr, '\r');
+			if(skinfilenextptr)
+			{
+				*skinfilenextptr++ = 0;
+			}
+			else
+			{
+				skinfilenextptr = strchr(skinfileptr, '\n');
+				if(skinfilenextptr)
+					*skinfilenextptr++ = 0;
+				else
+					skinfilenextptr = skinfileptr + strlen(skinfileptr);
+			}
+
+			/* create new item */
+			sf2 = sf;
+			sf = safe_malloc(sizeof(*sf));
+			sf->next = sf2;
+
+			Com_sprintf(format, sizeof(format), "replace %%%ds %%%ds", (int)sizeof(sf->name) - 1, (int)sizeof(sf->to) - 1);
+			if(sscanf(skinfileptr, format, sf->name, sf->to) == 2)
+				continue;
+			Com_sprintf(format, sizeof(format), " %%%d[^, 	] ,%%%ds", (int)sizeof(sf->name) - 1, (int)sizeof(sf->to) - 1);
+			if((pos = sscanf(skinfileptr, format, sf->name, sf->to)) == 2)
+				continue;
+
+			/* invalid input line -> discard sf struct */
+			Sys_Printf("Discarding skin directive in %s: %s\n", skinfilename, skinfileptr);
+			free(sf);
+			sf = sf2;
+		}
+		free(skinfilecontent);
+	}
 
 	/* handle null matrix */
 	if(transform == NULL)
@@ -273,18 +336,32 @@ void InsertModel(char *name, int frame, matrix_t transform, matrix_t nTransform,
 		/* fix the surface's normals */
 		PicoFixSurfaceNormals(surface);
 
-		/* allocate a surface (ydnar: gs mods) */
-		ds = AllocDrawSurface(SURFACE_TRIANGLES);
-		ds->entityNum = eNum;
-		ds->castShadows = castShadows;
-		ds->recvShadows = recvShadows;
-
 		/* get shader name */
 		shader = PicoGetSurfaceShader(surface);
 		if(shader == NULL)
 			picoShaderName = "";
 		else
 			picoShaderName = PicoGetShaderName(shader);
+
+		/* handle .skin file */
+		if(sf)
+		{
+			picoShaderName = NULL;
+			for(sf2 = sf; sf2 != NULL; sf2 = sf2->next)
+			{
+				if(!Q_stricmp(surface->name, sf2->name))
+				{
+					Sys_FPrintf(SYS_VRB, "Skin file: mapping %s to %s\n", surface->name, sf2->to);
+					picoShaderName = sf2->to;
+					break;
+				}
+			}
+			if(!picoShaderName)
+			{
+				Sys_FPrintf(SYS_VRB, "Skin file: not mapping %s\n", surface->name);
+				continue;
+			}
+		}
 
 		/* handle shader remapping */
 		glob = NULL;
@@ -346,6 +423,12 @@ void InsertModel(char *name, int frame, matrix_t transform, matrix_t nTransform,
 
 			}
 		}
+
+		/* allocate a surface (ydnar: gs mods) */
+		ds = AllocDrawSurface(SURFACE_TRIANGLES);
+		ds->entityNum = eNum;
+		ds->castShadows = castShadows;
+		ds->recvShadows = recvShadows;
 
 		/* set shader */
 		ds->shaderInfo = si;
@@ -630,7 +713,7 @@ AddTriangleModel()
 
 void AddTriangleModel(entity_t * e)
 {
-	int             frame, castShadows, recvShadows, spawnFlags;
+	int             frame, skin, castShadows, recvShadows, spawnFlags;
 	const char     *name, *model, *value;
 	char            shader[MAX_QPATH];
 	shaderInfo_t   *celShader;
@@ -799,8 +882,14 @@ void AddTriangleModel(entity_t * e)
 	if(shadeAngle > 0.0f)
 		Sys_Printf("misc_model has shading angle of %.4f\n", shadeAngle);
 
+	skin = 0;
+	if(strcmp("", ValueForKey(e, "_skin")))
+		skin = IntForKey(e, "_skin");
+	else if(strcmp("", ValueForKey(e, "skin")))
+		skin = IntForKey(e, "skin");
+
 	/* insert the model */
-	InsertModel((char *)model, frame, transform, rotation, remap, celShader, mapEntityNum, castShadows, recvShadows, spawnFlags,
+	InsertModel((char *)model, skin, frame, transform, rotation, remap, celShader, mapEntityNum, castShadows, recvShadows, spawnFlags,
 				lightmapScale, lightmapSampleSize, shadeAngle);
 
 	/* free shader remappings */
@@ -820,7 +909,7 @@ adds misc_model surfaces to the bsp
 
 void AddTriangleModels(entity_t * e)
 {
-	int             num, frame, castShadows, recvShadows, spawnFlags;
+	int             num, frame, skin, castShadows, recvShadows, spawnFlags;
 	entity_t       *e2;
 	const char     *targetName;
 	const char     *target, *model, *value;
@@ -1058,8 +1147,14 @@ void AddTriangleModels(entity_t * e)
 		if(shadeAngle > 0.0f)
 			Sys_Printf("misc_model has shading angle of %.4f\n", shadeAngle);
 
+		skin = 0;
+		if(strcmp("", ValueForKey(e2, "_skin")))
+			skin = IntForKey(e2, "_skin");
+		else if(strcmp("", ValueForKey(e2, "skin")))
+			skin = IntForKey(e2, "skin");
+
 		/* insert the model */
-		InsertModel((char *)model, frame, transform, rotation, remap, celShader, mapEntityNum, castShadows, recvShadows, spawnFlags,
+		InsertModel((char *)model, skin, frame, transform, rotation, remap, celShader, mapEntityNum, castShadows, recvShadows, spawnFlags,
 					lightmapScale, lightmapSampleSize, shadeAngle);
 
 		/* free shader remappings */

@@ -417,7 +417,7 @@ subdivides a radiosity winding until it is smaller than subdivide, then generate
 static void RadSubdivideDiffuseLight(int lightmapNum, bspDrawSurface_t * ds, rawLightmap_t * lm, shaderInfo_t * si,
 									 float scale, float subdivide, qboolean original, radWinding_t * rw, clipWork_t * cw)
 {
-	int             i, style;
+	int             i, style = 0;
 	float           dist, area, value;
 	vec3_t          mins, maxs, normal, d1, d2, cross, color, gradient;
 	light_t        *light, *splash;
@@ -542,7 +542,7 @@ static void RadSubdivideDiffuseLight(int lightmapNum, bspDrawSurface_t * ds, raw
 	light->falloffTolerance = falloffTolerance;
 
 	/* bouncing light? */
-	if(bouncing == qfalse)
+	if(!bouncing)
 	{
 		/* handle first-pass lights in normal q3a style */
 		value = si->value;
@@ -630,14 +630,12 @@ void RadLightForTriangles(int num, int lightmapNum, rawLightmap_t * lm, shaderIn
 {
 	int             i, j, k, v;
 	bspDrawSurface_t *ds;
-	surfaceInfo_t  *info;
 	float          *radVertexLuxel;
 	radWinding_t    rw;
 
 
 	/* get surface */
 	ds = &bspDrawSurfaces[num];
-	info = &surfaceInfos[num];
 
 	/* each triangle is a potential emitter */
 	rw.numVerts = 3;
