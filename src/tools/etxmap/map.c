@@ -2055,6 +2055,7 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 				}
 
 				name = ValueForKey(mapEnt, "name");
+				SetKeyValue(&convertDetailBrushesEntity, "classname", "func_static");
 				SetKeyValue(&convertDetailBrushesEntity, "name", va("%s_detail", name));
 				SetKeyValue(&convertDetailBrushesEntity, "model", va("%s_detail", name));
 			}
@@ -2282,7 +2283,13 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	}
 #endif
 
-#if 1
+	/* ydnar: gs mods: set entity bounds */
+	SetEntityBounds(mapEnt);
+
+	/* ydnar: gs mods: load shader index map (equivalent to old terrain alphamap) */
+	// Tr3B: moved up to here before func_static are merged into worldspawn
+	LoadEntityIndexMap(mapEnt);
+
 	// HACK: determine if this is a func_static that can be merged into worldspawn
 	if(convertType == CONVERT_NOTHING && !Q_stricmp("func_static", classname) && name[0] != '\0' && model[0] != '\0' && !Q_stricmp(name, model))
 	{
@@ -2337,7 +2344,6 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 		numEntities--;
 		return qtrue;
 	}
-#endif
 
 	// Tr3B: moved this up before SetEntityBounds() is called
 	// move brushes and patches from world space into entity space
@@ -2358,12 +2364,6 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 		}
 	}
 
-	/* ydnar: gs mods: set entity bounds */
-	SetEntityBounds(mapEnt);
-
-	/* ydnar: gs mods: load shader index map (equivalent to old terrain alphamap) */
-	LoadEntityIndexMap(mapEnt);
-
 	/* group_info entities are just for editor grouping (fixme: leak!) */
 	if(convertType == CONVERT_NOTHING && !Q_stricmp("group_info", classname))
 	{
@@ -2382,18 +2382,21 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 		AdjustPatchesForOrigin(mapEnt, originNeg);
 
 		// group entities should always contain detail brushes
-		#if 0
-		for(brush = mapEnt->brushes; brush != NULL; brush = brush->next)
+#if 0
+		if(!strcmp("1", ValueForKey(mapEnt, "detail")))
 		{
-			if(!(brush->compileFlags & C_DETAIL) || !brush->detail)
+			for(brush = mapEnt->brushes; brush != NULL; brush = brush->next)
 			{
-				c_detail++;
-				c_structural--;
-				brush->detail = qtrue;
-				brush->compileFlags |= C_DETAIL;
+				if(!(brush->compileFlags & C_DETAIL) || !brush->detail)
+				{
+					c_detail++;
+					c_structural--;
+					brush->detail = qtrue;
+					brush->compileFlags |= C_DETAIL;
+				}
 			}
 		}
-		#endif
+#endif
 
 		MoveBrushesToWorld(mapEnt);
 		MovePatchesToWorld(mapEnt);
