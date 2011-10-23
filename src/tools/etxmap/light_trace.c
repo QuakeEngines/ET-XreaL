@@ -44,7 +44,7 @@ several games based on the Quake III Arena engine, in the form of "Q3Map2."
 #define MAX_NODE_ITEMS			5
 #define MAX_NODE_TRIANGLES		5
 #define MAX_TRACE_DEPTH			32
-#define MIN_NODE_SIZE			512 // Tr3B: was 32.0f which caused high memory consumption
+#define MIN_NODE_SIZE			32 // Tr3B: was 32.0f which caused high memory consumption
 
 #define GROW_TRACE_INFOS		32768	//% 4096
 #define GROW_TRACE_WINDINGS		65536	//% 32768
