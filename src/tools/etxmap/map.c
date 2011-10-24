@@ -2166,7 +2166,8 @@ static qboolean ParseMapEntity(qboolean onlyLights)
 	}
 
 	/* worldspawn (and func_groups) default to cast/recv shadows in worldspawn group */
-	if(funcGroup || mapEnt->mapEntityNum == 0)
+	// Tr3B: func_statics should receive shadows too
+	if(funcGroup || !Q_stricmp("func_static", classname) || mapEnt->mapEntityNum == 0)
 	{
 		//% Sys_Printf( "World:  %d\n", mapEnt->mapEntityNum );
 		castShadows = WORLDSPAWN_CAST_SHADOWS;
