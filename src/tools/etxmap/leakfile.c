@@ -76,7 +76,11 @@ void LeakFile(tree_t * tree)
 #endif
 
 	if(!tree->outside_node.occupied)
+	{
+#if defined(USE_XML)
 		return NULL;
+#endif
+	}
 
 	Sys_FPrintf(SYS_VRB, "--- LeakFile ---\n");
 
