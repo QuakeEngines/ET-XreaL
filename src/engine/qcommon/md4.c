@@ -43,8 +43,10 @@ typedef unsigned char *POINTER;
 typedef unsigned short int UINT2;
 
 /* UINT4 defines a four byte word */
-typedef unsigned long int UINT4;
-
+// XreaL BEGIN
+// Tr3B: was unsigned long int which did not work for 64 bit
+typedef unsigned int UINT4;
+// XreaL END
 
 /* MD4.H - header file for MD4C.C */
 

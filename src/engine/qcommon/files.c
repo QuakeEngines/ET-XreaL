@@ -1311,14 +1311,17 @@ int FS_FOpenFileRead(const char *filename, fileHandle_t * file, qboolean uniqueF
 					// for OS client/server interoperability, we expect binaries for .so and .dll to be in the same pk3
 					// so that when we reference the DLL files on any platform, this covers everyone else
 
+// XreaL BEGIN
 #if 0							// TTimo: use that stuff for shifted strings
 					Com_Printf("SYS_DLLNAME_QAGAME + %d: '%s'\n", SYS_DLLNAME_QAGAME_SHIFT,
-							   FS_ShiftStr("qagame_mp_x86.dll" /*"qagame.mp.i386.so" */ , SYS_DLLNAME_QAGAME_SHIFT));
+							   FS_ShiftStr("qagame.mp.x86_64.so" /*"qagame_mp_x86.dll"*/ /*"qagame.mp.i386.so" */ , SYS_DLLNAME_QAGAME_SHIFT));
 					Com_Printf("SYS_DLLNAME_CGAME + %d: '%s'\n", SYS_DLLNAME_CGAME_SHIFT,
-							   FS_ShiftStr("cgame_mp_x86.dll" /*"cgame.mp.i386.so" */ , SYS_DLLNAME_CGAME_SHIFT));
+							   FS_ShiftStr("cgame.mp.x86_64.so" /*"cgame_mp_x86.dll"*/ /*"cgame.mp.i386.so" */ , SYS_DLLNAME_CGAME_SHIFT));
 					Com_Printf("SYS_DLLNAME_UI + %d: '%s'\n", SYS_DLLNAME_UI_SHIFT,
-							   FS_ShiftStr("ui_mp_x86.dll" /*"ui.mp.i386.so" */ , SYS_DLLNAME_UI_SHIFT));
+							   FS_ShiftStr("ui.mp.x86_64.so" /*"ui_mp_x86.dll"*/ /*"ui.mp.i386.so" */ , SYS_DLLNAME_UI_SHIFT));
 #endif
+// XreaL END
+
 					// qagame dll
 					if(!(pak->referenced & FS_QAGAME_REF) &&
 					   FS_ShiftedStrStr(filename, SYS_DLLNAME_QAGAME, -SYS_DLLNAME_QAGAME_SHIFT))
@@ -2463,8 +2466,11 @@ static pack_t  *FS_LoadZipFile(char *zipfile, const char *basename)
 		unzGoToNextFile(uf);
 	}
 
-	pack->checksum = Com_BlockChecksum(fs_headerLongs, 4 * fs_numHeaderLongs);
-	pack->pure_checksum = Com_BlockChecksumKey(fs_headerLongs, 4 * fs_numHeaderLongs, LittleLong(fs_checksumFeed));
+	int sizeOfHeaderLongs = sizeof(*fs_headerLongs);
+	unsigned int checksum = Com_BlockChecksum(fs_headerLongs, sizeOfHeaderLongs * fs_numHeaderLongs);
+	unsigned int pure_checksum = Com_BlockChecksumKey(fs_headerLongs, sizeOfHeaderLongs * fs_numHeaderLongs, LittleLong(fs_checksumFeed));
+	pack->checksum = checksum;
+	pack->pure_checksum = pure_checksum;
 	pack->checksum = LittleLong(pack->checksum);
 	pack->pure_checksum = LittleLong(pack->pure_checksum);
 
@@ -3198,8 +3204,8 @@ void FS_Path_f(void)
 	{
 		if(s->pack)
 		{
-			//          Com_Printf( "%s %X (%i files)\n", s->pack->pakFilename, s->pack->checksum, s->pack->numfiles );
-			Com_Printf("%s (%i files)\n", s->pack->pakFilename, s->pack->numfiles);
+			Com_Printf( "%s %X %X (%i files)\n", s->pack->pakFilename, s->pack->checksum, s->pack->pure_checksum, s->pack->numfiles );
+			//Com_Printf("%s (%i files)\n", s->pack->pakFilename, s->pack->numfiles);
 			if(fs_numServerPaks)
 			{
 				if(!FS_PakIsPure(s->pack))
@@ -3514,7 +3520,7 @@ qboolean        CL_WWWBadChecksum(const char *pakname);
 qboolean FS_ComparePaks(char *neededpaks, int len, qboolean dlstring)
 {
 	searchpath_t   *sp;
-	qboolean        havepak, badchecksum;
+	qboolean        havepak;
 	int             i;
 
 	if(!fs_numServerReferencedPaks)
@@ -3527,7 +3533,6 @@ qboolean FS_ComparePaks(char *neededpaks, int len, qboolean dlstring)
 	for(i = 0; i < fs_numServerReferencedPaks; i++)
 	{
 		// Ok, see if we have this pak file
-		badchecksum = qfalse;
 		havepak = qfalse;
 
 		// never autodownload any of the id paks

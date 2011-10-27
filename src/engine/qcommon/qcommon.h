@@ -1385,6 +1385,21 @@ void            Com_GetHunkInfo(int *hunkused, int *hunkexpected);
 
 #elif defined( __linux__ )
 
+#if defined(__x86_64__)
+
+// qagame.mp.x86_64.so
+#define SYS_DLLNAME_QAGAME_SHIFT 6
+#define SYS_DLLNAME_QAGAME "wgmgsk4sv4~><e<:4yu"
+
+// cgame.mp.x86_64.so
+#define SYS_DLLNAME_CGAME_SHIFT 2
+#define SYS_DLLNAME_CGAME "eicog0or0z:8a860uq"
+
+// ui.mp.x86_64.so
+#define SYS_DLLNAME_UI_SHIFT 5
+#define SYS_DLLNAME_UI "zn3ru3}=;d;93xt"
+
+#else
 // qagame.mp.i386.so
 #define SYS_DLLNAME_QAGAME_SHIFT 6
 #define SYS_DLLNAME_QAGAME "wgmgsk4sv4o9><4yu"
@@ -1396,6 +1411,8 @@ void            Com_GetHunkInfo(int *hunkused, int *hunkexpected);
 // ui.mp.i386.so
 #define SYS_DLLNAME_UI_SHIFT 5
 #define SYS_DLLNAME_UI "zn3ru3n8=;3xt"
+
+#endif
 
 #elif __MACOS__
 
