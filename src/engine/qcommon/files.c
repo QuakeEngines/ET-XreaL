@@ -2381,6 +2381,12 @@ static pack_t  *FS_LoadZipFile(char *zipfile, const char *basename)
 	int             fs_numHeaderLongs;
 	int            *fs_headerLongs;
 	char           *namePtr;
+// XreaL BEGIN
+	// RB: added for debugging
+	int             sizeOfHeaderLongs;
+	unsigned int	checksum;
+	unsigned int	pure_checksum;
+// XreaL END
 
 	fs_numHeaderLongs = 0;
 
@@ -2466,11 +2472,13 @@ static pack_t  *FS_LoadZipFile(char *zipfile, const char *basename)
 		unzGoToNextFile(uf);
 	}
 
-	int sizeOfHeaderLongs = sizeof(*fs_headerLongs);
-	unsigned int checksum = Com_BlockChecksum(fs_headerLongs, sizeOfHeaderLongs * fs_numHeaderLongs);
-	unsigned int pure_checksum = Com_BlockChecksumKey(fs_headerLongs, sizeOfHeaderLongs * fs_numHeaderLongs, LittleLong(fs_checksumFeed));
+// XreaL BEGIN
+	sizeOfHeaderLongs = sizeof(*fs_headerLongs);
+	checksum = Com_BlockChecksum(fs_headerLongs, sizeOfHeaderLongs * fs_numHeaderLongs);
+	pure_checksum = Com_BlockChecksumKey(fs_headerLongs, sizeOfHeaderLongs * fs_numHeaderLongs, LittleLong(fs_checksumFeed));
 	pack->checksum = checksum;
 	pack->pure_checksum = pure_checksum;
+// XreaL END
 	pack->checksum = LittleLong(pack->checksum);
 	pack->pure_checksum = LittleLong(pack->pure_checksum);
 
