@@ -276,7 +276,7 @@ void Foliage(mapDrawSurface_t * src)
 		MatrixIdentity(rotation);
 
 		/* add the model to the bsp */
-		InsertModel(foliage->model, 0, transform, rotation, NULL, NULL, src->entityNum, src->castShadows, src->recvShadows, 0,
+		InsertModel(foliage->model, 0, 0, transform, rotation, NULL, NULL, src->entityNum, src->castShadows, src->recvShadows, 0,
 					src->lightmapScale, 0, 0);
 
 		/* walk each new surface */

@@ -717,7 +717,7 @@ void AddTriangleModel(entity_t * e)
 	const char     *name, *model, *value;
 	char            shader[MAX_QPATH];
 	shaderInfo_t   *celShader;
-	float           temp, baseLightmapScale, lightmapScale;
+	float           temp, lightmapScale;
 	float           shadeAngle;
 	int             lightmapSampleSize;
 	vec3_t          scale;

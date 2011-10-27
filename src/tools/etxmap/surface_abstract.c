@@ -3178,7 +3178,7 @@ int AddSurfaceModelsToTriangle_r(mapDrawSurface_t * ds, surfaceModel_t * model, 
 			}
 
 			/* insert the model */
-			InsertModel((char *)model->model, 0, transform, temp, NULL, ds->celShader, ds->entityNum, ds->castShadows, ds->recvShadows,
+			InsertModel((char *)model->model, 0, 0, transform, temp, NULL, ds->celShader, ds->entityNum, ds->castShadows, ds->recvShadows,
 						0, ds->lightmapScale, 0, 0);
 
 			/* return to sender */
