@@ -738,14 +738,14 @@ suggests a unique name for an entity
 const char     *UniqueEntityName(const entity_t * ent, const char *suggestion)
 {
 	int             i;
-	const char     *classname;
+	//const char     *classname;
 	const char     *uniquename;
 
-	classname = ValueForKey(ent, "classname");
+	//classname = ValueForKey(ent, "classname");
 
 	for(i = 0; i < 100000; i++)
 	{
-		uniquename = va("%s_%i", classname, i);
+		uniquename = va("%s_%i", suggestion, i);
 
 		if(HasUniqueEntityName(ent, uniquename))
 			return uniquename;
