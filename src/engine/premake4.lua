@@ -279,6 +279,8 @@ project "ETXreaL"
 		links
 		{
 			"GL",
+			"dl",
+			"m",
 		}
 		defines
 		{
