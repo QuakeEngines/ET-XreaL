@@ -1,7 +1,7 @@
 
 ___________________________________________________
 
-ETXreaL-0.3.0.7z
+ETXreaL-0.3.0-20111106.7z
 __________________________________________
 
 ETXreaL
@@ -22,7 +22,7 @@ ETXreaL
 	* Added Omni-bot 0.81 to default etmain game
 	* Defaulted com_maxfps to 125
 	* Rewrote HDR tone mapping to use correct RGB <-> XYZ <-> Yxy color space conversions
-	* Added GUID system to generate internal etkeys which are sent as cl_guid
+	* Added GUID system to generate etkeys which are sent as cl_guid
 	* Renamed r_dynamicLightCastShadows to r_dynamicLightShadows
 
 ETXMap
@@ -33,6 +33,7 @@ ETXMap
 	* Changed Unix home dir from .etwolf to .etxreal
 	
 ETMain
+	* Added over 1 GB new high resolution textures using diffuse, normal and specular material information
 	* Added replacement textures for battery and fueldump by Eonfge
 	* Added high quality skyboxes and models by AVOC
 	* Added fueldump additions by KeMoN
