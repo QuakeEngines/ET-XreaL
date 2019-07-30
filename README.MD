@@ -9,7 +9,7 @@ This is copy of ET-XreaL project. It's not in active development (since 2011), a
 ## Original links
 ET:XreaL official pages: [Sourceforge](https://sourceforge.net/projects/xreal/), [Moddb](https://www.moddb.com/mods/etxreal)  
 XreaL official website not currently working, but copy of it exists on [Web Archive](http://web.archive.org/web/20110131153542/http://xreal-project.net:80/).  
-[ET:XreaL source code](https://sourceforge.net/p/xreal/ET-XreaL) (cloned here), [XReaL Shader manual](https://tremap.xtr3m.net/__Games/Xreal/Manual_Shader_1/ShaderManual.htm) ([PDF](https://www.moddb.com/mods/etxreal/downloads/shader-manual)), [ETXRadiant](https://sourceforge.net/p/xreal/ET-XreaL_etxradiant/), [Omni-bot](https://sourceforge.net/p/xreal/ET-XreaL_omni-bot/ci/master/tree/)  
+[ET:XreaL source code](https://sourceforge.net/p/xreal/ET-XreaL) (cloned here), [XreaL Shader manual](https://tremap.xtr3m.net/__Games/Xreal/Manual_Shader_1/ShaderManual.htm) ([PDF](https://www.moddb.com/mods/etxreal/downloads/shader-manual)), [ETXRadiant](https://sourceforge.net/p/xreal/ET-XreaL_etxradiant/), [Omni-bot](https://sourceforge.net/p/xreal/ET-XreaL_omni-bot/ci/master/tree/)  
 
 Full engine package, including game files (1.5 Gb) you can download from [Sourceforge](https://sourceforge.net/projects/xreal/files/latest/download) or from [Moddb](https://www.moddb.com/mods/etxreal/downloads/etxreal-030)  
 Wolfenstein: Enemy Territory is free game, you can download it [here](https://www.splashdamage.com/games/wolfenstein-enemy-territory/)
