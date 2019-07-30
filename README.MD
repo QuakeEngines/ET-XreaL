@@ -6,8 +6,8 @@ This is copy of ET-XreaL project. It's not in active development (since 2011), a
 **ET:XreaL** is a subproject bringing all XreaL enhancements to Return to Castle Wolfenstein: Enemy Territory.
 
 ## Original links
-Official pages: [Sourceforge](https://sourceforge.net/projects/xreal/), [Moddb](https://www.moddb.com/mods/etxreal)  
-Official website not currently working, but copy of it exists on [Web Archive](http://web.archive.org/web/20110131153542/http://xreal-project.net:80/).  
+ET:XreaL official pages: [Sourceforge](https://sourceforge.net/projects/xreal/), [Moddb](https://www.moddb.com/mods/etxreal)  
+XreaL official website not currently working, but copy of it exists on [Web Archive](http://web.archive.org/web/20110131153542/http://xreal-project.net:80/).  
 ET:XreaL source code (cloned here) original page: https://sourceforge.net/p/xreal/ET-XreaL  
 Full engine package, including game files (1.5 Gb) you can download from [Sourceforge](https://sourceforge.net/projects/xreal/files/latest/download) or from [Moddb](https://www.moddb.com/mods/etxreal/downloads/etxreal-030)  
 Wolfenstein: Enemy Territory is free game, you can download it [here](https://www.splashdamage.com/games/wolfenstein-enemy-territory/)
