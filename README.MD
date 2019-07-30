@@ -40,7 +40,7 @@ ET:XreaL
 * Support for Omni-bot  
 * GUID system to generate internal etkeys which are sent as cl_guid  
   
-ETXMap  
+ET:XMap BSP Compiler
 * Based on q3map2 by Randy 'ydnar' Reddig including additional fixes by the NetRadiant edition  
 * Supports Doom 3 and Quake 4 .map formats  
 * Built-in mini BSP viewer using -draw  
