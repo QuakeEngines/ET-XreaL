@@ -5,6 +5,7 @@ This is copy of ET-XreaL project. It's not in active development (since 2011), a
 ## Description
 **XreaL** is a heavily improved Quake 3 Arena engine. It's bundled with new tools and a demo game that was never finished. 
 **ET:XreaL** is a subproject bringing all XreaL enhancements to Return to Castle Wolfenstein: Enemy Territory.
+P.S. Currently developing successor of ET:XreaL - [Daemon Engine](https://github.com/DaemonEngine/Daemon)
 
 ## Original links
 ET:XreaL official pages: [Sourceforge](https://sourceforge.net/projects/xreal/), [Moddb](https://www.moddb.com/mods/etxreal) / Old thread on [Splashdamage forums](https://forums.splashdamage.com/t/et-xreal/129344/17)  
