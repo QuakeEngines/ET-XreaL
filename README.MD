@@ -8,7 +8,7 @@ P.S. Currently developing successors of ET:XreaL - [Daemon Engine](https://githu
 **ET:XreaL** is a subproject bringing all XreaL enhancements to Return to Castle Wolfenstein: Enemy Territory.  
 
 ## Original links
-ET:XreaL official pages: [Sourceforge](https://sourceforge.net/projects/xreal/), [Moddb](https://www.moddb.com/mods/etxreal) / Old thread on [Splashdamage forums](https://forums.splashdamage.com/t/et-xreal/129344/17)  
+ET:XreaL official pages: [Sourceforge](https://sourceforge.net/projects/xreal/), [Moddb](https://www.moddb.com/mods/etxreal) / Old threads on Splashdamage forums: 1(https://forums.splashdamage.com/t/et-xreal/), [2](https://forums.splashdamage.com/t/etxreal-0-3-0/)  
 XreaL official website not currently working, but copy of it exists on [Web Archive](http://web.archive.org/web/20110131153542/http://xreal-project.net:80/).  
 [ET:XreaL source code](https://sourceforge.net/p/xreal/ET-XreaL) (cloned here), [XreaL Shader manual](https://tremap.xtr3m.net/__Games/Xreal/Manual_Shader_1/ShaderManual.htm) ([PDF](https://www.moddb.com/mods/etxreal/downloads/shader-manual)), [ETXRadiant](https://sourceforge.net/p/xreal/ET-XreaL_etxradiant/), [Omni-bot](https://sourceforge.net/p/xreal/ET-XreaL_omni-bot/ci/master/tree/), [Texture Guidelines](http://web.archive.org/web/20100115044416/http://redmine.xreal-project.net/projects/xreal/wiki/Texture_Guidelines)
 
