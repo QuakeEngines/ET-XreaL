@@ -1,4 +1,4 @@
-![Screenshot, Goldrush Work in Progress](https://github.com/QuakeEngines/ET-XreaL-clone/blob/master/screenshot.jpg)
+![Screenshot, Goldrush Work in Progress](https://github.com/QuakeEngines/ET-XreaL/raw/master/screenshot.jpg)
 # ET-XreaL clone
 This is copy of ET-XreaL project. It's not in active development (since 2011), and I am not its author. I simply cloned it to Github for convenience. Original readme file, containing full description and installation instructions is "**[readme.txt](https://github.com/QuakeEngines/ET-XreaL-clone/blob/master/README.txt)**".  
 P.S. Currently developing successors of ET:XreaL - [Daemon Engine](https://github.com/DaemonEngine/Daemon), [OpenWolf Engine](https://github.com/TheDushan/OpenWolf-Engine)   
